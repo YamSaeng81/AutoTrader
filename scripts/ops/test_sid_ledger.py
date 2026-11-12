@@ -265,7 +265,7 @@ check("포지션 한도 자동 정지·공유 풀 손실 한도 차단 — 각�
       and l5["공유 풀 손실 한도(진입 차단)"]["n"] == "1" and l5["세션 최종 상태"]["n"] == "STOPPED", R["L5"])
 
 # 5. §5-8 F5-3 완료 조회 — 문서에서 그대로 꺼내 돌린다. 최종 상태는 STOPPED 또는 EMERGENCY_STOPPED (리뷰 2026-10-31 보완 4)
-PLAN = os.path.join(HERE, "..", "..", "docs", "LIMITED_LIVE_TEST_PLAN.md")
+PLAN = os.path.join(HERE, "..", "..", "docs", "LIMITED_LIVE_TEST_RUNBOOK.md")
 _doc = open(PLAN, encoding="utf-8").read()
 _i = _doc.index('$PSQL -At -F \' | \' -c "SELECT *, CASE WHEN status IN')
 _q = _doc[_doc.index('"', _i) + 1:_doc.index(' x" | tee "$E/stop-check.txt"', _i) + 2]

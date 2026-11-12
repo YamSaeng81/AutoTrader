@@ -1,0 +1,157 @@
+{
+  "review_date_kst": "2026-11-13",
+  "review_type": "Read-only source, committed-blob checksums, supplied XML recount, actual local jar comparison. No Gradle/PG/browser/production execution by reviewer.",
+  "candidate": "4a4a04a304fe22555fbeacd904175a84598af015",
+  "manifests": [
+    {
+      "source_commit": "b0859306",
+      "manifest": "docs/evidence/v158-20261112/SHA256SUMS",
+      "entries": 1326,
+      "blob_mismatches": []
+    },
+    {
+      "source_commit": "b0859306",
+      "manifest": "docs/evidence/v157-20261112/SHA256SUMS",
+      "entries": 302,
+      "blob_mismatches": []
+    }
+  ],
+  "changed_paths_from_1eed27d1": [
+    "web-api/src/test/java/com/cryptoautotrader/api/service/SubmitOrderBoundaryProbeTest.java"
+  ],
+  "source_sha256_at_candidate": {
+    "web-api/src/test/java/com/cryptoautotrader/api/service/SubmitOrderBoundaryProbeTest.java": "276c3343a85d1fc345cd23244ed15e5b5a71e0010e74774b2d17482820372f18",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/OrderExecutionEngine.java": "ea6c727f1081750fa55c414c5f0d476c646dd36e2fcaafb950105896926e7cff",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/RiskManagementService.java": "e87879c9413c3fc8f8a761be9caa7b103ad197b03f7e197f0b5fc0e5e837d47e",
+    "web-api/src/main/java/com/cryptoautotrader/api/repository/OrderRepository.java": "41aa84b0491d9fb59147db78bc6cce1776d4b838536b1d274b15929a2c434e2d",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java": "a438d116f592e7fe7cedc6fdfb45646a953d19c487bef489d2fff7cd12dab984",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/CandleFreshnessGuard.java": "b51b991afa015b2372237bbd997b7b505c741274044f5ff5ca9d5364b7ec311b"
+  },
+  "supplied_xml_recount": {
+    "int-full2-1eed27d1": {
+      "core-engine": {
+        "tests": 298,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 7
+      },
+      "exchange-adapter": {
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "strategy-lib": {
+        "tests": 113,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "web-api": {
+        "tests": 1354,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 71
+      }
+    },
+    "new-related-4a4a04a3": {
+      "xml": {
+        "tests": 312,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 11
+      }
+    },
+    "new-pg-closing": {
+      "web-api": {
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    "new-pg-loss3": {
+      "web-api": {
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    "new-pg-lossold": {
+      "web-api": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    "new-pg-lw": {
+      "web-api": {
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    "new-pg-phantom": {
+      "web-api": {
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    "probe-new": {
+      "xml": {
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    "probe-new-before": {
+      "xml": {
+        "tests": 1,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 0
+      }
+    }
+  },
+  "comparator_sha256": "56f5d3bab560f064ccec049fb92563b3d2a3ddfde06908da4e31a51b33383046",
+  "actual_jar_comparisons": [
+    {
+      "comparison": "production",
+      "old_sha256": "a7ef759f86c6048b442b1fe37019ed2560fd87453fbea8991a67f49d8d28c79f",
+      "new_sha256": "0834382ab008e1b203b6f74718799dc183e63b2c3cf9d67b6c974b6c30c5e100",
+      "matches_submitted_output": true,
+      "counts": {
+        "변경": 48,
+        "추가": 14
+      },
+      "tail": "(끝) 881 895"
+    },
+    {
+      "comparison": "baseline84",
+      "old_sha256": "71f105a237f620d0e89f89b7132660da883869e8739973c4f5a46bf6fbce1584",
+      "new_sha256": "0834382ab008e1b203b6f74718799dc183e63b2c3cf9d67b6c974b6c30c5e100",
+      "matches_submitted_output": true,
+      "counts": {
+        "변경": 24,
+        "추가": 4
+      },
+      "tail": "(끝) 891 895"
+    }
+  ],
+  "verification_note": "First manifest attempt passed unnormalized ./ paths to git cat-file and returned missing for v157; normalized paths before this recorded verification. Source files and historical manifests were unchanged.",
+  "outstanding": [
+    "Final fixed-SHA full regression",
+    "Console/XML 10 skipped-case count difference",
+    "Final-source mandatory PG matrix",
+    "Frontend build and API/rollback compatibility",
+    "Preflight SQL/product numeric parity and fail-closed deployment gate",
+    "Old binary actual start with V96 and semantic rollback gate",
+    "F5-3 extraction path correction in a new command source"
+  ]
+}

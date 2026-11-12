@@ -12,7 +12,7 @@
        F5-4: 설치본과 같은 해시의 장부 SQL(8bfe8a9) → 출력 보존
   ⑦ 거래소 주문 호출 수(매수 1 · 매도 1) · 강제 종료 · 재기동 뒤 기록 전체 그대로
 
-실행: RT_WORK=<빈 폴더> RT_PLAN_DOC=<계획 문서> RT_F53_EXEC=<W4 f53.exec.sh> RT_LEDGER_SQL=<sid_ledger.sql> RT_REPO=<main 저장소> python rehearse_w3.py
+실행: RT_WORK=<빈 폴더> RT_PLAN_DOC=<LIMITED_LIVE_TEST_RUNBOOK.md> RT_F53_EXEC=<W4 f53.exec.sh> RT_LEDGER_SQL=<sid_ledger.sql> RT_REPO=<main 저장소> python rehearse_w3.py
 """
 import hashlib
 import json
@@ -32,6 +32,13 @@ if os.listdir(rt.WORK):
     raise SystemExit(f'증거 폴더가 비어 있지 않다 — 새 폴더를 RT_WORK 로 준다: {rt.WORK}')
 
 PLAN = os.environ['RT_PLAN_DOC']
+# 분리 전의 계획서 경로를 지정한 기존 로컬 호출도 실행 절차로 연결한다.
+_runbook = os.path.join(os.path.dirname(PLAN), 'LIMITED_LIVE_TEST_RUNBOOK.md')
+if os.path.basename(PLAN) == 'LIMITED_LIVE_TEST_PLAN.md' and os.path.isfile(_runbook):
+    PLAN = _runbook
+PLAN_HISTORY = os.path.join(os.path.dirname(PLAN), 'LIMITED_LIVE_TEST_PLAN_ARCHIVE_20261112.md')
+if not os.path.isfile(PLAN_HISTORY):
+    PLAN_HISTORY = PLAN
 F53_EXEC = os.environ['RT_F53_EXEC']
 LEDGER_SQL = os.environ['RT_LEDGER_SQL']
 REPO = os.environ['RT_REPO'].replace('\\', '/')
@@ -323,7 +330,7 @@ try:
     rt.psql("UPDATE risk_config SET max_daily_loss_pct = 3.0, max_portfolio_drawdown_pct = 15.0 WHERE id = (SELECT max(id) FROM risk_config)")
     seed_cache(ANCHOR, (int(time.time()) // 3600) * 3600)
     rt.psql(f"SELECT setval(pg_get_serial_sequence('live_trading_session', 'id'), {SID - 1})")
-    body_line = next(l for l in open(PLAN, encoding='utf-8') if l.strip().startswith("-d '{\"strategyType\":\"DAILY_SMA20\""))
+    body_line = next(l for l in open(PLAN_HISTORY, encoding='utf-8') if l.strip().startswith("-d '{\"strategyType\":\"DAILY_SMA20\""))
     body = json.loads(body_line.strip()[len("-d '"):body_line.strip().rindex("'")])
     created = api_json('POST', '/api/v1/trading/sessions', body)
     rt.log(f'  생성 응답: {json.dumps(created, ensure_ascii=False)[:300]}')

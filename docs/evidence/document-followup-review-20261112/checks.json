@@ -1,0 +1,58 @@
+{
+  "date": "2026-11-12",
+  "scope": "Local document structure, links, and F3 extraction; no production or regression execution",
+  "after_edit_lines": {
+    "README.md": 173,
+    "AGENTS.md": 8,
+    "CLAUDE.md": 5,
+    "docs/START_HERE.md": 36,
+    "docs/LIMITED_LIVE_TEST_PLAN.md": 123,
+    "docs/CURRENT_HANDOFF.md": 29,
+    "docs/PROGRESS.md": 38,
+    "docs/LIVE_READINESS.md": 46,
+    "docs/NOVEMBER_LIVE_UPGRADE.md": 56,
+    "docs/OPS_DAILY_CHECK.md": 209,
+    "docs/LIMITED_LIVE_TEST_RUNBOOK.md": 602,
+    "docs/README.md": 41,
+    "docs/NEXT.md": 5,
+    "docs/OVERNIGHT_20261111_HANDOFF.md": 9
+  },
+  "local_links_checked": 125,
+  "missing_local_paths": [],
+  "preserved_f_blocks": {
+    "archive_f_count": 15,
+    "runbook_f_count": 15,
+    "raw_bytes_equal": true
+  },
+  "F3_extraction": {
+    "docs/LIMITED_LIVE_TEST_PLAN.md": {
+      "exit_code": 0,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_bytes": 0
+    },
+    "docs/LIMITED_LIVE_TEST_RUNBOOK.md": {
+      "exit_code": 0,
+      "bytes": 12376,
+      "sha256": "bb86fb397da00523f564a8f02a1960c98bb1ac03887629fe74372990929fa2bb",
+      "stderr_bytes": 0
+    }
+  },
+  "verification_attempts": [
+    {
+      "attempt": 1,
+      "result": "Audit range selection error: included intervention section 5-9 and counted 137 archive blocks; no file was written by this attempt."
+    },
+    {
+      "attempt": 2,
+      "result": "Restricted original F range to before section 5-9; 15/15 raw block bodies identical."
+    }
+  ],
+  "not_done": [
+    "Full semantic review of every design document",
+    "F5-3 command rewrite or execution",
+    "Production access",
+    "Gradle or PG tests",
+    "Commit or push"
+  ]
+}

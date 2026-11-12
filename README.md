@@ -1,5 +1,7 @@
 # Crypto Auto Trader
 
+현재 운영·개발 작업을 이어갈 때는 [작업 시작 안내](docs/START_HERE.md)와 [현재 계획](docs/LIMITED_LIVE_TEST_PLAN.md)을 먼저 읽는다. 상세 문서는 맡은 작업에 해당하는 절만 확인하며, 과거 이력은 현재 지시와 구분한다.
+
 업비트(Upbit) 현물 자동매매 시스템. 전략 백테스터가 아니라 **운영형 시스템**이다 — 캔들 수집,
 전략 평가, 백테스트·Walk-forward 검증, 모의/실거래 세션, 주문 상태 관리, 리스크 통제,
 LLM 분석·리포트, 대시보드, 모니터링, 배포까지 한 제품으로 묶여 있다.
@@ -131,8 +133,10 @@ UI에서 고친 내용은 컨테이너 볼륨에만 남고 재기동 시 덮어�
 
 | 문서 | 내용 |
 |---|---|
+| [`docs/START_HERE.md`](docs/START_HERE.md) | **현재 작업의 시작점 — 필요한 문서만 읽는 순서** |
+| [`docs/LIMITED_LIVE_TEST_PLAN.md`](docs/LIMITED_LIVE_TEST_PLAN.md) | 현재 운영·후보·남은 작업·일정 |
 | [`docs/README.md`](docs/README.md) | **문서 색인 — 어느 문서를 믿어도 되는지 분류** |
-| [`PROJECT_STRUCTURE_ANALYSIS.md`](PROJECT_STRUCTURE_ANALYSIS.md) | 저장소 전체 구조 분석 — 새로 왔다면 여기부터 |
+| [`PROJECT_STRUCTURE_ANALYSIS.md`](PROJECT_STRUCTURE_ANALYSIS.md) | 저장소 구조 참조 — 필요한 모듈만 확인 |
 | [`docs/ENGINE_PARITY.md`](docs/ENGINE_PARITY.md) | 4엔진 정합성 매트릭스와 사고 이력 |
 | [`docs/DESIGN.md`](docs/DESIGN.md) | 초기 아키텍처와 설계 의도 |
 | [`docs/PROGRESS.md`](docs/PROGRESS.md) | 작업 진행 및 운영 맥락 |
@@ -142,10 +146,10 @@ UI에서 고친 내용은 컨테이너 볼륨에만 남고 재기동 시 덮어�
 
 ### 문서를 믿어도 되는가
 
-2026-09-15 에 문서를 셋으로 나눴다 — **현행** / **시점 한계가 있는 참조** / **이력**.
-분류와 각 문서의 한계는 [`docs/README.md`](docs/README.md) 에 있고, 낡은 문서는 열면
-최상단에 경고 배너가 보인다. 과거 기록은 [`docs/archive/`](docs/archive/README.md) 와
-[`docs/old/`](docs/old/README.md) 에 모아 두었다.
+현재 상태·실행 원문·고정 계약/설계·과거 이력을 구분한다. 분류와 읽을 범위는
+[`docs/START_HERE.md`](docs/START_HERE.md)와 [`docs/README.md`](docs/README.md)를 따른다.
+2026-11-12 분리 전 원문은 `docs/*_ARCHIVE_20261112.md`, 더 이른 이력은
+[`docs/archive/`](docs/archive/README.md)와 [`docs/old/`](docs/old/README.md)에 보존한다.
 
 낡은 문서가 현행처럼 읽혀 실제로 잘못된 근거가 인용된 적이 있다. **의심되면 문서보다
 코드와 테스트를 믿을 것.**

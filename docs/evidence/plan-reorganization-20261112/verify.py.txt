@@ -1,0 +1,108 @@
+from pathlib import Path
+import ast
+import hashlib
+import json
+import os
+import re
+import subprocess
+
+root = Path(__file__).resolve().parents[2]
+docs = root / 'docs'
+ev = docs / 'evidence/plan-reorganization-20261112'
+archive = (docs / 'LIMITED_LIVE_TEST_PLAN_ARCHIVE_20261112.md').read_text(encoding='utf-8')
+runbook = (docs / 'LIMITED_LIVE_TEST_RUNBOOK.md').read_text(encoding='utf-8')
+current = (docs / 'LIMITED_LIVE_TEST_PLAN.md').read_text(encoding='utf-8')
+audit = json.loads((ev / 'audit.json').read_text(encoding='utf-8'))
+checks = []
+
+def check(name, condition):
+    checks.append({'name': name, 'passed': bool(condition)})
+    assert condition, name
+
+check('full original bytes retained', hashlib.sha256((docs / 'LIMITED_LIVE_TEST_PLAN_ARCHIVE_20261112.md').read_bytes()).hexdigest() == audit['archive']['sha256'])
+f_old = archive[archive.index('**F0. 비용 조건'):archive.index('### 5-9. 11월 실운영 준비')]
+check('F15 bodies and order identical', re.findall(r'```bash\n(.*?)\n```', f_old, re.S) == re.findall(r'```bash\n(.*?)\n```', runbook, re.S))
+check('all 149 historical bash blocks preserved', len(re.findall(r'```bash\n(.*?)\n```', archive, re.S)) == 149)
+check('current plan has no executable blocks', '```' not in current)
+
+syntax = []
+for i, block in enumerate(re.findall(r'```bash\n(.*?)\n```', runbook, re.S), 1):
+    raw = subprocess.run(['C:/Program Files/Git/bin/bash.exe', '--noprofile', '--norc', '-n'], input=(block + '\n').encode(), capture_output=True)
+    prepared = block.replace('SHA=<리뷰가 확인한 커밋 SHA>', 'SHA=syntax-only')
+    r = subprocess.run(['C:/Program Files/Git/bin/bash.exe', '--noprofile', '--norc', '-n'], input=(prepared + '\n').encode(), capture_output=True)
+    syntax.append({'block': i, 'raw_rc': raw.returncode, 'raw_stderr': raw.stderr.decode('utf-8', 'replace'), 'placeholder_prepared': prepared != block, 'prepared_rc': r.returncode})
+    check(f'F bash syntax {i} (source-SHA placeholder prepared only for syntax)', r.returncode == 0)
+(ev / 'bash-syntax.json').write_text(json.dumps(syntax, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+
+for p in [docs / 'LIMITED_LIVE_TEST_PLAN.md', docs / 'LIMITED_LIVE_TEST_RUNBOOK.md']:
+    for link in re.findall(r'\]\(([^)]+)\)', p.read_text(encoding='utf-8')):
+        if re.match(r'^https?://', link):
+            continue
+        target = link.split('#')[0]
+        if target:
+            check(f'local link {p.name}: {target}', (p.parent / target).exists())
+
+changed_scripts = [
+    'scripts/ops/test_start_gate.py', 'scripts/ops/test_cron_switch.py',
+    'scripts/ops/test_sid_ledger.py', 'scripts/restart-test/rehearse_sma20.py',
+    'scripts/restart-test/rehearse_w3.py',
+]
+for path in changed_scripts:
+    source = (root / path).read_text(encoding='utf-8')
+    compile(source, path, 'exec')
+    check(f'Python syntax: {path}', True)
+
+# Execute only source selection assignments and pure extraction functions.
+# Do not import the rehearsal drivers: importing them would start the app/PG work.
+for filename in ['rehearse_sma20.py', 'rehearse_w3.py']:
+    source = (root / 'scripts/restart-test' / filename).read_text(encoding='utf-8')
+    tree = ast.parse(source)
+    nodes = []
+    started = False
+    for node in tree.body:
+        if isinstance(node, ast.Assign) and any(isinstance(t, ast.Name) and t.id == 'PLAN' for t in node.targets):
+            started = True
+        if started:
+            if isinstance(node, ast.Assign) and any(isinstance(t, ast.Name) and t.id in ('SID', 'F53_EXEC') for t in node.targets):
+                break
+            nodes.append(node)
+    saved = os.environ.get('RT_PLAN_DOC')
+    try:
+        os.environ['RT_PLAN_DOC'] = str(docs / 'LIMITED_LIVE_TEST_PLAN.md')
+        ns = {'os': os}
+        exec(compile(ast.Module(body=nodes, type_ignores=[]), filename, 'exec'), ns)
+    finally:
+        if saved is None:
+            os.environ.pop('RT_PLAN_DOC', None)
+        else:
+            os.environ['RT_PLAN_DOC'] = saved
+    check(f'{filename}: legacy env path resolves to runbook', Path(ns['PLAN']).name == 'LIMITED_LIVE_TEST_RUNBOOK.md')
+    check(f'{filename}: create body resolves to archive', Path(ns['PLAN_HISTORY']).name == 'LIMITED_LIVE_TEST_PLAN_ARCHIVE_20261112.md')
+    fun = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == 'doc_block')
+    exec(compile(ast.Module(body=[fun], type_ignores=[]), filename, 'exec'), ns)
+    markers = ['**F 변수**', '**F1.', '**F2.', '**F3.', '**F5. 56일', '**F5-1.', '**F5-2.', '**F5-4.']
+    for marker in markers:
+        actual = ns['doc_block'](marker)
+        ns['PLAN'] = str(docs / 'LIMITED_LIVE_TEST_PLAN_ARCHIVE_20261112.md')
+        old = ns['doc_block'](marker)
+        ns['PLAN'] = str(docs / 'LIMITED_LIVE_TEST_RUNBOOK.md')
+        check(f'{filename}: original extraction {marker}', actual == old)
+    old_body = next(l for l in archive.splitlines() if l.strip().startswith("-d '{\"strategyType\":\"DAILY_SMA20\""))
+    new_body = next(l for l in Path(ns['PLAN_HISTORY']).read_text(encoding='utf-8').splitlines() if l.strip().startswith("-d '{\"strategyType\":\"DAILY_SMA20\""))
+    check(f'{filename}: session JSON unchanged', old_body == new_body)
+
+def stop_sql(doc):
+    i = doc.index('$PSQL -At -F \' | \' -c "SELECT *, CASE WHEN status IN')
+    return doc[doc.index('"', i) + 1:doc.index(' x" | tee "$E/stop-check.txt"', i) + 2]
+
+check('ledger test extracts identical F5-3 SQL', stop_sql(archive) == stop_sql(runbook))
+for d in [archive, runbook]:
+    tail = d[d.index('- 시작 확인(1분 뒤'):]
+    if d is archive:
+        old_start = tail.split('```bash')[1].split('```')[0]
+    else:
+        check('rehearsals extract identical start check', old_start == tail.split('```bash')[1].split('```')[0])
+
+summary = {'checks': len(checks), 'passed': sum(c['passed'] for c in checks), 'failed': 0, 'scope': 'read-only source selection, syntax, local links, byte and SQL comparisons; no imports/app/PG/production calls', 'results': checks}
+(ev / 'verification.json').write_text(json.dumps(summary, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+print(json.dumps({k: v for k, v in summary.items() if k != 'results'}, ensure_ascii=False))

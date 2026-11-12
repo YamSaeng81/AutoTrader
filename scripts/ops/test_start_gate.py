@@ -13,7 +13,7 @@ import sys
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
-DOC = ROOT / "docs/LIMITED_LIVE_TEST_PLAN.md"
+DOC = ROOT / "docs/LIMITED_LIVE_TEST_RUNBOOK.md"
 BUILD = ROOT / "core-engine/build"
 BASH = os.environ.get("BASH_EXE") or (
     r"C:\Program Files\Git\bin\bash.exe" if os.name == "nt" else shutil.which("bash")

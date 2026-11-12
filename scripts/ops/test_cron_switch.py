@@ -194,7 +194,7 @@ check("교체 적용 뒤 대조 실패 — 🔴 되돌리기 안내 · ✅ 없�
       rc != 0 and "🔴 적용 뒤 대조 실패" in out and "crontab.before-sidok" in out and "✅" not in out, (rc, out))
 
 # ── 2026-10-31 리뷰(장부 보완 뒤): LIMITED_LIVE_TEST_PLAN §5-9 9 "장부 기록 cron 줄 추가" — 09:30 set -C 줄 1개만 덧붙임 ──
-PLAN = os.path.join(HERE, "..", "..", "docs", "LIMITED_LIVE_TEST_PLAN.md")
+PLAN = os.path.join(HERE, "..", "..", "docs", "LIMITED_LIVE_TEST_PLAN_ARCHIVE_20261112.md")
 
 
 def block_ledger():
@@ -245,7 +245,8 @@ check("장부 줄 적용 뒤 대조 실패 — 🔴 되돌리기 안내 · ✅ �
       rc != 0 and "🔴 적용 뒤 대조 실패" in out and "crontab.before-ledger" in out and "✅" not in out, (rc, out))
 
 # 2026-11-01 리뷰 3번: 시작 순서 F2-1 — 계획 문서의 블록을 그대로 꺼내, 리뷰 커밋에서 §3-1 을 꺼내는 줄(git show)만 이 저장소의 문서를 읽도록 바꿔 돌린다.
-_f21 = _plan[_plan.index("**F2-1. "):]
+_runbook = open(os.path.join(HERE, "..", "..", "docs", "LIMITED_LIVE_TEST_RUNBOOK.md"), encoding="utf-8").read()
+_f21 = _runbook[_runbook.index("**F2-1. "):]
 F21 = re.search(r"```bash\n(.*?)\n```", _f21, re.S).group(1)
 GIT_LINE = 'git fetch origin && git show "$SHA":docs/OPS_DAILY_CHECK.md'
 check("F2-1 — 블록에 리뷰 커밋에서 §3-1 을 꺼내는 줄이 1개", F21.count(GIT_LINE) == 1, F21)

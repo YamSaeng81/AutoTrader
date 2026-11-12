@@ -11,7 +11,7 @@
 F1 의 운영 전용 줄(git HEAD · 이미지 · backend env · 66세션 · 경보 · 텔레그램)과 F2 의 날짜·08:50 창·운영자 확인 파일 줄은
 실행하지 않고, 뺀 줄을 로그에 그대로 남긴다.
 
-실행: RT_WORK=<증거 폴더> RT_PLAN_DOC=<main 의 docs/LIMITED_LIVE_TEST_PLAN.md> python rehearse_sma20.py
+실행: RT_WORK=<증거 폴더> RT_PLAN_DOC=<main 의 docs/LIMITED_LIVE_TEST_RUNBOOK.md> python rehearse_sma20.py
 """
 import json
 import os
@@ -31,6 +31,13 @@ if os.listdir(rt.WORK):
     raise SystemExit(f'증거 폴더가 비어 있지 않다 — 새 폴더를 RT_WORK 로 준다: {rt.WORK}')
 
 PLAN = os.environ['RT_PLAN_DOC']
+# 2026-11-12 문서 분리: 종전 계획서 경로도 같은 폴더의 실행 절차로 연결한다.
+_runbook = os.path.join(os.path.dirname(PLAN), 'LIMITED_LIVE_TEST_RUNBOOK.md')
+if os.path.basename(PLAN) == 'LIMITED_LIVE_TEST_PLAN.md' and os.path.isfile(_runbook):
+    PLAN = _runbook
+PLAN_HISTORY = os.path.join(os.path.dirname(PLAN), 'LIMITED_LIVE_TEST_PLAN_ARCHIVE_20261112.md')
+if not os.path.isfile(PLAN_HISTORY):
+    PLAN_HISTORY = PLAN  # 분리 전 고정 작업 사본의 자체 생성 본문을 사용한다.
 SID = 203
 COIN = 'KRW-BTC'
 P = 12_250_000          # 마감 봉 종가 = 체결가. 매수 19,600 ÷ P = 0.0016 BTC 로 나누어떨어진다
@@ -328,7 +335,7 @@ try:
         "SELECT max_daily_loss_pct = 3.0 AND max_portfolio_drawdown_pct = 15.0 FROM risk_config ORDER BY id DESC LIMIT 1") == 't')
     seed_cache(anchor, (int(time.time()) // 3600) * 3600)
     rt.psql(f"SELECT setval(pg_get_serial_sequence('live_trading_session', 'id'), {SID - 1})")
-    body_line = next(l for l in open(PLAN, encoding='utf-8') if l.strip().startswith("-d '{\"strategyType\":\"DAILY_SMA20\""))
+    body_line = next(l for l in open(PLAN_HISTORY, encoding='utf-8') if l.strip().startswith("-d '{\"strategyType\":\"DAILY_SMA20\""))
     body = json.loads(body_line.strip()[len("-d '"):body_line.strip().rindex("'")])
     rt.log(f'  생성 본문(문서): {body}')
     created = api_json('POST', '/api/v1/trading/sessions', body)

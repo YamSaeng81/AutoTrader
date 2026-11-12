@@ -1,0 +1,780 @@
+{
+  "checks": 189,
+  "passed": 189,
+  "failed": 0,
+  "inventory_files": 316,
+  "inventory_by_kind": {
+    "working_or_reference": 69,
+    "history": 39,
+    "generated": 1,
+    "evidence": 207
+  },
+  "five_management_docs": {
+    "before_lines": 5373,
+    "after_lines": 357,
+    "before_bytes": 1056378,
+    "after_bytes": 38677,
+    "byte_reduction_pct": 96.34
+  },
+  "local_links": 100,
+  "preserved_archives": 7,
+  "fixed_contracts_references_unchanged": 10,
+  "checks_detail": [
+    {
+      "name": "preserved raw bytes docs/PROGRESS.md",
+      "passed": true
+    },
+    {
+      "name": "preserved raw bytes docs/LIVE_READINESS.md",
+      "passed": true
+    },
+    {
+      "name": "preserved raw bytes docs/NOVEMBER_LIVE_UPGRADE.md",
+      "passed": true
+    },
+    {
+      "name": "preserved raw bytes docs/OPS_DAILY_CHECK.md",
+      "passed": true
+    },
+    {
+      "name": "preserved raw bytes docs/OVERNIGHT_20261111_HANDOFF.md",
+      "passed": true
+    },
+    {
+      "name": "preserved raw bytes docs/NEXT.md",
+      "passed": true
+    },
+    {
+      "name": "preserved raw bytes docs/README.md",
+      "passed": true
+    },
+    {
+      "name": "fixed contract/reference unchanged docs/B_VALIDATION_PREREG.md",
+      "passed": true
+    },
+    {
+      "name": "fixed contract/reference unchanged docs/EXIT_PATH_STUDY_PREREG.md",
+      "passed": true
+    },
+    {
+      "name": "fixed contract/reference unchanged docs/LIVE_ENTRY_PREREG.md",
+      "passed": true
+    },
+    {
+      "name": "fixed contract/reference unchanged docs/LIVE_ENTRY_PREREG_TSMOM.md",
+      "passed": true
+    },
+    {
+      "name": "fixed contract/reference unchanged docs/SIGNAL_STUDY_PREREG.md",
+      "passed": true
+    },
+    {
+      "name": "fixed contract/reference unchanged docs/SUPERTREND_FILTER_PREREG.md",
+      "passed": true
+    },
+    {
+      "name": "fixed contract/reference unchanged docs/SUPERTREND_VALIDATION_PREREG.md",
+      "passed": true
+    },
+    {
+      "name": "fixed contract/reference unchanged docs/LIVE_RISK_IMPLEMENTATION_REVIEW.md",
+      "passed": true
+    },
+    {
+      "name": "fixed contract/reference unchanged docs/UNKNOWN_ORDER_STATE_DESIGN.md",
+      "passed": true
+    },
+    {
+      "name": "fixed contract/reference unchanged docs/DESIGN.md",
+      "passed": true
+    },
+    {
+      "name": "OPS bash7 identical",
+      "passed": true
+    },
+    {
+      "name": "OPS entire sections1-5 identical",
+      "passed": true
+    },
+    {
+      "name": "OPS extracted section3-1 identical",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged review-60777286/attempt1-closing-race.txt",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged review-60777286/attempt1-probe-result.json",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged review-60777286/attempt1-ReviewClosingSubmissionRaceTest.java",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged review-60777286/audit.json",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged review-60777286/closing-race.txt",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged review-60777286/doc-check.json",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged review-60777286/javac-retry.txt",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged review-60777286/javac.txt",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged review-60777286/prepare.py.txt",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged review-60777286/probe-result.json",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged review-60777286/README.md",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged review-60777286/record.py.txt",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged review-60777286/retry_probe.py.txt",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged review-60777286/review.json",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged review-60777286/ReviewClosingSubmissionRaceTest.java",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged review-60777286/ReviewLauncher.java",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged review-60777286/run.py.txt",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged review-60777286/source/AB-preflight.diff",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged review-60777286/source/barriers.diff",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged review-60777286/source/CleanupReconcileRaceDiagTest.java.txt",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged review-60777286/source/phantom.diff",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged review-60777286/source/RealtimeProtectLines.java",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged review-60777286/source/throttle.diff",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged review-60777286/submitted/ab4-main/summary.txt",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged review-60777286/submitted/draingap-fix/summary.txt",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged review-60777286/submitted/phantom-before-pg-run2/summary.txt",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged review-60777286/submitted/phantom-rel-h2/summary.txt",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged review-60777286/submitted/phantom-rel-losswin-pg/summary.txt",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged review-60777286/submitted/phantom-rel-partial-pg/summary.txt",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged review-60777286/submitted/phantom-step1-accumulate-pg/summary.txt",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged review-60777286/submitted/phantom-step2-within-pg/summary.txt",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged review-60777286/submitted/phantom-step2-within-pg/TEST-com.cryptoautotrader.api.service.PhantomKeepsConfirmedPnlPgTest.xml",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged review-60777286/submitted/realloss-before-pg/summary.txt",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged review-60777286/submitted/realloss-before-pg/TEST-com.cryptoautotrader.api.service.RealLossGlobalPgTest.xml",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged review-60777286/submitted/saturation-fix/summary.txt",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged review-60777286/submitted/tb-RS/summary.txt",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged review-60777286/submitted/tb-RS/TEST-com.cryptoautotrader.api.service.SchedulerProfileCleanupTest.xml",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged review-60777286/submitted/thr-after-fix/summary.txt",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged review-60777286/submitted/thr-before-fix/summary.txt",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged review-60777286/submitted/thr-related/summary.txt",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged plan-reorganization-20261112/audit.json",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged plan-reorganization-20261112/bash-syntax.json",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged plan-reorganization-20261112/cron-switch.txt",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged plan-reorganization-20261112/file-map.json",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged plan-reorganization-20261112/prepare.py.txt",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged plan-reorganization-20261112/README.md",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged plan-reorganization-20261112/start-gate.txt",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged plan-reorganization-20261112/verification.json",
+      "passed": true
+    },
+    {
+      "name": "prior evidence unchanged plan-reorganization-20261112/verify.py.txt",
+      "passed": true
+    },
+    {
+      "name": "F15 still identical",
+      "passed": true
+    },
+    {
+      "name": "no accidental Japanese text docs/PROGRESS.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/PROGRESS.md: LIMITED_LIVE_TEST_PLAN.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/PROGRESS.md: START_HERE.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/PROGRESS.md: evidence/review-60777286/README.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/PROGRESS.md: evidence/v158-20261112/README.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/PROGRESS.md: evidence/review-ade6cc28/README.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/PROGRESS.md: evidence/review-60777286/README.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/PROGRESS.md: evidence/v157-20261112/README.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/PROGRESS.md: evidence/review-ade6cc28/README.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/PROGRESS.md: evidence/v156-20261112/README.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/PROGRESS.md: evidence/n03-1112-1000/README.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/PROGRESS.md: LIMITED_LIVE_TEST_PLAN.md#1-운영과-후보를-구분한다",
+      "passed": true
+    },
+    {
+      "name": "local heading docs/PROGRESS.md: LIMITED_LIVE_TEST_PLAN.md#1-운영과-후보를-구분한다",
+      "passed": true
+    },
+    {
+      "name": "local link docs/PROGRESS.md: CURRENT_HANDOFF.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/PROGRESS.md: PROGRESS_ARCHIVE_20261112.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/PROGRESS.md: old_progress.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/PROGRESS.md: CHANGELOG.md",
+      "passed": true
+    },
+    {
+      "name": "no accidental Japanese text docs/LIVE_READINESS.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/LIVE_READINESS.md: evidence/review-60777286/README.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/LIVE_READINESS.md: PROGRESS.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/LIVE_READINESS.md: LIMITED_LIVE_TEST_PLAN.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/LIVE_READINESS.md: LIMITED_LIVE_TEST_RUNBOOK.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/LIVE_READINESS.md: LIMITED_LIVE_TEST_PLAN.md#4-제한-실거래-시험의-고정-조건",
+      "passed": true
+    },
+    {
+      "name": "local heading docs/LIVE_READINESS.md: LIMITED_LIVE_TEST_PLAN.md#4-제한-실거래-시험의-고정-조건",
+      "passed": true
+    },
+    {
+      "name": "local link docs/LIVE_READINESS.md: LIMITED_LIVE_TEST_RUNBOOK.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/LIVE_READINESS.md: LIVE_READINESS_ARCHIVE_20261112.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/LIVE_READINESS.md: LIVE_ENTRY_PREREG.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/LIVE_READINESS.md: NOVEMBER_LIVE_UPGRADE.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/LIVE_READINESS.md: OPS_DAILY_CHECK.md",
+      "passed": true
+    },
+    {
+      "name": "no accidental Japanese text docs/NOVEMBER_LIVE_UPGRADE.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/NOVEMBER_LIVE_UPGRADE.md: PROGRESS.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/NOVEMBER_LIVE_UPGRADE.md: LIMITED_LIVE_TEST_PLAN.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/NOVEMBER_LIVE_UPGRADE.md: evidence/review-60777286/README.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/NOVEMBER_LIVE_UPGRADE.md: NOVEMBER_LIVE_UPGRADE_ARCHIVE_20261112.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/NOVEMBER_LIVE_UPGRADE.md: LIMITED_LIVE_TEST_PLAN.md#3-전략-검증과-모의투자",
+      "passed": true
+    },
+    {
+      "name": "local heading docs/NOVEMBER_LIVE_UPGRADE.md: LIMITED_LIVE_TEST_PLAN.md#3-전략-검증과-모의투자",
+      "passed": true
+    },
+    {
+      "name": "no accidental Japanese text docs/OPS_DAILY_CHECK.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/OPS_DAILY_CHECK.md: LIMITED_LIVE_TEST_PLAN.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/OPS_DAILY_CHECK.md: OPS_DAILY_CHECK_ARCHIVE_20261112.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/OPS_DAILY_CHECK.md: OPS_DAILY_CHECK_ARCHIVE_20261112.md",
+      "passed": true
+    },
+    {
+      "name": "no accidental Japanese text docs/OVERNIGHT_20261111_HANDOFF.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/OVERNIGHT_20261111_HANDOFF.md: OVERNIGHT_20261111_HANDOFF_ARCHIVE_20261112.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/OVERNIGHT_20261111_HANDOFF.md: CURRENT_HANDOFF.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/OVERNIGHT_20261111_HANDOFF.md: PROGRESS.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/OVERNIGHT_20261111_HANDOFF.md: LIMITED_LIVE_TEST_PLAN.md",
+      "passed": true
+    },
+    {
+      "name": "no accidental Japanese text docs/NEXT.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/NEXT.md: LIMITED_LIVE_TEST_PLAN.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/NEXT.md: START_HERE.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/NEXT.md: NEXT_ARCHIVE_20261112.md",
+      "passed": true
+    },
+    {
+      "name": "no accidental Japanese text docs/README.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/README.md: START_HERE.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/README.md: LIMITED_LIVE_TEST_PLAN.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/README.md: LIMITED_LIVE_TEST_PLAN.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/README.md: PROGRESS.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/README.md: CURRENT_HANDOFF.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/README.md: NOVEMBER_LIVE_UPGRADE.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/README.md: LIVE_READINESS.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/README.md: LIMITED_LIVE_TEST_RUNBOOK.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/README.md: OPS_DAILY_CHECK.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/README.md: evidence/review-60777286/README.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/README.md: ENGINE_PARITY.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/README.md: LIVE_ENTRY_PREREG.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/README.md: SUPERTREND_VALIDATION_PREREG.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/README.md: LIVE_RISK_IMPLEMENTATION_REVIEW.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/README.md: UNKNOWN_ORDER_STATE_DESIGN.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/README.md: DESIGN.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/README.md: SINGLE_STRATEGIES_GUIDE.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/README.md: Strategy/COMPOSITE_STRATEGIES_GUIDE.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/README.md: ../PROJECT_STRUCTURE_ANALYSIS.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/README.md: old_progress.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/README.md: CHANGELOG.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/README.md: archive/README.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/README.md: old/README.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/README.md: DOCS_INDEX_ARCHIVE_20261112.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/README.md: evidence/document-audit-20261112/README.md",
+      "passed": true
+    },
+    {
+      "name": "no accidental Japanese text README.md",
+      "passed": true
+    },
+    {
+      "name": "local link README.md: docs/START_HERE.md",
+      "passed": true
+    },
+    {
+      "name": "local link README.md: docs/LIMITED_LIVE_TEST_PLAN.md",
+      "passed": true
+    },
+    {
+      "name": "local link README.md: docs/ENGINE_PARITY.md",
+      "passed": true
+    },
+    {
+      "name": "local link README.md: web-api/src/main/java/com/cryptoautotrader/api/config/SecurityConfig.java",
+      "passed": true
+    },
+    {
+      "name": "local link README.md: docs/START_HERE.md",
+      "passed": true
+    },
+    {
+      "name": "local link README.md: docs/LIMITED_LIVE_TEST_PLAN.md",
+      "passed": true
+    },
+    {
+      "name": "local link README.md: docs/README.md",
+      "passed": true
+    },
+    {
+      "name": "local link README.md: PROJECT_STRUCTURE_ANALYSIS.md",
+      "passed": true
+    },
+    {
+      "name": "local link README.md: docs/ENGINE_PARITY.md",
+      "passed": true
+    },
+    {
+      "name": "local link README.md: docs/DESIGN.md",
+      "passed": true
+    },
+    {
+      "name": "local link README.md: docs/PROGRESS.md",
+      "passed": true
+    },
+    {
+      "name": "local link README.md: docs/KILL_CRITERIA.md",
+      "passed": true
+    },
+    {
+      "name": "local link README.md: docs/SINGLE_STRATEGIES_GUIDE.md",
+      "passed": true
+    },
+    {
+      "name": "local link README.md: docs/Deploying%20operating%20servers.md",
+      "passed": true
+    },
+    {
+      "name": "local link README.md: docs/START_HERE.md",
+      "passed": true
+    },
+    {
+      "name": "local link README.md: docs/README.md",
+      "passed": true
+    },
+    {
+      "name": "local link README.md: docs/archive/README.md",
+      "passed": true
+    },
+    {
+      "name": "local link README.md: docs/old/README.md",
+      "passed": true
+    },
+    {
+      "name": "no accidental Japanese text AGENTS.md",
+      "passed": true
+    },
+    {
+      "name": "no accidental Japanese text CLAUDE.md",
+      "passed": true
+    },
+    {
+      "name": "no accidental Japanese text docs/START_HERE.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/START_HERE.md: LIMITED_LIVE_TEST_PLAN.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/START_HERE.md: LIMITED_LIVE_TEST_PLAN.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/START_HERE.md: PROGRESS.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/START_HERE.md: CURRENT_HANDOFF.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/START_HERE.md: NOVEMBER_LIVE_UPGRADE.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/START_HERE.md: LIVE_READINESS.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/START_HERE.md: LIMITED_LIVE_TEST_RUNBOOK.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/START_HERE.md: OPS_DAILY_CHECK.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/START_HERE.md: README.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/START_HERE.md: README.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/START_HERE.md: evidence/document-audit-20261112/README.md",
+      "passed": true
+    },
+    {
+      "name": "no accidental Japanese text docs/CURRENT_HANDOFF.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/CURRENT_HANDOFF.md: LIMITED_LIVE_TEST_PLAN.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/CURRENT_HANDOFF.md: evidence/review-60777286/README.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/CURRENT_HANDOFF.md: evidence/v158-20261112/README.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/CURRENT_HANDOFF.md: evidence/n03-1112-1000/README.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/CURRENT_HANDOFF.md: OVERNIGHT_20261111_HANDOFF.md",
+      "passed": true
+    },
+    {
+      "name": "local link docs/CURRENT_HANDOFF.md: PROGRESS_ARCHIVE_20261112.md",
+      "passed": true
+    },
+    {
+      "name": "no accidental Japanese text docs/evidence/document-audit-20261112/README.md",
+      "passed": true
+    },
+    {
+      "name": "Claude import points to short guide",
+      "passed": true
+    },
+    {
+      "name": "new development submission retained",
+      "passed": true
+    },
+    {
+      "name": "new submission remains unaccepted",
+      "passed": true
+    }
+  ]
+}

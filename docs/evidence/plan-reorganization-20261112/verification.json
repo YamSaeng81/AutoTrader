@@ -1,0 +1,272 @@
+{
+  "checks": 66,
+  "passed": 66,
+  "failed": 0,
+  "scope": "read-only source selection, syntax, local links, byte and SQL comparisons; no imports/app/PG/production calls",
+  "results": [
+    {
+      "name": "full original bytes retained",
+      "passed": true
+    },
+    {
+      "name": "F15 bodies and order identical",
+      "passed": true
+    },
+    {
+      "name": "all 149 historical bash blocks preserved",
+      "passed": true
+    },
+    {
+      "name": "current plan has no executable blocks",
+      "passed": true
+    },
+    {
+      "name": "F bash syntax 1 (source-SHA placeholder prepared only for syntax)",
+      "passed": true
+    },
+    {
+      "name": "F bash syntax 2 (source-SHA placeholder prepared only for syntax)",
+      "passed": true
+    },
+    {
+      "name": "F bash syntax 3 (source-SHA placeholder prepared only for syntax)",
+      "passed": true
+    },
+    {
+      "name": "F bash syntax 4 (source-SHA placeholder prepared only for syntax)",
+      "passed": true
+    },
+    {
+      "name": "F bash syntax 5 (source-SHA placeholder prepared only for syntax)",
+      "passed": true
+    },
+    {
+      "name": "F bash syntax 6 (source-SHA placeholder prepared only for syntax)",
+      "passed": true
+    },
+    {
+      "name": "F bash syntax 7 (source-SHA placeholder prepared only for syntax)",
+      "passed": true
+    },
+    {
+      "name": "F bash syntax 8 (source-SHA placeholder prepared only for syntax)",
+      "passed": true
+    },
+    {
+      "name": "F bash syntax 9 (source-SHA placeholder prepared only for syntax)",
+      "passed": true
+    },
+    {
+      "name": "F bash syntax 10 (source-SHA placeholder prepared only for syntax)",
+      "passed": true
+    },
+    {
+      "name": "F bash syntax 11 (source-SHA placeholder prepared only for syntax)",
+      "passed": true
+    },
+    {
+      "name": "F bash syntax 12 (source-SHA placeholder prepared only for syntax)",
+      "passed": true
+    },
+    {
+      "name": "F bash syntax 13 (source-SHA placeholder prepared only for syntax)",
+      "passed": true
+    },
+    {
+      "name": "F bash syntax 14 (source-SHA placeholder prepared only for syntax)",
+      "passed": true
+    },
+    {
+      "name": "F bash syntax 15 (source-SHA placeholder prepared only for syntax)",
+      "passed": true
+    },
+    {
+      "name": "local link LIMITED_LIVE_TEST_PLAN.md: LIMITED_LIVE_TEST_RUNBOOK.md",
+      "passed": true
+    },
+    {
+      "name": "local link LIMITED_LIVE_TEST_PLAN.md: evidence/review-60777286/README.md",
+      "passed": true
+    },
+    {
+      "name": "local link LIMITED_LIVE_TEST_PLAN.md: LIMITED_LIVE_TEST_PLAN_ARCHIVE_20261112.md",
+      "passed": true
+    },
+    {
+      "name": "local link LIMITED_LIVE_TEST_PLAN.md: LIVE_READINESS.md",
+      "passed": true
+    },
+    {
+      "name": "local link LIMITED_LIVE_TEST_PLAN.md: NOVEMBER_LIVE_UPGRADE.md",
+      "passed": true
+    },
+    {
+      "name": "local link LIMITED_LIVE_TEST_PLAN.md: OPS_DAILY_CHECK.md",
+      "passed": true
+    },
+    {
+      "name": "local link LIMITED_LIVE_TEST_PLAN.md: PROGRESS.md",
+      "passed": true
+    },
+    {
+      "name": "local link LIMITED_LIVE_TEST_PLAN.md: OVERNIGHT_20261111_HANDOFF.md",
+      "passed": true
+    },
+    {
+      "name": "local link LIMITED_LIVE_TEST_PLAN.md: evidence/review-ade6cc28/README.md",
+      "passed": true
+    },
+    {
+      "name": "local link LIMITED_LIVE_TEST_PLAN.md: evidence/review-60777286/README.md",
+      "passed": true
+    },
+    {
+      "name": "local link LIMITED_LIVE_TEST_PLAN.md: evidence/review-60777286/README.md",
+      "passed": true
+    },
+    {
+      "name": "local link LIMITED_LIVE_TEST_PLAN.md: evidence/scorecard-v2-20261110/README.md",
+      "passed": true
+    },
+    {
+      "name": "local link LIMITED_LIVE_TEST_PLAN.md: evidence/review-60777286/README.md",
+      "passed": true
+    },
+    {
+      "name": "local link LIMITED_LIVE_TEST_PLAN.md: LIMITED_LIVE_TEST_PLAN_ARCHIVE_20261112.md",
+      "passed": true
+    },
+    {
+      "name": "local link LIMITED_LIVE_TEST_PLAN.md: LIMITED_LIVE_TEST_RUNBOOK.md",
+      "passed": true
+    },
+    {
+      "name": "local link LIMITED_LIVE_TEST_PLAN.md: evidence/plan-reorganization-20261112/README.md",
+      "passed": true
+    },
+    {
+      "name": "local link LIMITED_LIVE_TEST_RUNBOOK.md: LIMITED_LIVE_TEST_PLAN.md",
+      "passed": true
+    },
+    {
+      "name": "local link LIMITED_LIVE_TEST_RUNBOOK.md: LIMITED_LIVE_TEST_PLAN_ARCHIVE_20261112.md",
+      "passed": true
+    },
+    {
+      "name": "Python syntax: scripts/ops/test_start_gate.py",
+      "passed": true
+    },
+    {
+      "name": "Python syntax: scripts/ops/test_cron_switch.py",
+      "passed": true
+    },
+    {
+      "name": "Python syntax: scripts/ops/test_sid_ledger.py",
+      "passed": true
+    },
+    {
+      "name": "Python syntax: scripts/restart-test/rehearse_sma20.py",
+      "passed": true
+    },
+    {
+      "name": "Python syntax: scripts/restart-test/rehearse_w3.py",
+      "passed": true
+    },
+    {
+      "name": "rehearse_sma20.py: legacy env path resolves to runbook",
+      "passed": true
+    },
+    {
+      "name": "rehearse_sma20.py: create body resolves to archive",
+      "passed": true
+    },
+    {
+      "name": "rehearse_sma20.py: original extraction **F 변수**",
+      "passed": true
+    },
+    {
+      "name": "rehearse_sma20.py: original extraction **F1.",
+      "passed": true
+    },
+    {
+      "name": "rehearse_sma20.py: original extraction **F2.",
+      "passed": true
+    },
+    {
+      "name": "rehearse_sma20.py: original extraction **F3.",
+      "passed": true
+    },
+    {
+      "name": "rehearse_sma20.py: original extraction **F5. 56일",
+      "passed": true
+    },
+    {
+      "name": "rehearse_sma20.py: original extraction **F5-1.",
+      "passed": true
+    },
+    {
+      "name": "rehearse_sma20.py: original extraction **F5-2.",
+      "passed": true
+    },
+    {
+      "name": "rehearse_sma20.py: original extraction **F5-4.",
+      "passed": true
+    },
+    {
+      "name": "rehearse_sma20.py: session JSON unchanged",
+      "passed": true
+    },
+    {
+      "name": "rehearse_w3.py: legacy env path resolves to runbook",
+      "passed": true
+    },
+    {
+      "name": "rehearse_w3.py: create body resolves to archive",
+      "passed": true
+    },
+    {
+      "name": "rehearse_w3.py: original extraction **F 변수**",
+      "passed": true
+    },
+    {
+      "name": "rehearse_w3.py: original extraction **F1.",
+      "passed": true
+    },
+    {
+      "name": "rehearse_w3.py: original extraction **F2.",
+      "passed": true
+    },
+    {
+      "name": "rehearse_w3.py: original extraction **F3.",
+      "passed": true
+    },
+    {
+      "name": "rehearse_w3.py: original extraction **F5. 56일",
+      "passed": true
+    },
+    {
+      "name": "rehearse_w3.py: original extraction **F5-1.",
+      "passed": true
+    },
+    {
+      "name": "rehearse_w3.py: original extraction **F5-2.",
+      "passed": true
+    },
+    {
+      "name": "rehearse_w3.py: original extraction **F5-4.",
+      "passed": true
+    },
+    {
+      "name": "rehearse_w3.py: session JSON unchanged",
+      "passed": true
+    },
+    {
+      "name": "ledger test extracts identical F5-3 SQL",
+      "passed": true
+    },
+    {
+      "name": "rehearsals extract identical start check",
+      "passed": true
+    }
+  ]
+}
