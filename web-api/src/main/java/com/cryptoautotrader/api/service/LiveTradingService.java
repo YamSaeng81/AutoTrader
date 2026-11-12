@@ -3099,7 +3099,9 @@ public class LiveTradingService {
                 .isPresent();
         // 잔액에는 추정 순입금을 두 자리로 반올림해 넣는다 (리뷰 2026-10-31, {@link BalanceAmounts}) — 매도 확정과 같은 규칙.
         final BigDecimal balanceCredit = BalanceAmounts.toBalance(netProceeds);
-        balanceUpdater.apply(sessionId, s -> {
+        // 🔴 같은 트랜잭션 안에서 갱신한다 (총괄 v1.157 §125-7) — 종전 apply(REQUIRES_NEW)는 입금만 독립 커밋돼, 이 확정이 롤백되면
+        //    포지션은 OPEN 으로 남고 다음 주기 재확정에서 같은 추정 순입금이 두 번 들어갔다(실제 PG ③). 정산과 같은 applyWithin 규칙.
+        balanceUpdater.applyWithin(sessionId, s -> {
             BigDecimal newAvailableKrw = s.getAvailableKrw().add(balanceCredit);
             s.setAvailableKrw(newAvailableKrw);
             if (!hasOpenPosition) {
