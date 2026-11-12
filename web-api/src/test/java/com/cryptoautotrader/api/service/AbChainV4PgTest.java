@@ -69,6 +69,57 @@ class AbChainV4PgTest extends IntegrationTestBase {
     private final Path out = Path.of(System.getenv().getOrDefault("AB_CHAIN_OUT", "build/ab-chain"));
     private final List<String> transcript = new ArrayList<>();
 
+    /** v4 구동기가 확인·추출 SQL 을 보내는 컨테이너(chain_driver_v4.CONTAINER 와 같다). */
+    private static final String CONTAINER = "v152-pg";
+
+    /**
+     * 총괄 v1.157 §125-3 — 실행 전 필수 환경 확인. 빠진 값이 있으면 서버 기동·HTTP 생성 전에 이유를 적고 실패한다
+     * (v1.156 최종 PG 에서 AB_CHAIN_DRIVER·AB_CHAIN_CODE_SHA·AB_CHAIN_OTHER_DB 누락이 시험 중 NPE 로만 드러난 3회 실패의 보완).
+     * <ul>
+     *   <li>{@code AB_CHAIN_DRIVER}: 존재하는 chain_driver_v4.py</li>
+     *   <li>{@code AB_CHAIN_CODE_SHA}: 40자리 소문자 16진 커밋</li>
+     *   <li>{@code AB_CHAIN_ROLE}: {@code main}(기본) 이면 {@code AB_CHAIN_OTHER_DB} 필수 — 다른 DB 같은 ID 음성은 v4 필수 증거다.
+     *       {@code seed-other} 는 그 다른 DB 를 만드는 앞 회차이고 {@code AB_CHAIN_OTHER_DB} 를 받지 않는다.</li>
+     *   <li>컨테이너 {@value #CONTAINER} 의 공개 포트가 {@code AB_CHAIN_PG_URL} 의 포트와 같고, 그 psql 이 같은 DB 이름을 연다
+     *       (구동기 psql 과 시험 datasource 가 같은 DB 를 본다). 다른 DB 는 이 DB 와 이름이 다르고 같은 컨테이너에 있어야 한다.</li>
+     * </ul>
+     */
+    @org.junit.jupiter.api.BeforeAll
+    static void preflight() throws Exception {
+        String url = System.getenv("AB_CHAIN_PG_URL");
+        String db = url.substring(url.lastIndexOf('/') + 1);
+        String driver = System.getenv("AB_CHAIN_DRIVER");
+        assertThat(driver).as("AB_CHAIN_DRIVER(chain_driver_v4.py 경로) 필요").isNotBlank();
+        assertThat(new File(driver)).as("AB_CHAIN_DRIVER 파일 없음: " + driver).isFile();
+        assertThat(new File(driver).getName()).as("v4 구동기여야 한다").isEqualTo("chain_driver_v4.py");
+        assertThat(System.getenv("AB_CHAIN_CODE_SHA")).as("AB_CHAIN_CODE_SHA(40자리 커밋) 필요").isNotNull().matches("[0-9a-f]{40}");
+        String role = System.getenv().getOrDefault("AB_CHAIN_ROLE", "main");
+        assertThat(role).as("AB_CHAIN_ROLE 은 main 또는 seed-other").isIn("main", "seed-other");
+        String other = System.getenv("AB_CHAIN_OTHER_DB");
+        if ("main".equals(role)) {
+            assertThat(other).as("AB_CHAIN_ROLE=main 은 AB_CHAIN_OTHER_DB(같은 ID 를 가진 다른 실제 DB) 필요").isNotBlank();
+            assertThat(other).as("다른 DB 는 이 시험 DB 와 달라야 한다").isNotEqualTo(db);
+        } else {
+            assertThat(other).as("seed-other 회차는 AB_CHAIN_OTHER_DB 를 받지 않는다").isNull();
+        }
+        String urlPort = url.replaceAll("^jdbc:postgresql://[^:/]+:(\\d+)/.*$", "$1");
+        assertThat(sh("docker", "port", CONTAINER, "5432")).as("컨테이너 " + CONTAINER + " 공개 포트 = URL 포트").contains(":" + urlPort);
+        assertThat(sh("docker", "exec", CONTAINER, "psql", "-U", "trader", "-d", db, "-tAc", "select current_database()").trim())
+                .as("구동기 psql 이 시험 DB 를 연다").isEqualTo(db);
+        if (other != null) {
+            assertThat(sh("docker", "exec", CONTAINER, "psql", "-U", "trader", "-d", other, "-tAc", "select current_database()").trim())
+                    .as("다른 DB 가 같은 컨테이너에 있다").isEqualTo(other);
+        }
+    }
+
+    private static String sh(String... cmd) throws Exception {
+        Process p = new ProcessBuilder(cmd).redirectErrorStream(true).start();
+        String text = new String(p.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        assertThat(p.waitFor(60, TimeUnit.SECONDS)).as(String.join(" ", cmd)).isTrue();
+        assertThat(p.exitValue()).as(String.join(" ", cmd) + " → " + text).isZero();
+        return text;
+    }
+
     private int driver(String... args) throws Exception {
         List<String> cmd = new ArrayList<>(List.of("python", "-X", "utf8", System.getenv("AB_CHAIN_DRIVER")));
         cmd.addAll(List.of(args));
@@ -153,6 +204,15 @@ class AbChainV4PgTest extends IntegrationTestBase {
         jdbc.update("UPDATE paper_trading.virtual_balance SET started_at = started_at - interval '1 microsecond' WHERE id = ?", ids.get(5));
         // ③-3 음성(v4) — 같은 ID 를 가진 다른 실제 DB(이전 생성 회차)에 확인 SQL
         String otherDb = System.getenv("AB_CHAIN_OTHER_DB");
+        if (otherDb != null) {
+            // v1.157 §125-3 — 음성의 전제: 다른 DB 에 이번 생성과 같은 ID 8개가 실제로 있다(없으면 거절이 ID 부재 때문일 수 있다).
+            String idList = ids.stream().map(String::valueOf).collect(java.util.stream.Collectors.joining(","));
+            String sameIds = sh("docker", "exec", CONTAINER, "psql", "-U", "trader", "-d", otherDb, "-tAc",
+                    "select count(*) from paper_trading.virtual_balance where id in (" + idList + ")").trim();
+            transcript.add("다른 DB " + otherDb + " 의 같은 ID 수=" + sameIds + " (ids=" + idList + ")");
+            System.out.println("[A/B 연결] 다른 DB " + otherDb + " 의 같은 ID 수=" + sameIds);
+            assertThat(sameIds).as("다른 DB 에 같은 ID 8개가 있어야 음성이 의미 있다").isEqualTo("8");
+        }
         int other = otherDb == null ? -1 : driver("check", "--tag", "neg_other_db", "--psql-db", otherDb);
         // ④ 음성 — 지문 없음(그 세션 로그를 잠시 다른 ID 로 옮김)
         jdbc.update("UPDATE strategy_log SET session_id = -session_id WHERE session_type = 'PAPER' AND session_id = ?", x);
