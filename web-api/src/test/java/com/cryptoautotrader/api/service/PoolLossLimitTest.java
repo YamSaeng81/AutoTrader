@@ -56,7 +56,13 @@ class PoolLossLimitTest extends IntegrationTestBase {
     @Autowired private PoolLossGuard guard;
     @Autowired private MarkPriceBook marks;
     @Autowired private CapitalPoolLimits limits;
-    @Autowired private RiskManagementService riskManagementService;
+    /** v1.158 결정 2 — 스파이(실제 메서드 그대로). H2 에서 실자금 손실 관문만 승인으로 둔다(기존 손실 원천이 PostgreSQL 전용 구문). */
+    @org.springframework.boot.test.mock.mockito.SpyBean private RiskManagementService riskManagementService;
+
+    @org.junit.jupiter.api.BeforeEach
+    void approveRealLossGuardOnH2() {
+        org.mockito.Mockito.doReturn(com.cryptoautotrader.core.risk.RiskCheckResult.approve()).when(riskManagementService).checkRealLossGuard();
+    }
     @Autowired private OrderExecutionEngine orderExecutionEngine;
     @Autowired private DynamicTradingService dynamicTradingService;
     @Autowired private PortfolioManager portfolioManager;

@@ -192,10 +192,7 @@ public class RiskManagementService {
             log.warn("리스크 체크 거부: {} (일일={}%, 주간={}%, 월간={}%, 포지션={}, 자본사용률={}%, 드로우다운={}%)",
                     result.getReason(), dailyLoss, weeklyLoss, monthlyLoss,
                     currentPositions, capitalUtilizationPct, portfolioDrawdownPct);
-            // 🔴 v1.158 결정 2: 손실 거절이면 어느 보호식인지 붙인다. 기존 식의 판정·비교는 그대로다.
-            if (result.getReason() != null && result.getReason().contains("손실 한도")) {
-                return RiskCheckResult.reject("[기존 보호식] " + result.getReason());
-            }
+            // v1.158 결정 2: 기존 보호식의 거절 사유 문구는 종전 그대로 둔다(새 두 식만 [이름] 접두를 붙인다).
             return result;
         }
 
@@ -224,7 +221,7 @@ public class RiskManagementService {
                 calculateLossPct(now.minus(7, ChronoUnit.DAYS), legacyDenom),
                 calculateLossPct(now.minus(30, ChronoUnit.DAYS), legacyDenom), 0, null, null);
         if (!legacy.isApproved()) {
-            return RiskCheckResult.reject("[기존 보호식] " + legacy.getReason());
+            return legacy;   // 기존 보호식 — 종전 사유 문구 그대로
         }
         return checkAddedRealLossFormulas(engine, configEntity, now);
     }
@@ -238,13 +235,15 @@ public class RiskManagementService {
      * 전체 REAL    : (기존 손실 원천 + DYNAMIC REAL 손실, 각 한 번) / (RUNNING LIVE + RUNNING DYNAMIC REAL 초기자본)
      *                둘 다 0(비세션만)이면 종전 설정/최종 폴백.
      * </pre>
-     * 이익으로 상쇄하지 않는다(손실 행만). PAPER·DYN_PAPER·추정 청산은 분자·분모에 없다. 자료를 읽지 못하면 판정 불가로 거절한다.
+     * 이익으로 상쇄하지 않는다(손실 행만). PAPER·DYN_PAPER·추정 청산은 분자·분모에 없다. 자료를 읽지 못하면 예외로 진입을 중단한다(fail-closed).
      */
     private RiskCheckResult checkAddedRealLossFormulas(RiskEngine engine, RiskConfigEntity configEntity, Instant now) {
         BigDecimal[] dynPct = new BigDecimal[3];
         BigDecimal[] totalPct = new BigDecimal[3];
         Instant[] since = {now.minus(1, ChronoUnit.DAYS), now.minus(7, ChronoUnit.DAYS), now.minus(30, ChronoUnit.DAYS)};
-        try {
+        // 🔴 조회 실패는 잡지 않는다 — 예외로 이 진입을 중단한다(fail-closed). 참여 중인 트랜잭션은 이미 롤백 전용이 되어, 잡고 거절을
+        //    돌려줘도 호출자 커밋에서 다시 실패하기 때문이다. 손실 0·무한 자본으로 보고 통과시키는 경로는 없다.
+        {
             BigDecimal liveCap = runningLiveCapital();
             BigDecimal dynCap = runningDynamicRealCapital();
             BigDecimal totalCap = liveCap.add(dynCap);
@@ -263,10 +262,6 @@ public class RiskManagementService {
                 dynPct[i] = dynLoss.signum() < 0 ? pct(dynLoss, dynCap) : BigDecimal.ZERO;
                 totalPct[i] = pct(legacyLoss.add(dynLoss), totalCap);
             }
-        } catch (org.springframework.dao.DataAccessException e) {
-            String msg = "[실자금 손실 보호식] 판정 불가 — 손실·자본 자료를 읽지 못했다(" + e.getClass().getSimpleName() + ")";
-            log.warn("리스크 체크 거부: {}", msg);
-            return RiskCheckResult.reject(msg);
         }
         RiskCheckResult dyn = engine.check(dynPct[0], dynPct[1], dynPct[2], 0, null, null);
         if (!dyn.isApproved()) {

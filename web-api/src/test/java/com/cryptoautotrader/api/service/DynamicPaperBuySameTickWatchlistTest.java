@@ -61,6 +61,15 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class DynamicPaperBuySameTickWatchlistTest extends IntegrationTestBase {
 
+    /** v1.158 결정 2 — H2 에서 실자금 손실 관문을 승인으로 둔다(기존 손실 원천이 PostgreSQL 전용 구문). 관문은 실제 PG 시험이 검증한다. */
+    @org.springframework.boot.test.mock.mockito.SpyBean private RiskManagementService realLossGuardSpy;
+
+    @org.junit.jupiter.api.BeforeEach
+    void approveRealLossGuardOnH2() {
+        org.mockito.Mockito.doReturn(com.cryptoautotrader.core.risk.RiskCheckResult.approve()).when(realLossGuardSpy).checkRealLossGuard();
+    }
+
+
     private static final BigDecimal CAPITAL = new BigDecimal("10000.00");
     private static final String FILLED_LOG = "[Dynamic][PAPER] 매수 체결";
 

@@ -113,6 +113,9 @@ class BtcGateSupplyEndToEndTest extends IntegrationTestBase {
         poolLossGuard.setEnabledSetting(true);
         rounds.setForcedForTest(false);
         doReturn(com.cryptoautotrader.core.risk.RiskCheckResult.approve()).when(riskManagementService).checkRisk();
+        // v1.158 결정 2: 실자금 손실 관문(checkRealLossGuard)의 기존 손실 원천은 PostgreSQL 전용 구문이라 H2 에서 실행할 수 없다 —
+        //    checkRisk 와 같은 관례로 승인으로 둔다. 관문 자체는 실제 PG RealLossThreeFormulaPgTest 가 검증한다.
+        doReturn(com.cryptoautotrader.core.risk.RiskCheckResult.approve()).when(riskManagementService).checkRealLossGuard();
         for (String c : coins) jdbc.update("DELETE FROM market_data_cache WHERE coin_pair = ? AND timeframe = 'H1'", c);
         // 🔴 KRW-BTC 세션이 없어야 한다 — 다른 시험이 남긴 실행 중 BTC 세션은 이 시험 동안 멈춘다(관문 데이터가 세션 구성에 기대지 않음을 본다)
         jdbc.update("UPDATE live_trading_session SET status = 'STOPPED' WHERE status = 'RUNNING' AND coin_pair = 'KRW-BTC'");
