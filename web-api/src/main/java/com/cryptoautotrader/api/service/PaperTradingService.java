@@ -827,8 +827,9 @@ public class PaperTradingService {
         String timeframe = session.getTimeframe();
         String strategyName = session.getStrategyName();
 
-        List<Candle> candles = candlesFor(coinPair, timeframe);
         final boolean aligned = PaperExecutionMode.isLiveAligned(session.getStrategyParams());
+        // 선택 모드는 판단 시계로 조회 상한을 정한다(총괄 v1.155 §3). 키 없는 PAPER 는 종전 경로·시각·캐시 그대로.
+        List<Candle> candles = aligned ? alignedCandlesFor(coinPair, timeframe) : candlesFor(coinPair, timeframe);
         if (aligned) {
             // LIVE 틱 시작의 세션 서킷 브레이커와 같은 자리·같은 기준 — 발동이면 정지(강제 청산)하고 이 틱은 끝낸다. 입력은 이 모의 계좌다.
             CircuitBreakerResult cb = alignedCircuitBreaker(session);
@@ -1070,7 +1071,7 @@ public class PaperTradingService {
                             EntryPriorityRounds.KIND_PAPER, sessionId, coinPair, roundKey,
                             () -> approveAlignedEntry(sessionId, coinPair, finalSignal, regimeAtSignal, candlesAtSignal, logRef, expiresAt),
                             expired -> saveSignalQuality(logRef, false, expired)),
-                            Instant.now());
+                            judgeNow());   // 후보 접수 판단 시각 — 회차 마감과 같은 판단 시계(v1.155 §3)
                     if (notQueued != null) saveSignalQuality(savedSignalLog, false, notQueued);
                     return;
                 } else if (openPos.isEmpty()) {
@@ -1101,7 +1102,7 @@ public class PaperTradingService {
                 if (openPos.isPresent()) {
                     PaperPositionEntity pos = openPos.get();
                     long heldMinutes = pos.getOpenedAt() != null
-                            ? Duration.between(pos.getOpenedAt(), Instant.now()).toMinutes()
+                            ? Duration.between(pos.getOpenedAt(), aligned ? judgeNow() : Instant.now()).toMinutes()   // 선택 모드는 판단 시계(v1.155 §3)
                             : Long.MAX_VALUE;
                     BigDecimal heldPnlPct = (pos.getAvgPrice() != null
                             && pos.getAvgPrice().compareTo(BigDecimal.ZERO) > 0)
@@ -1223,15 +1224,15 @@ public class PaperTradingService {
 
     /** LIVE {@code freshCandles} 와 같은 판정 — 판정 불가면 사유, 쓸 수 있으면 {@code null}. 공유 stale 지도·경보는 건드리지 않는다. */
     private String alignedCandleProblem(String coinPair, String timeframe, List<Candle> candles) {
-        Instant now = Instant.now();
+        Instant now = judgeNow();   // v1.155 §3 — 판단 시계
         return CandleFreshnessGuard.problem(candles, timeframe, now,
                 candleFreshnessGuard == null ? null : candleFreshnessGuard.maintenanceExemption(coinPair, timeframe, now));
     }
 
     /** LIVE {@code btcMarketGate} 와 같은 판정 — BTC 세션은 최신성을 거른 자기 캔들, 아니면 BTC 캔들(진행 중 봉 포함). */
     private BtcMarketGuard.Result alignedBtcGate(String coinPair, String timeframe, List<Candle> ownCandles) {
-        List<Candle> btc = "KRW-BTC".equals(coinPair) ? ownCandles : candlesFor("KRW-BTC", timeframe);
-        Instant now = Instant.now();
+        List<Candle> btc = "KRW-BTC".equals(coinPair) ? ownCandles : alignedCandlesFor("KRW-BTC", timeframe);
+        Instant now = judgeNow();   // v1.155 §3 — 판단 시계
         return CandleFreshnessGuard.btcGate(timeframe, btc, btc, now,
                 candleFreshnessGuard == null ? null : candleFreshnessGuard.maintenanceExemption("KRW-BTC", timeframe, now));
     }
@@ -2050,7 +2051,23 @@ public class PaperTradingService {
     }
 
     private List<Candle> fetchRecentCandles(String coinPair, String timeframe) {
-        Instant to = Instant.now();
+        return fetchRecentCandles(coinPair, timeframe, Instant.now());
+    }
+
+    /**
+     * 선택 모드(LIVE_ALIGNED) 캔들 — 조회 상한을 판단 시계로(총괄 v1.155 §3, LIVE {@code loadRecentCandles} 와 같은 접점). 틱 캐시는 키 없는 PAPER 와
+     * 다른 키를 쓴다 — 시험 시계와 실제 시각이 다를 때 한 틱 안에서 서로의 조회 결과를 섞지 않는다(운영은 두 시각이 같다).
+     */
+    private List<Candle> alignedCandlesFor(String coinPair, String timeframe) {
+        return TickCandleCache.get(coinPair, timeframe + "@판단시계", () -> fetchRecentCandles(coinPair, timeframe, judgeNow()));
+    }
+
+    /** 선택 모드 판단 시각 — 공통 시계(운영 기본 시스템 UTC). 감사·체결·주문 생성·실시간 시세 시각에는 쓰지 않는다. */
+    private Instant judgeNow() {
+        return entryClock != null ? entryClock.now() : Instant.now();
+    }
+
+    private List<Candle> fetchRecentCandles(String coinPair, String timeframe, Instant to) {
         Instant from = to.minus(CANDLE_LOOKBACK * TimeframeUtils.toMinutes(timeframe), ChronoUnit.MINUTES);
 
         // MarketDataSyncService 가 미리 DB에 저장한 캔들만 사용

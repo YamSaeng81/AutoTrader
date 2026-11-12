@@ -1372,7 +1372,7 @@ public class LiveTradingService {
                                 () -> approveQueuedEntry(sessionId, coinPair, buyReason, finalSignal,
                                         regimeAtSignal, candlesAtSignal, signalLogRef, expiresAt),
                                 expired -> saveSignalQuality(signalLogRef, false, expired)),
-                                Instant.now());
+                                judgeNow());   // 후보 접수 판단 시각 — 회차 마감과 같은 판단 시계(v1.155 §3)
                         if (notQueued != null) {
                             saveSignalQuality(signalLogRef, false, notQueued);
                         }
