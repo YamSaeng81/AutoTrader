@@ -536,7 +536,8 @@ class SettlementRoundingPgTest extends IntegrationTestBase {
                 Object target = org.springframework.test.util.AopTestUtils.getUltimateTargetObject(liveTradingService);
                 result = org.springframework.test.util.ReflectionTestUtils.invokeMethod(target, "executeSessionBuy",
                         liveRepo.findById(sid).orElseThrow(), "KRW-RND", new BigDecimal("300"), "반올림 PG ⑧",
-                        null, null, candles());
+                        null, null, candles(),
+                        null);   // entryExpiresAt — 이 시험은 승인 만료 없음(현행 8인자 서명, 총괄 v1.155 §5)
             } else {
                 // 10,000.37 × 0.8 = 8,000.296
                 init = new BigDecimal("10000.37");
