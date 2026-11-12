@@ -1,0 +1,315 @@
+package com.cryptoautotrader.api.service;
+
+import com.cryptoautotrader.api.entity.DynamicSessionEntity;
+import com.cryptoautotrader.api.entity.LiveTradingSessionEntity;
+import com.cryptoautotrader.api.entity.OrderEntity;
+import com.cryptoautotrader.api.entity.PositionEntity;
+import com.cryptoautotrader.api.repository.DynamicSessionRepository;
+import com.cryptoautotrader.api.repository.LiveTradingSessionRepository;
+import com.cryptoautotrader.api.repository.OrderRepository;
+import com.cryptoautotrader.api.repository.PositionRepository;
+import com.cryptoautotrader.api.support.IntegrationTestBase;
+import com.cryptoautotrader.exchange.upbit.UpbitOrderClient;
+import com.cryptoautotrader.exchange.upbit.dto.OrderResponse;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.util.AopTestUtils;
+import org.springframework.test.util.ReflectionTestUtils;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Map;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+/**
+ * 총괄 v1.155 §4-1 — 부분 매도 뒤 최종 매도가 포지션 실현손익을 덮어쓰는가 (로컬 실제 PostgreSQL, 운영 b5cd1d0 기점, 2026-11-12).
+ *
+ * <p>경로는 운영과 같다 — 체결은 폴러 진입점 {@code checkOrderStatus}(거래소 응답만 대역), 확정은 LIVE
+ * {@code reconcileClosingPositions} / DYNAMIC {@code reconcileDynamicClosingPositions}, 늦은 정정은 {@code settle},
+ * 재시작은 기동 복구 본체 {@code reconcileInternal}(WebSocket 시작 제외), 읽기는 세션 서킷 브레이커의 연속 손실 판정.</p>
+ *
+ * <p>기점의 관측: 부분 매도는 손익을 더하지만 최종(전량) 분기는 {@code setRealizedPnl(이번 매도분)} 으로 덮는다 — 그래서 아래 두 다리
+ * 합계 단언이 수정 전에 실패해야 한다. 잔액·수수료·수량 불변 단언은 수정 전후 모두 같아야 한다(대금 경로는 이 결함과 무관).</p>
+ *
+ * <p>🔴 H2 로 돌리지 않는다. 주소가 localhost 가 아니면 실행하지 않는다. 시험 DB 는 매번 새로 만든다:</p>
+ * <pre>
+ * docker exec v152-pg psql -U trader -d postgres -c "CREATE DATABASE pp_x"
+ * PP_PG_URL=jdbc:postgresql://127.0.0.1:15437/pp_x ./gradlew :web-api:test --rerun --tests '*PartialSellRealizedPnlPgTest'
+ * </pre>
+ */
+@TestPropertySource(properties = {
+        "spring.datasource.url=${PP_PG_URL}",
+        "spring.datasource.username=${PP_PG_USER:trader}",
+        "spring.datasource.password=",
+        "spring.datasource.driver-class-name=org.postgresql.Driver",
+        "spring.flyway.enabled=true",
+        "spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect",
+        "spring.sql.init.mode=never"
+})
+@EnabledIfEnvironmentVariable(named = "PP_PG_URL", matches = "jdbc:postgresql://(localhost|127\\.0\\.0\\.1):\\d+/.+")
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@DisplayName("v1.155 §4-1 부분 매도 뒤 실현손익 — 덮어쓰기 없이 다리별 합 (로컬 PostgreSQL)")
+class PartialSellRealizedPnlPgTest extends IntegrationTestBase {
+
+    @Autowired private OrderExecutionEngine orderExecutionEngine;
+    @Autowired private OrderSettlementService settlement;
+    @Autowired private LiveTradingService liveTradingService;
+    @Autowired private DynamicTradingService dynamicTradingService;
+    @Autowired private RiskManagementService riskManagementService;
+    @Autowired private LiveTradingSessionRepository liveRepo;
+    @Autowired private DynamicSessionRepository dynamicRepo;
+    @Autowired private OrderRepository orderRepository;
+    @Autowired private PositionRepository positionRepository;
+    @Autowired private JdbcTemplate jdbc;
+
+    @MockBean private UpbitOrderClient upbitOrderClient;
+    @MockBean private com.cryptoautotrader.exchange.upbit.UpbitRestClient upbitRestClient;
+
+    private static final BigDecimal AVG = new BigDecimal("12495000");
+    private static final BigDecimal QTY = new BigDecimal("0.0016");    // 원가 19,992
+    private static final BigDecimal HALF = new BigDecimal("0.0008");   // 원가 9,996
+    private static final String COIN = "KRW-PPX";
+
+    // ── 준비 ────────────────────────────────────────────────────────────────
+
+    private Long liveSession() {
+        return liveRepo.save(LiveTradingSessionEntity.builder()
+                .sessionType("REAL").strategyType("COMPOSITE_BREAKOUT").coinPair(COIN).timeframe("H1")
+                .initialCapital(new BigDecimal("100000")).availableKrw(new BigDecimal("80008"))
+                .totalAssetKrw(new BigDecimal("100000")).status("RUNNING").startedAt(Instant.now()).build()).getId();
+    }
+
+    private Long dynamicSession() {
+        return dynamicRepo.saveAndFlush(DynamicSessionEntity.builder()
+                .strategyType("COMPOSITE_MOMENTUM_ICHIMOKU_V2").timeframe("H1")
+                .initialCapital(new BigDecimal("100000.00")).availableKrw(new BigDecimal("80008.00"))
+                .totalAssetKrw(new BigDecimal("100000.00"))
+                .investRatio(new BigDecimal("0.3000")).stopLossPct(new BigDecimal("5.00"))
+                .status("STOPPED").scanState("POSITION_MONITORING").tradingMode("REAL")
+                .maxCandidateSize(30).targetWatchSize(10)
+                .minAtrPct(new BigDecimal("0.5000")).maxSpreadPct(new BigDecimal("0.1000"))
+                .watchlistRefreshMin(60).build()).getId();
+    }
+
+    private PositionEntity closingPosition(String kind, Long sid) {
+        return positionRepository.save(PositionEntity.builder()
+                .coinPair(COIN).side("BUY").entryPrice(AVG).avgPrice(AVG)
+                .size(QTY).investedKrw(QTY.multiply(AVG)).entryAllocationKrw(QTY.multiply(AVG))
+                .positionFee(BigDecimal.ZERO).realizedPnl(BigDecimal.ZERO)
+                .status("CLOSING").closingAt(Instant.now())
+                .sessionKind(kind).sessionId(sid).openedAt(Instant.now().minus(2, ChronoUnit.HOURS)).build());
+    }
+
+    private OrderEntity submittedSell(PositionEntity p, BigDecimal qty) {
+        return orderRepository.save(OrderEntity.builder()
+                .coinPair(COIN).side("SELL").orderType("MARKET")
+                .quantity(qty).state("SUBMITTED")
+                .sessionKind(p.getSessionKind()).sessionId(p.getSessionId()).positionId(p.getId())
+                .exchangeOrderId("pp-" + UUID.randomUUID()).clientOrderId("pp-" + UUID.randomUUID())
+                .feeSource(OrderExecutionEngine.FEE_SOURCE_PENDING)
+                .createdAt(Instant.now()).submittedAt(Instant.now()).build());
+    }
+
+    private static OrderResponse sellResponse(String uuid, String state, BigDecimal qty, String funds, String fee) {
+        OrderResponse r = new OrderResponse();
+        r.setUuid(uuid);
+        r.setSide("ask");
+        r.setOrdType("market");
+        r.setState(state);
+        r.setMarket(COIN);
+        r.setExecutedVolume(qty);
+        r.setExecutedFunds(new BigDecimal(funds));
+        r.setPaidFee(new BigDecimal(fee));
+        return r;
+    }
+
+    private void fill(OrderEntity o, String state, BigDecimal qty, String funds, String fee) throws Exception {
+        Mockito.doReturn(sellResponse(o.getExchangeOrderId(), state, qty, funds, fee)).when(upbitOrderClient).getOrder(o.getExchangeOrderId());
+        orderExecutionEngine.checkOrderStatus(o.getId());
+        assertThat(orderRepository.findById(o.getId()).orElseThrow().getState()).isEqualTo("FILLED");
+    }
+
+    private void reconcile(String kind) {
+        if ("LIVE".equals(kind)) liveTradingService.reconcileClosingPositions();
+        else dynamicTradingService.reconcileDynamicClosingPositions();
+    }
+
+    private BigDecimal available(String kind, Long sid) {
+        return "LIVE".equals(kind) ? liveRepo.findById(sid).orElseThrow().getAvailableKrw()
+                : dynamicRepo.findById(sid).orElseThrow().getAvailableKrw();
+    }
+
+    private PositionEntity pos(Long id) {
+        return positionRepository.findById(id).orElseThrow();
+    }
+
+    /** 첫 다리 뒤 엔진이 나머지를 다시 파는 상태(청산 중) — 시험 DB 준비(LiveLossWindowPgTest ③ 과 같다). */
+    private PositionEntity reclose(Long id) {
+        PositionEntity mid = pos(id);
+        mid.setStatus("CLOSING");
+        mid.setClosingAt(Instant.now());
+        return positionRepository.save(mid);
+    }
+
+    private record Legs(PositionEntity first, PositionEntity closed, OrderEntity s1, OrderEntity s2,
+                        BigDecimal availBefore, BigDecimal availAfter) { }
+
+    /** 두 다리 매도 — 첫 다리 반, 둘째 다리 나머지 반. cancelFirst 면 첫 다리를 '전량 주문·반 체결 후 취소'로, restart 면 다리 사이에 기동 복구 본체. */
+    private Legs twoLegs(String kind, Long sid, String f1, String fee1, String f2, String fee2,
+                         boolean cancelFirst, boolean restart) throws Exception {
+        PositionEntity p = closingPosition(kind, sid);
+        BigDecimal before = available(kind, sid);
+        OrderEntity s1 = submittedSell(p, cancelFirst ? QTY : HALF);
+        fill(s1, cancelFirst ? "cancel" : "done", HALF, f1, fee1);
+        reconcile(kind);
+        PositionEntity first = pos(p.getId());
+        assertThat(first.getStatus()).as("첫 다리 — 잔여 보유").isEqualTo("OPEN");
+        assertThat(first.getSize()).isEqualByComparingTo(HALF);
+        if (restart) {
+            Object target = AopTestUtils.getUltimateTargetObject(liveTradingService);
+            ReflectionTestUtils.invokeMethod(target, "reconcileInternal");
+        }
+        PositionEntity mid = reclose(p.getId());
+        OrderEntity s2 = submittedSell(mid, HALF);
+        fill(s2, "done", HALF, f2, fee2);
+        reconcile(kind);
+        reconcile(kind);   // 반복 확정 — 두 번째는 반영 표시로 건너뛴다
+        return new Legs(first, pos(p.getId()), s1, s2, before, available(kind, sid));
+    }
+
+    private static void trace(String name, Object... cols) {
+        StringBuilder b = new StringBuilder("[PP155] ").append(name);
+        for (Object c : cols) b.append(" | ").append(c instanceof BigDecimal d ? d.toPlainString() : c);
+        System.out.println(b);
+    }
+
+    private static void assertInvariants(Legs l, String netSum, String feeSum) {
+        assertThat(l.closed().getStatus()).isEqualTo("CLOSED");
+        assertThat(l.availAfter().subtract(l.availBefore())).as("잔액 — 다리별 순입금 합(수정과 무관)").isEqualByComparingTo(netSum);
+        assertThat(l.closed().getPositionFee()).as("수수료 — 다리별 합").isEqualByComparingTo(feeSum);
+        assertThat(l.closed().getUnrealizedPnl()).isEqualByComparingTo("0");
+    }
+
+    // ── 사례 ────────────────────────────────────────────────────────────────
+
+    @Test
+    @Order(1)
+    @DisplayName("① 손실→손실: −1,000.50 + −2,000.00 = −3,000.50 (기점은 마지막 다리 −2,000 만 남김)")
+    void lossThenLoss() throws Exception {
+        Legs l = twoLegs("LIVE", liveSession(), "9000", "4.5", "8000", "4", false, false);
+        trace("①", "첫 다리 뒤=" + l.first().getRealizedPnl(), "최종=" + l.closed().getRealizedPnl(),
+                "잔액 차=" + l.availAfter().subtract(l.availBefore()), "수수료=" + l.closed().getPositionFee());
+        assertThat(l.first().getRealizedPnl()).isEqualByComparingTo("-1000.50");
+        assertInvariants(l, "16991.50", "8.5");
+        assertThat(l.closed().getRealizedPnl()).as("두 다리 합").isEqualByComparingTo("-3000.50");
+    }
+
+    @Test
+    @Order(2)
+    @DisplayName("② 손실→이익(부호 뒤집힘): −1,000.50 + 998.50 = −2.00 — 연속 손실 판정도 손실 1회(기점은 +998.50 이익으로 읽음)")
+    void lossThenGainSignFlip() throws Exception {
+        Map<String, Object> saved = jdbc.queryForMap("SELECT consecutive_loss_limit, circuit_breaker_enabled, mdd_threshold_pct FROM risk_config ORDER BY id LIMIT 1");
+        jdbc.update("UPDATE risk_config SET consecutive_loss_limit = 1, circuit_breaker_enabled = TRUE, mdd_threshold_pct = 99");
+        try {
+            Long sid = liveSession();
+            Legs l = twoLegs("LIVE", sid, "9000", "4.5", "11000", "5.5", false, false);
+            CircuitBreakerResult cb = riskManagementService.checkCircuitBreaker(liveRepo.findById(sid).orElseThrow());
+            trace("②", "첫 다리 뒤=" + l.first().getRealizedPnl(), "최종=" + l.closed().getRealizedPnl(),
+                    "잔액 차=" + l.availAfter().subtract(l.availBefore()), "연속 손실 판정=" + cb.isTriggered() + " " + cb.getReason());
+            assertInvariants(l, "19990.00", "10");   // (9,000−4.5)+(11,000−5.5) — 1회차 19,985.50 은 시험 작성 산수 오류(원문 보존)
+            assertThat(l.closed().getRealizedPnl()).as("두 다리 합 — 손실").isEqualByComparingTo("-2.00");
+            assertThat(cb.isTriggered()).as("연속 손실 한도 1 — 이 포지션은 손실 1회").isTrue();
+        } finally {
+            jdbc.update("UPDATE risk_config SET consecutive_loss_limit = ?, circuit_breaker_enabled = ?, mdd_threshold_pct = ?",
+                    saved.get("consecutive_loss_limit"), saved.get("circuit_breaker_enabled"), saved.get("mdd_threshold_pct"));
+        }
+    }
+
+    @Test
+    @Order(3)
+    @DisplayName("③ 이익→손실: 998.50 + −2,000.00 = −1,001.50")
+    void gainThenLoss() throws Exception {
+        Legs l = twoLegs("LIVE", liveSession(), "11000", "5.5", "8000", "4", false, false);
+        trace("③", "첫 다리 뒤=" + l.first().getRealizedPnl(), "최종=" + l.closed().getRealizedPnl());
+        assertInvariants(l, "18990.50", "9.5");   // (11,000−5.5)+(8,000−4) — 1회차 18,986.50 은 시험 작성 산수 오류(원문 보존)
+        assertThat(l.closed().getRealizedPnl()).isEqualByComparingTo("-1001.50");
+    }
+
+    @Test
+    @Order(4)
+    @DisplayName("④ 전량 매도 대조: 같은 총대금 17,000·총수수료 8.5 를 한 번에 팔면 −3,000.50 — ① 과 같아야 한다")
+    void fullSellContrast() throws Exception {
+        Long sid = liveSession();
+        PositionEntity p = closingPosition("LIVE", sid);
+        BigDecimal before = available("LIVE", sid);
+        OrderEntity s = submittedSell(p, QTY);
+        fill(s, "done", QTY, "17000", "8.5");
+        reconcile("LIVE");
+        PositionEntity c = pos(p.getId());
+        trace("④", "전량=" + c.getRealizedPnl(), "잔액 차=" + available("LIVE", sid).subtract(before));
+        assertThat(c.getStatus()).isEqualTo("CLOSED");
+        assertThat(c.getRealizedPnl()).isEqualByComparingTo("-3000.50");
+        assertThat(available("LIVE", sid).subtract(before)).isEqualByComparingTo("16991.50");
+    }
+
+    @Test
+    @Order(5)
+    @DisplayName("⑤ 반복 확정·늦은 정정 정확히 한 번 — 첫 다리 수수료 4.5→5.5, 같은 정정 재전달, 둘째 다리 4→5")
+    void repeatAndLateCorrectionOnce() throws Exception {
+        Long sid = liveSession();
+        Legs l = twoLegs("LIVE", sid, "9000", "4.5", "8000", "4", false, false);
+        BigDecimal closed = l.closed().getRealizedPnl();
+        OrderSettlementService.Outcome c1 = settlement.settle(l.s1().getId(), sellResponse(l.s1().getExchangeOrderId(), "done", HALF, "9000", "5.5"));
+        BigDecimal afterC1 = pos(l.closed().getId()).getRealizedPnl();
+        OrderSettlementService.Outcome c1again = settlement.settle(l.s1().getId(), sellResponse(l.s1().getExchangeOrderId(), "done", HALF, "9000", "5.5"));
+        BigDecimal afterC1again = pos(l.closed().getId()).getRealizedPnl();
+        OrderSettlementService.Outcome c2 = settlement.settle(l.s2().getId(), sellResponse(l.s2().getExchangeOrderId(), "done", HALF, "8000", "5"));
+        PositionEntity end = pos(l.closed().getId());
+        trace("⑤", "확정=" + closed, "첫 다리 정정(" + c1 + ")=" + afterC1, "재전달(" + c1again + ")=" + afterC1again,
+                "둘째 다리 정정(" + c2 + ")=" + end.getRealizedPnl(), "수수료=" + end.getPositionFee(),
+                "잔액 차=" + available("LIVE", sid).subtract(l.availBefore()));
+        assertThat(c1).isEqualTo(OrderSettlementService.Outcome.APPLIED);
+        assertThat(c2).isEqualTo(OrderSettlementService.Outcome.APPLIED);
+        assertThat(afterC1again).as("같은 정정 재전달 — 차분 0").isEqualByComparingTo(afterC1);
+        assertThat(end.getPositionFee()).isEqualByComparingTo("10.5");
+        assertThat(closed).isEqualByComparingTo("-3000.50");
+        assertThat(afterC1).isEqualByComparingTo("-3001.50");
+        assertThat(end.getRealizedPnl()).isEqualByComparingTo("-3002.50");
+    }
+
+    @Test
+    @Order(6)
+    @DisplayName("⑥ 첫 다리 '부분 체결 후 취소' + 다리 사이 재시작 복구 — 합 −3,000.50")
+    void cancelPartialThenRestart() throws Exception {
+        Legs l = twoLegs("LIVE", liveSession(), "9000", "4.5", "8000", "4", true, true);
+        trace("⑥", "첫 다리 뒤=" + l.first().getRealizedPnl(), "최종=" + l.closed().getRealizedPnl(),
+                "잔액 차=" + l.availAfter().subtract(l.availBefore()));
+        assertThat(l.first().getRealizedPnl()).isEqualByComparingTo("-1000.50");
+        assertInvariants(l, "16991.50", "8.5");
+        assertThat(l.closed().getRealizedPnl()).isEqualByComparingTo("-3000.50");
+    }
+
+    @Test
+    @Order(7)
+    @DisplayName("⑦ DYNAMIC REAL 같은 분기 — 손실→손실 합 −3,000.50")
+    void dynamicLossThenLoss() throws Exception {
+        Legs l = twoLegs("DYNAMIC", dynamicSession(), "9000", "4.5", "8000", "4", false, false);
+        trace("⑦", "첫 다리 뒤=" + l.first().getRealizedPnl(), "최종=" + l.closed().getRealizedPnl(),
+                "잔액 차=" + l.availAfter().subtract(l.availBefore()), "수수료=" + l.closed().getPositionFee());
+        assertThat(l.first().getRealizedPnl()).isEqualByComparingTo("-1000.50");
+        assertInvariants(l, "16991.50", "8.5");
+        assertThat(l.closed().getRealizedPnl()).isEqualByComparingTo("-3000.50");
+    }
+}
