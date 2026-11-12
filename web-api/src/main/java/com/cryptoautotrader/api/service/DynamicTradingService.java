@@ -1986,13 +1986,7 @@ public class DynamicTradingService {
         // 원자적 CLOSING 전환 — WS 실시간 SL/TP와 60초 tick이 동시에 같은 포지션을 팔려는
         // race에서 한쪽만 매도 주문을 제출하도록 보장 (시장가 이중 매도 방지)
         if (session.isPaper()) {
-            int marked = positionStateTransition.markClosingIfOpen(pos.getId(), Instant.now(), exitReason);
-            if (marked == 0) {
-                log.debug("[Dynamic] 매도 건너뜀: 이미 CLOSING/CLOSED (posId={}, id={})", pos.getId(), sid);
-                return false;
-            }
-            executePaperSell(session, pos, currentPrice, reason, exitReason, null);
-            return true;
+            return executePaperSellIfOpen(session, pos, currentPrice, reason, exitReason, null);
         }
 
         OrderRequest order = new OrderRequest();
@@ -2029,6 +2023,21 @@ public class DynamicTradingService {
      * @param priceSource 체결가 출처(V92) — {@code null} 이면 신호가가 있을 때 {@link #PAPER_FILL_SIGNAL}, 없을 때 아래 대체 규칙으로 정한다.
      *                    🔴 정지 청산은 평균 단가를 신호가 자리에 넣으므로 신호가로는 가정 체결을 가려낼 수 없다 — {@link #PAPER_FILL_AVG_PRICE} 를 준다.
      */
+    /**
+     * PAPER 매도의 원자적 CLOSING 전환 + 체결 시뮬레이션 (v1.158 결정 3 에서 REAL 경로를 의도 원자화로 분리하며 묶었다 — PAPER 는 종전과 같다).
+     *
+     * @return CLOSING 전환에 성공해 시뮬레이션했으면 {@code true}, 이미 CLOSING/CLOSED 면 {@code false}
+     */
+    private boolean executePaperSellIfOpen(DynamicSessionEntity session, PositionEntity pos, BigDecimal price,
+                                           String reason, ExitReason exitReason, String fillPriceNote) {
+        if (positionStateTransition.markClosingIfOpen(pos.getId(), Instant.now(), exitReason) == 0) {
+            log.debug("[Dynamic] 매도 건너뜀: 이미 CLOSING/CLOSED (posId={}, id={})", pos.getId(), session.getId());
+            return false;
+        }
+        executePaperSell(session, pos, price, reason, exitReason, fillPriceNote);
+        return true;
+    }
+
     private void executePaperSell(DynamicSessionEntity session, PositionEntity pos,
                                    BigDecimal signalPrice, String reason, ExitReason exitReason, String priceSource) {
         // 신호가 없음 (2026-10-15 리뷰 7회차) — 캔들도 유효한 현재가도 없는 회차의 시간 초과 청산. 실전은 시장가로 그대로
@@ -2497,13 +2506,9 @@ public class DynamicTradingService {
             // WS 실시간 SL/TP 매도와의 race 방지 — 이미 CLOSING이면 매도 주문 중복 제출 스킵
             // 운영자 개입 청산 — 청산가가 시장이 아니라 정지 시각으로 정해지므로 전략 성과와 섞으면 안 된다.
             if (session.isPaper()) {
-                if (positionStateTransition.markClosingIfOpen(pos.getId(), Instant.now(),
-                        ExitReason.FORCED_STOP) == 0) {
-                    continue;
-                }
                 // 현재가 정보가 없는 강제 정지 경로 — 진입가를 신호가로 대체(슬리피지만 반영).
                 // 정지/비상정지는 드문 경로이고, 정확한 청산가보다 "확실히 닫힌다"가 중요하다.
-                executePaperSell(session, pos, pos.getAvgPrice(), reason, ExitReason.FORCED_STOP, PAPER_FILL_AVG_PRICE);
+                executePaperSellIfOpen(session, pos, pos.getAvgPrice(), reason, ExitReason.FORCED_STOP, PAPER_FILL_AVG_PRICE);
                 continue;
             }
 
