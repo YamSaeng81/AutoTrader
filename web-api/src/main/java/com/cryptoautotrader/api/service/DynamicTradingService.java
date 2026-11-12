@@ -327,6 +327,16 @@ public class DynamicTradingService {
     private static final long RT_CHECK_INTERVAL_MS = 5_000;
 
     /**
+     * 보호선 첫 통과 (총괄 v1.155 §4-2, 2026-11-12, LIVE 처리기와 같은 규칙) — 코인별로 마지막 전체 점검이 본 OPEN 포지션의
+     * 손절 발동가 최댓값(floor)·익절가 최솟값(ceiling). 5초 간격 안이라도 유효 시세가 floor 를 위에서 아래로, 또는 ceiling 을
+     * 아래에서 위로 처음 넘으면 그 한 번은 점검한다. 매 틱 DB 조회 없음 — 그 뒤 새로 열린 포지션은 다음 정기 점검부터(한계).
+     */
+    private final Map<String, BigDecimal> rtProtectFloor = new ConcurrentHashMap<>();
+    private final Map<String, BigDecimal> rtProtectCeiling = new ConcurrentHashMap<>();
+    private final Map<String, BigDecimal> rtLastValidPrice = new ConcurrentHashMap<>();
+    private static final BigDecimal PROTECT_FLOOR_SLACK = new BigDecimal("1.000001");
+
+    /**
      * 세션별 마지막 실시간(WS) SL/TP 점검 시각 — {@link #warnStaleSlCheck} 미점검 경고용.
      * LIVE의 {@code §9 warnStaleSlCheck}와 동일 목적이나, 2026-08-06 이전엔 DYNAMIC에
      * 대응물 자체가 없었다(2026-08-05 ELSA 2.1%p SL 이탈 사고 당시에도 감시 공백을
@@ -3478,10 +3488,12 @@ public class DynamicTradingService {
             return;
         }
 
+        boolean firstCross = protectFirstCross(coinCode, price);   // v1.155 §4-2
         Long lastMs = rtCheckLastMs.get(coinCode);
-        if (lastMs != null && now - lastMs < RT_CHECK_INTERVAL_MS) return;
+        if (!firstCross && lastMs != null && now - lastMs < RT_CHECK_INTERVAL_MS) return;
         rtCheckLastMs.put(coinCode, now);
 
+        ProtectBounds next = new ProtectBounds();
         List<DynamicSessionEntity> sessions = dynamicSessionRepo.findByStatus("RUNNING");
         for (DynamicSessionEntity session : sessions) {
             // 2026-08-31: PAPER 도 여기 들어온다 — LIVE 와 같은 5초 주기로 SL/TP 를 본다.
@@ -3527,7 +3539,48 @@ public class DynamicTradingService {
                         coinCode, price, pnlPct, session.getId());
                 telegramService.notifyStopLoss(coinCode, pnlPct.doubleValue(), session.getId());
                 executeSell(session, pos, price, "실시간 손절 — pnl " + pnlPct + "%", ExitReason.STOP_LOSS);
+                continue;
             }
+            next.add(pos, session.getStopLossPct());   // 이번 점검 뒤에도 보유 — 다음 첫 통과 판정의 기준
+        }
+        next.store(coinCode);
+    }
+
+    /**
+     * v1.155 §4-2 — 직전 유효 시세에서 이번 유효 시세로 손절 발동가(floor)를 위→아래, 또는 익절가(ceiling)를 아래→위로 처음 넘었는가.
+     * 직전 유효 시세를 갱신한다(낡은·비가격 시세는 이 앞에서 버려져 여기 오지 않는다).
+     */
+    private boolean protectFirstCross(String coinCode, BigDecimal price) {
+        BigDecimal prevValid = rtLastValidPrice.put(coinCode, price);
+        BigDecimal floor = rtProtectFloor.get(coinCode);
+        BigDecimal ceiling = rtProtectCeiling.get(coinCode);
+        boolean cross = (floor != null && price.compareTo(floor) <= 0 && (prevValid == null || prevValid.compareTo(floor) > 0))
+                || (ceiling != null && price.compareTo(ceiling) >= 0 && (prevValid == null || prevValid.compareTo(ceiling) < 0));
+        if (cross) {
+            log.info("[Dynamic] 보호선 첫 통과 — 점검 간격과 무관하게 점검: {} {} (손절 발동가 {}, 익절가 {}, 직전 {})",
+                    coinCode, price, floor, ceiling, prevValid);
+        }
+        return cross;
+    }
+
+    /** 한 번의 전체 점검 뒤에도 OPEN 으로 남는 포지션의 손절 발동가 최댓값·익절가 최솟값. */
+    private final class ProtectBounds {
+        private BigDecimal floor;
+        private BigDecimal ceiling;
+
+        void add(PositionEntity pos, BigDecimal stopLossPct) {
+            BigDecimal trigger = pos.getStopLossPrice() != null ? pos.getStopLossPrice()
+                    : (stopLossPct == null || pos.getAvgPrice() == null ? null
+                        : pos.getAvgPrice().multiply(BigDecimal.ONE.subtract(stopLossPct.movePointLeft(2))).multiply(PROTECT_FLOOR_SLACK));
+            if (trigger != null) floor = floor == null ? trigger : floor.max(trigger);
+            if (pos.getTakeProfitPrice() != null) {
+                ceiling = ceiling == null ? pos.getTakeProfitPrice() : ceiling.min(pos.getTakeProfitPrice());
+            }
+        }
+
+        void store(String coinCode) {
+            if (floor != null) rtProtectFloor.put(coinCode, floor); else rtProtectFloor.remove(coinCode);
+            if (ceiling != null) rtProtectCeiling.put(coinCode, ceiling); else rtProtectCeiling.remove(coinCode);
         }
     }
 

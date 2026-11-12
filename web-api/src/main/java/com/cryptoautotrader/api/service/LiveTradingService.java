@@ -198,6 +198,17 @@ public class LiveTradingService {
     private final Map<String, Deque<PriceSnapshot>> priceHistory = new ConcurrentHashMap<>();
     /** 급등/급락 감지 시 단축 throttle (1초) */
     private final Map<String, Long> spikeCheckLastMs = new ConcurrentHashMap<>();
+
+    /**
+     * 보호선 첫 통과 (총괄 v1.155 §4-2, 2026-11-12) — 코인별로 마지막 전체 점검이 본 OPEN 포지션 손절 발동가 중 가장 높은 값.
+     * 점검 간격(5초/1초) 안이라도 유효 시세가 이 값을 위에서 아래로 처음 넘으면 그 한 번은 점검한다. 매 틱 DB 조회를 하지 않고
+     * 마지막 점검 결과만 쓴다 — 그 뒤 새로 열린 포지션은 다음 정기 점검(최대 5초)부터 반영된다(한계).
+     */
+    private final Map<String, BigDecimal> rtProtectFloor = new ConcurrentHashMap<>();
+    /** 코인별 직전 유효 시세(낡은·비가격 시세는 넣지 않는다) — 첫 통과 판정용. */
+    private final Map<String, BigDecimal> rtLastValidPrice = new ConcurrentHashMap<>();
+    /** 백분율 손절의 발동가 근사 여유 — 판정 자체는 기존 규칙이 한다. 이 값은 점검을 부를지만 정한다(조금 일찍 불러도 무해). */
+    private static final BigDecimal PROTECT_FLOOR_SLACK = new BigDecimal("1.000001");
     private static final long SPIKE_WINDOW_MS        = 30_000;   // 감지 윈도우 30초
     private static final long SPIKE_HISTORY_TTL_MS   = 60_000;   // 버퍼 보존 60초
     private static final long SPIKE_CHECK_INTERVAL_MS = 1_000;   // 급등락 시 1초 throttle
@@ -3419,8 +3430,14 @@ public class LiveTradingService {
         boolean spikeDown = spikeRate.compareTo(SPIKE_DOWN_THRESHOLD) <= 0;
         boolean spikeUp   = spikeRate.compareTo(SPIKE_UP_THRESHOLD) >= 0;
 
-        // 3. throttle — 급등락 시 1초, 평상시 5초
-        if (spikeDown || spikeUp) {
+        // 3. throttle — 급등락 시 1초, 평상시 5초. 단, 손절 발동가를 처음 넘은 유효 시세는 간격과 무관하게 한 번 점검한다(v1.155 §4-2).
+        BigDecimal prevValid = rtLastValidPrice.put(coinCode, price);
+        BigDecimal floor = rtProtectFloor.get(coinCode);
+        boolean firstCross = floor != null && price.compareTo(floor) <= 0
+                && (prevValid == null || prevValid.compareTo(floor) > 0);
+        if (firstCross) {
+            log.info("보호선 첫 통과 — 점검 간격과 무관하게 점검: {} {} (발동가 {}, 직전 {})", coinCode, price, floor, prevValid);
+        } else if (spikeDown || spikeUp) {
             Long lastSpike = spikeCheckLastMs.get(coinCode);
             if (lastSpike != null && now - lastSpike < SPIKE_CHECK_INTERVAL_MS) return;
             spikeCheckLastMs.put(coinCode, now);
@@ -3433,6 +3450,7 @@ public class LiveTradingService {
         rtStopLossLastCheckMs.put(coinCode, now);
 
         List<LiveTradingSessionEntity> sessions = sessionRepository.findByStatus("RUNNING");
+        BigDecimal nextFloor = null;   // 이번 점검 뒤에도 OPEN 으로 남는 포지션의 손절 발동가 최댓값
         for (LiveTradingSessionEntity session : sessions) {
             if (!coinCode.equals(session.getCoinPair())) continue;
 
@@ -3466,9 +3484,12 @@ public class LiveTradingService {
                 if (executeSessionSell(session, pos, price, "실시간 손절 — 손익률 " + pnlPct + "%",
                         ExitReason.STOP_LOSS)) {
                     telegramService.notifyStopLoss(coinCode, pnlPct.doubleValue(), session.getId());
+                } else {
+                    nextFloor = maxFloor(nextFloor, stopTriggerPrice(pos, stopLossPct));   // 매도 실패 — 계속 보유
                 }
                 continue;
             }
+            nextFloor = maxFloor(nextFloor, stopTriggerPrice(pos, stopLossPct));
 
             // 급락 처리 — 2026-08-06 제거. SL을 좁히지 않는다.
             //
@@ -3504,6 +3525,21 @@ public class LiveTradingService {
                 }
             }
         }
+        if (nextFloor != null) rtProtectFloor.put(coinCode, nextFloor);
+        else rtProtectFloor.remove(coinCode);
+    }
+
+    /** 손절 발동가 — 절대가가 있으면 그것, 없으면 평균가 × (1 − 손절%) 에 근사 여유(점검을 부를지만 정한다). */
+    private static BigDecimal stopTriggerPrice(PositionEntity pos, BigDecimal stopLossPct) {
+        if (pos.getStopLossPrice() != null) return pos.getStopLossPrice();
+        if (stopLossPct == null || pos.getAvgPrice() == null) return null;
+        return pos.getAvgPrice().multiply(BigDecimal.ONE.subtract(stopLossPct.movePointLeft(2))).multiply(PROTECT_FLOOR_SLACK);
+    }
+
+    private static BigDecimal maxFloor(BigDecimal a, BigDecimal b) {
+        if (a == null) return b;
+        if (b == null) return a;
+        return a.max(b);
     }
 
     private void updatePriceHistory(String coin, BigDecimal price, long nowMs) {
