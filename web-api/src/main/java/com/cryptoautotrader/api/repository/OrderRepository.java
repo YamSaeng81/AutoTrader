@@ -469,6 +469,20 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
     java.math.BigDecimal sumLiveSessionRealizedLossSince(@Param("since") Instant since);
 
     /**
+     * 확정된 DYNAMIC REAL 세션 매도의 실현 손실 합(음수, 없으면 0) — 총괄 v1.158 결정 2 의 DYNAMIC REAL·전체 REAL 보호식 분자.
+     *
+     * <p>{@link #sumLiveSessionRealizedLossSince} 와 같은 식·같은 조건이고 세션 종류만 {@code DYNAMIC}(실자금)이다. DYN_PAPER 는 주문 행이
+     * 없고 세션 종류도 달라 빠진다. 매도 한 건 = 한 행(재확정에도 한 번), 늦은 정정은 반영값 차분, 롤백은 표시가 함께 되돌아가 빠진다.</p>
+     */
+    @Query(value = "SELECT COALESCE(SUM(pnl), 0) FROM ("
+            + " SELECT o.applied_executed_funds - COALESCE(o.applied_paid_fee, 0) - o.filled_quantity * p.avg_price AS pnl"
+            + " FROM \"order\" o JOIN position p ON p.id = o.position_id"
+            + " WHERE o.side = 'SELL' AND o.session_id IS NOT NULL AND o.session_kind = 'DYNAMIC'"
+            + " AND o.sell_applied_at IS NOT NULL AND o.sell_applied_at >= :since AND o.applied_executed_funds IS NOT NULL"
+            + ") t WHERE pnl < 0", nativeQuery = true)
+    java.math.BigDecimal sumDynamicRealSessionRealizedLossSince(@Param("since") Instant since);
+
+    /**
      * 매도 확정이 포지션·잔액에 반영한 대금·수수료를 기록한다 (2026-10-14) — 뒤늦은 정정은 이 값과의 차이만 반영한다.
      * 영속성 컨텍스트를 비우지 않는다(확정 반복문의 포지션 엔티티를 떼어내지 않는다).
      */

@@ -45,6 +45,13 @@ public class RiskManagementService {
     private final com.cryptoautotrader.api.repository.OrderRepository orderRepository;
 
     /**
+     * DYNAMIC REAL 보호식·전체 REAL 보호식의 자본 기준(RUNNING DYNAMIC REAL 초기자본) — 총괄 v1.158 결정 2. 스프링 문맥에서는 항상 주입된다.
+     * 생성자를 바꾸지 않으려고 필드 주입이다(생성자로 만드는 단위 시험은 DYNAMIC 손실 원천도 대역이라 0 이다).
+     */
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.cryptoautotrader.api.repository.DynamicSessionRepository dynamicSessionRepository;
+
+    /**
      * 현재 리스크 설정 조회. 설정이 없으면 기본값으로 신규 생성.
      */
     @Transactional
@@ -185,9 +192,123 @@ public class RiskManagementService {
             log.warn("리스크 체크 거부: {} (일일={}%, 주간={}%, 월간={}%, 포지션={}, 자본사용률={}%, 드로우다운={}%)",
                     result.getReason(), dailyLoss, weeklyLoss, monthlyLoss,
                     currentPositions, capitalUtilizationPct, portfolioDrawdownPct);
+            // 🔴 v1.158 결정 2: 손실 거절이면 어느 보호식인지 붙인다. 기존 식의 판정·비교는 그대로다.
+            if (result.getReason() != null && result.getReason().contains("손실 한도")) {
+                return RiskCheckResult.reject("[기존 보호식] " + result.getReason());
+            }
+            return result;
         }
 
-        return result;
+        // 🔴 v1.158 결정 2: 기존 보호식을 통과해도 DYNAMIC REAL·전체 REAL 보호식을 같은 한도로 본다(하나라도 넘으면 거절).
+        return checkAddedRealLossFormulas(engine, configEntity, now);
+    }
+
+    /**
+     * 실자금 신규 매수의 손실 관문 — 기존·DYNAMIC REAL·전체 REAL 세 보호식 (총괄 v1.158 결정 2, 2026-11-12).
+     *
+     * <p>DYNAMIC REAL 진입(즉시·회차 승인 공통 {@code executeBuy})이 부른다. LIVE 즉시·회차 승인과 비세션 BUY 는 {@link #checkRisk()} 가
+     * 같은 세 식을 본다. 포지션 수·자본 사용률·포트폴리오 낙폭은 이 관문에 넣지 않는다 — DYNAMIC 에 새 비손실 한도를 얹지 않기 위해서다.
+     * 비교는 기존 {@link RiskEngine} 규칙(손실률 &gt; 한도면 거절, 동률 승인)과 기존 한도 값을 그대로 쓴다.</p>
+     */
+    @Transactional(readOnly = true)
+    public RiskCheckResult checkRealLossGuard() {
+        if (!hasRiskConfig()) {
+            return RiskCheckResult.reject("risk_config 행이 없다 — 신규 진입 차단(V88 기본 행 확인 필요)");
+        }
+        RiskConfigEntity configEntity = getRiskConfig();
+        RiskEngine engine = new RiskEngine(toRiskConfig(configEntity));
+        Instant now = Instant.now();
+        BigDecimal legacyDenom = resolvePortfolioLimit(configEntity);
+        RiskCheckResult legacy = engine.check(
+                calculateLossPct(now.minus(1, ChronoUnit.DAYS), legacyDenom),
+                calculateLossPct(now.minus(7, ChronoUnit.DAYS), legacyDenom),
+                calculateLossPct(now.minus(30, ChronoUnit.DAYS), legacyDenom), 0, null, null);
+        if (!legacy.isApproved()) {
+            return RiskCheckResult.reject("[기존 보호식] " + legacy.getReason());
+        }
+        return checkAddedRealLossFormulas(engine, configEntity, now);
+    }
+
+    /**
+     * DYNAMIC REAL 보호식과 전체 REAL 보호식 (v1.158 결정 2).
+     *
+     * <pre>
+     * DYNAMIC REAL : 확정 DYNAMIC REAL 세션 매도 손실 / RUNNING DYNAMIC REAL 초기자본
+     *                손실이 있는데 자본이 0 이면 판정 불가 → 거절(손실 0·무한 자본으로 보지 않는다). 손실 0 이면 0%.
+     * 전체 REAL    : (기존 손실 원천 + DYNAMIC REAL 손실, 각 한 번) / (RUNNING LIVE + RUNNING DYNAMIC REAL 초기자본)
+     *                둘 다 0(비세션만)이면 종전 설정/최종 폴백.
+     * </pre>
+     * 이익으로 상쇄하지 않는다(손실 행만). PAPER·DYN_PAPER·추정 청산은 분자·분모에 없다. 자료를 읽지 못하면 판정 불가로 거절한다.
+     */
+    private RiskCheckResult checkAddedRealLossFormulas(RiskEngine engine, RiskConfigEntity configEntity, Instant now) {
+        BigDecimal[] dynPct = new BigDecimal[3];
+        BigDecimal[] totalPct = new BigDecimal[3];
+        Instant[] since = {now.minus(1, ChronoUnit.DAYS), now.minus(7, ChronoUnit.DAYS), now.minus(30, ChronoUnit.DAYS)};
+        try {
+            BigDecimal liveCap = runningLiveCapital();
+            BigDecimal dynCap = runningDynamicRealCapital();
+            BigDecimal totalCap = liveCap.add(dynCap);
+            if (totalCap.signum() <= 0) {
+                totalCap = configuredOrFallbackLimit(configEntity);
+            }
+            for (int i = 0; i < 3; i++) {
+                BigDecimal dynLoss = negOrZero(orderRepository.sumDynamicRealSessionRealizedLossSince(since[i]));
+                BigDecimal legacyLoss = legacyLossKrw(since[i]);
+                if (dynLoss.signum() < 0 && dynCap.signum() <= 0) {
+                    String msg = String.format("[DYNAMIC REAL 보호식] 판정 불가 — 확정 DYNAMIC REAL 손실 %s원이 있는데 유효한 RUNNING DYNAMIC REAL "
+                            + "자본이 없다(손실 0·무한 자본으로 보지 않는다)", dynLoss.abs().stripTrailingZeros().toPlainString());
+                    log.warn("리스크 체크 거부: {}", msg);
+                    return RiskCheckResult.reject(msg);
+                }
+                dynPct[i] = dynLoss.signum() < 0 ? pct(dynLoss, dynCap) : BigDecimal.ZERO;
+                totalPct[i] = pct(legacyLoss.add(dynLoss), totalCap);
+            }
+        } catch (org.springframework.dao.DataAccessException e) {
+            String msg = "[실자금 손실 보호식] 판정 불가 — 손실·자본 자료를 읽지 못했다(" + e.getClass().getSimpleName() + ")";
+            log.warn("리스크 체크 거부: {}", msg);
+            return RiskCheckResult.reject(msg);
+        }
+        RiskCheckResult dyn = engine.check(dynPct[0], dynPct[1], dynPct[2], 0, null, null);
+        if (!dyn.isApproved()) {
+            log.warn("리스크 체크 거부: [DYNAMIC REAL 보호식] {} (일={}%, 주={}%, 월={}%)", dyn.getReason(), dynPct[0], dynPct[1], dynPct[2]);
+            return RiskCheckResult.reject("[DYNAMIC REAL 보호식] " + dyn.getReason());
+        }
+        RiskCheckResult total = engine.check(totalPct[0], totalPct[1], totalPct[2], 0, null, null);
+        if (!total.isApproved()) {
+            log.warn("리스크 체크 거부: [전체 REAL 보호식] {} (일={}%, 주={}%, 월={}%)", total.getReason(), totalPct[0], totalPct[1], totalPct[2]);
+            return RiskCheckResult.reject("[전체 REAL 보호식] " + total.getReason());
+        }
+        return RiskCheckResult.approve();
+    }
+
+    private static BigDecimal negOrZero(BigDecimal v) {
+        return v == null || v.signum() >= 0 ? BigDecimal.ZERO : v;
+    }
+
+    private static BigDecimal pct(BigDecimal loss, BigDecimal denom) {
+        if (loss.signum() >= 0 || denom == null || denom.signum() <= 0) return BigDecimal.ZERO;
+        return loss.abs().divide(denom, 4, RoundingMode.HALF_UP).multiply(new BigDecimal("100"));
+    }
+
+    private BigDecimal runningLiveCapital() {
+        return sessionRepository.findByStatus("RUNNING").stream()
+                .map(LiveTradingSessionEntity::getInitialCapital)
+                .filter(c -> c != null && c.compareTo(BigDecimal.ZERO) > 0)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private BigDecimal runningDynamicRealCapital() {
+        if (dynamicSessionRepository == null) return BigDecimal.ZERO;
+        return dynamicSessionRepository.findByStatus("RUNNING").stream()
+                .filter(s -> !s.isPaper())
+                .map(com.cryptoautotrader.api.entity.DynamicSessionEntity::getInitialCapital)
+                .filter(c -> c != null && c.compareTo(BigDecimal.ZERO) > 0)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private static BigDecimal configuredOrFallbackLimit(RiskConfigEntity config) {
+        BigDecimal limit = config.getPortfolioLimitKrw();
+        return (limit == null || limit.compareTo(BigDecimal.ZERO) <= 0) ? new BigDecimal("10000000") : limit;
     }
 
     /**
@@ -325,6 +446,17 @@ public class RiskManagementService {
         if (portfolioLimit == null || portfolioLimit.compareTo(BigDecimal.ZERO) <= 0) {
             return BigDecimal.ZERO;
         }
+        BigDecimal grossLoss = legacyLossKrw(since);
+        if (grossLoss.compareTo(BigDecimal.ZERO) >= 0) {
+            return BigDecimal.ZERO;
+        }
+        return grossLoss.abs()
+                .divide(portfolioLimit, 4, RoundingMode.HALF_UP)
+                .multiply(new BigDecimal("100"));
+    }
+
+    /** 기존 보호식의 손실 원천(음수, 없으면 0) — 비세션 FILL + 확정 LIVE 세션 매도. 식은 종전과 같다(v1.158 에서 메서드로만 분리). */
+    private BigDecimal legacyLossKrw(Instant since) {
         BigDecimal grossLoss = tradeLogRepository.sumRealizedLossSince(since);
         // 🔴 LIVE 세션 매도는 trade_log FILL 을 남기지 않는다(handleSellFill 조기 반환) — 확정된 매도 손실을 주문 행에서 더한다 (v1.154 §3).
         //    두 원천은 겹치지 않는다(FILL = 비세션 매도, 주문 원천 = 세션 매도). 매도 한 건당 손실 행만이라 이익과 상쇄하지 않는다.
@@ -335,9 +467,7 @@ public class RiskManagementService {
         if (grossLoss == null || grossLoss.compareTo(BigDecimal.ZERO) >= 0) {
             return BigDecimal.ZERO;
         }
-        return grossLoss.abs()
-                .divide(portfolioLimit, 4, RoundingMode.HALF_UP)
-                .multiply(new BigDecimal("100"));
+        return grossLoss;
     }
 
     /**
