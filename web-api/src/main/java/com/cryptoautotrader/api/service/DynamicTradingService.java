@@ -3072,7 +3072,9 @@ public class DynamicTradingService {
             pos.setStatus("OPEN");
             pos.setClosingAt(null);
         } else {
-            pos.setRealizedPnl(realizedPnl);
+            // 🔴 앞 부분 매도 손익에 더한다 (총괄 v1.155 §4-1, 2026-11-12, LIVE finalizeSellPosition 과 같은 규칙) —
+            //    덮어쓰면 부분 매도 뒤 최종 매도가 앞 다리 손익을 지운다(실제 PG ⑦: −1,000.50 + −2,000 이 −2,000 으로).
+            pos.setRealizedPnl((pos.getRealizedPnl() == null ? BigDecimal.ZERO : pos.getRealizedPnl()).add(realizedPnl));
             // 2026-09-07: set → add. 여기서 덮어쓰면 매수 시 기록한 수수료가 사라져
             // position_fee 가 <b>매도분만</b> 담게 된다(운영 DB 실측: DYN_PAPER 청산 335건의
             // position_fee 가 전부 매도대금×0.05% 였다). 실현손익은 매수 수수료가 avgPrice 에
