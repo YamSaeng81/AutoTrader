@@ -1,6 +1,7 @@
 package com.cryptoautotrader.api.service;
 
 import com.cryptoautotrader.api.dto.OrderRequest;
+import com.cryptoautotrader.api.entity.ExitReason;
 import com.cryptoautotrader.api.entity.OrderEntity;
 import com.cryptoautotrader.api.entity.PositionEntity;
 import com.cryptoautotrader.api.entity.TradeLogEntity;
@@ -260,6 +261,14 @@ public class OrderExecutionEngine {
     @Autowired
     @Lazy
     private OrderExecutionEngine self;
+
+    /**
+     * CLOSING 전환의 단일 관문 (v1.158 결정 3) — {@link #markClosingWithSellIntent} 도 전환은 이 헬퍼로 한다. 헬퍼의 트랜잭션은
+     * REQUIRED 라 여기서 연 트랜잭션에 참여하고, 전환·의도가 함께 커밋된다.
+     */
+    @Autowired
+    @Lazy
+    private PositionStateTransition positionStateTransition;
 
     /**
      * 제출 단계의 트랜잭션 경계 (V84).
@@ -568,6 +577,55 @@ public class OrderExecutionEngine {
                 }
             }
         });
+    }
+
+    /** {@link #markClosingWithSellIntent} 의 결과 — CLOSING 전환 여부와 같은 트랜잭션에서 저장된 매도 의도 id(거절이면 null). */
+    public record ClosingSellIntent(boolean marked, Long orderId) { }
+
+    /**
+     * 🔴 CLOSING 전환과 매도 의도 저장을 <b>한 트랜잭션으로</b> 묶고, 커밋 뒤에 제출을 넘긴다 (총괄 v1.158 결정 3, 2026-11-12).
+     *
+     * <p>종전에는 CLOSING 을 먼저 커밋하고 매도 의도({@code INTENT_READY})는 {@code @Async} 제출 작업 안에서 만들었다. 실행기가
+     * 밀리면 그 사이에 청산 확인(5초)이 "CLOSING 인데 SELL 주문 없음" 만 보고 OPEN 으로 되돌렸고, 그 뒤 의도가 생겨 실제 매도가
+     * 나갔다 — OPEN 포지션의 체결은 청산 확인이 보지 않아 정산이 다음 CLOSING 전환까지 미뤄졌다(총괄 관측 1/1, 84fb03d6 H2·PG).</p>
+     *
+     * <p>이제 "CLOSING 인데 의도 행이 없다" 는 <b>의도가 만들어지지 않았다</b>(중복·미반영 매도·형식 거절)는 뜻이 되어, 청산 확인의
+     * 기존 롤백이 근거 있는 회복이 된다. 시간 유예는 두지 않는다. 의도 저장이 예외로 끝나면 CLOSING 도 함께 롤백된다.
+     * 호출자가 트랜잭션을 들고 있으면 거기에 참여하고(그 커밋 뒤 제출), 없으면 여기서 커밋한 뒤 바로 넘긴다. 실행기가 받지 못하면
+     * 의도를 철회한다(외부 호출 0, 기존 계약) — 청산 확인은 그 FAILED 를 보고 OPEN 으로 되돌린다.</p>
+     */
+    public ClosingSellIntent markClosingWithSellIntent(Long positionId, Instant now, ExitReason reason, OrderRequest sell) {
+        if (!"SELL".equalsIgnoreCase(sell.getSide()) || sell.getPositionId() == null
+                || !sell.getPositionId().equals(positionId)) {
+            throw new IllegalArgumentException("markClosingWithSellIntent 는 같은 포지션의 매도 전용이다: "
+                    + sell.getSide() + " pos=" + sell.getPositionId() + "/" + positionId);
+        }
+        ClosingSellIntent r = submitTx.execute(st -> {
+            int marked = positionStateTransition.markClosingIfOpen(positionId, now, reason);
+            if (marked != 1) {
+                return new ClosingSellIntent(false, null);
+            }
+            return new ClosingSellIntent(true, prepareIntent(sell));
+        });
+        if (r != null && r.orderId() != null) {
+            dispatchPreparedIntent(r.orderId(), sell);
+        }
+        return r != null ? r : new ClosingSellIntent(false, null);
+    }
+
+    /** 커밋된(또는 호출자 트랜잭션 안에서 저장된) 의도를 실행기에 넘긴다. 받지 못하면 철회한다. */
+    private void dispatchPreparedIntent(Long orderId, OrderRequest request) {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            submitPreparedOrderAfterCommit(orderId, request);
+            return;
+        }
+        try {
+            self.submitPreparedOrder(orderId, request);
+        } catch (RuntimeException dispatchFailed) {
+            log.error("의도를 실행기에 넘기지 못했다 — 철회한다 (orderId={}): {}", orderId, dispatchFailed.getMessage());
+            withdrawUndispatchedIntent(orderId,
+                    "실행기 디스패치 실패 — 제출하지 않았다: " + dispatchFailed.getClass().getSimpleName());
+        }
     }
 
     /**
