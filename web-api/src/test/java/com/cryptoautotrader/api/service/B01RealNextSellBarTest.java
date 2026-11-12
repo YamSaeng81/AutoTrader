@@ -1,5 +1,6 @@
 package com.cryptoautotrader.api.service;
 
+import com.cryptoautotrader.api.entity.ExitReason;
 import com.cryptoautotrader.api.entity.LiveTradingSessionEntity;
 import com.cryptoautotrader.api.entity.OrderEntity;
 import com.cryptoautotrader.api.entity.PositionEntity;
@@ -132,18 +133,61 @@ class B01RealNextSellBarTest extends AbstractSma20SameInputFixture {
         assertThat(positionRepository.findById(lp.getId()).orElseThrow().getOpenedAt()).as("보유 시작 그대로").isEqualTo(liveOpened);
         assertThat(marker(liveTradingService, l.getId())).as("LIVE 는 다음 마감 봉을 평가").isEqualTo(sellBar);
         assertThat(sells).as("LIVE 실제 다음 봉에서 전략 SELL").hasSize(1);
-        // PAPER — 1회차는 여기서 "CLOSED" 를 기대해 실패했다(원문 보존: v153-20261112/b01-next-bar/after-run1-paper-seams). PAPER 의 판단 시각 접점
-        // 4곳(fetchRecentCandles 의 to·alignedCandleProblem·alignedBtcGate 의 now·신호 매도 heldMinutes)은 실제 시각 그대로이고, 총괄 v1.154 §5 가
-        // 허용한 범위는 LIVE 세 곳뿐이라 연결하지 않았다. 그래서 지금 관측(다음 봉을 보지 못해 OPEN·표시는 매수 봉 다음 봉)을 그대로 고정해 둔다 —
-        // PAPER 접점을 연결하는 별도 승인 뒤 "CLOSED·STRATEGY_SIGNAL·표시 = 매도 봉" 으로 바꿀 자리다.
-        assertThat(pa.getStatus()).as("PAPER 판단 시각 접점 미연결(범위 밖) — 다음 봉을 보지 못함").isEqualTo("OPEN");
-        assertThat(marker(paperTradingService, p.getId())).isEqualTo(lastOpen.plus(1, ChronoUnit.HOURS));
+        // PAPER — 총괄 v1.155 §3 이 PAPER 판단 시각 접점(조회 상한·최신성·BTC 판정·신호 SELL 보유 시간)과 LIVE_ALIGNED 후보 접수 시각 연결을 허용했다.
+        // 8e81d0b4 는 접점 미연결이라 "OPEN·표시 = 매수 봉 다음 봉" 을 관측으로 고정했었다(원문: v153-20261112/b01-next-bar, 이전 한계로 보존).
+        // 이제 최종 단언은 실제 다음 매도 봉 청산이다.
+        assertThat(pa.getStatus()).as("PAPER 도 실제 다음 봉에서 전략 SELL").isEqualTo("CLOSED");
+        assertThat(pa.getExitReason()).isEqualTo(ExitReason.STRATEGY_SIGNAL);
+        assertThat(marker(paperTradingService, p.getId())).as("PAPER 는 다음 마감 봉을 평가").isEqualTo(sellBar);
+        assertThat(pa.getOpenedAt()).as("PAPER 보유 시작 그대로").isEqualTo(paperOpened);
 
-        // ③ 같은 시계로 다시 — 같은 봉 재처리 없음
+        // ③ LIVE 매도를 PAPER 매도 체결가로 정산(운영 폴러 + reconcileClosingPositions) — 종전 B01(Sma20LiveAlignedGapsTest)과 같은 대역·같은 수수료 관례.
+        BigDecimal sellFill = paperOrders(p.getId(), "SELL").get(0).getPrice();
+        Mockito.doReturn(sellFilled(sells.get(0), lp.getSize(), sellFill)).when(upbitOrderClient).getOrder(sells.get(0).getExchangeOrderId());
+        orderExecutionEngine.checkOrderStatus(sells.get(0).getId());
+        awaitDrained();
+        liveTradingService.reconcileClosingPositions();
+        PositionEntity la = positionRepository.findById(lp.getId()).orElseThrow();
+        LiveTradingSessionEntity lb = liveRepo.findById(l.getId()).orElseThrow();
+        VirtualBalanceEntity pb = balanceRepo.findById(p.getId()).orElseThrow();
+        BigDecimal sellFee = pa.getSize().multiply(sellFill).multiply(FEE);
+        System.out.println("[B01n] 정산: LIVE " + la.getStatus() + " 잔액 " + lb.getAvailableKrw() + " · PAPER " + pa.getStatus() + " 잔액 " + pb.getAvailableKrw()
+                + " · 매도 체결가 " + sellFill + " · PAPER 수수료 " + pa.getPositionFee() + " 누적 " + pb.getTotalFee());
+        assertThat(la.getStatus()).isEqualTo("CLOSED");
+        expect(row("B01n", "매도 뒤 가용 잔액", lb.getAvailableKrw(), pb.getAvailableKrw(), true), "매도 뒤 잔액(같은 체결가)");
+        assertThat(pa.getPositionFee()).as("수수료 각 1회 — 매수+매도(저장 둘째 자리)")
+                .isEqualByComparingTo(pa.getInvestedKrw().multiply(FEE).add(sellFee).setScale(2, RoundingMode.HALF_UP));
+        assertThat(pb.getTotalFee()).isEqualByComparingTo(pa.getPositionFee());
+
+        // ④ 같은 시계로 다시 — 같은 봉 재처리 없음(두 엔진)
+        int paperSells = paperOrders(p.getId(), "SELL").size();
         evaluateLive(liveRepo.findById(l.getId()).orElseThrow());
         runPaper(p);
         awaitDrained();
         assertThat(liveOrders(l, "SELL")).hasSize(1);
+        assertThat(paperOrders(p.getId(), "SELL")).hasSize(paperSells);
+        assertThat(paperPositions(p)).hasSize(1);
+    }
+
+    private List<com.cryptoautotrader.api.entity.paper.PaperOrderEntity> paperOrders(Long sessionId, String side) {
+        return paperOrderRepo.findBySessionIdOrderByCreatedAtDesc(sessionId, org.springframework.data.domain.Pageable.unpaged())
+                .getContent().stream().filter(o -> side.equals(o.getSide())).toList();
+    }
+
+    private static OrderResponse sellFilled(OrderEntity sell, BigDecimal volume, BigDecimal fillPrice) {
+        BigDecimal funds = volume.multiply(fillPrice).setScale(8, RoundingMode.HALF_UP);
+        BigDecimal fee = funds.multiply(FEE).setScale(8, RoundingMode.HALF_UP);
+        OrderResponse r = new OrderResponse();
+        r.setUuid(sell.getExchangeOrderId());
+        r.setSide("ask");
+        r.setOrdType("market");
+        r.setState("done");
+        r.setMarket(sell.getCoinPair());
+        r.setVolume(volume);
+        r.setExecutedVolume(volume);
+        r.setExecutedFunds(funds);
+        r.setPaidFee(fee);
+        return r;
     }
 
     /**

@@ -60,6 +60,10 @@ class RealNextBarClockTest extends AbstractSma20SameInputFixture {
 
     @Test
     void nextClosedBarArrivesByCommonClock() {
+        // 총괄 v1.155 §3 허용: H1 봉은 정시에 시작한다 — 고정 자료의 마지막 봉·연속 자료를 정시 격자로(종전: 지금 −61분 초 단위라 최신성 관문의
+        // 정시 격자에서 마감 1µs 전 직전 봉이 "늦음"으로 판정 불가). ①~④ 단언은 그대로다.
+        lastOpen = lastOpen.truncatedTo(ChronoUnit.HOURS);
+        useCloseHour(lastOpen);
         List<Candle> cs = uptrend(lastOpen);
         insertCache(BTC, cs);
         LiveTradingSessionEntity l = live(BTC);
