@@ -8,7 +8,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { Loader2, Play, Square, Plus, TrendingUp, TrendingDown, Activity, Settings, History, Bell } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { isPendingValuation, krwOrDash, pctOrNull, positionStatusLabel, PENDING_VALUATION_LABEL } from '@/lib/paperValuation';
+import { isPendingValuation, krwOrDash, pctOrNull, positionStatusLabel, PENDING_VALUATION_LABEL, stopResultText, PaperStopResult } from '@/lib/paperValuation';
 import { format } from 'date-fns';
 
 const TIMEFRAMES = [
@@ -32,6 +32,10 @@ const STRATEGY_LABELS: Record<string, string> = {
 
 export default function PaperTradingPage() {
     const [showNewForm, setShowNewForm] = useState(false);
+    // v1.153 G: 정지 응답의 청산 대기 수를 그대로 보인다(대기가 있으면 정산 완료가 아니다).
+    const [stopNotice, setStopNotice] = useState<{ text: string; pending: boolean } | null>(null);
+    const showStop = (r: PaperStopResult | undefined, kind: 'single' | 'all') =>
+        setStopNotice({ text: stopResultText(r, kind), pending: r?.pendingCloseCount !== 0 });
     const [availableStrategies, setAvailableStrategies] = useState<StrategyInfo[]>([]);
     const [strategyInfoMap, setStrategyInfoMap] = useState<Record<string, StrategyInfo>>({});
     const [coins, setCoins] = useState<string[]>([]);
@@ -117,6 +121,20 @@ export default function PaperTradingPage() {
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
+            {stopNotice && (
+                <div
+                    role="status"
+                    data-testid="paper-stop-result"
+                    className={cn(
+                        'px-4 py-3 rounded-xl border text-sm font-medium',
+                        stopNotice.pending
+                            ? 'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-900/20 dark:text-amber-200 dark:border-amber-800'
+                            : 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-200 dark:border-emerald-800'
+                    )}
+                >
+                    {stopNotice.text}
+                </div>
+            )}
             {/* Header */}
             <div className="flex items-center justify-between flex-wrap gap-3">
                 <div>
@@ -141,7 +159,7 @@ export default function PaperTradingPage() {
                         <button
                             onClick={() => {
                                 if (confirm(`실행 중인 세션 ${runningSessions.length}개를 모두 정지하시겠습니까?`)) {
-                                    stopAllMutation.mutate();
+                                    stopAllMutation.mutate(undefined, { onSuccess: res => showStop(res?.data as PaperStopResult | undefined, 'all') });
                                 }
                             }}
                             disabled={stopAllMutation.isPending}
@@ -353,7 +371,7 @@ export default function PaperTradingPage() {
                             session={session}
                             onStop={() => {
                                 if (confirm(`세션 #${session.id}을 중단하시겠습니까?`)) {
-                                    stopMutation.mutate(session.id);
+                                    stopMutation.mutate(session.id, { onSuccess: res => showStop(res?.data as PaperStopResult | undefined, 'single') });
                                 }
                             }}
                             isStopping={stopMutation.isPending}

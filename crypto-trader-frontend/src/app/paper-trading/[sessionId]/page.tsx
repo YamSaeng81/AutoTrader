@@ -12,7 +12,7 @@ import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { Loader2, Square, TrendingUp, TrendingDown, Clock, Briefcase, ArrowLeft, Activity, ShoppingCart, DollarSign, Receipt, Trophy, ChevronDown, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { isPendingValuation, krwOrDash, pctOrNull, positionStatusLabel, PENDING_VALUATION_LABEL } from '@/lib/paperValuation';
+import { isPendingValuation, krwOrDash, pctOrNull, positionStatusLabel, PENDING_VALUATION_LABEL, stopResultText, PaperStopResult } from '@/lib/paperValuation';
 import { format } from 'date-fns';
 import {
     ComposedChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
@@ -167,6 +167,7 @@ export default function SessionDetailPage() {
     const { sessionId } = useParams<{ sessionId: string }>();
     const router = useRouter();
     const queryClient = useQueryClient();
+    const [stopNotice, setStopNotice] = useState<string | null>(null);
 
     const { data: balanceRes, isLoading: balanceLoading } = useQuery({
         queryKey: ['paper-trading', 'session', sessionId],
@@ -200,9 +201,15 @@ export default function SessionDetailPage() {
 
     const stopMutation = useMutation({
         mutationFn: () => paperTradingApi.stop(sessionId),
-        onSuccess: () => {
+        onSuccess: (res) => {
             queryClient.invalidateQueries({ queryKey: ['paper-trading'] });
-            router.push('/paper-trading');
+            // v1.153 G: 청산 대기가 남았거나 대기 수를 모르면 이 화면에 머물러 결과(대기 수·확정 아님)를 보인다. 정산 완료면 종전대로 목록으로.
+            const r = res?.data as PaperStopResult | undefined;
+            if (r?.pendingCloseCount === 0) {
+                router.push('/paper-trading');
+            } else {
+                setStopNotice(stopResultText(r, 'single'));
+            }
         },
     });
 
@@ -282,6 +289,12 @@ export default function SessionDetailPage() {
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
+            {stopNotice && (
+                <div role="status" data-testid="paper-stop-result"
+                    className="px-4 py-3 rounded-xl border text-sm font-medium bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-900/20 dark:text-amber-200 dark:border-amber-800">
+                    {stopNotice}
+                </div>
+            )}
             {/* Header */}
             <div className="flex items-center justify-between flex-wrap gap-3">
                 <div className="flex items-center gap-3">
