@@ -1,0 +1,120 @@
+package com.cryptoautotrader.api.service;
+
+import com.cryptoautotrader.api.entity.LiveTradingSessionEntity;
+import com.cryptoautotrader.api.entity.paper.VirtualBalanceEntity;
+import com.cryptoautotrader.exchange.upbit.UpbitWebSocketClient;
+import com.cryptoautotrader.strategy.Candle;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.util.AopTestUtils;
+import org.springframework.test.util.ReflectionTestUtils;
+
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+/**
+ * 총괄 v1.152 D — <b>실제 다음 닫힌 봉 도착</b>을 공통 시계(EntryClock)로 만든다 (2026-11-12).
+ * 종전 시험은 다음 봉을 기다릴 수 없어 두 엔진의 마지막 평가 봉 표시(lastEvaluatedClosedCandle)를 지워 대신했다(Sma20LiveAlignedGapsTest B01).
+ * 이 시험은 표시를 건드리지 않는다. 같은 봉 자료에서 시계만 마지막 봉 마감 1µs 전 → 마감 정각으로 옮긴다.
+ * <ol>
+ *   <li>마감 1µs 전: 마지막 봉은 형성 중 — 직전 닫힌 봉을 평가(종가 시각이 아니라 HOLD), 주문·포지션 0, 표시 = 직전 봉</li>
+ *   <li>같은 시계로 다시: 닫힌 봉 미갱신 — 재평가 없음, 표시 그대로</li>
+ *   <li>마감 정각: 새 닫힌 봉 도착 — 실제 평가 → BUY → 회차 승인 → LIVE 매수 접수 1·PAPER 포지션 1, 표시 = 마지막 봉</li>
+ *   <li>같은 시계로 다시: 같은 봉 재처리 없음 — 주문·포지션 그대로 1</li>
+ * </ol>
+ * 운영 기본 시계는 시스템 UTC 그대로다(시험만 setForTest). PC/서버 시각은 바꾸지 않는다.
+ */
+@org.springframework.test.context.TestPropertySource(properties = "test.fixture.entry-rounds-context=RealNextBarClockTest")
+@org.springframework.test.annotation.DirtiesContext(classMode = org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS)
+@DisplayName("D 실제 다음 봉 — 공통 시계로 마감 1µs 전(형성 중)·마감 정각(새 닫힌 봉), 마지막 평가 표시를 지우지 않음")
+class RealNextBarClockTest extends AbstractSma20SameInputFixture {
+
+    @MockBean private UpbitWebSocketClient upbitWebSocketClient;
+
+    @Override
+    protected Map<String, Object> paperParams() {
+        return Map.of(PaperMaxInvestment.KEY, 20000, PaperExecutionMode.KEY, PaperExecutionMode.LIVE_ALIGNED);
+    }
+
+    @Override
+    protected String reportName() {
+        return "real-next-bar";
+    }
+
+    @SuppressWarnings("unchecked")
+    private Instant marker(Object service, Long id) {
+        Object target = AopTestUtils.getUltimateTargetObject(service);
+        return ((Map<Long, Instant>) ReflectionTestUtils.getField(target, "lastEvaluatedClosedCandle")).get(id);
+    }
+
+    private void at(Instant t) {
+        entryClock.setForTest(Clock.fixed(t, ZoneOffset.UTC));
+    }
+
+    @Test
+    void nextClosedBarArrivesByCommonClock() {
+        lastOpen = lastOpen.truncatedTo(ChronoUnit.HOURS);
+        useCloseHour(lastOpen);
+        List<Candle> cs = uptrend(lastOpen);
+        insertCache(BTC, cs);
+        LiveTradingSessionEntity l = live(BTC);
+        VirtualBalanceEntity p = paper(BTC);
+        Instant close = lastOpen.plus(1, ChronoUnit.HOURS);
+        Instant prevBar = lastOpen.minus(1, ChronoUnit.HOURS);
+
+        // ① 마감 1µs 전 — 마지막 봉은 형성 중
+        at(close.minus(1, ChronoUnit.MICROS));
+        evaluateLive(l);
+        runPaper(p);
+        approveRound();
+        System.out.println("[D] ① live marker=" + marker(liveTradingService, l.getId()) + " paper marker=" + marker(paperTradingService, p.getId())
+                + " liveBuys=" + liveOrders(l, "BUY").size() + " paperPos=" + paperPositions(p).size());
+        assertThat(marker(liveTradingService, l.getId())).as("LIVE 는 직전 닫힌 봉을 평가").isEqualTo(prevBar);
+        assertThat(marker(paperTradingService, p.getId())).as("PAPER 는 직전 닫힌 봉을 평가").isEqualTo(prevBar);
+        assertThat(liveOrders(l, "BUY")).isEmpty();
+        assertThat(paperPositions(p)).isEmpty();
+
+        // ② 같은 시계 — 재평가 없음(평가하면 신호 로그가 한 줄 늘어난다; 건너뜀은 로그를 남기지 않는다)
+        int liveLogs = strategyLogRepository.findAllBySessionTypeAndSessionIdOrderByCreatedAtDesc("LIVE", l.getId()).size();
+        int paperLogs = strategyLogRepository.findAllBySessionTypeAndSessionIdOrderByCreatedAtDesc("PAPER", p.getId()).size();
+        assertThat(liveLogs).as("① 에서 LIVE 평가 1회").isEqualTo(1);
+        assertThat(paperLogs).as("① 에서 PAPER 평가 1회").isEqualTo(1);
+        evaluateLive(l);
+        runPaper(p);
+        assertThat(marker(liveTradingService, l.getId())).isEqualTo(prevBar);
+        assertThat(marker(paperTradingService, p.getId())).isEqualTo(prevBar);
+        assertThat(strategyLogRepository.findAllBySessionTypeAndSessionIdOrderByCreatedAtDesc("LIVE", l.getId())).hasSize(liveLogs);
+        assertThat(strategyLogRepository.findAllBySessionTypeAndSessionIdOrderByCreatedAtDesc("PAPER", p.getId())).hasSize(paperLogs);
+
+        // ③ 마감 정각 — 새 닫힌 봉 도착(표시를 지우지 않음)
+        at(close);
+        evaluateLive(l);
+        runPaper(p);
+        List<EntryPriorityRounds.Outcome> outcomes = approveRound();
+        awaitDrained();
+        System.out.println("[D] ③ outcomes=" + outcomes + " live marker=" + marker(liveTradingService, l.getId())
+                + " paper marker=" + marker(paperTradingService, p.getId())
+                + " liveBuys=" + liveOrders(l, "BUY").size() + " paperPos=" + paperPositions(p).size());
+        assertThat(marker(liveTradingService, l.getId())).isEqualTo(lastOpen);
+        assertThat(marker(paperTradingService, p.getId())).isEqualTo(lastOpen);
+        assertThat(liveOrders(l, "BUY")).as("LIVE 매수 접수").hasSize(1);
+        assertThat(paperPositions(p)).as("PAPER 포지션").hasSize(1);
+
+        // ④ 같은 시계로 다시 — 같은 봉 재처리 없음
+        evaluateLive(l);
+        runPaper(p);
+        approveRound();
+        awaitDrained();
+        assertThat(liveOrders(l, "BUY")).hasSize(1);
+        assertThat(paperPositions(p)).hasSize(1);
+        assertThat(marker(liveTradingService, l.getId())).isEqualTo(lastOpen);
+        assertThat(marker(paperTradingService, p.getId())).isEqualTo(lastOpen);
+    }
+}

@@ -1,0 +1,5 @@
+Reviewer evidence preparation first attempt, before writing any docs or payload:
+record.py line 30: assert morning==errs and len(errs)==23 -> AssertionError.
+Cause: Nov12 error_lines.txt includes Docker "backend-1  | " prefixes; morning-error-lines.txt does not.
+Correction: compare the 23 timestamp/message bodies after removing that prefix, preserve both original files unchanged.
+The initially created evidence directory was empty. No management docs had been written.

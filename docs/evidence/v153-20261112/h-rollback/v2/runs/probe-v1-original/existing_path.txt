@@ -1,0 +1,9 @@
+== existing_path (FAKE_PSQL=ok)
+GATE|v96=1|created=1|running=0|odd_session=0|open=0|closing=0|odd_position=0|stopped_with_open=0
+DECIDED|closing_without_decided_at=0
+VERDICT LEDGER_REFUSED (이미 있음: /d/tmp/v153-runs/h/v2probe/v1b/existing_path.ledger)
+exit=4 ledger=untouched okword=no
+total 5
+drwxr-xr-x 1 SangJoon_Lee 197121 0 Nov 12 09:32 .
+drwxr-xr-x 1 SangJoon_Lee 197121 0 Nov 12 09:32 ..
+-rw-r--r-- 1 SangJoon_Lee 197121 5 Nov 12 09:32 old.txt

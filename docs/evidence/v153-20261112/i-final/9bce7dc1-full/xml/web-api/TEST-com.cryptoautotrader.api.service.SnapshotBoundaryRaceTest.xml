@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="잔고 스냅숏 · 로컬 약정의 시간 경계" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-11-12T02:01:41" hostname="DESKTOP-SF1KUQ5" time="0.185">
+  <properties/>
+  <testcase name="② -b 거래소가 체결 후 잔고를 계산했다면 — 같은 체결을 두 번 빼서 과소 승인만 생긴다" classname="com.cryptoautotrader.api.service.SnapshotBoundaryRaceTest" time="0.018"/>
+  <testcase name="② 스냅숏을 묻는 동안 체결·취소되고 로컬도 종결됐다 — 응답은 체결 전 잔고다" classname="com.cryptoautotrader.api.service.SnapshotBoundaryRaceTest" time="0.03"/>
+  <testcase name="③ 시장가 매수가 부분 체결 후 취소로 끝난다 — 수수료는 보고값, 미사용 예약은 정확히 한 번 해제" classname="com.cryptoautotrader.api.service.SnapshotBoundaryRaceTest" time="0.01"/>
+  <testcase name="③ -c 생성 응답이 이미 '체결 있는 취소' 여도 회계는 한 경로에서 한 번만 반영된다" classname="com.cryptoautotrader.api.service.SnapshotBoundaryRaceTest" time="0.06"/>
+  <testcase name="④ 늦게 도착한 옛 응답이 새 스냅숏을 덮지 않는다" classname="com.cryptoautotrader.api.service.SnapshotBoundaryRaceTest" time="0.001"/>
+  <testcase name="③ -b 체결 없이 취소 — 예약 전액 해제, 약정에도 남지 않는다 (돈이 가용으로 돌아왔다)" classname="com.cryptoautotrader.api.service.SnapshotBoundaryRaceTest" time="0.003"/>
+  <testcase name="① 거래소 잔고엔 체결이 반영됐고 로컬 주문은 열려 있다 — 과소 승인만 생긴다" classname="com.cryptoautotrader.api.service.SnapshotBoundaryRaceTest" time="0.017"/>
+  <testcase name="④ -b 교체 중에 읽어도 잔고와 시각이 섞이지 않는다" classname="com.cryptoautotrader.api.service.SnapshotBoundaryRaceTest" time="0.043"/>
+  <system-out><![CDATA[11:01:41.381 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.SnapshotBoundaryRaceTest
+11:01:41.389 [Test worker] WARN  c.c.api.service.PortfolioSyncService - [§8 drift] 세션 배정 자본(10000.00) > 계좌 잔고(7000.00000000) × 1.05. 다중 세션이 동시 매수 시 잔고 부족 가능성 있음. 세션을 줄이거나 투자금을 조정하세요.
+11:01:41.393 [Test worker] WARN  c.c.a.s.CapitalReservationService - [공유 풀] 승인하지 않는다 (sessionId=470, 사유=ACCOUNT_HEADROOM): 계좌: 총잔고 7000.00000000 ? 열린 매수 0 ? 스냅숏 후 종결 3000.00000000 ? 세션 보유 0 = 여력 4000.00000000 < 신규 4001 ? ? 거래소 거절을 기다리지 않는다
+11:01:41.394 [Test worker] WARN  c.c.api.service.PortfolioSyncService - [§8 drift] 세션 배정 자본(20000.00) > 계좌 잔고(7000.00000000) × 1.05. 다중 세션이 동시 매수 시 잔고 부족 가능성 있음. 세션을 줄이거나 투자금을 조정하세요.
+11:01:41.421 [Test worker] WARN  c.c.api.service.PortfolioSyncService - [§8 drift] 세션 배정 자본(20000.00) > 계좌 잔고(10000.00000000) × 1.05. 다중 세션이 동시 매수 시 잔고 부족 가능성 있음. 세션을 줄이거나 투자금을 조정하세요.
+11:01:41.423 [Test worker] WARN  c.c.a.s.CapitalReservationService - [공유 풀] 승인하지 않는다 (sessionId=474, 사유=ACCOUNT_HEADROOM): 계좌: 총잔고 10000.00000000 ? 열린 매수 0 ? 스냅숏 후 종결 3000.00000000 ? 세션 보유 0 = 여력 7000.00000000 < 신규 7001 ? ? 거래소 거절을 기다리지 않는다
+[② 조회 중 체결] 실제 여유 7,000 / 7,001 요청 → ACCOUNT_HEADROOM
+[③ 부분 체결 후 취소] state=FILLED applied=2940.00000000 fee=1.47000000 size=9.80000000 avg=300.00000000 posFee=1.47 잔액=7058.53
+[③-c 생성 응답 즉시 종결] state=FILLED applied=2940.00000000 fee=1.47000000 잔액=7058.53
+11:01:41.506 [Test worker] WARN  c.c.api.service.LiveTradingService - 고아 포지션 정리 완료 (posId=685, coinPair=KRW-DOGE)
+11:01:41.513 [Test worker] WARN  c.c.a.s.CapitalReservationService - [공유 풀] 승인하지 않는다 (sessionId=480, 사유=ACCOUNT_HEADROOM): 계좌: 총잔고 7000.00000000 ? 열린 매수 3000.00000000 ? 스냅숏 후 종결 0 ? 세션 보유 0 = 여력 4000.00000000 < 신규 4001 ? ? 거래소 거절을 기다리지 않는다
+[① 체결 선반영] 실제 여유 7,000 / 승인 가능 4,000 ? 과소 승인 3,000
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

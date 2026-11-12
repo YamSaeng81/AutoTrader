@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.strategy.volumedelta.VolumeDeltaStrategyTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2026-11-12T01:39:30" hostname="DESKTOP-SF1KUQ5" time="0.008">
+  <properties/>
+  <testcase name="Delta_강화_없으면_BUY_신호_HOLD_격하()" classname="com.cryptoautotrader.strategy.volumedelta.VolumeDeltaStrategyTest" time="0.0"/>
+  <testcase name="데이터_부족시_HOLD()" classname="com.cryptoautotrader.strategy.volumedelta.VolumeDeltaStrategyTest" time="0.0"/>
+  <testcase name="약세_다이버전스_가격상승_Delta음수_HOLD()" classname="com.cryptoautotrader.strategy.volumedelta.VolumeDeltaStrategyTest" time="0.0"/>
+  <testcase name="누적Delta_임계값_미만_HOLD()" classname="com.cryptoautotrader.strategy.volumedelta.VolumeDeltaStrategyTest" time="0.0"/>
+  <testcase name="강세_다이버전스_가격하락_Delta양수_HOLD()" classname="com.cryptoautotrader.strategy.volumedelta.VolumeDeltaStrategyTest" time="0.0"/>
+  <testcase name="Delta_강화_없으면_SELL_신호_HOLD_격하()" classname="com.cryptoautotrader.strategy.volumedelta.VolumeDeltaStrategyTest" time="0.001"/>
+  <testcase name="포화점_낮을수록_강도_높음_재스케일_검증()" classname="com.cryptoautotrader.strategy.volumedelta.VolumeDeltaStrategyTest" time="0.0"/>
+  <testcase name="볼륨_데이터_없으면_HOLD()" classname="com.cryptoautotrader.strategy.volumedelta.VolumeDeltaStrategyTest" time="0.0"/>
+  <testcase name="신호_강도가_0이상_100이하()" classname="com.cryptoautotrader.strategy.volumedelta.VolumeDeltaStrategyTest" time="0.0"/>
+  <testcase name="divergenceMode_false_이면_다이버전스_필터_미적용()" classname="com.cryptoautotrader.strategy.volumedelta.VolumeDeltaStrategyTest" time="0.001"/>
+  <testcase name="매수_압력_강화_BUY()" classname="com.cryptoautotrader.strategy.volumedelta.VolumeDeltaStrategyTest" time="0.0"/>
+  <testcase name="매도_압력_강화_SELL()" classname="com.cryptoautotrader.strategy.volumedelta.VolumeDeltaStrategyTest" time="0.0"/>
+  <testcase name="최소_캔들수_확인()" classname="com.cryptoautotrader.strategy.volumedelta.VolumeDeltaStrategyTest" time="0.0"/>
+  <testcase name="이름은_VOLUME_DELTA()" classname="com.cryptoautotrader.strategy.volumedelta.VolumeDeltaStrategyTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

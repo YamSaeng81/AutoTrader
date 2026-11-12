@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="v1.154 §3 LIVE 일/주/월 손실 합산 — 세션 매도 확정 손실 (로컬 PostgreSQL)" tests="7" skipped="7" failures="0" errors="0" timestamp="2026-11-12T01:59:37" hostname="DESKTOP-SF1KUQ5" time="0.0">
+  <properties/>
+  <testcase name="① 실제 LIVE 손실 체결→확정 뒤 checkRisk — 일일 한도(1.5%)를 넘는 세션 손실(2.00%)이면 진입 승인이 거절된다" classname="com.cryptoautotrader.api.service.LiveLossWindowPgTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <testcase name="② 확정 전 0 · 확정 뒤 정확히 한 번(재확정·재시도에도) · 늦은 정정은 차분만 · FILL 행은 만들지 않는다" classname="com.cryptoautotrader.api.service.LiveLossWindowPgTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <testcase name="③ 부분 매도 뒤 나머지 매도 — 두 매도의 손실이 각각 한 번씩(1,000.50 + 2,000.00)" classname="com.cryptoautotrader.api.service.LiveLossWindowPgTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <testcase name="④ 확정 롤백(세션 갱신 실패) — 합산 0, 실패 해소 뒤 재확정에서 한 번" classname="com.cryptoautotrader.api.service.LiveLossWindowPgTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <testcase name="⑤ 이익 매도와 손실 매도 — 손실만 합산(이익과 상쇄하지 않음)" classname="com.cryptoautotrader.api.service.LiveLossWindowPgTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <testcase name="⑥ 범위 — 비세션 체결(FILL) 대조군은 그대로 합산, DYNAMIC REAL·DYN_PAPER 세션 매도는 이 후보 범위 밖(관측)" classname="com.cryptoautotrader.api.service.LiveLossWindowPgTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <testcase name="⑦ 창 경계 — 반영 시각 T 에서 since=T 포함(≥), since=T+1µs 제외" classname="com.cryptoautotrader.api.service.LiveLossWindowPgTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

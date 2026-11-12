@@ -1,0 +1,6 @@
+== write_fail (FAKE_PSQL=ok)
+GATE|v96=1|created=1|running=0|odd_session=0|open=0|closing=0|odd_position=0|stopped_with_open=0
+DECIDED|closing_without_decided_at=0
+mkdir: cannot create directory '/d/tmp/v153-runs/h/v2probe/v1b/write_fail.parent': Not a directory
+VERDICT LEDGER_REFUSED (폴더 생성 실패)
+exit=4 ledger=none okword=no

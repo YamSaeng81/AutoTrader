@@ -1,0 +1,24 @@
+
+Running 7 tests using 1 worker
+
+[unrouted] GET /api/v1/strategies
+[unrouted] GET /api/v1/data/coins
+  ok 1 e2e\paper-render.spec.ts:102:5 › ① 정상 보유 — 목록·상세에 총자산·수익률 숫자, 평가 불가 표시 없음 (2.9s)
+[unrouted] GET /api/v1/strategies
+[unrouted] GET /api/v1/data/coins
+  ok 2 e2e\paper-render.spec.ts:114:5 › ② 청산 대기(CLOSING)·평가 null — 0/0.00% 가 아니라 평가 불가, 마지막 기록값은 현재 평가 아님 표시와 함께, 보유 표에 미정산 보유 (706ms)
+  ok 3 e2e\paper-render.spec.ts:128:5 › ③ 첫 유효 시세 뒤 정산 — 같은 화면이 다시 읽어 확정 총자산·청산 완료로 바뀐다 (599ms)
+  ok 4 e2e\paper-render.spec.ts:141:5 › ④-가 단건 정지 응답 대기 1 — 상세에 머물러 대기 수·확정 아님을 보인다 (1.4s)
+[unrouted] GET /api/v1/strategies
+[unrouted] GET /api/v1/data/coins
+[unrouted] GET /api/v1/strategies
+[unrouted] GET /api/v1/data/coins
+  ok 5 e2e\paper-render.spec.ts:157:5 › ④-나 단건 정지 응답 대기 0 — 종전대로 목록으로 이동 (1.4s)
+[unrouted] GET /api/v1/strategies
+[unrouted] GET /api/v1/data/coins
+  ok 6 e2e\paper-render.spec.ts:168:5 › ④-다 일괄 정지 응답 대기 2 — 목록 배너에 정지 수·대기 수, 정산 완료라고 쓰지 않음 (1.3s)
+[unrouted] GET /api/v1/strategies
+[unrouted] GET /api/v1/data/coins
+  ok 7 e2e\paper-render.spec.ts:181:5 › ④-라 단건 정지(목록) 응답에 대기 수가 없으면 — 정산 완료로 보지 않는다 (1.3s)
+
+  7 passed (15.8s)

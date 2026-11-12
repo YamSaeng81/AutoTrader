@@ -1,0 +1,1338 @@
+{
+  "main": "24a7018e9f27a612bf2f8c6cd2d970d756edd4ab",
+  "candidate": "0298628b6cd761cefb1bf6b29e1c87e2881b1d9b",
+  "isolation": "03cfd9eb68e6cc62cb73a313379e5a1b8659c9f0",
+  "checks": {
+    "overnight-v152-20261111": [
+      {
+        "path": ".gitattributes",
+        "expected": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+        "blob": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+        "local": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+        "ok": true
+      },
+      {
+        "path": "CHECKPOINT.md",
+        "expected": "98a99bcd2d2a640bd7cce3ed3cb0609b6b4d1720bb3c5c8d6ff64e0502f2d0cc",
+        "blob": "98a99bcd2d2a640bd7cce3ed3cb0609b6b4d1720bb3c5c8d6ff64e0502f2d0cc",
+        "local": "98a99bcd2d2a640bd7cce3ed3cb0609b6b4d1720bb3c5c8d6ff64e0502f2d0cc",
+        "ok": true
+      },
+      {
+        "path": "d-nextbar/after/gradle.log.txt",
+        "expected": "0461b9fe7a81956c5ab3d47cbc7a6b7ddf9a15511faf6207331b083cfd41237e",
+        "blob": "0461b9fe7a81956c5ab3d47cbc7a6b7ddf9a15511faf6207331b083cfd41237e",
+        "local": "0461b9fe7a81956c5ab3d47cbc7a6b7ddf9a15511faf6207331b083cfd41237e",
+        "ok": true
+      },
+      {
+        "path": "d-nextbar/after/TEST-com.cryptoautotrader.api.service.EngineParityTest.xml",
+        "expected": "8896fc450ea13fea2960e3441b84cb27f198baf88f10c4c41bfeb10438d28282",
+        "blob": "8896fc450ea13fea2960e3441b84cb27f198baf88f10c4c41bfeb10438d28282",
+        "local": "8896fc450ea13fea2960e3441b84cb27f198baf88f10c4c41bfeb10438d28282",
+        "ok": true
+      },
+      {
+        "path": "d-nextbar/after/TEST-com.cryptoautotrader.api.service.RealNextBarClockTest.xml",
+        "expected": "1ba0502d7cb17545917b2df7885a7e205267bc256729218d74a553f5b04ef454",
+        "blob": "1ba0502d7cb17545917b2df7885a7e205267bc256729218d74a553f5b04ef454",
+        "local": "1ba0502d7cb17545917b2df7885a7e205267bc256729218d74a553f5b04ef454",
+        "ok": true
+      },
+      {
+        "path": "d-nextbar/after/TEST-com.cryptoautotrader.api.service.Sma20LiveAlignedGapsTest.xml",
+        "expected": "40ea267a21587945da96641c401fdfae00569d4e1a79f062cceea93071c58816",
+        "blob": "40ea267a21587945da96641c401fdfae00569d4e1a79f062cceea93071c58816",
+        "local": "40ea267a21587945da96641c401fdfae00569d4e1a79f062cceea93071c58816",
+        "ok": true
+      },
+      {
+        "path": "d-nextbar/before/gradle.log.txt",
+        "expected": "5295e554533bef6454e796d7daf5385420ad02e977daea05afd1c7f5bb4e5160",
+        "blob": "5295e554533bef6454e796d7daf5385420ad02e977daea05afd1c7f5bb4e5160",
+        "local": "5295e554533bef6454e796d7daf5385420ad02e977daea05afd1c7f5bb4e5160",
+        "ok": true
+      },
+      {
+        "path": "d-nextbar/before/TEST-com.cryptoautotrader.api.service.RealNextBarClockTest.xml",
+        "expected": "e37b1dda6d5ffa1b5306ac60f69a972402c29c4e7820fdda6350f7f96215ca8e",
+        "blob": "e37b1dda6d5ffa1b5306ac60f69a972402c29c4e7820fdda6350f7f96215ca8e",
+        "local": "e37b1dda6d5ffa1b5306ac60f69a972402c29c4e7820fdda6350f7f96215ca8e",
+        "ok": true
+      },
+      {
+        "path": "e-r5/run1/gradle.log.txt",
+        "expected": "dab7b8b6266363084ca530755f84fc8b39ee9e1cf28fe5f97d1a5c4dcbbc5e99",
+        "blob": "dab7b8b6266363084ca530755f84fc8b39ee9e1cf28fe5f97d1a5c4dcbbc5e99",
+        "local": "dab7b8b6266363084ca530755f84fc8b39ee9e1cf28fe5f97d1a5c4dcbbc5e99",
+        "ok": true
+      },
+      {
+        "path": "e-r5/run1/TEST-com.cryptoautotrader.api.service.R5RealCashflowRiskTest.xml",
+        "expected": "228e84c547fd14d1a47555142c2c9e3cc5792347350fd46aac9f1041ba052e0f",
+        "blob": "228e84c547fd14d1a47555142c2c9e3cc5792347350fd46aac9f1041ba052e0f",
+        "local": "228e84c547fd14d1a47555142c2c9e3cc5792347350fd46aac9f1041ba052e0f",
+        "ok": true
+      },
+      {
+        "path": "e-r5/run2/gradle.log.txt",
+        "expected": "f0b8f9be8abeca4eaf095edd29e62673dec60c3f3c352774a1b583ae1e5284af",
+        "blob": "f0b8f9be8abeca4eaf095edd29e62673dec60c3f3c352774a1b583ae1e5284af",
+        "local": "f0b8f9be8abeca4eaf095edd29e62673dec60c3f3c352774a1b583ae1e5284af",
+        "ok": true
+      },
+      {
+        "path": "e-r5/run2/TEST-com.cryptoautotrader.api.service.R5RealCashflowRiskTest.xml",
+        "expected": "8a7b72ca37669740db0425f411628cf6548ff73914b86c2b5cbb48ce7f4c0e47",
+        "blob": "8a7b72ca37669740db0425f411628cf6548ff73914b86c2b5cbb48ce7f4c0e47",
+        "local": "8a7b72ca37669740db0425f411628cf6548ff73914b86c2b5cbb48ce7f4c0e47",
+        "ok": true
+      },
+      {
+        "path": "f-saturation/isolation-candidate/gradle.log.txt",
+        "expected": "1282575de905b97a155de660033eccd8b8558c45e6d6efe66b8a0525583d66eb",
+        "blob": "1282575de905b97a155de660033eccd8b8558c45e6d6efe66b8a0525583d66eb",
+        "local": "1282575de905b97a155de660033eccd8b8558c45e6d6efe66b8a0525583d66eb",
+        "ok": true
+      },
+      {
+        "path": "f-saturation/isolation-candidate/TEST-com.cryptoautotrader.api.service.MarketDataRejectIsolationTest.xml",
+        "expected": "3e931c6741830a998e07c9ed5cefc9038983d4131757b835fbd3225fb540c115",
+        "blob": "3e931c6741830a998e07c9ed5cefc9038983d4131757b835fbd3225fb540c115",
+        "local": "3e931c6741830a998e07c9ed5cefc9038983d4131757b835fbd3225fb540c115",
+        "ok": true
+      },
+      {
+        "path": "f-saturation/isolation-candidate/TEST-com.cryptoautotrader.api.service.SharedLoopRoundsActiveTest.xml",
+        "expected": "70cf04f8ef10b9fc5f8055f4c1053d82f2bcc6a0eeffdf1f5b155e4d66eefa0a",
+        "blob": "70cf04f8ef10b9fc5f8055f4c1053d82f2bcc6a0eeffdf1f5b155e4d66eefa0a",
+        "local": "70cf04f8ef10b9fc5f8055f4c1053d82f2bcc6a0eeffdf1f5b155e4d66eefa0a",
+        "ok": true
+      },
+      {
+        "path": "f-saturation/isolation-candidate/TEST-com.cryptoautotrader.api.service.SharedMarketDataExecutorSaturationTest.xml",
+        "expected": "b97945512681c7a32333b3f66f3ab9f5bbedae949e3cd91070ebc352066f56f6",
+        "blob": "b97945512681c7a32333b3f66f3ab9f5bbedae949e3cd91070ebc352066f56f6",
+        "local": "b97945512681c7a32333b3f66f3ab9f5bbedae949e3cd91070ebc352066f56f6",
+        "ok": true
+      },
+      {
+        "path": "f-saturation/run1-test-code-error/gradle.log.txt",
+        "expected": "10b2bfa4cafb6f040b702c3fb950beccb1e317c549f6ebaa34df15338ad5b1b0",
+        "blob": "10b2bfa4cafb6f040b702c3fb950beccb1e317c549f6ebaa34df15338ad5b1b0",
+        "local": "10b2bfa4cafb6f040b702c3fb950beccb1e317c549f6ebaa34df15338ad5b1b0",
+        "ok": true
+      },
+      {
+        "path": "f-saturation/run1-test-code-error/TEST-com.cryptoautotrader.api.service.SharedMarketDataExecutorSaturationTest.xml",
+        "expected": "bbbbd931de0801b1767c2ff6af60da07070c3e3a2f5a7db0f4ef112affce2387",
+        "blob": "bbbbd931de0801b1767c2ff6af60da07070c3e3a2f5a7db0f4ef112affce2387",
+        "local": "bbbbd931de0801b1767c2ff6af60da07070c3e3a2f5a7db0f4ef112affce2387",
+        "ok": true
+      },
+      {
+        "path": "f-saturation/run2/gradle.log.txt",
+        "expected": "82d8aef273ea5a807fdc90f2c710cb63dbb0521f74aa25dea0912ae02a0d2358",
+        "blob": "82d8aef273ea5a807fdc90f2c710cb63dbb0521f74aa25dea0912ae02a0d2358",
+        "local": "82d8aef273ea5a807fdc90f2c710cb63dbb0521f74aa25dea0912ae02a0d2358",
+        "ok": true
+      },
+      {
+        "path": "f-saturation/run2/TEST-com.cryptoautotrader.api.service.SharedMarketDataExecutorSaturationTest.xml",
+        "expected": "9af220eb79a31fab5ca22490c693177816624f3c1c72c01734739fbae791fef9",
+        "blob": "9af220eb79a31fab5ca22490c693177816624f3c1c72c01734739fbae791fef9",
+        "local": "9af220eb79a31fab5ca22490c693177816624f3c1c72c01734739fbae791fef9",
+        "ok": true
+      },
+      {
+        "path": "f-saturation/run3-compile-error/gradle.log.txt",
+        "expected": "378f57baf522be427b4b4a665ba0c81781f0800badfe93161e8d63c6e35fc132",
+        "blob": "378f57baf522be427b4b4a665ba0c81781f0800badfe93161e8d63c6e35fc132",
+        "local": "378f57baf522be427b4b4a665ba0c81781f0800badfe93161e8d63c6e35fc132",
+        "ok": true
+      },
+      {
+        "path": "f-saturation/run4/gradle.log.txt",
+        "expected": "cf3ea00d7a1aba4dc9a98885bd0c6582a4932a1fef819c1e36b1ffb98aa67d9f",
+        "blob": "cf3ea00d7a1aba4dc9a98885bd0c6582a4932a1fef819c1e36b1ffb98aa67d9f",
+        "local": "cf3ea00d7a1aba4dc9a98885bd0c6582a4932a1fef819c1e36b1ffb98aa67d9f",
+        "ok": true
+      },
+      {
+        "path": "f-saturation/run4/TEST-com.cryptoautotrader.api.service.SharedMarketDataExecutorSaturationTest.xml",
+        "expected": "6794005eb6576b894fb61a5fa972a6d8008b7cea8a54d57f09a877bc3cd437fd",
+        "blob": "6794005eb6576b894fb61a5fa972a6d8008b7cea8a54d57f09a877bc3cd437fd",
+        "local": "6794005eb6576b894fb61a5fa972a6d8008b7cea8a54d57f09a877bc3cd437fd",
+        "ok": true
+      },
+      {
+        "path": "patches/0001-S5-REPEATABLE-READ-v1.151-2.patch",
+        "expected": "09d5461e01b4b17a1e09f07c6559fdbda08b65b7e7153511ba1c159a79c0d350",
+        "blob": "09d5461e01b4b17a1e09f07c6559fdbda08b65b7e7153511ba1c159a79c0d350",
+        "local": "09d5461e01b4b17a1e09f07c6559fdbda08b65b7e7153511ba1c159a79c0d350",
+        "ok": true
+      },
+      {
+        "path": "patches/0002-A-B-v4-PG-v4-1us-DB-ID-arms.csv-v1.152-A-C.patch",
+        "expected": "ffe3c7f241e993b60229df7d691e4e1e32ec7fe2c5b0e527d6e6342e2e3c0621",
+        "blob": "ffe3c7f241e993b60229df7d691e4e1e32ec7fe2c5b0e527d6e6342e2e3c0621",
+        "local": "ffe3c7f241e993b60229df7d691e4e1e32ec7fe2c5b0e527d6e6342e2e3c0621",
+        "ok": true
+      },
+      {
+        "path": "patches/0003-D-EntryClock-LIVE-PAPER-UTC-1-s-v1.152-D.patch",
+        "expected": "3b37be96a283a292fd48f5f4cab9d7ed1265078e8ffb0f84b11016e3221b0882",
+        "blob": "3b37be96a283a292fd48f5f4cab9d7ed1265078e8ffb0f84b11016e3221b0882",
+        "local": "3b37be96a283a292fd48f5f4cab9d7ed1265078e8ffb0f84b11016e3221b0882",
+        "ok": true
+      },
+      {
+        "path": "patches/0004-E-R5-3-3-LIVE-PAPER-1-CB-v1.152-E.patch",
+        "expected": "e13b44fa8fe236829485357ac060afedfc8d95ac52892ec62f01c4a327ec6920",
+        "blob": "e13b44fa8fe236829485357ac060afedfc8d95ac52892ec62f01c4a327ec6920",
+        "local": "e13b44fa8fe236829485357ac060afedfc8d95ac52892ec62f01c4a327ec6920",
+        "ok": true
+      },
+      {
+        "path": "patches/0005-F-marketDataExecutor-Future-v1.152-F.patch",
+        "expected": "6d67925871eda16fe84441e67a321147c34de7a514e9f12b896d9cc2033a67c9",
+        "blob": "6d67925871eda16fe84441e67a321147c34de7a514e9f12b896d9cc2033a67c9",
+        "local": "6d67925871eda16fe84441e67a321147c34de7a514e9f12b896d9cc2033a67c9",
+        "ok": true
+      },
+      {
+        "path": "patches/0020-marketDataExecutor-v1.152-F.patch",
+        "expected": "95ae19fa8855da9fa891b96751f0e9bc60e7841519b84f91aa8e83866dcc8a1a",
+        "blob": "95ae19fa8855da9fa891b96751f0e9bc60e7841519b84f91aa8e83866dcc8a1a",
+        "local": "95ae19fa8855da9fa891b96751f0e9bc60e7841519b84f91aa8e83866dcc8a1a",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-a/arms.csv",
+        "expected": "aab3eacd3910e691c2f967f6350c16c59ab694e0e2c4bbc05a44b3b5b69904e8",
+        "blob": "aab3eacd3910e691c2f967f6350c16c59ab694e0e2c4bbc05a44b3b5b69904e8",
+        "local": "aab3eacd3910e691c2f967f6350c16c59ab694e0e2c4bbc05a44b3b5b69904e8",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-a/arms.csv.meta.json",
+        "expected": "1cf5a2f86ca933f26db28aa88d5d8976f5f89d668a8ddbc5dd73e6f8a3955fa4",
+        "blob": "1cf5a2f86ca933f26db28aa88d5d8976f5f89d668a8ddbc5dd73e6f8a3955fa4",
+        "local": "1cf5a2f86ca933f26db28aa88d5d8976f5f89d668a8ddbc5dd73e6f8a3955fa4",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-a/arms.txt",
+        "expected": "2c45ef9df2575bed814106d87c3fea360f80ec4fbfb3e91dac3dd231b0d8df69",
+        "blob": "2c45ef9df2575bed814106d87c3fea360f80ec4fbfb3e91dac3dd231b0d8df69",
+        "local": "2c45ef9df2575bed814106d87c3fea360f80ec4fbfb3e91dac3dd231b0d8df69",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-a/create/creation_log.draft.json",
+        "expected": "83de1b0d019b4d5ab901b5d51c409092531e270f293ed7da4317e4b4a00d8b84",
+        "blob": "83de1b0d019b4d5ab901b5d51c409092531e270f293ed7da4317e4b4a00d8b84",
+        "local": "83de1b0d019b4d5ab901b5d51c409092531e270f293ed7da4317e4b4a00d8b84",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-a/create/journal.jsonl",
+        "expected": "483300650b17793f670027ee073e41be84f3ffc80445c5aea28f680deada0173",
+        "blob": "483300650b17793f670027ee073e41be84f3ffc80445c5aea28f680deada0173",
+        "local": "483300650b17793f670027ee073e41be84f3ffc80445c5aea28f680deada0173",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-a/create/plan.json",
+        "expected": "77ce9574fd7870bc2ff1a8123c7334272bd8ff7f1011957dd2a1a762d2e27ad3",
+        "blob": "77ce9574fd7870bc2ff1a8123c7334272bd8ff7f1011957dd2a1a762d2e27ad3",
+        "local": "77ce9574fd7870bc2ff1a8123c7334272bd8ff7f1011957dd2a1a762d2e27ad3",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-a/gradle.log.txt",
+        "expected": "72b52adb1b0c8f88a869677a7df37173cacf4a60daf17c84a38111989b0f07d7",
+        "blob": "72b52adb1b0c8f88a869677a7df37173cacf4a60daf17c84a38111989b0f07d7",
+        "local": "72b52adb1b0c8f88a869677a7df37173cacf4a60daf17c84a38111989b0f07d7",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-a/marks.csv",
+        "expected": "450eac6c44e6058428780c17bc0adb323ff714619f726dfca174200e75d2db7a",
+        "blob": "450eac6c44e6058428780c17bc0adb323ff714619f726dfca174200e75d2db7a",
+        "local": "450eac6c44e6058428780c17bc0adb323ff714619f726dfca174200e75d2db7a",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-a/neg_fp_missing.complete.txt",
+        "expected": "c25d4ae5bef33268fdc3ed2bf56071134f111139a12dcc12c2a5b7c298f05b92",
+        "blob": "c25d4ae5bef33268fdc3ed2bf56071134f111139a12dcc12c2a5b7c298f05b92",
+        "local": "c25d4ae5bef33268fdc3ed2bf56071134f111139a12dcc12c2a5b7c298f05b92",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-a/neg_fp_missing.db_check.out",
+        "expected": "68211fbabf91afa019eefe6ab770e8df480c7f1f1c1f3fb8eba336e1aea10a28",
+        "blob": "68211fbabf91afa019eefe6ab770e8df480c7f1f1c1f3fb8eba336e1aea10a28",
+        "local": "68211fbabf91afa019eefe6ab770e8df480c7f1f1c1f3fb8eba336e1aea10a28",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-a/neg_fp_missing.psql.stderr.txt",
+        "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "blob": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "local": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-a/neg_fp_multiple.complete.txt",
+        "expected": "c25d4ae5bef33268fdc3ed2bf56071134f111139a12dcc12c2a5b7c298f05b92",
+        "blob": "c25d4ae5bef33268fdc3ed2bf56071134f111139a12dcc12c2a5b7c298f05b92",
+        "local": "c25d4ae5bef33268fdc3ed2bf56071134f111139a12dcc12c2a5b7c298f05b92",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-a/neg_fp_multiple.db_check.out",
+        "expected": "03df6d417e613ef9ce89f4827d19c7ad206c05cb8e7905bae10fae32813b7d6e",
+        "blob": "03df6d417e613ef9ce89f4827d19c7ad206c05cb8e7905bae10fae32813b7d6e",
+        "local": "03df6d417e613ef9ce89f4827d19c7ad206c05cb8e7905bae10fae32813b7d6e",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-a/neg_fp_multiple.psql.stderr.txt",
+        "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "blob": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "local": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-a/neg_one_row_1us.complete.txt",
+        "expected": "13d8e14812ee3498e6ca905ff3bce7eb42a22d31033a0f67f877f3ed13173c31",
+        "blob": "13d8e14812ee3498e6ca905ff3bce7eb42a22d31033a0f67f877f3ed13173c31",
+        "local": "13d8e14812ee3498e6ca905ff3bce7eb42a22d31033a0f67f877f3ed13173c31",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-a/neg_one_row_1us.db_check.out",
+        "expected": "fbc122a76967128efe3f5b38093f06068af3508c554a0ecf28180cce6d886aba",
+        "blob": "fbc122a76967128efe3f5b38093f06068af3508c554a0ecf28180cce6d886aba",
+        "local": "fbc122a76967128efe3f5b38093f06068af3508c554a0ecf28180cce6d886aba",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-a/neg_one_row_1us.psql.stderr.txt",
+        "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "blob": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "local": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-a/neg_stored_ratio.complete.txt",
+        "expected": "2b9064cba1d37696e643423bffe3ab9daf10c393c9f3b11a256bd4170bc0c470",
+        "blob": "2b9064cba1d37696e643423bffe3ab9daf10c393c9f3b11a256bd4170bc0c470",
+        "local": "2b9064cba1d37696e643423bffe3ab9daf10c393c9f3b11a256bd4170bc0c470",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-a/neg_stored_ratio.db_check.out",
+        "expected": "29194ea3c6a0a92c1b20582b705c25e9730f53ecdfccb8b6417f7c98c020d32c",
+        "blob": "29194ea3c6a0a92c1b20582b705c25e9730f53ecdfccb8b6417f7c98c020d32c",
+        "local": "29194ea3c6a0a92c1b20582b705c25e9730f53ecdfccb8b6417f7c98c020d32c",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-a/neg_stored_ratio.psql.stderr.txt",
+        "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "blob": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "local": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-a/neg_trade_before_t0.complete.txt",
+        "expected": "a30f28c0d9fcd8a79a540b4c577410a6ccdfe54d5cc602d10644d7796b926be1",
+        "blob": "a30f28c0d9fcd8a79a540b4c577410a6ccdfe54d5cc602d10644d7796b926be1",
+        "local": "a30f28c0d9fcd8a79a540b4c577410a6ccdfe54d5cc602d10644d7796b926be1",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-a/neg_trade_before_t0.db_check.out",
+        "expected": "89ffa08a6f26db303a022de48a942691b3c79ce7fb45b816531ef5da453ca982",
+        "blob": "89ffa08a6f26db303a022de48a942691b3c79ce7fb45b816531ef5da453ca982",
+        "local": "89ffa08a6f26db303a022de48a942691b3c79ce7fb45b816531ef5da453ca982",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-a/neg_trade_before_t0.psql.stderr.txt",
+        "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "blob": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "local": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-a/ok.aggregate.json",
+        "expected": "832aa37f8bc0ce5b89ea4331d5cc41d7645ce473cb1a307a272d53110297a5fb",
+        "blob": "832aa37f8bc0ce5b89ea4331d5cc41d7645ce473cb1a307a272d53110297a5fb",
+        "local": "832aa37f8bc0ce5b89ea4331d5cc41d7645ce473cb1a307a272d53110297a5fb",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-a/ok.complete.txt",
+        "expected": "63cb309963f05c1a5291a82c834145bd331ee587afd2e5b33a4e1276a0278621",
+        "blob": "63cb309963f05c1a5291a82c834145bd331ee587afd2e5b33a4e1276a0278621",
+        "local": "63cb309963f05c1a5291a82c834145bd331ee587afd2e5b33a4e1276a0278621",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-a/ok.creation_log.json",
+        "expected": "aaf12b826db03f42b633228e5bab38d0a3635343fa7f6ca1730c9c62354b2bac",
+        "blob": "aaf12b826db03f42b633228e5bab38d0a3635343fa7f6ca1730c9c62354b2bac",
+        "local": "aaf12b826db03f42b633228e5bab38d0a3635343fa7f6ca1730c9c62354b2bac",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-a/ok.db_check.out",
+        "expected": "d3357b8bcf69837efc430bfbb8486d74c25b5a0e5b3076a313017a11f8bf527b",
+        "blob": "d3357b8bcf69837efc430bfbb8486d74c25b5a0e5b3076a313017a11f8bf527b",
+        "local": "d3357b8bcf69837efc430bfbb8486d74c25b5a0e5b3076a313017a11f8bf527b",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-a/ok.positions.csv",
+        "expected": "1cf7a85b7c24a41c5717afd378a0ac70eb778174247af5148f687e05261dc6a0",
+        "blob": "1cf7a85b7c24a41c5717afd378a0ac70eb778174247af5148f687e05261dc6a0",
+        "local": "1cf7a85b7c24a41c5717afd378a0ac70eb778174247af5148f687e05261dc6a0",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-a/ok.psql.stderr.txt",
+        "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "blob": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "local": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-a/TEST-com.cryptoautotrader.api.service.AbChainV4PgTest.xml",
+        "expected": "8db931e872a19fe5de8012ee886f000b9a458b0fe35cf5e7217e544549062cde",
+        "blob": "8db931e872a19fe5de8012ee886f000b9a458b0fe35cf5e7217e544549062cde",
+        "local": "8db931e872a19fe5de8012ee886f000b9a458b0fe35cf5e7217e544549062cde",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-a/transcript.txt",
+        "expected": "c22b753a2154277f29ad6014d49b07b5ed13f7cb567011000cd869ac8017a8ac",
+        "blob": "c22b753a2154277f29ad6014d49b07b5ed13f7cb567011000cd869ac8017a8ac",
+        "local": "c22b753a2154277f29ad6014d49b07b5ed13f7cb567011000cd869ac8017a8ac",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-b-otherdb/arms.csv",
+        "expected": "aab3eacd3910e691c2f967f6350c16c59ab694e0e2c4bbc05a44b3b5b69904e8",
+        "blob": "aab3eacd3910e691c2f967f6350c16c59ab694e0e2c4bbc05a44b3b5b69904e8",
+        "local": "aab3eacd3910e691c2f967f6350c16c59ab694e0e2c4bbc05a44b3b5b69904e8",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-b-otherdb/arms.csv.meta.json",
+        "expected": "b31d178c8ae909bc30fb2956a40d9465db15e6d0be3c14e18957f4daba558c76",
+        "blob": "b31d178c8ae909bc30fb2956a40d9465db15e6d0be3c14e18957f4daba558c76",
+        "local": "b31d178c8ae909bc30fb2956a40d9465db15e6d0be3c14e18957f4daba558c76",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-b-otherdb/arms.txt",
+        "expected": "3fce1faebb6976f03d0b685c0e669b9fe3c058f34011b0d9a8e68061a6ec06d8",
+        "blob": "3fce1faebb6976f03d0b685c0e669b9fe3c058f34011b0d9a8e68061a6ec06d8",
+        "local": "3fce1faebb6976f03d0b685c0e669b9fe3c058f34011b0d9a8e68061a6ec06d8",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-b-otherdb/create/creation_log.draft.json",
+        "expected": "f9333f095be1313260f199959f1c0094ee200b2781a0f2f776537c7c8660cfca",
+        "blob": "f9333f095be1313260f199959f1c0094ee200b2781a0f2f776537c7c8660cfca",
+        "local": "f9333f095be1313260f199959f1c0094ee200b2781a0f2f776537c7c8660cfca",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-b-otherdb/create/journal.jsonl",
+        "expected": "021462cd37b57f332d42ba600a11021c860352319df33997ce17814c797b172f",
+        "blob": "021462cd37b57f332d42ba600a11021c860352319df33997ce17814c797b172f",
+        "local": "021462cd37b57f332d42ba600a11021c860352319df33997ce17814c797b172f",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-b-otherdb/create/plan.json",
+        "expected": "77ce9574fd7870bc2ff1a8123c7334272bd8ff7f1011957dd2a1a762d2e27ad3",
+        "blob": "77ce9574fd7870bc2ff1a8123c7334272bd8ff7f1011957dd2a1a762d2e27ad3",
+        "local": "77ce9574fd7870bc2ff1a8123c7334272bd8ff7f1011957dd2a1a762d2e27ad3",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-b-otherdb/gradle.log.txt",
+        "expected": "66d90bb215e8e96181ad2737a660c7802cfc8642f02c45c2d881f0daef8329f2",
+        "blob": "66d90bb215e8e96181ad2737a660c7802cfc8642f02c45c2d881f0daef8329f2",
+        "local": "66d90bb215e8e96181ad2737a660c7802cfc8642f02c45c2d881f0daef8329f2",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-b-otherdb/marks.csv",
+        "expected": "450eac6c44e6058428780c17bc0adb323ff714619f726dfca174200e75d2db7a",
+        "blob": "450eac6c44e6058428780c17bc0adb323ff714619f726dfca174200e75d2db7a",
+        "local": "450eac6c44e6058428780c17bc0adb323ff714619f726dfca174200e75d2db7a",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-b-otherdb/neg_fp_missing.complete.txt",
+        "expected": "c25d4ae5bef33268fdc3ed2bf56071134f111139a12dcc12c2a5b7c298f05b92",
+        "blob": "c25d4ae5bef33268fdc3ed2bf56071134f111139a12dcc12c2a5b7c298f05b92",
+        "local": "c25d4ae5bef33268fdc3ed2bf56071134f111139a12dcc12c2a5b7c298f05b92",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-b-otherdb/neg_fp_missing.db_check.out",
+        "expected": "5489a6efb734024352e957718a14f93b036859150cf0f240faa2beaebaf6f760",
+        "blob": "5489a6efb734024352e957718a14f93b036859150cf0f240faa2beaebaf6f760",
+        "local": "5489a6efb734024352e957718a14f93b036859150cf0f240faa2beaebaf6f760",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-b-otherdb/neg_fp_missing.psql.stderr.txt",
+        "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "blob": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "local": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-b-otherdb/neg_fp_multiple.complete.txt",
+        "expected": "c25d4ae5bef33268fdc3ed2bf56071134f111139a12dcc12c2a5b7c298f05b92",
+        "blob": "c25d4ae5bef33268fdc3ed2bf56071134f111139a12dcc12c2a5b7c298f05b92",
+        "local": "c25d4ae5bef33268fdc3ed2bf56071134f111139a12dcc12c2a5b7c298f05b92",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-b-otherdb/neg_fp_multiple.db_check.out",
+        "expected": "7c0f0a655679de2911f453d6b8497f0e7fae8dab825b360e07bd90f8b5e5e511",
+        "blob": "7c0f0a655679de2911f453d6b8497f0e7fae8dab825b360e07bd90f8b5e5e511",
+        "local": "7c0f0a655679de2911f453d6b8497f0e7fae8dab825b360e07bd90f8b5e5e511",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-b-otherdb/neg_fp_multiple.psql.stderr.txt",
+        "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "blob": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "local": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-b-otherdb/neg_one_row_1us.complete.txt",
+        "expected": "13d8e14812ee3498e6ca905ff3bce7eb42a22d31033a0f67f877f3ed13173c31",
+        "blob": "13d8e14812ee3498e6ca905ff3bce7eb42a22d31033a0f67f877f3ed13173c31",
+        "local": "13d8e14812ee3498e6ca905ff3bce7eb42a22d31033a0f67f877f3ed13173c31",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-b-otherdb/neg_one_row_1us.db_check.out",
+        "expected": "bddaa317b70b7df748d59f6c5745eb4d2798b5d3aa6cc2c9b75ae00c8059805b",
+        "blob": "bddaa317b70b7df748d59f6c5745eb4d2798b5d3aa6cc2c9b75ae00c8059805b",
+        "local": "bddaa317b70b7df748d59f6c5745eb4d2798b5d3aa6cc2c9b75ae00c8059805b",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-b-otherdb/neg_one_row_1us.psql.stderr.txt",
+        "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "blob": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "local": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-b-otherdb/neg_other_db.complete.txt",
+        "expected": "b36db342f167006dea1229b6208764a723709516b64d6c7a385e555c1075e441",
+        "blob": "b36db342f167006dea1229b6208764a723709516b64d6c7a385e555c1075e441",
+        "local": "b36db342f167006dea1229b6208764a723709516b64d6c7a385e555c1075e441",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-b-otherdb/neg_other_db.db_check.out",
+        "expected": "7970a01d9117549ca19f2830b3042881372ef6ea24eb84f00a03dca558370c35",
+        "blob": "7970a01d9117549ca19f2830b3042881372ef6ea24eb84f00a03dca558370c35",
+        "local": "7970a01d9117549ca19f2830b3042881372ef6ea24eb84f00a03dca558370c35",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-b-otherdb/neg_other_db.psql.stderr.txt",
+        "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "blob": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "local": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-b-otherdb/neg_stored_ratio.complete.txt",
+        "expected": "2b9064cba1d37696e643423bffe3ab9daf10c393c9f3b11a256bd4170bc0c470",
+        "blob": "2b9064cba1d37696e643423bffe3ab9daf10c393c9f3b11a256bd4170bc0c470",
+        "local": "2b9064cba1d37696e643423bffe3ab9daf10c393c9f3b11a256bd4170bc0c470",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-b-otherdb/neg_stored_ratio.db_check.out",
+        "expected": "51dd89dbd2b61420cb8628b73ee914045a619ef0a24cf84dc1352158fb5ea428",
+        "blob": "51dd89dbd2b61420cb8628b73ee914045a619ef0a24cf84dc1352158fb5ea428",
+        "local": "51dd89dbd2b61420cb8628b73ee914045a619ef0a24cf84dc1352158fb5ea428",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-b-otherdb/neg_stored_ratio.psql.stderr.txt",
+        "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "blob": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "local": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-b-otherdb/neg_trade_before_t0.complete.txt",
+        "expected": "a30f28c0d9fcd8a79a540b4c577410a6ccdfe54d5cc602d10644d7796b926be1",
+        "blob": "a30f28c0d9fcd8a79a540b4c577410a6ccdfe54d5cc602d10644d7796b926be1",
+        "local": "a30f28c0d9fcd8a79a540b4c577410a6ccdfe54d5cc602d10644d7796b926be1",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-b-otherdb/neg_trade_before_t0.db_check.out",
+        "expected": "d844ae7280130586b3a73c0dbd4e5e1592595708f7458d65aff8d31bad8f2972",
+        "blob": "d844ae7280130586b3a73c0dbd4e5e1592595708f7458d65aff8d31bad8f2972",
+        "local": "d844ae7280130586b3a73c0dbd4e5e1592595708f7458d65aff8d31bad8f2972",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-b-otherdb/neg_trade_before_t0.psql.stderr.txt",
+        "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "blob": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "local": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-b-otherdb/ok.aggregate.json",
+        "expected": "832aa37f8bc0ce5b89ea4331d5cc41d7645ce473cb1a307a272d53110297a5fb",
+        "blob": "832aa37f8bc0ce5b89ea4331d5cc41d7645ce473cb1a307a272d53110297a5fb",
+        "local": "832aa37f8bc0ce5b89ea4331d5cc41d7645ce473cb1a307a272d53110297a5fb",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-b-otherdb/ok.complete.txt",
+        "expected": "409c2d2f3827f6f0f4af5bbb5941f6dbb360ad31264ea6ae52ef7f01e23671cd",
+        "blob": "409c2d2f3827f6f0f4af5bbb5941f6dbb360ad31264ea6ae52ef7f01e23671cd",
+        "local": "409c2d2f3827f6f0f4af5bbb5941f6dbb360ad31264ea6ae52ef7f01e23671cd",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-b-otherdb/ok.creation_log.json",
+        "expected": "356c24a8fd304653de55d00f513676bf40e5c7f3f655d5e186c24cc980c91438",
+        "blob": "356c24a8fd304653de55d00f513676bf40e5c7f3f655d5e186c24cc980c91438",
+        "local": "356c24a8fd304653de55d00f513676bf40e5c7f3f655d5e186c24cc980c91438",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-b-otherdb/ok.db_check.out",
+        "expected": "0808e2c5235a84cd1125909604b452ab5e227d095f2f1602aac2a4603bc96b53",
+        "blob": "0808e2c5235a84cd1125909604b452ab5e227d095f2f1602aac2a4603bc96b53",
+        "local": "0808e2c5235a84cd1125909604b452ab5e227d095f2f1602aac2a4603bc96b53",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-b-otherdb/ok.positions.csv",
+        "expected": "1cf7a85b7c24a41c5717afd378a0ac70eb778174247af5148f687e05261dc6a0",
+        "blob": "1cf7a85b7c24a41c5717afd378a0ac70eb778174247af5148f687e05261dc6a0",
+        "local": "1cf7a85b7c24a41c5717afd378a0ac70eb778174247af5148f687e05261dc6a0",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-b-otherdb/ok.psql.stderr.txt",
+        "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "blob": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "local": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-b-otherdb/TEST-com.cryptoautotrader.api.service.AbChainV4PgTest.xml",
+        "expected": "57a5d1ac15fec4aa52753c8df0f35cc3f7512bb94a72b446d01d966eb095ecd3",
+        "blob": "57a5d1ac15fec4aa52753c8df0f35cc3f7512bb94a72b446d01d966eb095ecd3",
+        "local": "57a5d1ac15fec4aa52753c8df0f35cc3f7512bb94a72b446d01d966eb095ecd3",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-b-otherdb/transcript.txt",
+        "expected": "c2983b17e8755358ce6d2bc4ece989307096f8706e4bbfc6abf573ceb29e0194",
+        "blob": "c2983b17e8755358ce6d2bc4ece989307096f8706e4bbfc6abf573ceb29e0194",
+        "local": "c2983b17e8755358ce6d2bc4ece989307096f8706e4bbfc6abf573ceb29e0194",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/run-b-skipped-uptodate/gradle.log.txt",
+        "expected": "d00b346242be13f65fceb5424be8fb802848e8fc5be51624802c8d5b0bd8acb1",
+        "blob": "d00b346242be13f65fceb5424be8fb802848e8fc5be51624802c8d5b0bd8acb1",
+        "local": "d00b346242be13f65fceb5424be8fb802848e8fc5be51624802c8d5b0bd8acb1",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/v3-same-input/neg_one_row_1us.v3.complete.txt",
+        "expected": "cf077054e564bc7020909e17280adacee6230dca4cca51ab88c4ef109ee29351",
+        "blob": "cf077054e564bc7020909e17280adacee6230dca4cca51ab88c4ef109ee29351",
+        "local": "cf077054e564bc7020909e17280adacee6230dca4cca51ab88c4ef109ee29351",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/v3-same-input/neg_one_row_1us.v3.creation_log.json",
+        "expected": "a2b26fb14dcccde9844578ddd1bf2b62b6d26fb97619f648c56292fe7b5316b7",
+        "blob": "a2b26fb14dcccde9844578ddd1bf2b62b6d26fb97619f648c56292fe7b5316b7",
+        "local": "a2b26fb14dcccde9844578ddd1bf2b62b6d26fb97619f648c56292fe7b5316b7",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/v3-same-input/neg_other_db.v3.complete.txt",
+        "expected": "a639a260ea91a67250d9303a56e1f511a3887de1d98372f1de2d67d8f6b49b0c",
+        "blob": "a639a260ea91a67250d9303a56e1f511a3887de1d98372f1de2d67d8f6b49b0c",
+        "local": "a639a260ea91a67250d9303a56e1f511a3887de1d98372f1de2d67d8f6b49b0c",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/v3-same-input/neg_other_db.v3.creation_log.json",
+        "expected": "9a1ff7ef72441c832c0ff54583963201f720b9f077f38119a993830d01794384",
+        "blob": "9a1ff7ef72441c832c0ff54583963201f720b9f077f38119a993830d01794384",
+        "local": "9a1ff7ef72441c832c0ff54583963201f720b9f077f38119a993830d01794384",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/v3-same-input/ok.v3.complete.txt",
+        "expected": "f3c7d92fc7bb41fbe23fbbf35d11044072d354593fe5575c5725bfefd377151c",
+        "blob": "f3c7d92fc7bb41fbe23fbbf35d11044072d354593fe5575c5725bfefd377151c",
+        "local": "f3c7d92fc7bb41fbe23fbbf35d11044072d354593fe5575c5725bfefd377151c",
+        "ok": true
+      },
+      {
+        "path": "pgchain-v4/v3-same-input/ok.v3.creation_log.json",
+        "expected": "f6f192ff353c64ff364f554d9e25194ac315a13dbdd04d08fc628b46ee12d840",
+        "blob": "f6f192ff353c64ff364f554d9e25194ac315a13dbdd04d08fc628b46ee12d840",
+        "local": "f6f192ff353c64ff364f554d9e25194ac315a13dbdd04d08fc628b46ee12d840",
+        "ok": true
+      },
+      {
+        "path": "precision/gradle.log.txt",
+        "expected": "9df46b0a98a6692c9bcd3ef157f512fb6fcffd0490b6e88c78591b8b2a618e55",
+        "blob": "9df46b0a98a6692c9bcd3ef157f512fb6fcffd0490b6e88c78591b8b2a618e55",
+        "local": "9df46b0a98a6692c9bcd3ef157f512fb6fcffd0490b6e88c78591b8b2a618e55",
+        "ok": true
+      },
+      {
+        "path": "precision/TEST-com.cryptoautotrader.api.service.StartedAtPrecisionPgTest.xml",
+        "expected": "ec8da01f970ff0512978a4f302a954c50e4d69f2f3c7953b27899b733816eb98",
+        "blob": "ec8da01f970ff0512978a4f302a954c50e4d69f2f3c7953b27899b733816eb98",
+        "local": "ec8da01f970ff0512978a4f302a954c50e4d69f2f3c7953b27899b733816eb98",
+        "ok": true
+      },
+      {
+        "path": "README.md",
+        "expected": "271ecd6478991e7480ad79d9ba06fe1c79d21eed997aa0de72161f26e8ad57db",
+        "blob": "271ecd6478991e7480ad79d9ba06fe1c79d21eed997aa0de72161f26e8ad57db",
+        "local": "271ecd6478991e7480ad79d9ba06fe1c79d21eed997aa0de72161f26e8ad57db",
+        "ok": true
+      },
+      {
+        "path": "s5/after-h2/gradle.log.txt",
+        "expected": "4e0a1abfafb78dbc86f43b09c2d53a93fae136e4e35cf81631c59d0920bab051",
+        "blob": "4e0a1abfafb78dbc86f43b09c2d53a93fae136e4e35cf81631c59d0920bab051",
+        "local": "4e0a1abfafb78dbc86f43b09c2d53a93fae136e4e35cf81631c59d0920bab051",
+        "ok": true
+      },
+      {
+        "path": "s5/after-h2/PerformanceSnapshotS5Test.java.txt",
+        "expected": "c762fd2b2f5b59e2e3b4db2a6f8636297fe7fe197e2c37c77b9f3f5a635a0444",
+        "blob": "c762fd2b2f5b59e2e3b4db2a6f8636297fe7fe197e2c37c77b9f3f5a635a0444",
+        "local": "c762fd2b2f5b59e2e3b4db2a6f8636297fe7fe197e2c37c77b9f3f5a635a0444",
+        "ok": true
+      },
+      {
+        "path": "s5/after-h2/TEST-com.cryptoautotrader.api.service.AlignedV150FixesTest.xml",
+        "expected": "c4831e5018e459e9ab24d4d40f74fec443098fcd60e1feda1cf054728cb7c9fc",
+        "blob": "c4831e5018e459e9ab24d4d40f74fec443098fcd60e1feda1cf054728cb7c9fc",
+        "local": "c4831e5018e459e9ab24d4d40f74fec443098fcd60e1feda1cf054728cb7c9fc",
+        "ok": true
+      },
+      {
+        "path": "s5/after-h2/TEST-com.cryptoautotrader.api.service.PerformanceSnapshotS5Test.xml",
+        "expected": "cbf72bf1c515508b7d8a289b60ab0c0b659a61acfdb4660dc50f772e96fa378f",
+        "blob": "cbf72bf1c515508b7d8a289b60ab0c0b659a61acfdb4660dc50f772e96fa378f",
+        "local": "cbf72bf1c515508b7d8a289b60ab0c0b659a61acfdb4660dc50f772e96fa378f",
+        "ok": true
+      },
+      {
+        "path": "s5/after-h2/TEST-com.cryptoautotrader.api.service.Review19Test.xml",
+        "expected": "83479b53b99057d446e1492c82cf2c32b93b7b86514a985502d0686b546a5b5b",
+        "blob": "83479b53b99057d446e1492c82cf2c32b93b7b86514a985502d0686b546a5b5b",
+        "local": "83479b53b99057d446e1492c82cf2c32b93b7b86514a985502d0686b546a5b5b",
+        "ok": true
+      },
+      {
+        "path": "s5/after-pg/gradle.log.txt",
+        "expected": "50de0f7f325dc2c9559c2045370ee7aa14ec29edbbcf1e50d2fe80fb62f7ef9f",
+        "blob": "50de0f7f325dc2c9559c2045370ee7aa14ec29edbbcf1e50d2fe80fb62f7ef9f",
+        "local": "50de0f7f325dc2c9559c2045370ee7aa14ec29edbbcf1e50d2fe80fb62f7ef9f",
+        "ok": true
+      },
+      {
+        "path": "s5/after-pg/TEST-com.cryptoautotrader.api.service.PerformanceSnapshotS5PgTest.xml",
+        "expected": "f5105f146db409dadafaea621cd17edc569589dcf8ba827a85755ec7ce07e7c6",
+        "blob": "f5105f146db409dadafaea621cd17edc569589dcf8ba827a85755ec7ce07e7c6",
+        "local": "f5105f146db409dadafaea621cd17edc569589dcf8ba827a85755ec7ce07e7c6",
+        "ok": true
+      },
+      {
+        "path": "s5/before/gradle.log.txt",
+        "expected": "c50442e046e32c6c4793a1be66fa694da536404ea14220dbb5667bbdb8948797",
+        "blob": "c50442e046e32c6c4793a1be66fa694da536404ea14220dbb5667bbdb8948797",
+        "local": "c50442e046e32c6c4793a1be66fa694da536404ea14220dbb5667bbdb8948797",
+        "ok": true
+      },
+      {
+        "path": "s5/before/TEST-com.cryptoautotrader.api.service.Review19Test.xml",
+        "expected": "21f9dda703525f99a8f127458e310e970a24d210469d5b245c5a0971795a0738",
+        "blob": "21f9dda703525f99a8f127458e310e970a24d210469d5b245c5a0971795a0738",
+        "local": "21f9dda703525f99a8f127458e310e970a24d210469d5b245c5a0971795a0738",
+        "ok": true
+      },
+      {
+        "path": "s5/newtest-on-19dbad3a/gradle.log.txt",
+        "expected": "15e8954b72d16e2c9fb775b95dc45dfd82ce7da455c011310b9b70c2d332acaa",
+        "blob": "15e8954b72d16e2c9fb775b95dc45dfd82ce7da455c011310b9b70c2d332acaa",
+        "local": "15e8954b72d16e2c9fb775b95dc45dfd82ce7da455c011310b9b70c2d332acaa",
+        "ok": true
+      },
+      {
+        "path": "s5/newtest-on-19dbad3a/TEST-com.cryptoautotrader.api.service.PerformanceSnapshotS5Test.xml",
+        "expected": "f59bed09d3f9bd3b1fe0ee5a925e37b673bd743842c70213a0a17245e817ac6b",
+        "blob": "f59bed09d3f9bd3b1fe0ee5a925e37b673bd743842c70213a0a17245e817ac6b",
+        "local": "f59bed09d3f9bd3b1fe0ee5a925e37b673bd743842c70213a0a17245e817ac6b",
+        "ok": true
+      },
+      {
+        "path": "s5/pg-on-19dbad3a/gradle.log.txt",
+        "expected": "4487cbf7df956515024bff0b7894a6874805b66c6835b7d7a4253bcd79d94c6e",
+        "blob": "4487cbf7df956515024bff0b7894a6874805b66c6835b7d7a4253bcd79d94c6e",
+        "local": "4487cbf7df956515024bff0b7894a6874805b66c6835b7d7a4253bcd79d94c6e",
+        "ok": true
+      },
+      {
+        "path": "s5/pg-on-19dbad3a/TEST-com.cryptoautotrader.api.service.PerformanceSnapshotS5PgTest.xml",
+        "expected": "3371aa625042ff9ebcd804904a350c955f2bf95893e16315b4bdfb1555701c55",
+        "blob": "3371aa625042ff9ebcd804904a350c955f2bf95893e16315b4bdfb1555701c55",
+        "local": "3371aa625042ff9ebcd804904a350c955f2bf95893e16315b4bdfb1555701c55",
+        "ok": true
+      },
+      {
+        "path": "s5/pg-run1-failed-no-timescale/gradle.log.txt",
+        "expected": "53c57736ee50718945510cc72173655c928c0f0814e4f9f667cacb38ed46d127",
+        "blob": "53c57736ee50718945510cc72173655c928c0f0814e4f9f667cacb38ed46d127",
+        "local": "53c57736ee50718945510cc72173655c928c0f0814e4f9f667cacb38ed46d127",
+        "ok": true
+      },
+      {
+        "path": "s5/pg-run1-failed-no-timescale/TEST-com.cryptoautotrader.api.service.PerformanceSnapshotS5PgTest.xml",
+        "expected": "74cad71402e84c2dd2857a290cc80282aa4f68bfaa0bd2921404468204d02178",
+        "blob": "74cad71402e84c2dd2857a290cc80282aa4f68bfaa0bd2921404468204d02178",
+        "local": "74cad71402e84c2dd2857a290cc80282aa4f68bfaa0bd2921404468204d02178",
+        "ok": true
+      }
+    ],
+    "ab-create-v4-20261111": [
+      {
+        "path": ".gitattributes",
+        "expected": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+        "blob": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+        "local": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+        "ok": true
+      },
+      {
+        "path": "chain_driver_v4.py",
+        "expected": "31709f5c949dc78a6a74031847d92cac84bdd05281b4ed2b821ba7dc942c2080",
+        "blob": "31709f5c949dc78a6a74031847d92cac84bdd05281b4ed2b821ba7dc942c2080",
+        "local": "31709f5c949dc78a6a74031847d92cac84bdd05281b4ed2b821ba7dc942c2080",
+        "ok": true
+      },
+      {
+        "path": "create/ab_complete.py",
+        "expected": "33be6600d9c0cffb5971f8f263e2168eef581d2504041eefc500919ffa91b1bc",
+        "blob": "33be6600d9c0cffb5971f8f263e2168eef581d2504041eefc500919ffa91b1bc",
+        "local": "33be6600d9c0cffb5971f8f263e2168eef581d2504041eefc500919ffa91b1bc",
+        "ok": true
+      },
+      {
+        "path": "create/ab_create.py",
+        "expected": "31591216b297c282b8945c25ecea867e501de1ee28ae24b7db4746e081bb5dd7",
+        "blob": "31591216b297c282b8945c25ecea867e501de1ee28ae24b7db4746e081bb5dd7",
+        "local": "31591216b297c282b8945c25ecea867e501de1ee28ae24b7db4746e081bb5dd7",
+        "ok": true
+      },
+      {
+        "path": "create/extract_positions.sql",
+        "expected": "6ba15afce089a9cdb6a445ba0e45b6ebdbeba795b27784c30e309d75cc678700",
+        "blob": "6ba15afce089a9cdb6a445ba0e45b6ebdbeba795b27784c30e309d75cc678700",
+        "local": "6ba15afce089a9cdb6a445ba0e45b6ebdbeba795b27784c30e309d75cc678700",
+        "ok": true
+      },
+      {
+        "path": "create/post_creation_check.sql",
+        "expected": "f936412c56dfd0fe42ec3696028a5a15559fdbb895837043d887e4884eb31907",
+        "blob": "f936412c56dfd0fe42ec3696028a5a15559fdbb895837043d887e4884eb31907",
+        "local": "f936412c56dfd0fe42ec3696028a5a15559fdbb895837043d887e4884eb31907",
+        "ok": true
+      },
+      {
+        "path": "create/standin_server.py",
+        "expected": "c7238feaebe89b148bafb187cc54de052f1eb865856eb2544c38a17b9f4092d8",
+        "blob": "c7238feaebe89b148bafb187cc54de052f1eb865856eb2544c38a17b9f4092d8",
+        "local": "c7238feaebe89b148bafb187cc54de052f1eb865856eb2544c38a17b9f4092d8",
+        "ok": true
+      },
+      {
+        "path": "create/test_ab_create.py",
+        "expected": "90a3ee1ea6316c66558c63fddd29ee82d68ec81069292b0e2b90e005f80daac3",
+        "blob": "90a3ee1ea6316c66558c63fddd29ee82d68ec81069292b0e2b90e005f80daac3",
+        "local": "90a3ee1ea6316c66558c63fddd29ee82d68ec81069292b0e2b90e005f80daac3",
+        "ok": true
+      },
+      {
+        "path": "README.md",
+        "expected": "24952f1282b3d6d773ac0875a9406fe81dd15d9956c96e29d4c83580b540b357",
+        "blob": "24952f1282b3d6d773ac0875a9406fe81dd15d9956c96e29d4c83580b540b357",
+        "local": "24952f1282b3d6d773ac0875a9406fe81dd15d9956c96e29d4c83580b540b357",
+        "ok": true
+      },
+      {
+        "path": "runs/test_ab_create.v3-suite-on-v4.final.txt",
+        "expected": "b72925e8ad88cd2f541225b2311dda19195d63ed25fc6ff7f50b433a7cc92970",
+        "blob": "b72925e8ad88cd2f541225b2311dda19195d63ed25fc6ff7f50b433a7cc92970",
+        "local": "b72925e8ad88cd2f541225b2311dda19195d63ed25fc6ff7f50b433a7cc92970",
+        "ok": true
+      },
+      {
+        "path": "runs/test_ab_v4.final.txt",
+        "expected": "7e1b3829dfea3164a56c23e190be861cf1be24dda752ba273d83cca73fe31a29",
+        "blob": "7e1b3829dfea3164a56c23e190be861cf1be24dda752ba273d83cca73fe31a29",
+        "local": "7e1b3829dfea3164a56c23e190be861cf1be24dda752ba273d83cca73fe31a29",
+        "ok": true
+      },
+      {
+        "path": "runs/test_ab_v4.run1-helper-defect.txt",
+        "expected": "dd0c4dc9e01f0ac6de6f796e9a0df45023efb9e537f68705e773e2c15919e332",
+        "blob": "dd0c4dc9e01f0ac6de6f796e9a0df45023efb9e537f68705e773e2c15919e332",
+        "local": "dd0c4dc9e01f0ac6de6f796e9a0df45023efb9e537f68705e773e2c15919e332",
+        "ok": true
+      },
+      {
+        "path": "runs/test_ab_v4.run2-swap-ids-gap.txt",
+        "expected": "32916daa43146d7a8fc36982536901a4e5380b9419b48ff5796c9ece0c479523",
+        "blob": "32916daa43146d7a8fc36982536901a4e5380b9419b48ff5796c9ece0c479523",
+        "local": "32916daa43146d7a8fc36982536901a4e5380b9419b48ff5796c9ece0c479523",
+        "ok": true
+      },
+      {
+        "path": "runs/v3-tests-on-v4-before-key-update.txt",
+        "expected": "4c9cbb6246cf66728a37d5e91644e0c69fc64ae07cad5f0e07e5fbe4a40f8727",
+        "blob": "4c9cbb6246cf66728a37d5e91644e0c69fc64ae07cad5f0e07e5fbe4a40f8727",
+        "local": "4c9cbb6246cf66728a37d5e91644e0c69fc64ae07cad5f0e07e5fbe4a40f8727",
+        "ok": true
+      },
+      {
+        "path": "tool/ab_arms.py",
+        "expected": "a51c13b9ce8d13227a5871011983fe96adedfd033aa9e44c4cb72fdd7c7ec5ad",
+        "blob": "a51c13b9ce8d13227a5871011983fe96adedfd033aa9e44c4cb72fdd7c7ec5ad",
+        "local": "a51c13b9ce8d13227a5871011983fe96adedfd033aa9e44c4cb72fdd7c7ec5ad",
+        "ok": true
+      },
+      {
+        "path": "tool/protocol.json",
+        "expected": "8d787fe9d8c6d6bec00a588e38c6d638a97be9faf3709875b1670d71eae5d3db",
+        "blob": "8d787fe9d8c6d6bec00a588e38c6d638a97be9faf3709875b1670d71eae5d3db",
+        "local": "8d787fe9d8c6d6bec00a588e38c6d638a97be9faf3709875b1670d71eae5d3db",
+        "ok": true
+      },
+      {
+        "path": "tool/test_ab_v4.py",
+        "expected": "332880baa1ba94016bd7d3d9fb4e17e2640174fd0b29e70c41fa171e0ffd8895",
+        "blob": "332880baa1ba94016bd7d3d9fb4e17e2640174fd0b29e70c41fa171e0ffd8895",
+        "local": "332880baa1ba94016bd7d3d9fb4e17e2640174fd0b29e70c41fa171e0ffd8895",
+        "ok": true
+      }
+    ],
+    "n03-1111-2200": [
+      {
+        "path": ".gitattributes",
+        "expected": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+        "blob": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+        "local": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+        "ok": true
+      },
+      {
+        "path": "20261111-2200.txt",
+        "expected": "1961220b872a0be0679c59c1da7f2d4c543496eea82b9414ebe004af1c89d66c",
+        "blob": "1961220b872a0be0679c59c1da7f2d4c543496eea82b9414ebe004af1c89d66c",
+        "local": "1961220b872a0be0679c59c1da7f2d4c543496eea82b9414ebe004af1c89d66c",
+        "ok": true
+      },
+      {
+        "path": "20261111-2200.txt.msg",
+        "expected": "0edd60275d8286f58a3259d2ef9f1db807d4c946cb92bfbc6c27d4af307a41f0",
+        "blob": "0edd60275d8286f58a3259d2ef9f1db807d4c946cb92bfbc6c27d4af307a41f0",
+        "local": "0edd60275d8286f58a3259d2ef9f1db807d4c946cb92bfbc6c27d4af307a41f0",
+        "ok": true
+      },
+      {
+        "path": "20261111-2200.txt.raw",
+        "expected": "6a70f6b1064996c41d12ad1efcf2ec332c4a44f91c72421fdfd499dc987c6f55",
+        "blob": "6a70f6b1064996c41d12ad1efcf2ec332c4a44f91c72421fdfd499dc987c6f55",
+        "local": "6a70f6b1064996c41d12ad1efcf2ec332c4a44f91c72421fdfd499dc987c6f55",
+        "ok": true
+      },
+      {
+        "path": "error_lines.txt",
+        "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "blob": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "local": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "ok": true
+      },
+      {
+        "path": "install_state.txt",
+        "expected": "90e17c291c568a275c31ed8bb5a0062aa2ae74f36f40d339fb12a9b59f7aacaa",
+        "blob": "90e17c291c568a275c31ed8bb5a0062aa2ae74f36f40d339fb12a9b59f7aacaa",
+        "local": "90e17c291c568a275c31ed8bb5a0062aa2ae74f36f40d339fb12a9b59f7aacaa",
+        "ok": true
+      },
+      {
+        "path": "last_send",
+        "expected": "1e87bd59a3caa5e2910bc4f521dfe9ba5c947108693ba009c45f628ef1a600cc",
+        "blob": "1e87bd59a3caa5e2910bc4f521dfe9ba5c947108693ba009c45f628ef1a600cc",
+        "local": "1e87bd59a3caa5e2910bc4f521dfe9ba5c947108693ba009c45f628ef1a600cc",
+        "ok": true
+      },
+      {
+        "path": "local-sha256.txt",
+        "expected": "ce3e73cfff73a7ccd66441f0a3e2ec6a201d6e3438f760bbabbe8efaff757d36",
+        "blob": "ce3e73cfff73a7ccd66441f0a3e2ec6a201d6e3438f760bbabbe8efaff757d36",
+        "local": "ce3e73cfff73a7ccd66441f0a3e2ec6a201d6e3438f760bbabbe8efaff757d36",
+        "ok": true
+      },
+      {
+        "path": "morning-error-lines.txt",
+        "expected": "b344b269bf4334c3cd13794ce91273af638c814a24f6a40846732a24ae5cf2f1",
+        "blob": "b344b269bf4334c3cd13794ce91273af638c814a24f6a40846732a24ae5cf2f1",
+        "local": "b344b269bf4334c3cd13794ce91273af638c814a24f6a40846732a24ae5cf2f1",
+        "ok": true
+      },
+      {
+        "path": "morning-observations.txt",
+        "expected": "8365794f97ad03cbdd37767a1254f6a2ac60135c77ff587b99520bf5a7e5d29b",
+        "blob": "8365794f97ad03cbdd37767a1254f6a2ac60135c77ff587b99520bf5a7e5d29b",
+        "local": "8365794f97ad03cbdd37767a1254f6a2ac60135c77ff587b99520bf5a7e5d29b",
+        "ok": true
+      },
+      {
+        "path": "morning-read-at.txt",
+        "expected": "07e3bb22f15b2ba4e92058c1c64ee1c3b07ed3b11dc304ac8c94ed34d0912bd5",
+        "blob": "07e3bb22f15b2ba4e92058c1c64ee1c3b07ed3b11dc304ac8c94ed34d0912bd5",
+        "local": "07e3bb22f15b2ba4e92058c1c64ee1c3b07ed3b11dc304ac8c94ed34d0912bd5",
+        "ok": true
+      },
+      {
+        "path": "observations-supp.txt",
+        "expected": "ea087175039ace1921747e333de5d2dd997f86d6fd84cefd0d257271e17a810e",
+        "blob": "ea087175039ace1921747e333de5d2dd997f86d6fd84cefd0d257271e17a810e",
+        "local": "ea087175039ace1921747e333de5d2dd997f86d6fd84cefd0d257271e17a810e",
+        "ok": true
+      },
+      {
+        "path": "observations.txt",
+        "expected": "25f4405fd4e2ba15e4c6db2f48cb869653252f1f919f1f0213d3e1bf832c0bd6",
+        "blob": "25f4405fd4e2ba15e4c6db2f48cb869653252f1f919f1f0213d3e1bf832c0bd6",
+        "local": "25f4405fd4e2ba15e4c6db2f48cb869653252f1f919f1f0213d3e1bf832c0bd6",
+        "ok": true
+      },
+      {
+        "path": "read-at.txt",
+        "expected": "c2a722a0d36f7e309b901caf2d8df862383ef233019223e1832a884746d6f8cc",
+        "blob": "c2a722a0d36f7e309b901caf2d8df862383ef233019223e1832a884746d6f8cc",
+        "local": "c2a722a0d36f7e309b901caf2d8df862383ef233019223e1832a884746d6f8cc",
+        "ok": true
+      },
+      {
+        "path": "read.sh",
+        "expected": "e76f0c7f596efc7ec775445b80f48692729a82e6e7cde5ad3304e34001b127b8",
+        "blob": "e76f0c7f596efc7ec775445b80f48692729a82e6e7cde5ad3304e34001b127b8",
+        "local": "e76f0c7f596efc7ec775445b80f48692729a82e6e7cde5ad3304e34001b127b8",
+        "ok": true
+      },
+      {
+        "path": "README.md",
+        "expected": "4655f517917b17e469a92b08d0f3fccf7eada2e1f9de63806012cccac80994ca",
+        "blob": "4655f517917b17e469a92b08d0f3fccf7eada2e1f9de63806012cccac80994ca",
+        "local": "4655f517917b17e469a92b08d0f3fccf7eada2e1f9de63806012cccac80994ca",
+        "ok": true
+      },
+      {
+        "path": "server-files.txt",
+        "expected": "3a4a234755c7a175d694466752e43b734be83a29eb25e5218034f93a7bc841d2",
+        "blob": "3a4a234755c7a175d694466752e43b734be83a29eb25e5218034f93a7bc841d2",
+        "local": "3a4a234755c7a175d694466752e43b734be83a29eb25e5218034f93a7bc841d2",
+        "ok": true
+      },
+      {
+        "path": "token-check.txt",
+        "expected": "7481b26a46877446893bca8cb38f770b2d16ae92207eab254dd578a5b0eaffb9",
+        "blob": "7481b26a46877446893bca8cb38f770b2d16ae92207eab254dd578a5b0eaffb9",
+        "local": "7481b26a46877446893bca8cb38f770b2d16ae92207eab254dd578a5b0eaffb9",
+        "ok": true
+      }
+    ],
+    "review-c4a4d684": [
+      {
+        "path": "README.md",
+        "expected": "4cdc67aefa2ad2e9568a6723d6d813ad8876c132f69dcc3ab2b5336053bd2f6b",
+        "blob": "4cdc67aefa2ad2e9568a6723d6d813ad8876c132f69dcc3ab2b5336053bd2f6b",
+        "local": "4cdc67aefa2ad2e9568a6723d6d813ad8876c132f69dcc3ab2b5336053bd2f6b",
+        "ok": true
+      },
+      {
+        "path": "Review19Test.java",
+        "expected": "2a52364fb3f9af346068eacce1ce86c88e5fb53b128072f694fb56708c74f3ba",
+        "blob": "2a52364fb3f9af346068eacce1ce86c88e5fb53b128072f694fb56708c74f3ba",
+        "local": "2a52364fb3f9af346068eacce1ce86c88e5fb53b128072f694fb56708c74f3ba",
+        "ok": true
+      },
+      {
+        "path": "ReviewLauncher.java",
+        "expected": "76b58e7c01e4627f5690d198623fadde5f54ffde080940bc07a77499d2f90dc3",
+        "blob": "76b58e7c01e4627f5690d198623fadde5f54ffde080940bc07a77499d2f90dc3",
+        "local": "76b58e7c01e4627f5690d198623fadde5f54ffde080940bc07a77499d2f90dc3",
+        "ok": true
+      },
+      {
+        "path": "audit.json",
+        "expected": "1260149938e83f603eacbd0579ea3dedc64fda0610d2a15bfe7e97b2b374f482",
+        "blob": "1260149938e83f603eacbd0579ea3dedc64fda0610d2a15bfe7e97b2b374f482",
+        "local": "1260149938e83f603eacbd0579ea3dedc64fda0610d2a15bfe7e97b2b374f482",
+        "ok": true
+      },
+      {
+        "path": "doc-check.json",
+        "expected": "86c31193d614890a28f0547ddcafba26429ff0643d3e9bc189cc9df701c1717f",
+        "blob": "86c31193d614890a28f0547ddcafba26429ff0643d3e9bc189cc9df701c1717f",
+        "local": "86c31193d614890a28f0547ddcafba26429ff0643d3e9bc189cc9df701c1717f",
+        "ok": true
+      },
+      {
+        "path": "javac.txt",
+        "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "blob": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "local": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "ok": true
+      },
+      {
+        "path": "libraries.json",
+        "expected": "2730759722d504c4749a5d4b611d56a5e3c227d70ecb54918cd8879b40c477a1",
+        "blob": "2730759722d504c4749a5d4b611d56a5e3c227d70ecb54918cd8879b40c477a1",
+        "local": "2730759722d504c4749a5d4b611d56a5e3c227d70ecb54918cd8879b40c477a1",
+        "ok": true
+      },
+      {
+        "path": "prepare.py",
+        "expected": "f44f522000ed9f45342bde7de6163f6d148e19c7332a8adc85493542d64e5608",
+        "blob": "f44f522000ed9f45342bde7de6163f6d148e19c7332a8adc85493542d64e5608",
+        "local": "f44f522000ed9f45342bde7de6163f6d148e19c7332a8adc85493542d64e5608",
+        "ok": true
+      },
+      {
+        "path": "review.json",
+        "expected": "f8d1941f3609212d88c1e63b7f8d18c9fc5b740e96d22e34b9d06cb75c160821",
+        "blob": "f8d1941f3609212d88c1e63b7f8d18c9fc5b740e96d22e34b9d06cb75c160821",
+        "local": "f8d1941f3609212d88c1e63b7f8d18c9fc5b740e96d22e34b9d06cb75c160821",
+        "ok": true
+      },
+      {
+        "path": "run_java.py",
+        "expected": "98ef1e03394b8668bcfc0341ab7c28b9a3e4a2dfcfac500fdb1f02b800d48a0c",
+        "blob": "98ef1e03394b8668bcfc0341ab7c28b9a3e4a2dfcfac500fdb1f02b800d48a0c",
+        "local": "98ef1e03394b8668bcfc0341ab7c28b9a3e4a2dfcfac500fdb1f02b800d48a0c",
+        "ok": true
+      },
+      {
+        "path": "run_tools.py",
+        "expected": "2292f64876798fb8904b7c906d78e3d122b3875c2f46e86ef1b8ca77dcb33402",
+        "blob": "2292f64876798fb8904b7c906d78e3d122b3875c2f46e86ef1b8ca77dcb33402",
+        "local": "2292f64876798fb8904b7c906d78e3d122b3875c2f46e86ef1b8ca77dcb33402",
+        "ok": true
+      },
+      {
+        "path": "spring-tests.txt",
+        "expected": "aebafca0bbe8f797dd14df8439f3d432d5facfe8ae8d8a3dedc60e48ad47a02d",
+        "blob": "aebafca0bbe8f797dd14df8439f3d432d5facfe8ae8d8a3dedc60e48ad47a02d",
+        "local": "aebafca0bbe8f797dd14df8439f3d432d5facfe8ae8d8a3dedc60e48ad47a02d",
+        "ok": true
+      },
+      {
+        "path": "summarize.py",
+        "expected": "e9844d918aceb64f60bcd47bac136d41545c45d2b68b4da4bc368f20a956c053",
+        "blob": "e9844d918aceb64f60bcd47bac136d41545c45d2b68b4da4bc368f20a956c053",
+        "local": "e9844d918aceb64f60bcd47bac136d41545c45d2b68b4da4bc368f20a956c053",
+        "ok": true
+      },
+      {
+        "path": "tools-review.json",
+        "expected": "d6a5f0826e361406628fd4a20bb44235c001db288df08809433d0abbf1578b68",
+        "blob": "d6a5f0826e361406628fd4a20bb44235c001db288df08809433d0abbf1578b68",
+        "local": "d6a5f0826e361406628fd4a20bb44235c001db288df08809433d0abbf1578b68",
+        "ok": true
+      },
+      {
+        "path": "witness-tests.txt",
+        "expected": "dd60de3bbd82ee62a5c5c67d623ddfbb18d85f32ae672e26e42124cc5015c4f6",
+        "blob": "dd60de3bbd82ee62a5c5c67d623ddfbb18d85f32ae672e26e42124cc5015c4f6",
+        "local": "dd60de3bbd82ee62a5c5c67d623ddfbb18d85f32ae672e26e42124cc5015c4f6",
+        "ok": true
+      }
+    ]
+  },
+  "xml": {
+    "overnight-v152-20261111/d-nextbar/after/TEST-com.cryptoautotrader.api.service.EngineParityTest.xml": {
+      "tests": 27,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "overnight-v152-20261111/d-nextbar/after/TEST-com.cryptoautotrader.api.service.RealNextBarClockTest.xml": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "overnight-v152-20261111/d-nextbar/after/TEST-com.cryptoautotrader.api.service.Sma20LiveAlignedGapsTest.xml": {
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "overnight-v152-20261111/d-nextbar/before/TEST-com.cryptoautotrader.api.service.RealNextBarClockTest.xml": {
+      "tests": 1,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0
+    },
+    "overnight-v152-20261111/e-r5/run1/TEST-com.cryptoautotrader.api.service.R5RealCashflowRiskTest.xml": {
+      "tests": 3,
+      "failures": 2,
+      "errors": 0,
+      "skipped": 0
+    },
+    "overnight-v152-20261111/e-r5/run2/TEST-com.cryptoautotrader.api.service.R5RealCashflowRiskTest.xml": {
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "overnight-v152-20261111/f-saturation/isolation-candidate/TEST-com.cryptoautotrader.api.service.MarketDataRejectIsolationTest.xml": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "overnight-v152-20261111/f-saturation/isolation-candidate/TEST-com.cryptoautotrader.api.service.SharedLoopRoundsActiveTest.xml": {
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "overnight-v152-20261111/f-saturation/isolation-candidate/TEST-com.cryptoautotrader.api.service.SharedMarketDataExecutorSaturationTest.xml": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "overnight-v152-20261111/f-saturation/run1-test-code-error/TEST-com.cryptoautotrader.api.service.SharedMarketDataExecutorSaturationTest.xml": {
+      "tests": 1,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0
+    },
+    "overnight-v152-20261111/f-saturation/run2/TEST-com.cryptoautotrader.api.service.SharedMarketDataExecutorSaturationTest.xml": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "overnight-v152-20261111/f-saturation/run4/TEST-com.cryptoautotrader.api.service.SharedMarketDataExecutorSaturationTest.xml": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "overnight-v152-20261111/pgchain-v4/run-a/TEST-com.cryptoautotrader.api.service.AbChainV4PgTest.xml": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "overnight-v152-20261111/pgchain-v4/run-b-otherdb/TEST-com.cryptoautotrader.api.service.AbChainV4PgTest.xml": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "overnight-v152-20261111/precision/TEST-com.cryptoautotrader.api.service.StartedAtPrecisionPgTest.xml": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "overnight-v152-20261111/s5/after-h2/TEST-com.cryptoautotrader.api.service.AlignedV150FixesTest.xml": {
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "overnight-v152-20261111/s5/after-h2/TEST-com.cryptoautotrader.api.service.PerformanceSnapshotS5Test.xml": {
+      "tests": 1,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0
+    },
+    "overnight-v152-20261111/s5/after-h2/TEST-com.cryptoautotrader.api.service.Review19Test.xml": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "overnight-v152-20261111/s5/after-pg/TEST-com.cryptoautotrader.api.service.PerformanceSnapshotS5PgTest.xml": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "overnight-v152-20261111/s5/before/TEST-com.cryptoautotrader.api.service.Review19Test.xml": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "overnight-v152-20261111/s5/newtest-on-19dbad3a/TEST-com.cryptoautotrader.api.service.PerformanceSnapshotS5Test.xml": {
+      "tests": 1,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0
+    },
+    "overnight-v152-20261111/s5/pg-on-19dbad3a/TEST-com.cryptoautotrader.api.service.PerformanceSnapshotS5PgTest.xml": {
+      "tests": 1,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0
+    },
+    "overnight-v152-20261111/s5/pg-run1-failed-no-timescale/TEST-com.cryptoautotrader.api.service.PerformanceSnapshotS5PgTest.xml": {
+      "tests": 1,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0
+    }
+  }
+}

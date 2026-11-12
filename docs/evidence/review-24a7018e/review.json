@@ -1,0 +1,39 @@
+{
+  "submission": "24a7018e9f27a612bf2f8c6cd2d970d756edd4ab",
+  "aligned": "0298628b6cd761cefb1bf6b29e1c87e2881b1d9b",
+  "isolation": "03cfd9eb68e6cc62cb73a313379e5a1b8659c9f0",
+  "tools": {
+    "unit_success": 43,
+    "unit_failed": 0,
+    "raw_normal": 2,
+    "raw_negative_rejected": 11
+  },
+  "spring": {
+    "candidate_tests": 2,
+    "candidate_success": 2,
+    "isolation_submitted_success": 1,
+    "root_witness_first_harness_fail": 1,
+    "root_witness_corrected_success": 1
+  },
+  "root_observation": {
+    "mark_updated": true,
+    "live_history_after_drain": 0,
+    "recovery_event_not_processed": true,
+    "dropped": 4,
+    "control_new_event_live_history": 1,
+    "control_new_recovery_processed": true
+  },
+  "decisions": {
+    "global_discard_as_is": "not accepted",
+    "realtime_fanout_isolation": "local candidate authorized",
+    "G_to_J": "continue without start approval",
+    "dynamic_clock": "not mandatory for aligned; separate local follow-up only",
+    "production_deploy_ddl_create": "not authorized"
+  },
+  "production_access": false,
+  "database_execution": false,
+  "docker_changes": false,
+  "jar_build": false,
+  "product_edit": false,
+  "commit_push": false
+}

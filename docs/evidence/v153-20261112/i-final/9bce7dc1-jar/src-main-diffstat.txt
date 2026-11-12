@@ -1,0 +1,19 @@
+ .../api/controller/PaperTradingController.java     |  117 ++-
+ .../api/dto/PaperTradingStartRequest.java          |   19 +-
+ .../api/dto/PerformanceSummaryResponse.java        |   10 +
+ .../api/entity/paper/PaperPositionEntity.java      |    7 +
+ .../api/entity/paper/VirtualBalanceEntity.java     |    8 +
+ .../api/repository/OrderRepository.java            |   18 +
+ .../repository/paper/PaperPositionRepository.java  |   14 +
+ .../repository/paper/VirtualBalanceRepository.java |   20 +
+ .../api/service/DynamicTradingService.java         |    6 +-
+ .../api/service/EntryPriorityRounds.java           |   73 +-
+ .../api/service/LiveTradingService.java            |   12 +-
+ .../api/service/PaperExecutionMode.java            |   41 +
+ .../api/service/PaperMaxInvestment.java            |   88 ++
+ .../api/service/PaperTradingService.java           | 1037 ++++++++++++++++++--
+ .../api/service/RealtimeProtectionDispatcher.java  |  197 ++++
+ .../api/service/RiskManagementService.java         |   66 +-
+ .../api/service/TelegramNotificationService.java   |   13 +
+ .../migration/V96__paper_aligned_runtime_state.sql |   21 +
+ 18 files changed, 1641 insertions(+), 126 deletions(-)

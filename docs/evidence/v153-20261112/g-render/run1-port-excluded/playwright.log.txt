@@ -1,0 +1,13 @@
+[WebServer] ⨯ Failed to start server
+[WebServer] Error: listen EACCES: permission denied 0.0.0.0:3100
+[WebServer]     at <unknown> (Error: listen EACCES: permission denied 0.0.0.0:3100)
+[WebServer]     at new Promise (<anonymous>) {
+[WebServer]   code: 'EACCES',
+[WebServer]   errno: -4092,
+[WebServer]   syscall: 'listen',
+[WebServer]   address: '0.0.0.0',
+[WebServer]   port: 3100
+[WebServer] }
+Error: Process from config.webServer was not able to start. Exit code: 1
+
+exit=1

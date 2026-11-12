@@ -1,0 +1,13 @@
+== sha_empty_ok (FAKE_SHA=empty_ok)
+GATE|v96=1|created=1|running=0|odd_session=0|open=0|closing=0|odd_position=0|stopped_with_open=0
+DECIDED|closing_without_decided_at=0
+VERDICT POST_CREATION_OK (새 모드 1 세션 모두 정지·정산 — 마지막 장부 /d/tmp/v153-runs/h/v2probe/v1b/sha_empty_ok.ledger, 이후 종전 U되돌림)
+exit=0 ledger=other okword=yes
+total 8
+drwxr-xr-x 1 SangJoon_Lee 197121  0 Nov 12 09:32 .
+drwxr-xr-x 1 SangJoon_Lee 197121  0 Nov 12 09:32 ..
+-rw-r--r-- 1 SangJoon_Lee 197121  0 Nov 12 09:32 SHA256SUMS
+-rw-r--r-- 1 SangJoon_Lee 197121 97 Nov 12 09:32 gate-line.txt
+-rw-r--r-- 1 SangJoon_Lee 197121 20 Nov 12 09:32 orders.csv
+-rw-r--r-- 1 SangJoon_Lee 197121 19 Nov 12 09:32 positions.csv
+-rw-r--r-- 1 SangJoon_Lee 197121 20 Nov 12 09:32 sessions.csv

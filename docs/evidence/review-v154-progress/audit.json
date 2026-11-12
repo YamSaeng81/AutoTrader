@@ -1,0 +1,1613 @@
+{
+  "refs": {
+    "main": "24a7018e9f27a612bf2f8c6cd2d970d756edd4ab",
+    "F": "9d92a0f7e9c5fdc4d55251d7e3335e4f616f34de",
+    "loss": "0b23b44ebc5aae3b6f9e01de19e768233419e43e",
+    "B01": "8e81d0b429f25ba05413d1c2257f438e6382d610",
+    "integration": "9bce7dc114096ba72f656720554e14831e852f5f",
+    "production": "b5cd1d0d47ea68ffe6ff476b89cf9fca5bef1b88"
+  },
+  "inputs": {
+    "docs/evidence/v153-20261112/b01-next-bar/after-run1-paper-seams-xml/TEST-com.cryptoautotrader.api.service.B01RealNextSellBarTest.xml": "ac86256abcef525779364432fd7a965f3678ff810eb46dc63fa6285d0d7780c7",
+    "docs/evidence/v153-20261112/b01-next-bar/after-run1-paper-seams.log": "a5d9f95e70ed4814ec9b688035d9d1be11670c242179039045837de9b5166f35",
+    "docs/evidence/v153-20261112/b01-next-bar/after-xml/TEST-com.cryptoautotrader.api.service.B01RealNextSellBarTest.xml": "d1da2a58a87a632621acccffffa105b5ddbe46eb8fa4999fa304f9e1523662ad",
+    "docs/evidence/v153-20261112/b01-next-bar/after.log": "74b25e5d82060df25988ac280ed5dd1209c45f6281cb8307386ab62747171559",
+    "docs/evidence/v153-20261112/b01-next-bar/aligned-check-xml/TEST-com.cryptoautotrader.api.service.B01RealNextSellBarTest.xml": "3c6988c45986d50e378270e4c8778cfbba1e88a0e5d276d4483cdf1963e7bd88",
+    "docs/evidence/v153-20261112/b01-next-bar/aligned-check.log": "e8918cc95a883657481531505b59ee8c28cc63725d435d053d7f222a43c03108",
+    "docs/evidence/v153-20261112/b01-next-bar/before-xml/TEST-com.cryptoautotrader.api.service.B01RealNextSellBarTest.xml": "5ea59bd186d4f419ff7f68a12acafc646a9bc87ba6b716026999e2131fd26f6f",
+    "docs/evidence/v153-20261112/b01-next-bar/before.log": "641bd6a8c41406768af0d58ad29c9c081c9dffc6612cbb1d05da6b6a72a951f9",
+    "docs/evidence/v153-20261112/b01-next-bar/related-run1-summary.txt": "e28bb117d2d53fd56ec346407217e9f841c2c3901a58baa8b6b9702e16440205",
+    "docs/evidence/v153-20261112/b01-next-bar/related-run1-xml/TEST-com.cryptoautotrader.api.service.B01RealNextSellBarTest.xml": "408f256c46785e9d45314639f8073794e04b946f7fa6eff748d61f9a9c5f5a09",
+    "docs/evidence/v153-20261112/b01-next-bar/related-run1-xml/TEST-com.cryptoautotrader.api.service.BtcGateUnknownEntryTest.xml": "3a93be55694b1f57c7fa2cf5207690849b1adb8334950bb10bff8b09171a6d48",
+    "docs/evidence/v153-20261112/b01-next-bar/related-run1-xml/TEST-com.cryptoautotrader.api.service.CandleFreshnessGuardTest.xml": "4a3d91ddc9b1e1909320db4fba049f041d25365616de2bbfc890b9063c929284",
+    "docs/evidence/v153-20261112/b01-next-bar/related-run1-xml/TEST-com.cryptoautotrader.api.service.CandleGapBackfillTest.xml": "d436431a78735d7075c4e9d40bb0cebd0d258409f23439d1855f2ee85cd01142",
+    "docs/evidence/v153-20261112/b01-next-bar/related-run1-xml/TEST-com.cryptoautotrader.api.service.CandleGapExitTest.xml": "08a1bcfabfcd60bb74de1fc30e51df0f98ad5811eedfb451ec6dc1b4419a7c8d",
+    "docs/evidence/v153-20261112/b01-next-bar/related-run1-xml/TEST-com.cryptoautotrader.api.service.CandleMaintenanceGapTest.xml": "5e78e813edcfeccb851a657413230e3296e2a12e3bcfdfff4c1e2d019d14b8a8",
+    "docs/evidence/v153-20261112/b01-next-bar/related-run1-xml/TEST-com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest.xml": "dc99dea770acd3780161305eacadb39777521592cdfbf4975850757e171d2b8c",
+    "docs/evidence/v153-20261112/b01-next-bar/related-run1-xml/TEST-com.cryptoautotrader.api.service.ExitRuleOverridesTest.xml": "207da43fb252a44782c9f41ea6760183342f68838e1dfcec318ce0c46c3e4528",
+    "docs/evidence/v153-20261112/b01-next-bar/related-run1-xml/TEST-com.cryptoautotrader.api.service.PaperLiveAlignmentTest.xml": "a3328fd3d97a6b1207258d6aa73c2c7dbc3e1b4826c9e2239d796160917ea920",
+    "docs/evidence/v153-20261112/b01-next-bar/related-run1-xml/TEST-com.cryptoautotrader.api.service.R5RealCashflowRiskTest.xml": "9543cf788cd4a66e95907314f54cdb6b9c971917313aa4441edc4dc35ed5bbff",
+    "docs/evidence/v153-20261112/b01-next-bar/related-run1-xml/TEST-com.cryptoautotrader.api.service.RealNextBarClockTest.xml": "1961f04257aa79b7d20cfb7e191dba54464ee4a489213de7d4c1275e68879c55",
+    "docs/evidence/v153-20261112/b01-next-bar/related-run1-xml/TEST-com.cryptoautotrader.api.service.Sma20LiveAlignedGapsTest.xml": "35da390871a344980cc863919aaff6910caeb92dbe10a407a27004d1d9a2a2b3",
+    "docs/evidence/v153-20261112/b01-next-bar/related-run1-xml/TEST-com.cryptoautotrader.api.service.Sma20LiveAlignedPaperSameInputTest.xml": "2b9df1fce15403445f25afabdd735c0c37fc5a0909bd46cc6ba9986010f7eec9",
+    "docs/evidence/v153-20261112/b01-next-bar/related-run1-xml/TEST-com.cryptoautotrader.api.service.Sma20LivePaperSameInputTest.xml": "0febfb8c6b3d77ac761a3b2c6162e8d4ac65bae5198b8c832770522bb78ecc7a",
+    "docs/evidence/v153-20261112/b01-next-bar/related-run1.log": "7516b6fd60dd1b34f6d25490dc621b0e309a88e294fac046a2f006b67addf2bc",
+    "docs/evidence/v153-20261112/b01-next-bar/run0-compile-error.log": "70a052948c1b2c42ac96c3d5c6c635b7b6f51b4a5df5cc38974535ed45f26f51",
+    "docs/evidence/v153-20261112/e-r5/after/gradle.log.txt": "39d939be427af9afadb3ba90979f00e54d507d01052481589cbeea37a63daf4f",
+    "docs/evidence/v153-20261112/e-r5/after/TEST-com.cryptoautotrader.api.service.R5RealCashflowRiskTest.xml": "40d7a614d94e8932931016ecee274276f0c12ba5088245cdeb854d5494fee8b1",
+    "docs/evidence/v153-20261112/e-r5/before/gradle.log.txt": "bb19d293e3a37354fb46d17cede2a8225a19cd6d65f2e7dbfa0c37447bf34db1",
+    "docs/evidence/v153-20261112/e-r5/before/TEST-com.cryptoautotrader.api.service.R5RealCashflowRiskTest.xml": "9a76ccaabec5db69427e5e3aebd9a59727ba30af80e473915bbfb5ba4498c1f9",
+    "docs/evidence/v153-20261112/e-r5/run1-test-code-error/gradle.log.txt": "2a9d50f338403a9d057a318cb27c1e6664d464d6686b6a352bc76c5628a2e559",
+    "docs/evidence/v153-20261112/e-r5/run1-test-code-error/TEST-com.cryptoautotrader.api.service.R5RealCashflowRiskTest.xml": "222ae2abaf9c5cf3b4bb862b71865652e322208c70095452b103d9fa72a71bb2",
+    "docs/evidence/v153-20261112/e-r5/run2-h2-json-op/gradle.log.txt": "d9312590aa160dd49d641796b8ce5c44b33030819c3efca1ca6fbd44b6919f80",
+    "docs/evidence/v153-20261112/e-r5/run2-h2-json-op/TEST-com.cryptoautotrader.api.service.R5RealCashflowRiskTest.xml": "e427d9908e3dba6bd47baee83e08ebd2514e62baa46db0578867cf0bd9a6f520",
+    "docs/evidence/v153-20261112/f-protect/after/gradle.log.txt": "4d2ea7d75dc0dc1ee4e6e373a11a85ce601be8c77a561f250f56e09470628dd4",
+    "docs/evidence/v153-20261112/f-protect/after/TEST-com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest.xml": "c6d84d673062beb7d8f5d957b977b566fbb762f38000d6b2469a046cac6f252b",
+    "docs/evidence/v153-20261112/f-protect/after-run1-harness-lock-order/MEMO.md": "fd10a8f58194d30535eb99db4d23a98ce9d1032d999438e928a1c663ede547e7",
+    "docs/evidence/v153-20261112/f-protect/after-run2-harness-idle-threads/gradle.log.txt": "17f1ed73082caf490f58f9535f088c3910e929b25482dedd86d300b5d0905231",
+    "docs/evidence/v153-20261112/f-protect/after-run2-harness-idle-threads/TEST-com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest.xml": "4a1701c7484b517a7f6fd8b6e28afbc51d20515b322c676c451e0bcf04786033",
+    "docs/evidence/v153-20261112/f-protect/after-run3-harness-blockers-queued/gradle.log.txt": "c2fcfc4107e3d71387a09a2dbcfc9a9f70ecc13507fd4349cc1626356851b822",
+    "docs/evidence/v153-20261112/f-protect/after-run3-harness-blockers-queued/TEST-com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest.xml": "f09d26f93d15ab35865d3350fbddad4fa99fc724b2e0ed02852ae179e629168f",
+    "docs/evidence/v153-20261112/f-protect/before/gradle.log.txt": "004a28ed677bb114698ee3bee90373db63d6a936b98f2e0f58bd8aa44c5cc351",
+    "docs/evidence/v153-20261112/f-protect/before/TEST-com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest.xml": "379e163fce104088210b7bca7d9427a63cf59a65cbb2fe136a8556946a121c21",
+    "docs/evidence/v153-20261112/f-protect/related-final-ec7d33ef/gradle.log.txt": "d158b90c3d742e99670325d2a4a507ef04f0c72f19aaf0f75523828fa28e3fb9",
+    "docs/evidence/v153-20261112/f-protect/related-final-ec7d33ef/TEST-com.cryptoautotrader.api.service.DoubleSellGuardTest.xml": "2dd7f48db0e14d8b3d652139444869efb932c680fa96988cffe8b0ee9685f8d8",
+    "docs/evidence/v153-20261112/f-protect/related-final-ec7d33ef/TEST-com.cryptoautotrader.api.service.DynamicPaperLiveRuleParityTest.xml": "9c19b63b9090f5275817078cb3b94e71fd099c7217c80afd6e8f76228b9c6b71",
+    "docs/evidence/v153-20261112/f-protect/related-final-ec7d33ef/TEST-com.cryptoautotrader.api.service.DynamicTradingSlWatchdogRecoveryTest.xml": "e1234c91fdab8800b408eef0787cd67b43b67568db81e29eb15f035aac64380c",
+    "docs/evidence/v153-20261112/f-protect/related-final-ec7d33ef/TEST-com.cryptoautotrader.api.service.LiveTradingSlWatchdogRecoveryTest.xml": "ec5532c0c644e899ab562a1a792f0503e0a9c6f1b38d8f67ea5ae5e5a073cab7",
+    "docs/evidence/v153-20261112/f-protect/related-final-ec7d33ef/TEST-com.cryptoautotrader.api.service.N16InvalidPriceReproTest.xml": "85ee921e5ce0711a757d77ce01bf15ba78fa9ecf28c07d50ba97266b93b47e10",
+    "docs/evidence/v153-20261112/f-protect/related-final-ec7d33ef/TEST-com.cryptoautotrader.api.service.N17RestInvalidPriceTest.xml": "7bf5c410e0c0bdb5a4f05c18e5e2fc28188c52fc26ea91075fb4d0e10913de5b",
+    "docs/evidence/v153-20261112/f-protect/related-final-ec7d33ef/TEST-com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest.xml": "2de17191b8689eee90c1209055b048dcafbc8df8736713246f1f8a675dfa1ff5",
+    "docs/evidence/v153-20261112/f-protect/related-final-ec7d33ef/TEST-com.cryptoautotrader.api.service.O1O3LogContractTest.xml": "4768367d26f22ed883c002b219d81ade4f1dacdbacf8967a8710a3bc6e289035",
+    "docs/evidence/v153-20261112/f-protect/related-final-ec7d33ef/TEST-com.cryptoautotrader.api.service.PoolLossLimitTest.xml": "1f70d9f76da434c700e804623958107d9e48144aea7da6ff664d8c10c850a3ce",
+    "docs/evidence/v153-20261112/f-protect/related-final-ec7d33ef/TEST-com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest.xml": "fa1d223753d0ff87e46d361daae5de2b9e27d54393669c7b21d5202c5e3a255e",
+    "docs/evidence/v153-20261112/f-protect/related-final-ec7d33ef/TEST-com.cryptoautotrader.api.service.StaleRealtimeExitTest.xml": "2f91219b5dd465cc7561274db71c6ac82396661cc1e15e724f35fe5ad250170e",
+    "docs/evidence/v153-20261112/f-protect/related-final-ec7d33ef/TEST-com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest.xml": "bd1601699726c937d3e050de688eb0e8f713b43aaf0ccbe8d5f34909cdbc42f4",
+    "docs/evidence/v153-20261112/f-protect/related-rerun-stopvsinflight/gradle.log.txt": "be20fea27873565b0a4e431cf0d6ebd81d6c7c9f8903dab9c7e5f606718e299c",
+    "docs/evidence/v153-20261112/f-protect/related-rerun-stopvsinflight/TEST-com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest.xml": "28baa0063fc98c08d668bc5e19ba2f3f70d2b144af6c71a2ab98d6559ef9033b",
+    "docs/evidence/v153-20261112/f-protect/related-run1-direct-call/gradle.log.txt": "9d8b655f37615f60e58eb920652f2979bd70353e30934dafd9d9254a2dd9130d",
+    "docs/evidence/v153-20261112/f-protect/related-run1-direct-call/TEST-com.cryptoautotrader.api.service.DoubleSellGuardTest.xml": "661b0979e099e741b3e4842a657e9f8feeccee06d232ed5a4c6222f184aa605c",
+    "docs/evidence/v153-20261112/f-protect/related-run1-direct-call/TEST-com.cryptoautotrader.api.service.DynamicPaperLiveRuleParityTest.xml": "cb0a048ccbc84ac280fddeea0c9d7c447bffd4a31be0bba7ff718d241e19ef78",
+    "docs/evidence/v153-20261112/f-protect/related-run1-direct-call/TEST-com.cryptoautotrader.api.service.DynamicTradingSlWatchdogRecoveryTest.xml": "27d9bc85285085ad7c053f96932eb5288489d37255d932f399c22967a5deb323",
+    "docs/evidence/v153-20261112/f-protect/related-run1-direct-call/TEST-com.cryptoautotrader.api.service.LiveTradingSlWatchdogRecoveryTest.xml": "2ac08cd21f92a08d634bd2873c5483a2b85ee6abbd9ac265271d7fcd647491ab",
+    "docs/evidence/v153-20261112/f-protect/related-run1-direct-call/TEST-com.cryptoautotrader.api.service.N16InvalidPriceReproTest.xml": "0cab720ad184f87ecac030555a9d1c737d67c326223a5759d9b1af89ae1f4e76",
+    "docs/evidence/v153-20261112/f-protect/related-run1-direct-call/TEST-com.cryptoautotrader.api.service.N17RestInvalidPriceTest.xml": "b33e5dc5bca69ea2e95028f3c7e7766179f580de657d1273d9e7c5f06f125a56",
+    "docs/evidence/v153-20261112/f-protect/related-run1-direct-call/TEST-com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest.xml": "e5fb729d8b25bb736ffc0b385bb37281bccdb47607faa8cb7c659ff395400411",
+    "docs/evidence/v153-20261112/f-protect/related-run1-direct-call/TEST-com.cryptoautotrader.api.service.O1O3LogContractTest.xml": "c1439609846f0333563a3968c412363b9c17dab01213bb66a47ca2fba9d846b8",
+    "docs/evidence/v153-20261112/f-protect/related-run1-direct-call/TEST-com.cryptoautotrader.api.service.PoolLossLimitTest.xml": "ba7f9270fbcbf12a40b13ebb72c298a916cfd91b2aed043a68b57fc380b7b1ab",
+    "docs/evidence/v153-20261112/f-protect/related-run1-direct-call/TEST-com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest.xml": "d00ecce8b0d3103ed30d3ec4f21a502188f3f0c605e367a44e907e1ca2346ac0",
+    "docs/evidence/v153-20261112/f-protect/related-run1-direct-call/TEST-com.cryptoautotrader.api.service.StaleRealtimeExitTest.xml": "e1a238cca1ec762ff577dff433e8157d5cbb9caee77a63837eeb186388cbce7f",
+    "docs/evidence/v153-20261112/f-protect/related-run1-direct-call/TEST-com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest.xml": "11a77e963c31245561b955e14f61689fd8dcc78a5a27db83669521aded8961ec",
+    "docs/evidence/v153-20261112/f-protect-v2/after-run1-test-code-error-summary.txt": "9958c2e1c4617a4b32a3f8129816af3d42e792e2ffb585df92ac992257e6eb93",
+    "docs/evidence/v153-20261112/f-protect-v2/after-run1-test-code-error-xml/TEST-com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest.xml": "8c74f78323f734ed058b9176d63991397c54ab3bbdd006c6b7dcc4ca00996c40",
+    "docs/evidence/v153-20261112/f-protect-v2/after-run1-test-code-error.log": "f535a8c40366c5dc12e7a5ab3577a0b4d2f86fa8c679846b37bc091187af90fe",
+    "docs/evidence/v153-20261112/f-protect-v2/after-v2-summary.txt": "76fed84a7e1182d4e4c6e7ab7d1ae0a93e95cdcd4fd75e099f4b388b2c03b0ef",
+    "docs/evidence/v153-20261112/f-protect-v2/after-v2-xml/TEST-com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest.xml": "4aa2b005cf074a46b09b084c19964033f56756de7129a0d1a049883a56f38fde",
+    "docs/evidence/v153-20261112/f-protect-v2/after-v2.log": "82ad64cc595ebdd634cc5269222eccce92f8b7dc815fac653809219e140b6b5a",
+    "docs/evidence/v153-20261112/f-protect-v2/before-v1-summary.txt": "2d8b3e3ca962750f3f2be7148800adfc5fb93120d9599745442a5fe93919727d",
+    "docs/evidence/v153-20261112/f-protect-v2/before-v1-xml/TEST-com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest.xml": "532d33869896c6f52d20c82c4b1c565e33a78dc09b19cc0f6cfb00a17f335a14",
+    "docs/evidence/v153-20261112/f-protect-v2/before-v1.log": "18005f880fb0dc629608ebcce54cd4cd20d90354e53f66cb070007fb131024a9",
+    "docs/evidence/v153-20261112/f-protect-v2/related-v2-summary.txt": "def352fa742d1afe77cfb18e34fa972c6f0fe13daae0f60e1940392e1d5151c5",
+    "docs/evidence/v153-20261112/f-protect-v2/related-v2-xml/TEST-com.cryptoautotrader.api.service.DoubleSellGuardTest.xml": "722d2b12d7c13aa77ed59c3b0459ee642d8b0de3c3c9aec9c8a9d67fe507d102",
+    "docs/evidence/v153-20261112/f-protect-v2/related-v2-xml/TEST-com.cryptoautotrader.api.service.DynamicPaperLiveRuleParityTest.xml": "19a5da7765f2f92a4f90306aa5616f76cb90af03b0356bbb1be72e86e176b021",
+    "docs/evidence/v153-20261112/f-protect-v2/related-v2-xml/TEST-com.cryptoautotrader.api.service.DynamicTradingSlWatchdogRecoveryTest.xml": "1da0e93a56e39fca2206aa7fe71efaedf698f41a27f57a038bac10f837c6b1a2",
+    "docs/evidence/v153-20261112/f-protect-v2/related-v2-xml/TEST-com.cryptoautotrader.api.service.LiveTradingSlWatchdogRecoveryTest.xml": "a79fcdf5e12a283674596f1d08a5d633f747c5388e0dc6752d9b34d63679bd63",
+    "docs/evidence/v153-20261112/f-protect-v2/related-v2-xml/TEST-com.cryptoautotrader.api.service.N16InvalidPriceReproTest.xml": "d2fefaee9837e235d90c220aabdb76a0cd57baf8923e2484e6548ea52bc0103f",
+    "docs/evidence/v153-20261112/f-protect-v2/related-v2-xml/TEST-com.cryptoautotrader.api.service.N17RestInvalidPriceTest.xml": "00c66b5e261b5e08cf2f0a72f668081fe68a38047998e46aa33a0dab976f328f",
+    "docs/evidence/v153-20261112/f-protect-v2/related-v2-xml/TEST-com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest.xml": "d25a3c211f4e6380fee06efb97a24816e8a6db0a4b0ef37893f00d704be9fe27",
+    "docs/evidence/v153-20261112/f-protect-v2/related-v2-xml/TEST-com.cryptoautotrader.api.service.O1O3LogContractTest.xml": "1460b435f145de98f91b1e7cafe3f219518fcb3bb92dc5921de2aaa91e28e0dd",
+    "docs/evidence/v153-20261112/f-protect-v2/related-v2-xml/TEST-com.cryptoautotrader.api.service.PoolLossLimitTest.xml": "d196ec36f1eb52fe4aa8d4735828ab1bc54ae93fa851b88d79312cab24e17164",
+    "docs/evidence/v153-20261112/f-protect-v2/related-v2-xml/TEST-com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest.xml": "8c9be87201ac67c6b7f40a9150015d1c4cbc77bae214fbf678f9153b3613534f",
+    "docs/evidence/v153-20261112/f-protect-v2/related-v2-xml/TEST-com.cryptoautotrader.api.service.StaleRealtimeExitTest.xml": "8eb24c75fac9a8f9b7d37e43568bcacc4474cde1303a4118e5c5392e6f00db1d",
+    "docs/evidence/v153-20261112/f-protect-v2/related-v2-xml/TEST-com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest.xml": "9666b3ef63fea13c2b56541c8a6c06dd95f492a99d0d1d9368b8e296f2654f57",
+    "docs/evidence/v153-20261112/f-protect-v2/related-v2.log": "2acfd52b04daab8fe9078d72f8e2d86525b3bcae6680ad63136aa83ab72fbb46",
+    "docs/evidence/v153-20261112/f-protect-v2/root-probe-on-v2-summary.txt": "bb5b235565d20f2c20d5f1743e3636307303547e5a043a3bcd23cd7fc4d514cc",
+    "docs/evidence/v153-20261112/f-protect-v2/root-probe-on-v2-xml/TEST-com.cryptoautotrader.api.service.ProtectionPendingWitnessTest.xml": "3a4a106fffdf8aab7877dd8267153352b52db854db3cff882f09e26568737abe",
+    "docs/evidence/v153-20261112/f-protect-v2/root-probe-on-v2.log": "c409e89e7d477f4511282e323f78dc21a1ec3bf04c4a262261aedb62d0949da3",
+    "docs/evidence/v153-20261112/g-render/run1-port-excluded/playwright.log.txt": "02f3c86b30dd8cbbab5d6d0c30dd8b04bc416fb516b1f168cc90454631026b62",
+    "docs/evidence/v153-20261112/g-render/run2-turbopack-symlink/playwright.log.txt": "11a68286012f5cd4152d2e528cbd07f70291f3705fa0286cf00b920cbb30eff5",
+    "docs/evidence/v153-20261112/g-render/run3-client-exception/playwright.log.txt": "3db91008ea52f9a605f76bc0cc99e45a5ba765425953c2e94f9c56be4843296f",
+    "docs/evidence/v153-20261112/g-render/run3-client-exception/test-results/.last-run.json": "1bbdafb19063d5c7b687695fc03b4eea84245ccc5bdd51e97788fad725c17f12",
+    "docs/evidence/v153-20261112/g-render/run3-client-exception/test-results/paper-render-①-정상-보유-—-목록·상세에-총자산·수익률-숫자-평가-불가-표시-없음/error-context.md": "1d93b0d4a507227e36e78535469c3db02df7d2889088d4c0b908aaa7fd5f64eb",
+    "docs/evidence/v153-20261112/g-render/run3-client-exception/test-results/paper-render-②-청산-대기-CLOSI-0682d-재-평가-아님-표시와-함께-보유-표에-미정산-보유/error-context.md": "624a4c9eee474a7fb05d3ce1df4383627e3a495a3ff493bbfb4cae7cefb8aae2",
+    "docs/evidence/v153-20261112/g-render/run3-client-exception/test-results/paper-render-③-첫-유효-시세-뒤-정산-—-같은-화면이-다시-읽어-확정-총자산·청산-완료로-바뀐다/error-context.md": "f1deb8a69999ab27281c1af5557070cda6f8b29972c22db4576c47a292ebc5c4",
+    "docs/evidence/v153-20261112/g-render/run3-client-exception/test-results/paper-render-④-가-단건-정지-응답-대기-1-—-상세에-머물러-대기-수·확정-아님을-보인다/error-context.md": "470c3096984c4911b35872eb896b6be3198ac53efea2f544b3cb1a0d303da1d8",
+    "docs/evidence/v153-20261112/g-render/run3-client-exception/test-results/paper-render-④-나-단건-정지-응답-대기-0-—-종전대로-목록으로-이동/error-context.md": "d4782262abef63ec16775744fdec3458679839bbe69e43e22979c9b8bef9b1bc",
+    "docs/evidence/v153-20261112/g-render/run3-client-exception/test-results/paper-render-④-다-일괄-정지-응답--e95c2-배너에-정지-수·대기-수-정산-완료라고-쓰지-않음/error-context.md": "c0d9bf69ab55915aff714bc0c922a7993312fc995a71f515d1ae0f3ed333b7dc",
+    "docs/evidence/v153-20261112/g-render/run3-client-exception/test-results/paper-render-④-라-단건-정지-목록-응답에-대기-수가-없으면-—-정산-완료로-보지-않는다/error-context.md": "9ad4c61deadfc7dc0b4c85b7dcaf95c7c47855b304912cbc579176c812957513",
+    "docs/evidence/v153-20261112/g-render/run4-duplicate-router-symlink/playwright.log.txt": "d52e0e8d2148154fcb78bf1466d3caca199768549f4f6a393292ee749dd0daf3",
+    "docs/evidence/v153-20261112/g-render/run4-duplicate-router-symlink/test-results/.last-run.json": "88d7243c2ba90e871ae9944f68b5c230a8bb91d960f0098291aa7d925e578e36",
+    "docs/evidence/v153-20261112/g-render/run4-duplicate-router-symlink/test-results/paper-render-①-정상-보유-—-목록·상세에-총자산·수익률-숫자-평가-불가-표시-없음/error-context.md": "090057139187d6ff01510e2bbf404fdbf4caf8cc329cdfb09e96a12e931feccd",
+    "docs/evidence/v153-20261112/g-render/run5/1-normal-detail.png": "f8151e310d5ceb9d77acd60fbd0063e9976ab68dc5acba640e897eb1226f6815",
+    "docs/evidence/v153-20261112/g-render/run5/1-normal-list.png": "7534f180ad339ac49a1bafc801e9798a2bba06b29e98ebb77699bc323148887e",
+    "docs/evidence/v153-20261112/g-render/run5/2-closing-detail.png": "98337155f3173a264e6aac538c2a31db692284f271d9efb0c546dc34c042a2a9",
+    "docs/evidence/v153-20261112/g-render/run5/2-closing-list.png": "42ec04df426169997a78acb85182a0d873a856fb23b06144bbe25d692ac5227b",
+    "docs/evidence/v153-20261112/g-render/run5/3-settled-detail.png": "dee3a5f2135bfbea3de50279217bf98ed765115f8c3a418f4c3e5be13c84a0dd",
+    "docs/evidence/v153-20261112/g-render/run5/4a-stop-single-pending.png": "8f8fa59aa5c8127b08384273d00454d8b53c052f64b2ab7f7b2851fc9633be72",
+    "docs/evidence/v153-20261112/g-render/run5/4c-stop-all-pending.png": "a6bd6d63cf27b16ee0114739aa1c4650dd16e29d1900c86e1753a0f73a93cf06",
+    "docs/evidence/v153-20261112/g-render/run5/4d-stop-single-unknown.png": "1fba784d06a14b6ea7fd8856d0a440c93fe6d3efb8a06f28ca26f5dd31e12aaf",
+    "docs/evidence/v153-20261112/g-render/run5/playwright.log.txt": "8258df5502539ae04616743c870fb7bd70eebeee4f9dffbb5502620e659c9e26",
+    "docs/evidence/v153-20261112/h-rollback/gate.sql": "97dc36c22a1ade85b8dc004eb889b30bae2764ab196af819d68c6959a92e92ba",
+    "docs/evidence/v153-20261112/h-rollback/README.md": "50cfb79cc821d160215afc7bfb196090a481569dc5c40fe876f1a387ac7efb26",
+    "docs/evidence/v153-20261112/h-rollback/rehearse.sh": "eb3874719e39acee934309351abea43dbf9f1529d119e5c3b4c3da65116053e5",
+    "docs/evidence/v153-20261112/h-rollback/rollback_gate.sh": "543a64220b9d8fa627348e524e727800013a78fbccc3e5e158a0b021d9e7fbe7",
+    "docs/evidence/v153-20261112/h-rollback/runs/run1-template-busy/console.txt": "135d02f582288f0942e0c1fe281ba708ac4f971f64139a49456d6234a422489b",
+    "docs/evidence/v153-20261112/h-rollback/runs/run1-template-busy/s10_ledger_exists.setup.txt": "a606e851401b5f3d7815a4b51b4fbd16f56fd815159aed517f64e1c845eff640",
+    "docs/evidence/v153-20261112/h-rollback/runs/run1-template-busy/s1_pre.setup.txt": "852945a3ba552d82a6d7744e9350bc93d7c0e39cd239609ddd3d7f6788df0ed2",
+    "docs/evidence/v153-20261112/h-rollback/runs/run1-template-busy/s2_post_ok.setup.txt": "eaf308e9e849970ab4c5da4ff02dd0d9ff3a057e34e27ad9c46e55ca646f09c7",
+    "docs/evidence/v153-20261112/h-rollback/runs/run1-template-busy/s3_running.setup.txt": "d6e7d5d7427b934d75640d0cb0379d9642fef12a73b59a86e53a8c96ced667c8",
+    "docs/evidence/v153-20261112/h-rollback/runs/run1-template-busy/s4_pending.setup.txt": "8fad3de2bd34098235d8ddbab4e25ded642856fbe509f5c9809baf95fa1b0f43",
+    "docs/evidence/v153-20261112/h-rollback/runs/run1-template-busy/s5_closing_no_decided.setup.txt": "3b868664b22c6a771d4e1a99774f501fbd3884b8c1c667eaed2dc828999b1854",
+    "docs/evidence/v153-20261112/h-rollback/runs/run1-template-busy/s6_odd_status.setup.txt": "84def75cef5bbf874220f4e6b7e944ce0734e7cb8fbebd55a51292612e492fe6",
+    "docs/evidence/v153-20261112/h-rollback/runs/run1-template-busy/s7_stopped_open.setup.txt": "50ec5b47a779e5f0e2fd1675da1ff81952ed0a462d808f5d6ed4f8091e1b77b8",
+    "docs/evidence/v153-20261112/h-rollback/runs/run1-template-busy/s8_no_v96_created.setup.txt": "667aaff288d1d98345e69a573bff1a73cf074361e5ac37126e87cdaa84496991",
+    "docs/evidence/v153-20261112/h-rollback/runs/run1-template-busy/s9_no_v96_pre.setup.txt": "93c92bc627cbc57a49420f2e10085204c3f8dc8303a6e12f852272236de0f7e5",
+    "docs/evidence/v153-20261112/h-rollback/runs/run2-ledger-command-tags/console.txt": "a4f71a8914d3b0740e8a5ffaf9c68152dec76bf080404b75ebea7daafbc0a6dc",
+    "docs/evidence/v153-20261112/h-rollback/runs/run2-ledger-command-tags/s10_ledger_exists.out.txt": "b9bedcae48ee45ebf8572de13a631a792f8a67cab003044c896afa382427ab2b",
+    "docs/evidence/v153-20261112/h-rollback/runs/run2-ledger-command-tags/s10_ledger_exists.setup.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/v153-20261112/h-rollback/runs/run2-ledger-command-tags/s1_pre.out.txt": "17747924011c18ffd96fca5c0d9203c84253f0604f68736963b566fb15b06faf",
+    "docs/evidence/v153-20261112/h-rollback/runs/run2-ledger-command-tags/s1_pre.setup.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/v153-20261112/h-rollback/runs/run2-ledger-command-tags/s2_post_ok.ledger/gate-line.txt": "916dc157551aeefc0e945f157e578995d5338feb0e47be6dca45251404cc5975",
+    "docs/evidence/v153-20261112/h-rollback/runs/run2-ledger-command-tags/s2_post_ok.ledger/orders.csv": "c6b42274a7c1c0e2c5efd3666bd857ce59e87909a97839e9dfded71e64d8e58f",
+    "docs/evidence/v153-20261112/h-rollback/runs/run2-ledger-command-tags/s2_post_ok.ledger/positions.csv": "bbc3cc4fc325dd0f877ca221f419f1b7acc4e66c2d56ccd6e6cee5e4290ea101",
+    "docs/evidence/v153-20261112/h-rollback/runs/run2-ledger-command-tags/s2_post_ok.ledger/sessions.csv": "d0ec4fe93366678297c5e8fce15b6a7d37e47278b3f49cead5f48d6f542999f2",
+    "docs/evidence/v153-20261112/h-rollback/runs/run2-ledger-command-tags/s2_post_ok.ledger/SHA256SUMS": "1546d83c72453dfa80743f2d478e760ec8310cbd1fecfd33965c0f558abbf9bb",
+    "docs/evidence/v153-20261112/h-rollback/runs/run2-ledger-command-tags/s2_post_ok.out.txt": "cbb22aba333f4c7b64f3b4429e058f1a5f5d09014bcdab5dbe27ce31cedf08a4",
+    "docs/evidence/v153-20261112/h-rollback/runs/run2-ledger-command-tags/s2_post_ok.setup.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/v153-20261112/h-rollback/runs/run2-ledger-command-tags/s3_running.out.txt": "9234755ba0afef95a6dacfbc3dcde592a1531ce012c08c90b6eb987d0c81fc86",
+    "docs/evidence/v153-20261112/h-rollback/runs/run2-ledger-command-tags/s3_running.setup.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/v153-20261112/h-rollback/runs/run2-ledger-command-tags/s4_pending.out.txt": "23060a93cdabf954c5ec7b86bdc91502d2d89fc4cde51b1cb7f125a875e6cbac",
+    "docs/evidence/v153-20261112/h-rollback/runs/run2-ledger-command-tags/s4_pending.setup.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/v153-20261112/h-rollback/runs/run2-ledger-command-tags/s5_closing_no_decided.out.txt": "eeefa49ce6392a0474a8871829cd47d182e403e2e0d94184ce2331947fbaa379",
+    "docs/evidence/v153-20261112/h-rollback/runs/run2-ledger-command-tags/s5_closing_no_decided.setup.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/v153-20261112/h-rollback/runs/run2-ledger-command-tags/s6_odd_status.out.txt": "5bc74d959bffe9aa54c50b0de57be1dbeba4f3b9865d38eead71898c49a77009",
+    "docs/evidence/v153-20261112/h-rollback/runs/run2-ledger-command-tags/s6_odd_status.setup.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/v153-20261112/h-rollback/runs/run2-ledger-command-tags/s7_stopped_open.out.txt": "3e5244d61951d9f1783179cd7aed0057d79b2edad19bcac740263c87cd0a4720",
+    "docs/evidence/v153-20261112/h-rollback/runs/run2-ledger-command-tags/s7_stopped_open.setup.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/v153-20261112/h-rollback/runs/run2-ledger-command-tags/s8_no_v96_created.out.txt": "7b1ae140a64354f37a95477e9e45ca5e4dc77da4d62372f366baae7cd0ae7865",
+    "docs/evidence/v153-20261112/h-rollback/runs/run2-ledger-command-tags/s8_no_v96_created.setup.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/v153-20261112/h-rollback/runs/run2-ledger-command-tags/s9_no_v96_pre.out.txt": "ec8bc45665fbe1f98cdb4d5ad33ed5b9e4eae4ad59d04396c6970ce548f2ca5e",
+    "docs/evidence/v153-20261112/h-rollback/runs/run2-ledger-command-tags/s9_no_v96_pre.setup.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/v153-20261112/h-rollback/runs/run3/console.txt": "a4f71a8914d3b0740e8a5ffaf9c68152dec76bf080404b75ebea7daafbc0a6dc",
+    "docs/evidence/v153-20261112/h-rollback/runs/run3/s10_ledger_exists.out.txt": "197613b1e9a01917aab1493e3f8abc648b5e6edbc46b03118859e025a4dd5516",
+    "docs/evidence/v153-20261112/h-rollback/runs/run3/s10_ledger_exists.setup.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/v153-20261112/h-rollback/runs/run3/s1_pre.out.txt": "06ba9d77ad14e70fe9ba5f1c88bbd18fe3e26fad1bf6890d2306622411549e79",
+    "docs/evidence/v153-20261112/h-rollback/runs/run3/s1_pre.setup.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/v153-20261112/h-rollback/runs/run3/s2_post_ok.ledger/gate-line.txt": "916dc157551aeefc0e945f157e578995d5338feb0e47be6dca45251404cc5975",
+    "docs/evidence/v153-20261112/h-rollback/runs/run3/s2_post_ok.ledger/orders.csv": "45de7d1617b5bf2133b518ccd28663af7eb6fbee1ae32753f478d7ab9e52cdbb",
+    "docs/evidence/v153-20261112/h-rollback/runs/run3/s2_post_ok.ledger/positions.csv": "2e5b5cf628dd21cd708c9f0c823e5af6928cffb9eecb720ae619ece73c15bff2",
+    "docs/evidence/v153-20261112/h-rollback/runs/run3/s2_post_ok.ledger/sessions.csv": "982f913b2a1441ebbb61a9441fe4c59d32b52a2d6ea94271ef3ddce04161116d",
+    "docs/evidence/v153-20261112/h-rollback/runs/run3/s2_post_ok.ledger/SHA256SUMS": "2c4f4c7e4ea3e9f1596930fc9e0621c5e0698db5d9730b535c21f4d479e80aee",
+    "docs/evidence/v153-20261112/h-rollback/runs/run3/s2_post_ok.out.txt": "d06e945b576737041b208fe49a241b66102e9f3f36bc887326d61a17d990de04",
+    "docs/evidence/v153-20261112/h-rollback/runs/run3/s2_post_ok.setup.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/v153-20261112/h-rollback/runs/run3/s3_running.out.txt": "afc04bf45b288b150e902b7d96099de5bb244088afbe683636b9f061cb435a28",
+    "docs/evidence/v153-20261112/h-rollback/runs/run3/s3_running.setup.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/v153-20261112/h-rollback/runs/run3/s4_pending.out.txt": "0283399c15edb774bdefd5358e44db63b08abd6a5b51bfc9ccd576487c508c73",
+    "docs/evidence/v153-20261112/h-rollback/runs/run3/s4_pending.setup.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/v153-20261112/h-rollback/runs/run3/s5_closing_no_decided.out.txt": "172d37a12e5902f012edef797168667fc5473bc26f3e13a89bcb8b2c8f8b13d2",
+    "docs/evidence/v153-20261112/h-rollback/runs/run3/s5_closing_no_decided.setup.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/v153-20261112/h-rollback/runs/run3/s6_odd_status.out.txt": "06a11d60dc6ab19c7aae720c17f73c30e03561c7556a398782bd6301cc012d64",
+    "docs/evidence/v153-20261112/h-rollback/runs/run3/s6_odd_status.setup.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/v153-20261112/h-rollback/runs/run3/s7_stopped_open.out.txt": "f5fbb2f878f05499b31c62a0fb1dc340f606e289ad696ffd78b67261f97bd366",
+    "docs/evidence/v153-20261112/h-rollback/runs/run3/s7_stopped_open.setup.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/v153-20261112/h-rollback/runs/run3/s8_no_v96_created.out.txt": "393f96d23f0030777c84d3cafd99c1fe02818e8268b178190444207b89bd07fb",
+    "docs/evidence/v153-20261112/h-rollback/runs/run3/s8_no_v96_created.setup.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/v153-20261112/h-rollback/runs/run3/s9_no_v96_pre.out.txt": "76716d48000523f5edad05b6bd84bf8bd86239f585eac9795c4f15bc2371fbab",
+    "docs/evidence/v153-20261112/h-rollback/runs/run3/s9_no_v96_pre.setup.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/v153-20261112/h-rollback/v2/gate.sql": "97dc36c22a1ade85b8dc004eb889b30bae2764ab196af819d68c6959a92e92ba",
+    "docs/evidence/v153-20261112/h-rollback/v2/probe.sh": "1c8549b3b3d269db60e8c3202f16f04ee76f546f95fcb12dfdd34c7a8da7588f",
+    "docs/evidence/v153-20261112/h-rollback/v2/README.md": "f4f5b9a07a25217fc72179c37ef02ae88a6b2114df27c9951687afb2f2b42b13",
+    "docs/evidence/v153-20261112/h-rollback/v2/rehearse.sh": "f6c1f8ba863b6abfa82795779960985412a5e8b58fa7b6c44158735e30dfd77b",
+    "docs/evidence/v153-20261112/h-rollback/v2/rollback_gate.sh": "40d29e292204c687cef0b8540065674ae7d62375f74d3be8db5c129d8a8750cb",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/pg-rehearse-v2/console.txt": "a4f71a8914d3b0740e8a5ffaf9c68152dec76bf080404b75ebea7daafbc0a6dc",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/pg-rehearse-v2/s10_ledger_exists.out.txt": "9250b6eecbf24a12726bc6458b2c3c637e104e1c466dc7d00552d19eb7a9afd1",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/pg-rehearse-v2/s10_ledger_exists.setup.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/pg-rehearse-v2/s1_pre.out.txt": "d66522eb7dd15417d45007a2afa7067c57157bed92277f68c42ab2a33d1733dd",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/pg-rehearse-v2/s1_pre.setup.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/pg-rehearse-v2/s2_post_ok.ledger/CHECK.txt": "f0f08819a4e79bbd62f0fb65b88cdc319172927ba972cbb37e1b91bf67be9e6d",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/pg-rehearse-v2/s2_post_ok.ledger/gate-line.txt": "916dc157551aeefc0e945f157e578995d5338feb0e47be6dca45251404cc5975",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/pg-rehearse-v2/s2_post_ok.ledger/LEDGER_COMPLETE": "c39a4a741521d85737733d2cf5e5fd864657f8bf6e87b8f032b45d4ef9006102",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/pg-rehearse-v2/s2_post_ok.ledger/orders.csv": "45de7d1617b5bf2133b518ccd28663af7eb6fbee1ae32753f478d7ab9e52cdbb",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/pg-rehearse-v2/s2_post_ok.ledger/positions.csv": "ebce4d40ac933847c8ecaa39e3b9329d2c0fe9d7aea0cfdfba4b82324cd1aa92",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/pg-rehearse-v2/s2_post_ok.ledger/sessions.csv": "c89636342c7aec675812f561b61d5396bf6fe6907ce03befecd46619fbb0d010",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/pg-rehearse-v2/s2_post_ok.ledger/SHA256SUMS": "f80dbff9a9adc81984e4e0c3cb5d6b4ee294cedad97c6f4a9ce1c9a24a401490",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/pg-rehearse-v2/s2_post_ok.out.txt": "d3111971fc8c460124da5cd09daa65104e0d235cea8a5dc185668de66838fb00",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/pg-rehearse-v2/s2_post_ok.setup.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/pg-rehearse-v2/s3_running.out.txt": "31ceadd0438de70fe40855dea19f9c42e6230b41b90984d1656b4e2c219d6aca",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/pg-rehearse-v2/s3_running.setup.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/pg-rehearse-v2/s4_pending.out.txt": "40c320f9e2c833a1ef0e87639e5b5a8218fa59e180b1caca8393e9adf158a2cf",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/pg-rehearse-v2/s4_pending.setup.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/pg-rehearse-v2/s5_closing_no_decided.out.txt": "25a2ef3a4fa3d3d5488b852d0f2bbae1d0a278514011ee65a34844253a5a45e4",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/pg-rehearse-v2/s5_closing_no_decided.setup.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/pg-rehearse-v2/s6_odd_status.out.txt": "da2e50cfbea364ca4203923154b046dd8d94606094872a07f9c8185f95c74219",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/pg-rehearse-v2/s6_odd_status.setup.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/pg-rehearse-v2/s7_stopped_open.out.txt": "aa9662abce41a7980d2dde63a3c2bfc708a913ca107fa21e35e61649e7732133",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/pg-rehearse-v2/s7_stopped_open.setup.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/pg-rehearse-v2/s8_no_v96_created.out.txt": "f144dcae78dd1cf7f10b5428d0997a0cc141874b9b9547827e8fbcdde6bae252",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/pg-rehearse-v2/s8_no_v96_created.setup.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/pg-rehearse-v2/s9_no_v96_pre.out.txt": "127f7ff9e4dffa7b7e94107899c415c3a359e5c7470b3f19c661e5d17212ae19",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/pg-rehearse-v2/s9_no_v96_pre.setup.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v1-original/agg_fail.txt": "79a512893ff6dce8d789d7f7338a5f451f0dbb44b848ea18b7d2a37f4cb677cd",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v1-original/csv_empty.ledger/gate-line.txt": "916dc157551aeefc0e945f157e578995d5338feb0e47be6dca45251404cc5975",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v1-original/csv_empty.ledger/orders.csv": "113f746a6b167d2cc51f09f2db491b309d6ec4d75fa458b380bfead79bf01b25",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v1-original/csv_empty.ledger/positions.csv": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v1-original/csv_empty.ledger/sessions.csv": "113f746a6b167d2cc51f09f2db491b309d6ec4d75fa458b380bfead79bf01b25",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v1-original/csv_empty.ledger/SHA256SUMS": "293161f27e867c589f17b25d40cd02a0663a501bf059de5ba804843d36906667",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v1-original/csv_empty.txt": "aa28132c97fb89aa0e8f42900e5daac73301d17ca2a12a4f15baa8a069936763",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v1-original/csv_fail.ledger/positions.csv": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v1-original/csv_fail.ledger/positions.csv.err": "9127d223677031acd65bdaf20e746daf9d3b1d4505f94dba5ceb32adb526a41c",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v1-original/csv_fail.ledger/sessions.csv": "113f746a6b167d2cc51f09f2db491b309d6ec4d75fa458b380bfead79bf01b25",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v1-original/csv_fail.txt": "660a5654155ec58272af31c066a1dd38a2077270c1f604409f796945ea807481",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v1-original/csv_stderr.ledger/positions.csv": "222047d0240422bb5a39cffe5a1134415c95a0e8ed9cf7b427bef32ac1c12373",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v1-original/csv_stderr.ledger/positions.csv.err": "a2c8ad64f772950ae397574c8a4fa135cbad4e142a3a640c65678dbece5ce812",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v1-original/csv_stderr.ledger/sessions.csv": "113f746a6b167d2cc51f09f2db491b309d6ec4d75fa458b380bfead79bf01b25",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v1-original/csv_stderr.txt": "cca6aa71a1db206cf1bb04fc5fc06f77d15cae42481fb0c0992d620becb1e6a6",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v1-original/existing_path.ledger/old.txt": "f660a7996deacfbc7560e4240054a8ad82eb02fe25a95064257e07084bcacb85",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v1-original/existing_path.txt": "3f23372e60e1fbb7a8ca46dc2e04307547ed67975601b7b0090621719927d256",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v1-original/normal.ledger/gate-line.txt": "916dc157551aeefc0e945f157e578995d5338feb0e47be6dca45251404cc5975",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v1-original/normal.ledger/orders.csv": "113f746a6b167d2cc51f09f2db491b309d6ec4d75fa458b380bfead79bf01b25",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v1-original/normal.ledger/positions.csv": "222047d0240422bb5a39cffe5a1134415c95a0e8ed9cf7b427bef32ac1c12373",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v1-original/normal.ledger/sessions.csv": "113f746a6b167d2cc51f09f2db491b309d6ec4d75fa458b380bfead79bf01b25",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v1-original/normal.ledger/SHA256SUMS": "db501d6fba3561619f3b4bdb1ce12445ea3b1aeec6cfda87b1c33f0f72e7b2a9",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v1-original/normal.txt": "8a11f2168e0fed6f73816a6915292bbfaa795428cdefa2118e41aa98bc5747d9",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v1-original/sha_empty_ok.ledger/gate-line.txt": "916dc157551aeefc0e945f157e578995d5338feb0e47be6dca45251404cc5975",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v1-original/sha_empty_ok.ledger/orders.csv": "113f746a6b167d2cc51f09f2db491b309d6ec4d75fa458b380bfead79bf01b25",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v1-original/sha_empty_ok.ledger/positions.csv": "222047d0240422bb5a39cffe5a1134415c95a0e8ed9cf7b427bef32ac1c12373",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v1-original/sha_empty_ok.ledger/sessions.csv": "113f746a6b167d2cc51f09f2db491b309d6ec4d75fa458b380bfead79bf01b25",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v1-original/sha_empty_ok.ledger/SHA256SUMS": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v1-original/sha_empty_ok.txt": "7a5598bc9db4e41d0fe38a052bb97c0f2fae8df0b5160fcbbe81c367041f518a",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v1-original/sha_fail.ledger/gate-line.txt": "916dc157551aeefc0e945f157e578995d5338feb0e47be6dca45251404cc5975",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v1-original/sha_fail.ledger/orders.csv": "113f746a6b167d2cc51f09f2db491b309d6ec4d75fa458b380bfead79bf01b25",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v1-original/sha_fail.ledger/positions.csv": "222047d0240422bb5a39cffe5a1134415c95a0e8ed9cf7b427bef32ac1c12373",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v1-original/sha_fail.ledger/sessions.csv": "113f746a6b167d2cc51f09f2db491b309d6ec4d75fa458b380bfead79bf01b25",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v1-original/sha_fail.ledger/SHA256SUMS": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v1-original/sha_fail.txt": "8bd222ebe12446e942f33823f2667192b0afb5ab48c833a638ca59fa6fbb5323",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v1-original/sha_mismatch.ledger/gate-line.txt": "916dc157551aeefc0e945f157e578995d5338feb0e47be6dca45251404cc5975",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v1-original/sha_mismatch.ledger/orders.csv": "113f746a6b167d2cc51f09f2db491b309d6ec4d75fa458b380bfead79bf01b25",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v1-original/sha_mismatch.ledger/positions.csv": "222047d0240422bb5a39cffe5a1134415c95a0e8ed9cf7b427bef32ac1c12373",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v1-original/sha_mismatch.ledger/sessions.csv": "113f746a6b167d2cc51f09f2db491b309d6ec4d75fa458b380bfead79bf01b25",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v1-original/sha_mismatch.ledger/SHA256SUMS": "f5956ed8e2e29040a68efc5956f93528f32b572196cc7999020a5974262a8898",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v1-original/sha_mismatch.txt": "24356ab898fa7f25e4b914970bd1243c4ad60aaf770801858c77d6cdf4e9e370",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v1-original/write_fail.parent": "6e9cf8a5595c1f9be1199eb78022c7562ece1cc7a8ec6ab780905c7ea48c0bf7",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v1-original/write_fail.txt": "87761ff1fe27d5dfddeda1dd0b5fd05c7b097720dcdc4615b3980377117aea48",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/agg_fail.txt": "79a512893ff6dce8d789d7f7338a5f451f0dbb44b848ea18b7d2a37f4cb677cd",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/csv_empty.ledger/LEDGER_FAILED": "dfd86c5369886f408e88e3492088f3844742a44f9a6ddc66b2dc0cf8532707bc",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/csv_empty.ledger/positions.csv": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/csv_empty.ledger/positions.csv.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/csv_empty.ledger/sessions.csv": "113f746a6b167d2cc51f09f2db491b309d6ec4d75fa458b380bfead79bf01b25",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/csv_empty.txt": "63df306db86c8d8205bc8d305bd6528957897945998158f186a89f7ec66b092d",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/csv_fail.ledger/LEDGER_FAILED": "057b02bd0b8af1f06ad372a3d8ecc37023252bf1487099331ce2abdd7ec596ce",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/csv_fail.ledger/positions.csv": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/csv_fail.ledger/positions.csv.err": "9127d223677031acd65bdaf20e746daf9d3b1d4505f94dba5ceb32adb526a41c",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/csv_fail.ledger/sessions.csv": "113f746a6b167d2cc51f09f2db491b309d6ec4d75fa458b380bfead79bf01b25",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/csv_fail.txt": "3c545cdc139958b59e317f9ddf13e57143e01be1e249a9636d3030380737e598",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/csv_stderr.ledger/LEDGER_FAILED": "d1e0300dfc4beef1c263be318e6b87c3fbf7302402466ffb496b5d732327c647",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/csv_stderr.ledger/positions.csv": "222047d0240422bb5a39cffe5a1134415c95a0e8ed9cf7b427bef32ac1c12373",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/csv_stderr.ledger/positions.csv.err": "a2c8ad64f772950ae397574c8a4fa135cbad4e142a3a640c65678dbece5ce812",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/csv_stderr.ledger/sessions.csv": "113f746a6b167d2cc51f09f2db491b309d6ec4d75fa458b380bfead79bf01b25",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/csv_stderr.txt": "c8b7eefd647ae9455eb50d4b96b64e8e6c9b6092fafe9e08932e8d418de4bca8",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/existing_path.ledger/old.txt": "f660a7996deacfbc7560e4240054a8ad82eb02fe25a95064257e07084bcacb85",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/existing_path.txt": "ba5cd1f138ea5191fc448066bebdb9853d0ff286397bb93206d1bc277083e49d",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/normal.ledger/CHECK.txt": "f0f08819a4e79bbd62f0fb65b88cdc319172927ba972cbb37e1b91bf67be9e6d",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/normal.ledger/gate-line.txt": "916dc157551aeefc0e945f157e578995d5338feb0e47be6dca45251404cc5975",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/normal.ledger/LEDGER_COMPLETE": "8f16c7f229a1e30e7718cdf21ca23718632767b0e670d1cdb51aaa0d4fd0b9a5",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/normal.ledger/orders.csv": "113f746a6b167d2cc51f09f2db491b309d6ec4d75fa458b380bfead79bf01b25",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/normal.ledger/positions.csv": "222047d0240422bb5a39cffe5a1134415c95a0e8ed9cf7b427bef32ac1c12373",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/normal.ledger/sessions.csv": "113f746a6b167d2cc51f09f2db491b309d6ec4d75fa458b380bfead79bf01b25",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/normal.ledger/SHA256SUMS": "db501d6fba3561619f3b4bdb1ce12445ea3b1aeec6cfda87b1c33f0f72e7b2a9",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/normal.txt": "ce529a7c8ac8f334ab014dbe77343739ea6e367bd508fc7870095ed9099f1904",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/sha_empty_ok.ledger/gate-line.txt": "916dc157551aeefc0e945f157e578995d5338feb0e47be6dca45251404cc5975",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/sha_empty_ok.ledger/LEDGER_FAILED": "6ea06326b3be9d5456c91fa1defdf0e6df525eb3e9c4f40772cd6be1589c65f2",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/sha_empty_ok.ledger/orders.csv": "113f746a6b167d2cc51f09f2db491b309d6ec4d75fa458b380bfead79bf01b25",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/sha_empty_ok.ledger/positions.csv": "222047d0240422bb5a39cffe5a1134415c95a0e8ed9cf7b427bef32ac1c12373",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/sha_empty_ok.ledger/sessions.csv": "113f746a6b167d2cc51f09f2db491b309d6ec4d75fa458b380bfead79bf01b25",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/sha_empty_ok.ledger/SHA256SUMS": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/sha_empty_ok.txt": "0ffed34652437a27f4ee5bd65c33e8384e864f4b5ca7c038a698e5c1938e3ea3",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/sha_fail.ledger/gate-line.txt": "916dc157551aeefc0e945f157e578995d5338feb0e47be6dca45251404cc5975",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/sha_fail.ledger/LEDGER_FAILED": "c7370753702d422382b8a6b70f4775521170b2a92a70da7de35625e4b424d240",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/sha_fail.ledger/orders.csv": "113f746a6b167d2cc51f09f2db491b309d6ec4d75fa458b380bfead79bf01b25",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/sha_fail.ledger/positions.csv": "222047d0240422bb5a39cffe5a1134415c95a0e8ed9cf7b427bef32ac1c12373",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/sha_fail.ledger/sessions.csv": "113f746a6b167d2cc51f09f2db491b309d6ec4d75fa458b380bfead79bf01b25",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/sha_fail.ledger/SHA256SUMS": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/sha_fail.txt": "718bbf6cc0a31f52d7b26a757e1ec700e742cb8fffb097a64981143c8a9297ba",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/sha_mismatch.ledger/CHECK.txt": "adb8a001fe2958e774c12a723708c5c8e4648c112d5a19e995733bbc8d87857a",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/sha_mismatch.ledger/gate-line.txt": "916dc157551aeefc0e945f157e578995d5338feb0e47be6dca45251404cc5975",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/sha_mismatch.ledger/LEDGER_FAILED": "91ede173b53cf6715d5d29a349ba74a4363f3433d95758805bd66f3317204ad4",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/sha_mismatch.ledger/orders.csv": "113f746a6b167d2cc51f09f2db491b309d6ec4d75fa458b380bfead79bf01b25",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/sha_mismatch.ledger/positions.csv": "222047d0240422bb5a39cffe5a1134415c95a0e8ed9cf7b427bef32ac1c12373",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/sha_mismatch.ledger/sessions.csv": "113f746a6b167d2cc51f09f2db491b309d6ec4d75fa458b380bfead79bf01b25",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/sha_mismatch.ledger/SHA256SUMS": "f5956ed8e2e29040a68efc5956f93528f32b572196cc7999020a5974262a8898",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/sha_mismatch.txt": "0fe0ec97fafb952f37255f04ed8436f8591e9c372b8e19798198a755bcef683d",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/write_fail.parent": "6e9cf8a5595c1f9be1199eb78022c7562ece1cc7a8ec6ab780905c7ea48c0bf7",
+    "docs/evidence/v153-20261112/h-rollback/v2/runs/probe-v2/write_fail.txt": "24cd95a5642dc6aeeec60cd32fbed8a874a52fbff7c0f6a689f820e446033f35",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-pg/AlignedV96PgBehaviorTest-xml/TEST-com.cryptoautotrader.api.service.AlignedV96PgBehaviorTest.xml": "3a1700590f0dc0ebd0ec5fa9799badbbf2150725d7911c0af31e0e9bc1897a56",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-pg/AlignedV96PgBehaviorTest.log": "0cf9451545cef7d8c804d91e5bf91d3333032e453c8db3d13a17404436a0b3c0",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-pg/BalanceListSnapshotPgTest-xml/TEST-com.cryptoautotrader.api.service.BalanceListSnapshotPgTest.xml": "64210ef9d40438cd4c935e384a30a6b781c8aedc66f7356e0f4ff5faba86de91",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-pg/BalanceListSnapshotPgTest.log": "4dcbf1b4133c01de8cc445d103515f6525ab5e7a456af8422aece13f071064fa",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-pg/LiveLossWindowPgTest-xml/TEST-com.cryptoautotrader.api.service.LiveLossWindowPgTest.xml": "7ce09ae206ec10d03c9072adbf5068488bb5964c97d6ad3f23069acb977e35c5",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-pg/LiveLossWindowPgTest.log": "92af9928aff4d2fda31c2290a798ae9e765b480fa8fbdce8182c1f8be37f9058",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-pg/N15PgLockWaitExpiryTest-xml/TEST-com.cryptoautotrader.api.service.N15PgLockWaitExpiryTest.xml": "bd0b27f578dbcc1b647091a93bc786544e7312f970c6785ea2a94c85607f3275",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-pg/N15PgLockWaitExpiryTest.log": "89f226981ddc826b1201a54a0254ed9689f81012ae355985fbb6c04ef0546708",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-pg/PerformanceSnapshotS5PgTest-xml/TEST-com.cryptoautotrader.api.service.PerformanceSnapshotS5PgTest.xml": "2fdc1ebc35e17c720cc05d6389fee03c47c8a052e97143889fa191adbd17e5d3",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-pg/PerformanceSnapshotS5PgTest.log": "0bf8af902ef85a3f2bee9213724d5da619d47a5cc483bf9241175ca395bc5470",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-pg/SettlementRoundingPgTest-on-b5cd1d0-xml/TEST-com.cryptoautotrader.api.service.SettlementRoundingPgTest.xml": "f2f889776669f090b7f61009cea7c1af11698269418ebdd91f26ca6cf54ff240",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-pg/SettlementRoundingPgTest-on-b5cd1d0.log": "08f186e7ba4ea0ee0a4d80104898c8c9186176c9509241ac907cdf3bccec00e5",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-pg/SettlementRoundingPgTest-xml/TEST-com.cryptoautotrader.api.service.SettlementRoundingPgTest.xml": "222a68a64ddd2e3b14300cd6a828a0c062de1918bb7ee33cd97a6985638e1c72",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-pg/SettlementRoundingPgTest.log": "350cb478a80c440ea263808e914ef49d16724d88a661354a7a3472b1fa048f54",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-pg/StartedAtPrecisionPgTest-xml/TEST-com.cryptoautotrader.api.service.StartedAtPrecisionPgTest.xml": "d9d98f7d3d28cb42dfb53b1beacf31211d6f01b3d10682362740a1fd935613c4",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-pg/StartedAtPrecisionPgTest.log": "cee25c56badfdb389b6e2a80f184853084ef9082d3128392fd341dff22d508ae",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/head.txt": "66c7472deb9f95f9499bef515ac6911d08c94b2e47a399990b2600f33f2ec903",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/related-summary.txt": "f15a281add993ec770f7bd34e95334bc8dcc574d6921c6231b4a98240dc063e9",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/related.log": "457cb57c62bdd811e362c793e77232781698651a246ecfaed1bcefc00ec8a73e",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.AlignedV147FixesTest.xml": "057885f42e268cfdc6269cc84eb270a8d61c2efb5af2973daa642a1574f0c14d",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.AlignedV148FixesTest.xml": "6f71ddcc193d3b2c40176bbb9fb72d02924cd69f438a7b0196c02e54fdc325ee",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest.xml": "79e5b3ad63e248d79c7406616d82b82534a63dff6b364ac3ac1d53bee64f1d51",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.DailySma20PaperForwardPathTest.xml": "5d71dcc792a04629fcc1fb027166ae2f962620badc228bef7b9622c6d8fa3691",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.DoubleSellGuardTest.xml": "77a029a690074a6569b97465c0f06223fb06ecff7553c31cc8a358e0956aaccf",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.DynamicCircuitBreakerTest.xml": "79dc01195e37880e09d6f80ba2f7f2938127c0d721aace9f6d46a334d3fdd1be",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.DynamicPaperLiveRuleParityTest.xml": "9328be69b1f600405176a01b4f852f0c9f7150fa4e9935ef973601896d906cdc",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.DynamicPaperTradingTest.xml": "2ee805eb2444a12613748fd213fd536259df823fd05547eff14e87ed66156914",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.DynamicStopRaceTest.xml": "b7fb39a2f3af57371e95510d04efea915a5a77c37d43426aee4546e0a3989d70",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.DynamicTakeProfitCapTest.xml": "46c226f4301b96f53ba1045311e94a1d827c5c01dca1f707c717bddbd6be3c54",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.DynamicTradingSlWatchdogRecoveryTest.xml": "dd8aba8a9cb894b93547f83d50738092a6f49635a345c9d3e4c2cc28f7837017",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.LiveSellIdempotencyTest.xml": "9de72443b48925e85cf5967c8c6e209ca388cb6894136130dbbd7fb13b6bd4cb",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.LiveTradingSlWatchdogRecoveryTest.xml": "08dfa398927bf48a72f9a01ff490094b75cce8e4417dec90f71aa69584b1481a",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.N16InvalidPriceReproTest.xml": "659b43b195a57d116e70a85d8d9cfbaa9434d79e4e6a7772d2c2d2962034f85b",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.N17RestInvalidPriceTest.xml": "85cefbec20160abf5d85730793000ad4260a8832f21bec589cdcf50a3a4fceb7",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest.xml": "b047dfc4815376e5c50bded847fa8ebf78e81f269cb54f409e27eb953480af86",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.O1O3LogContractTest.xml": "650774ac4a57e4e6b6bf70247b608f236d03024664dfb3039abb2003082138ac",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.OrderExecutionEngineSellPriceTest.xml": "5d203abf7e52a3f2ef5d191e6b1b14dee5314a641209b770912192752ff1c8ec",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.OrderExecutionEngineTest.xml": "70097471003014d4338d106539ffdbb77c0dd7f531ba1df4af760968fb519068",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.PaperLiveAlignmentTest.xml": "b8e0d7e9b22035ce51c69cf102d34cbc8d0bd2961bed87e388a541cfc843b4a8",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.PaperStopUnderConcurrentWriteTest.xml": "537e99b1d5cfc0b47380cc7e97dbf260e6ca68095c84112b1bc05cd5ca8cc2c4",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.PoolLossLimitTest.xml": "9e5a3e3352f774995e61293261301e9bbd2c864f7f28b28efbb62f50ee7eba34",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.R5RealCashflowRiskTest.xml": "4f700e8fca617a8d4867e211ddcd982e1fa6f8c38e04666d87e99d519b169b97",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.RealNextBarClockTest.xml": "0eafd96db41e5fdd583c8e80ab474465fbabfc99341bb9bc9ee02166b8f72218",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest.xml": "4b7e36994d696aa7da1a5417af71a6d2949729f4fb4c47ed6c0a685d8f3bad49",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.RiskCircuitBreakerOrderTest.xml": "17995ee689b948193922110c86693f2df85c448e91f24cb885a2fa8bb1e99272",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.RiskConfigMissingTest.xml": "a23717ac19cdff6c84a6e879fecc489323bb097f97905c4bb6f0cfd0b8135dba",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.RiskManagementServiceTest.xml": "1d8d32b7dda8a5d50c01d2e41c4251416c65971ef0531af9ec23e46c54342cde",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.SharedLoopRoundsActiveTest.xml": "3738843fddf2571ac0adddced2d6bf079a676650cb66ab3987827658114118cf",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.Sma20LiveAlignedGapsTest.xml": "c0d0179716de99c3f1a7ccd85983ab34149946f8a768da7d75651987280271b0",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.Sma20LiveAlignedPaperSameInputTest.xml": "a9551dcff73a7c28ff7b2d04a58a93122b5d52ccbfea77b92aa674a0c5e14f61",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.Sma20LivePaperSameInputTest.xml": "c94b6f313eeed1eff262e343afc74cda12052282a8bb40d624691ac1f36edbad",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.StaleRealtimeExitTest.xml": "527430259a1b4b73be6af7d36915b1130f7a2930694818e3942ac38e75693116",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest.xml": "cc1e7c70be33616b659f6770645b86df93e064d698992843c2c6b86ddffb36ba",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest.xml": "2a56347bfda88d36ae6382f8a75357c2f5afc109d34eb352bd7dbf921bba0bce",
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.TelegramRiskLimitRetryHttpTest.xml": "08fe7da935dda11bdf2836481d8f63e1fcd098f867f74901c3b0569a0001b124",
+    "docs/evidence/v153-20261112/i-final/c7137896-bisect/combo1-xml/TEST-com.cryptoautotrader.api.service.DynamicStopRaceTest.xml": "52d3f6f2ce1384739291403e6d34fca9eda5f6c1ad02a7bbba1753ef1bfd736b",
+    "docs/evidence/v153-20261112/i-final/c7137896-bisect/combo1-xml/TEST-com.cryptoautotrader.api.service.R5RealCashflowRiskTest.xml": "6e629bcac9f0c7d82769b60fdf37b004475c52d884fb9461832bed9eb4f4c958",
+    "docs/evidence/v153-20261112/i-final/c7137896-bisect/combo1-xml/TEST-com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest.xml": "efeb9d8c9755002bc8f17e4e4b00a7e7e8242669026bb8cebcec4227720f7d54",
+    "docs/evidence/v153-20261112/i-final/c7137896-bisect/combo1-xml/TEST-com.cryptoautotrader.api.service.SharedLoopRoundsActiveTest.xml": "117bf6b4ff7f7216a0995562b3285b57e8549ae06f8a57bb2d01692e87635225",
+    "docs/evidence/v153-20261112/i-final/c7137896-bisect/combo1-xml/TEST-com.cryptoautotrader.api.service.Sma20LiveAlignedGapsTest.xml": "07f113f1c5808c7934eda7a2ba96e47fc2080366837c73a6bca1caa322b5a589",
+    "docs/evidence/v153-20261112/i-final/c7137896-bisect/combo1-xml/TEST-com.cryptoautotrader.api.service.Sma20LiveAlignedPaperSameInputTest.xml": "3b626064e2aa2dcca14dba53e96f4354d674f0f36b6841773af2d46289cc2fe4",
+    "docs/evidence/v153-20261112/i-final/c7137896-bisect/combo1-xml/TEST-com.cryptoautotrader.api.service.Sma20LivePaperSameInputTest.xml": "182c0b38f3c60bcfa5cef0cfc7215d4c0db65379371670b839e4599087267e61",
+    "docs/evidence/v153-20261112/i-final/c7137896-bisect/combo1-xml/TEST-com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest.xml": "68de04813a2acdf0f5c6715f79b97be3bc21e65c7748cb4000a6abea37beda33",
+    "docs/evidence/v153-20261112/i-final/c7137896-bisect/combo1-xml-webapi/binary/output.bin": "eafbaf73ae31331014c8a2a297b3c8fb3c3c1faef6ae53aa2d33ce50dff590cd",
+    "docs/evidence/v153-20261112/i-final/c7137896-bisect/combo1-xml-webapi/binary/output.bin.idx": "11eaee1f1ea8acde961f7359a0c3ffaa56fd638aa97a32870243976f9e117293",
+    "docs/evidence/v153-20261112/i-final/c7137896-bisect/combo1-xml-webapi/binary/results.bin": "c94dd477ad471942b75890e3704bb64a2257d957aac9fe22d3e5f1e45b1fcf5e",
+    "docs/evidence/v153-20261112/i-final/c7137896-bisect/combo1-xml-webapi/TEST-com.cryptoautotrader.api.service.DynamicStopRaceTest.xml": "52d3f6f2ce1384739291403e6d34fca9eda5f6c1ad02a7bbba1753ef1bfd736b",
+    "docs/evidence/v153-20261112/i-final/c7137896-bisect/combo1-xml-webapi/TEST-com.cryptoautotrader.api.service.R5RealCashflowRiskTest.xml": "6e629bcac9f0c7d82769b60fdf37b004475c52d884fb9461832bed9eb4f4c958",
+    "docs/evidence/v153-20261112/i-final/c7137896-bisect/combo1-xml-webapi/TEST-com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest.xml": "efeb9d8c9755002bc8f17e4e4b00a7e7e8242669026bb8cebcec4227720f7d54",
+    "docs/evidence/v153-20261112/i-final/c7137896-bisect/combo1-xml-webapi/TEST-com.cryptoautotrader.api.service.SharedLoopRoundsActiveTest.xml": "117bf6b4ff7f7216a0995562b3285b57e8549ae06f8a57bb2d01692e87635225",
+    "docs/evidence/v153-20261112/i-final/c7137896-bisect/combo1-xml-webapi/TEST-com.cryptoautotrader.api.service.Sma20LiveAlignedGapsTest.xml": "07f113f1c5808c7934eda7a2ba96e47fc2080366837c73a6bca1caa322b5a589",
+    "docs/evidence/v153-20261112/i-final/c7137896-bisect/combo1-xml-webapi/TEST-com.cryptoautotrader.api.service.Sma20LiveAlignedPaperSameInputTest.xml": "3b626064e2aa2dcca14dba53e96f4354d674f0f36b6841773af2d46289cc2fe4",
+    "docs/evidence/v153-20261112/i-final/c7137896-bisect/combo1-xml-webapi/TEST-com.cryptoautotrader.api.service.Sma20LivePaperSameInputTest.xml": "182c0b38f3c60bcfa5cef0cfc7215d4c0db65379371670b839e4599087267e61",
+    "docs/evidence/v153-20261112/i-final/c7137896-bisect/combo1-xml-webapi/TEST-com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest.xml": "68de04813a2acdf0f5c6715f79b97be3bc21e65c7748cb4000a6abea37beda33",
+    "docs/evidence/v153-20261112/i-final/c7137896-bisect/combo1.log": "adaeca168a268bcbb11ab25eb88efcf66c1ee50cb9552c5ed4441fcfc034c077",
+    "docs/evidence/v153-20261112/i-final/c7137896-bisect/merge-c7137896.log": "f10b3258c6170271a0d50509ac8349ec80631d140ac86eea6c441d29be017458",
+    "docs/evidence/v153-20261112/i-final/c7137896-bisect/pre-merge-b000944e.log": "55b0b5558a31096f06d2b43c80384027a8805b0d17355ec88440a4d6e6830e74",
+    "docs/evidence/v153-20261112/i-final/c7137896-bisect/pre-merge-summary.txt": "fdfe591e3194baadd94ea450d9e2eba146363090ca04d8f823a6a11e2a2f09cd",
+    "docs/evidence/v153-20261112/i-final/c7137896-full/gradle.log": "0ac7c9ce24bd1262dfa5aee9db82b84f0601930f64016f84a826c9d73461e112",
+    "docs/evidence/v153-20261112/i-final/c7137896-full/summary.txt": "9dac49e06b38d5a38f61b293f81576a047a2344bff4c751b50ed8115e63c156c",
+    "docs/evidence/v153-20261112/i-final/c7137896-full/time.txt": "5efcfca470f03cdaf16b2b436c34d5d300bc0b4f8df38e7de569011da5d21046",
+    "docs/evidence/v153-20261112/loss-window/after-xml/TEST-com.cryptoautotrader.api.service.LiveLossWindowPgTest.xml": "1192b59f01ba8471a78531d5f1a9029b944e31e66041776884f29d2748f7d708",
+    "docs/evidence/v153-20261112/loss-window/after.log": "2931d2ba703d80fde7418c5b362c37e9785bd108839ecd8805a95e0a39bdc11e",
+    "docs/evidence/v153-20261112/loss-window/before-xml/TEST-com.cryptoautotrader.api.service.LiveLossWindowPgTest.xml": "3251965656c50aa87e79f1c62c82a42400c7f67ceb26cde752c2b6febbd63acb",
+    "docs/evidence/v153-20261112/loss-window/before.log": "039e71522bd56f13fd516e010fcc9fe1d37d8a5fd92213787791cfa2add0bcb0",
+    "docs/evidence/v153-20261112/loss-window/related-summary.txt": "4e1950de4689574d1c299940a506412846c47832b08c87aab868cf0ade5d9a02",
+    "docs/evidence/v153-20261112/loss-window/related-xml/TEST-com.cryptoautotrader.api.service.DynamicCircuitBreakerTest.xml": "de0dcf2187baebdee465fc4f53687a6ea9b0e91fd47a6fca47cee4793bf3a60b",
+    "docs/evidence/v153-20261112/loss-window/related-xml/TEST-com.cryptoautotrader.api.service.DynamicPaperTradingTest.xml": "f356f8a627d42062fb17a75572b9cd2fa3a34097d34a1e9a4d66f570654b4078",
+    "docs/evidence/v153-20261112/loss-window/related-xml/TEST-com.cryptoautotrader.api.service.DynamicTakeProfitCapTest.xml": "640e1ef20bbd63cb7b1a79faf83d6069d399f7069a904b7756e3b3f21409621a",
+    "docs/evidence/v153-20261112/loss-window/related-xml/TEST-com.cryptoautotrader.api.service.LiveSellIdempotencyTest.xml": "49a0a6372692b5a56ed9cd140a788cafddd3b0565f6d9d63b333f479df4fdf73",
+    "docs/evidence/v153-20261112/loss-window/related-xml/TEST-com.cryptoautotrader.api.service.OrderExecutionEngineSellPriceTest.xml": "3d506268f399b7dd967de60682875e690bf9300408f3ba65d733e0d24b1bb0e2",
+    "docs/evidence/v153-20261112/loss-window/related-xml/TEST-com.cryptoautotrader.api.service.OrderExecutionEngineTest.xml": "895641b15e3b61872d717e397844e3daffb7cb1ddec98ed39ae3a05d1d693b20",
+    "docs/evidence/v153-20261112/loss-window/related-xml/TEST-com.cryptoautotrader.api.service.PaperLiveAlignmentTest.xml": "5f7ef1d6f6bbbc4b9bc79373f12198be009e7ee12755424cc24f4d3e62e81556",
+    "docs/evidence/v153-20261112/loss-window/related-xml/TEST-com.cryptoautotrader.api.service.PoolLossLimitTest.xml": "4fe446640d50be552963a4ea8c7ab9c39dfe5fa75328f20c5041129bb7b3618f",
+    "docs/evidence/v153-20261112/loss-window/related-xml/TEST-com.cryptoautotrader.api.service.RiskConfigMissingTest.xml": "9e3ace10f5d34f7ac4b3990646c2e359b2110247542d1971ff5485c010f07c19",
+    "docs/evidence/v153-20261112/loss-window/related-xml/TEST-com.cryptoautotrader.api.service.RiskManagementServiceTest.xml": "9d259144abd724ea167cb7c416e85e494eadab9a41a9c1a36d8d1b58d361307e",
+    "docs/evidence/v153-20261112/loss-window/related-xml/TEST-com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest.xml": "588dd09e871a1e2be8449e291abb9e8768a803c5689f02c9cadee7d46c902993",
+    "docs/evidence/v153-20261112/loss-window/related-xml/TEST-com.cryptoautotrader.api.service.TelegramRiskLimitRetryHttpTest.xml": "8b4a6a2e6d72732f9510c9666c6273327d53f748ed101f9302a1a2847a5bd551",
+    "docs/evidence/v153-20261112/loss-window/related.log": "a4b15e2eda83bbd36b0f1ffa4152b775075d34d545f424846b14358b33f8233c",
+    "docs/evidence/v153-20261112/patches/0b23b44e.patch": "8674a05dff8beaf03db6155bb1e91cd15ef172295b33b965fcbd0dcae0ffeeb8",
+    "docs/evidence/v153-20261112/patches/0cfaecae.patch": "d21157880a21135525887fb26a73da9cb175def71624632e04cd67f9fe1fe658",
+    "docs/evidence/v153-20261112/patches/5f9ef2ad-G.patch": "a717da619d15d888515cbad5426f3d4e63f31daea97649b772f0fbcfed2d4d59",
+    "docs/evidence/v153-20261112/patches/8e81d0b4.patch": "20a8e8c3669a112f1b9ea8e780a7f752306c5f675fe638709dfb4407fcb5b7b2",
+    "docs/evidence/v153-20261112/patches/9d92a0f7.patch": "e9ae86ee4f8caae6a35c9c805fd53277fd174450ef8255c574ee3b34e1060936",
+    "docs/evidence/v153-20261112/patches/b46302d9-E.patch": "ce17dce190aa0da929258e3b6d8aebc0ad90c53542c5ba7fd8aeb93dabbbe206",
+    "docs/evidence/v153-20261112/patches/ec7d33ef-F.patch": "e675bf32e6e64f1b65c280cebc944de45490f36a47e87adfb9c704adf9c171f0",
+    "docs/evidence/v153-20261112/README.md": "ac3a0f05be9faa1663784073c859edc42a1aba215b6c267cf447be14ec1e717a",
+    "docs/evidence/n03-1112-1000/20261112-1000.txt": "abb9641e085ba42d35cd7d7001a6dd71637d535f5229a0ea732f332825e3cba5",
+    "docs/evidence/n03-1112-1000/20261112-1000.txt.msg": "7fdc9bb4cef4f0665f28f3486ac9af3ca3b6f15f95750eed8d984f5c45b60c02",
+    "docs/evidence/n03-1112-1000/20261112-1000.txt.raw": "7273158d5bda9206680add3da10411bc539176662003fb2629705279549ca173",
+    "docs/evidence/n03-1112-1000/error_lines.txt": "c9c36cb693abb4a6eb49f01d9459f436b225e054d7c4f414f47b64df7f869f8f",
+    "docs/evidence/n03-1112-1000/install_state.txt": "b5faa3d6e522a0283f5069dad736d9c4cf7b082b8fca820f1291486eeb7f9a9c",
+    "docs/evidence/n03-1112-1000/last_send": "41baaa4999750b607b450bdab2650caeca77a1cbcfb8574004942ff6ce6a49b7",
+    "docs/evidence/n03-1112-1000/ledger-20261112.txt": "926aa12e09a8d1f5abfcad9d0a721fb072d2639b1e1d69f0546678f4b70d1cc1",
+    "docs/evidence/n03-1112-1000/ledger-diff-vs-20261111.txt": "d0728132b4598836653b7b943fd36286ad0c481b3aa16688ee7b00594409022f",
+    "docs/evidence/n03-1112-1000/ledger-files.txt": "3de5539a6ba0748237debe027954e961e83e4153131aad6aed42f253640560cf",
+    "docs/evidence/n03-1112-1000/local-sha256.txt": "70ba1a59bef9a4bb1680d7cf63a22b09824bd2d8a1e599e3e82a65aaf761e1df",
+    "docs/evidence/n03-1112-1000/observations-supp.txt": "34b4299709a969a73385d701185c99e834336b643dfe05e533b98e47e2a285e5",
+    "docs/evidence/n03-1112-1000/observations.txt": "0d1370f44e192fa9b8f12c4b51cf2c2457ed5c6e0bab255bb8cc17bc447b8f88",
+    "docs/evidence/n03-1112-1000/read.sh": "eaec7dd34a0f2f3b36a9eff68a09628ca02e491b6cd21aab49176b15befd6617",
+    "docs/evidence/n03-1112-1000/README.md": "57c9fd6c6d3c0eb812d7ed0e6f789eaf083bd34a8d359327ce3111d7d51b37ff",
+    "docs/evidence/n03-1112-1000/run-time.txt": "b190d5f2def9ca039a54803277b74017e39c86e7bbb7ae696470f59678798aaf",
+    "docs/evidence/n03-1112-1000/server-files.txt": "83592c26cdbc3d17c1a7fbba1e3fc6ad9e2f584787d0554d8ed9e2e87bae1305",
+    "docs/evidence/n03-1112-1000/token-check.txt": "02988d3a38ea838b527fd9e1c3a2f7543f0f31af03d16b88be4b696e14160cb9"
+  },
+  "xml": {
+    "docs/evidence/v153-20261112/b01-next-bar/after-run1-paper-seams-xml/TEST-com.cryptoautotrader.api.service.B01RealNextSellBarTest.xml": {
+      "tests": 1,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": [
+        {
+          "class": "com.cryptoautotrader.api.service.B01RealNextSellBarTest",
+          "test": "realNextSellBar()",
+          "message": "org.opentest4j.AssertionFailedError: [PAPER 실제 다음 봉에서 청산] \r\nexpected: \"CLOSED\"\r\n but was: \"OPEN\""
+        }
+      ]
+    },
+    "docs/evidence/v153-20261112/b01-next-bar/after-xml/TEST-com.cryptoautotrader.api.service.B01RealNextSellBarTest.xml": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/b01-next-bar/aligned-check-xml/TEST-com.cryptoautotrader.api.service.B01RealNextSellBarTest.xml": {
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/b01-next-bar/before-xml/TEST-com.cryptoautotrader.api.service.B01RealNextSellBarTest.xml": {
+      "tests": 1,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": [
+        {
+          "class": "com.cryptoautotrader.api.service.B01RealNextSellBarTest",
+          "test": "realNextSellBar()",
+          "message": "org.opentest4j.AssertionFailedError: [LIVE 는 다음 마감 봉을 평가] \r\nexpected: 2026-11-13T00:27:16Z\r\n but was: 2026-11-12T01:27:16Z"
+        }
+      ]
+    },
+    "docs/evidence/v153-20261112/b01-next-bar/related-run1-xml/TEST-com.cryptoautotrader.api.service.B01RealNextSellBarTest.xml": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/b01-next-bar/related-run1-xml/TEST-com.cryptoautotrader.api.service.BtcGateUnknownEntryTest.xml": {
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/b01-next-bar/related-run1-xml/TEST-com.cryptoautotrader.api.service.CandleFreshnessGuardTest.xml": {
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/b01-next-bar/related-run1-xml/TEST-com.cryptoautotrader.api.service.CandleGapBackfillTest.xml": {
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/b01-next-bar/related-run1-xml/TEST-com.cryptoautotrader.api.service.CandleGapExitTest.xml": {
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/b01-next-bar/related-run1-xml/TEST-com.cryptoautotrader.api.service.CandleMaintenanceGapTest.xml": {
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/b01-next-bar/related-run1-xml/TEST-com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest.xml": {
+      "tests": 24,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/b01-next-bar/related-run1-xml/TEST-com.cryptoautotrader.api.service.ExitRuleOverridesTest.xml": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/b01-next-bar/related-run1-xml/TEST-com.cryptoautotrader.api.service.PaperLiveAlignmentTest.xml": {
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/b01-next-bar/related-run1-xml/TEST-com.cryptoautotrader.api.service.R5RealCashflowRiskTest.xml": {
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/b01-next-bar/related-run1-xml/TEST-com.cryptoautotrader.api.service.RealNextBarClockTest.xml": {
+      "tests": 1,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": [
+        {
+          "class": "com.cryptoautotrader.api.service.RealNextBarClockTest",
+          "test": "nextClosedBarArrivesByCommonClock()",
+          "message": "org.opentest4j.AssertionFailedError: [LIVE 는 직전 닫힌 봉을 평가] \r\nexpected: 2026-11-11T23:29:29Z\r\n but was: null"
+        }
+      ]
+    },
+    "docs/evidence/v153-20261112/b01-next-bar/related-run1-xml/TEST-com.cryptoautotrader.api.service.Sma20LiveAlignedGapsTest.xml": {
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/b01-next-bar/related-run1-xml/TEST-com.cryptoautotrader.api.service.Sma20LiveAlignedPaperSameInputTest.xml": {
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/b01-next-bar/related-run1-xml/TEST-com.cryptoautotrader.api.service.Sma20LivePaperSameInputTest.xml": {
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/e-r5/after/TEST-com.cryptoautotrader.api.service.R5RealCashflowRiskTest.xml": {
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/e-r5/before/TEST-com.cryptoautotrader.api.service.R5RealCashflowRiskTest.xml": {
+      "tests": 7,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": [
+        {
+          "class": "com.cryptoautotrader.api.service.R5RealCashflowRiskTest",
+          "test": "일/주/월 창 — 실제 손절 손실 1건, 1·7·30일 경계 포함·1µs 뒤 제외(PAPER alignedRiskCheck), LIVE 창 함수는 세션 매도 FILL 부재 관측",
+          "message": "org.opentest4j.AssertionFailedError: [2 +1일+1µs PAPER] \r\nexpected: \"주\"\r\n but was: \"일\""
+        }
+      ]
+    },
+    "docs/evidence/v153-20261112/e-r5/run1-test-code-error/TEST-com.cryptoautotrader.api.service.R5RealCashflowRiskTest.xml": {
+      "tests": 7,
+      "failures": 4,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": [
+        {
+          "class": "com.cryptoautotrader.api.service.R5RealCashflowRiskTest",
+          "test": "일/주/월 창 — 실제 손절 손실 1건, 1·7·30일 경계 포함·1µs 뒤 제외: PAPER alignedRiskCheck = LIVE 창 함수",
+          "message": "java.util.NoSuchElementException: No value present"
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.R5RealCashflowRiskTest",
+          "test": "연속 손실 한도 2 — 앞선 손실 + 실제 수수료 경계: 위험 입력은 이익이라 줄이 끊김(둘 다 0회·CB 없음), 성적 관례였다면 2회",
+          "message": "java.lang.ArrayIndexOutOfBoundsException: Index 0 out of bounds for length 0"
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.R5RealCashflowRiskTest",
+          "test": "연속 손실 한도 2 — 앞선 손실(저장 행) + 실제 손절 손실: 둘 다 2회·CB 발동",
+          "message": "java.lang.AssertionError: [LIVE 청산 매도 접수] \r\nExpected size: 1 but was: 0 in:\r\n[]"
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.R5RealCashflowRiskTest",
+          "test": "연속 손실 한도 2 — 앞선 이익 + 실제 손절 손실: 둘 다 1회·CB 없음",
+          "message": "java.lang.AssertionError: [LIVE 청산 매도 접수] \r\nExpected size: 1 but was: 0 in:\r\n[]"
+        }
+      ]
+    },
+    "docs/evidence/v153-20261112/e-r5/run2-h2-json-op/TEST-com.cryptoautotrader.api.service.R5RealCashflowRiskTest.xml": {
+      "tests": 7,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": [
+        {
+          "class": "com.cryptoautotrader.api.service.R5RealCashflowRiskTest",
+          "test": "일/주/월 창 — 실제 손절 손실 1건, 1·7·30일 경계 포함·1µs 뒤 제외(PAPER alignedRiskCheck), LIVE 창 함수는 세션 매도 FILL 부재 관측",
+          "message": "org.springframework.dao.InvalidDataAccessResourceUsageException: could not prepare statement [Syntax error in SQL statement \"SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]>>'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at >= ?) t WHERE pnl < 0\"; SQL statement:\nSELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json->>'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at >= ?) t WHERE pnl < 0 [42000-224]] [SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json->>'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at >= ?) t WHERE pnl < 0]; SQL [SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json->>'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at >= ?) t WHERE pnl < 0]"
+        }
+      ]
+    },
+    "docs/evidence/v153-20261112/f-protect/after/TEST-com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest.xml": {
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/f-protect/after-run2-harness-idle-threads/TEST-com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest.xml": {
+      "tests": 4,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": [
+        {
+          "class": "com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest",
+          "test": "비교 — 행 잠금 400ms 중: 안 A(호출 스레드) 발행 지연 ≥ 잠금, 안 B(대기칸) 발행 지연 < 잠금, 두 안 모두 손절 1회",
+          "message": "org.opentest4j.AssertionFailedError: [대기열 가득] \r\nexpected: 0\r\n but was: 100"
+        }
+      ]
+    },
+    "docs/evidence/v153-20261112/f-protect/after-run3-harness-blockers-queued/TEST-com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest.xml": {
+      "tests": 4,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": [
+        {
+          "class": "com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest",
+          "test": "비교 — 행 잠금 400ms 중: 안 A(호출 스레드) 발행 지연 ≥ 잠금, 안 B(대기칸) 발행 지연 < 잠금, 두 안 모두 손절 1회",
+          "message": "java.util.concurrent.RejectedExecutionException: Task java.util.concurrent.FutureTask@1b7b56cf[Not completed, task = java.util.concurrent.Executors$RunnableAdapter@6bd37b1e[Wrapped task = com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest$Saturation$$Lambda$2907/0x000001e9310af000@4bb62c05]] rejected from org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor$1@3372b1fa[Running, pool size = 4, active threads = 4, queued tasks = 97, completed tasks = 258]"
+        }
+      ]
+    },
+    "docs/evidence/v153-20261112/f-protect/before/TEST-com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest.xml": {
+      "tests": 4,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": [
+        {
+          "class": "com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest",
+          "test": "대기열 가득 — 발행 예외 없음·시세 장부 갱신·다음 코인 전달, 해제 전 매도 0, 해제 후 새 시세 없이 LIVE·DYNAMIC 손절 1회씩, 재시세에 중복 없음",
+          "message": "org.opentest4j.AssertionFailedError: [포화 중 발행 쪽 예외 없음(a)] \r\nexpected: \r\n  null\r\n but was: \r\n  org.springframework.core.task.TaskRejectedException: ExecutorService in active state did not accept task: org.springframework.aop.interceptor.AsyncExecutionInterceptor$$Lambda$2647/0x000001775ef964d8@92e8994\r\n  \tat org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor.submit(ThreadPoolTaskExecutor.java:413)\r\n  \tat org.springframework.aop.interceptor.AsyncExecutionAspectSupport.doSubmit(AsyncExecutionAspectSupport.java:297)\r\n  \tat org.springframework.aop.interceptor.AsyncExecutionInterceptor.invoke(AsyncExecutionInterceptor.java:127)\r\n  \t...(103 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)"
+        }
+      ]
+    },
+    "docs/evidence/v153-20261112/f-protect/related-final-ec7d33ef/TEST-com.cryptoautotrader.api.service.DoubleSellGuardTest.xml": {
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/f-protect/related-final-ec7d33ef/TEST-com.cryptoautotrader.api.service.DynamicPaperLiveRuleParityTest.xml": {
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/f-protect/related-final-ec7d33ef/TEST-com.cryptoautotrader.api.service.DynamicTradingSlWatchdogRecoveryTest.xml": {
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/f-protect/related-final-ec7d33ef/TEST-com.cryptoautotrader.api.service.LiveTradingSlWatchdogRecoveryTest.xml": {
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/f-protect/related-final-ec7d33ef/TEST-com.cryptoautotrader.api.service.N16InvalidPriceReproTest.xml": {
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/f-protect/related-final-ec7d33ef/TEST-com.cryptoautotrader.api.service.N17RestInvalidPriceTest.xml": {
+      "tests": 24,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/f-protect/related-final-ec7d33ef/TEST-com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest.xml": {
+      "tests": 23,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/f-protect/related-final-ec7d33ef/TEST-com.cryptoautotrader.api.service.O1O3LogContractTest.xml": {
+      "tests": 17,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/f-protect/related-final-ec7d33ef/TEST-com.cryptoautotrader.api.service.PoolLossLimitTest.xml": {
+      "tests": 22,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/f-protect/related-final-ec7d33ef/TEST-com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest.xml": {
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/f-protect/related-final-ec7d33ef/TEST-com.cryptoautotrader.api.service.StaleRealtimeExitTest.xml": {
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/f-protect/related-final-ec7d33ef/TEST-com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest.xml": {
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/f-protect/related-rerun-stopvsinflight/TEST-com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest.xml": {
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/f-protect/related-run1-direct-call/TEST-com.cryptoautotrader.api.service.DoubleSellGuardTest.xml": {
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/f-protect/related-run1-direct-call/TEST-com.cryptoautotrader.api.service.DynamicPaperLiveRuleParityTest.xml": {
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/f-protect/related-run1-direct-call/TEST-com.cryptoautotrader.api.service.DynamicTradingSlWatchdogRecoveryTest.xml": {
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/f-protect/related-run1-direct-call/TEST-com.cryptoautotrader.api.service.LiveTradingSlWatchdogRecoveryTest.xml": {
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/f-protect/related-run1-direct-call/TEST-com.cryptoautotrader.api.service.N16InvalidPriceReproTest.xml": {
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/f-protect/related-run1-direct-call/TEST-com.cryptoautotrader.api.service.N17RestInvalidPriceTest.xml": {
+      "tests": 24,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/f-protect/related-run1-direct-call/TEST-com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest.xml": {
+      "tests": 23,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/f-protect/related-run1-direct-call/TEST-com.cryptoautotrader.api.service.O1O3LogContractTest.xml": {
+      "tests": 17,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/f-protect/related-run1-direct-call/TEST-com.cryptoautotrader.api.service.PoolLossLimitTest.xml": {
+      "tests": 22,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/f-protect/related-run1-direct-call/TEST-com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest.xml": {
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/f-protect/related-run1-direct-call/TEST-com.cryptoautotrader.api.service.StaleRealtimeExitTest.xml": {
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/f-protect/related-run1-direct-call/TEST-com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest.xml": {
+      "tests": 7,
+      "failures": 4,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": [
+        {
+          "class": "com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest",
+          "test": "LIVE",
+          "message": "org.opentest4j.AssertionFailedError: \r\nexpected: \"CLOSING\"\r\n but was: \"OPEN\""
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest",
+          "test": "DYNAMIC",
+          "message": "java.lang.AssertionError: 매도 2건이 접수 상태가 되지 않았다: [FAILED/uuid-svr-1-51803865866500]"
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest",
+          "test": "LIVE",
+          "message": "java.lang.AssertionError: WS 손절이 CLOSING 을 커밋하지 않았다"
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest",
+          "test": "DYNAMIC",
+          "message": "java.lang.AssertionError: WS 손절이 CLOSING 을 커밋하지 않았다"
+        }
+      ]
+    },
+    "docs/evidence/v153-20261112/f-protect-v2/after-run1-test-code-error-xml/TEST-com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest.xml": {
+      "tests": 11,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": [
+        {
+          "class": "com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest",
+          "test": "단위 — 작업자를 붙잡은 동안 쌓인 시세가 같은 객체·같은 순서(관측 시각 원문 그대로)로 처리기에 간다, 상한 초과는 새 시세만 버리고 센다",
+          "message": "java.lang.ClassCastException: class com.cryptoautotrader.api.service.RealtimeProtectionDispatcher$Snapshot cannot be cast to class java.lang.Class (com.cryptoautotrader.api.service.RealtimeProtectionDispatcher$Snapshot is in unnamed module of loader 'app'; java.lang.Class is in module java.base of loader 'bootstrap')"
+        }
+      ]
+    },
+    "docs/evidence/v153-20261112/f-protect-v2/after-v2-xml/TEST-com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest.xml": {
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/f-protect-v2/before-v1-xml/TEST-com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest.xml": {
+      "tests": 11,
+      "failures": 5,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": [
+        {
+          "class": "com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest",
+          "test": "단위 — 처리기 예외는 그 시세 하나만 실패로 세고 같은 코인의 다음 시세를 계속 처리, 발행 쪽 예외 없음",
+          "message": "org.opentest4j.AssertionFailedError: \r\nExpecting actual:\r\n  [\"282\"]\r\nto contain exactly (and in same order):\r\n  [\"280\", \"281\", \"282\"]\r\nbut could not find the following elements:\r\n  [\"280\", \"281\"]\r\n"
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest",
+          "test": "계약 — 급등 뒤 반락(310→290→280), 정상 300 뒤 280, 미래 관측(+24h) 300 뒤 정상 280: 각 기준 실행과 같다",
+          "message": "org.opentest4j.AssertionFailedError: [310→290→280 — 경계 결과 = 기준 실행 결과] \r\nexpected: {\"A\"=\"LIVE=OPEN DYNAMIC=OPEN 매도=0\"}\r\n but was: {\"A\"=\"LIVE=CLOSING DYNAMIC=CLOSING 매도=2\"}"
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest",
+          "test": "단위 — 작업자를 붙잡은 동안 쌓인 시세가 같은 객체·같은 순서(관측 시각 원문 그대로)로 처리기에 간다, 상한 초과는 새 시세만 버리고 센다",
+          "message": "java.lang.IllegalArgumentException: Could not find field 'LANE_CAPACITY' on target object [null] or target class [class com.cryptoautotrader.api.service.RealtimeProtectionDispatcher]"
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest",
+          "test": "계약 — 대기 중 280→300(손절가 285): 기준과 같고 두 엔진 손절(총괄 탐침 ①의 반대 결과)",
+          "message": "org.opentest4j.AssertionFailedError: [280→300 — 경계 결과 = 기준 실행 결과] \r\nexpected: {\"A\"=\"LIVE=CLOSING DYNAMIC=CLOSING 매도=2\"}\r\n but was: {\"A\"=\"LIVE=OPEN DYNAMIC=OPEN 매도=0\"}"
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest",
+          "test": "계약 — 서로 다른 코인 교차(A280·B300·A300·B280): 코인별로 기준 실행과 같다",
+          "message": "org.opentest4j.AssertionFailedError: [A/B 교차 — 경계 결과 = 기준 실행 결과] \r\nexpected: {\"A\"=\"LIVE=CLOSING DYNAMIC=CLOSING 매도=2\", \"B\"=\"LIVE=CLOSING DYNAMIC=OPEN 매도=1\"}\r\n but was: {\"A\"=\"LIVE=OPEN DYNAMIC=OPEN 매도=0\", \"B\"=\"LIVE=CLOSING DYNAMIC=CLOSING 매도=2\"}"
+        }
+      ]
+    },
+    "docs/evidence/v153-20261112/f-protect-v2/related-v2-xml/TEST-com.cryptoautotrader.api.service.DoubleSellGuardTest.xml": {
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/f-protect-v2/related-v2-xml/TEST-com.cryptoautotrader.api.service.DynamicPaperLiveRuleParityTest.xml": {
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/f-protect-v2/related-v2-xml/TEST-com.cryptoautotrader.api.service.DynamicTradingSlWatchdogRecoveryTest.xml": {
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/f-protect-v2/related-v2-xml/TEST-com.cryptoautotrader.api.service.LiveTradingSlWatchdogRecoveryTest.xml": {
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/f-protect-v2/related-v2-xml/TEST-com.cryptoautotrader.api.service.N16InvalidPriceReproTest.xml": {
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/f-protect-v2/related-v2-xml/TEST-com.cryptoautotrader.api.service.N17RestInvalidPriceTest.xml": {
+      "tests": 24,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/f-protect-v2/related-v2-xml/TEST-com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest.xml": {
+      "tests": 23,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/f-protect-v2/related-v2-xml/TEST-com.cryptoautotrader.api.service.O1O3LogContractTest.xml": {
+      "tests": 17,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/f-protect-v2/related-v2-xml/TEST-com.cryptoautotrader.api.service.PoolLossLimitTest.xml": {
+      "tests": 22,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/f-protect-v2/related-v2-xml/TEST-com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest.xml": {
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/f-protect-v2/related-v2-xml/TEST-com.cryptoautotrader.api.service.StaleRealtimeExitTest.xml": {
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/f-protect-v2/related-v2-xml/TEST-com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest.xml": {
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/f-protect-v2/root-probe-on-v2-xml/TEST-com.cryptoautotrader.api.service.ProtectionPendingWitnessTest.xml": {
+      "tests": 14,
+      "failures": 2,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": [
+        {
+          "class": "com.cryptoautotrader.api.service.ProtectionPendingWitnessTest",
+          "test": "futureObservedPendingQuoteSuppressesFollowingCurrentStopQuote()",
+          "message": "org.opentest4j.AssertionFailedError: \r\nexpected: 0L\r\n but was: 1L"
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.ProtectionPendingWitnessTest",
+          "test": "queuedReboundRemovesStopCrossingWithoutAnyRejection()",
+          "message": "org.opentest4j.AssertionFailedError: \r\nexpected: 0L\r\n but was: 2L"
+        }
+      ]
+    },
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-pg/AlignedV96PgBehaviorTest-xml/TEST-com.cryptoautotrader.api.service.AlignedV96PgBehaviorTest.xml": {
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-pg/BalanceListSnapshotPgTest-xml/TEST-com.cryptoautotrader.api.service.BalanceListSnapshotPgTest.xml": {
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-pg/LiveLossWindowPgTest-xml/TEST-com.cryptoautotrader.api.service.LiveLossWindowPgTest.xml": {
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-pg/N15PgLockWaitExpiryTest-xml/TEST-com.cryptoautotrader.api.service.N15PgLockWaitExpiryTest.xml": {
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-pg/PerformanceSnapshotS5PgTest-xml/TEST-com.cryptoautotrader.api.service.PerformanceSnapshotS5PgTest.xml": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-pg/SettlementRoundingPgTest-on-b5cd1d0-xml/TEST-com.cryptoautotrader.api.service.SettlementRoundingPgTest.xml": {
+      "tests": 16,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": [
+        {
+          "class": "com.cryptoautotrader.api.service.SettlementRoundingPgTest",
+          "test": "LIVE",
+          "message": "java.lang.IllegalStateException: Method not found: com.cryptoautotrader.api.service.LiveTradingService.executeSessionBuy(com.cryptoautotrader.api.entity.LiveTradingSessionEntity,java.lang.String,java.math.BigDecimal,java.lang.String,java.lang.Object,java.lang.Object,java.util.ArrayList)"
+        }
+      ]
+    },
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-pg/SettlementRoundingPgTest-xml/TEST-com.cryptoautotrader.api.service.SettlementRoundingPgTest.xml": {
+      "tests": 16,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": [
+        {
+          "class": "com.cryptoautotrader.api.service.SettlementRoundingPgTest",
+          "test": "LIVE",
+          "message": "java.lang.IllegalStateException: Method not found: com.cryptoautotrader.api.service.LiveTradingService.executeSessionBuy(com.cryptoautotrader.api.entity.LiveTradingSessionEntity,java.lang.String,java.math.BigDecimal,java.lang.String,java.lang.Object,java.lang.Object,java.util.ArrayList)"
+        }
+      ]
+    },
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-pg/StartedAtPrecisionPgTest-xml/TEST-com.cryptoautotrader.api.service.StartedAtPrecisionPgTest.xml": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.AlignedV147FixesTest.xml": {
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.AlignedV148FixesTest.xml": {
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest.xml": {
+      "tests": 24,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.DailySma20PaperForwardPathTest.xml": {
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.DoubleSellGuardTest.xml": {
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.DynamicCircuitBreakerTest.xml": {
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.DynamicPaperLiveRuleParityTest.xml": {
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.DynamicPaperTradingTest.xml": {
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.DynamicStopRaceTest.xml": {
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.DynamicTakeProfitCapTest.xml": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.DynamicTradingSlWatchdogRecoveryTest.xml": {
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.LiveSellIdempotencyTest.xml": {
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.LiveTradingSlWatchdogRecoveryTest.xml": {
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.N16InvalidPriceReproTest.xml": {
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.N17RestInvalidPriceTest.xml": {
+      "tests": 24,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest.xml": {
+      "tests": 23,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.O1O3LogContractTest.xml": {
+      "tests": 17,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.OrderExecutionEngineSellPriceTest.xml": {
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.OrderExecutionEngineTest.xml": {
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.PaperLiveAlignmentTest.xml": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.PaperStopUnderConcurrentWriteTest.xml": {
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.PoolLossLimitTest.xml": {
+      "tests": 22,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.R5RealCashflowRiskTest.xml": {
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.RealNextBarClockTest.xml": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest.xml": {
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.RiskCircuitBreakerOrderTest.xml": {
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.RiskConfigMissingTest.xml": {
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.RiskManagementServiceTest.xml": {
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.SharedLoopRoundsActiveTest.xml": {
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.Sma20LiveAlignedGapsTest.xml": {
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.Sma20LiveAlignedPaperSameInputTest.xml": {
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.Sma20LivePaperSameInputTest.xml": {
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.StaleRealtimeExitTest.xml": {
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest.xml": {
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest.xml": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/9bce7dc1-related/xml/TEST-com.cryptoautotrader.api.service.TelegramRiskLimitRetryHttpTest.xml": {
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/c7137896-bisect/combo1-xml/TEST-com.cryptoautotrader.api.service.DynamicStopRaceTest.xml": {
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/c7137896-bisect/combo1-xml/TEST-com.cryptoautotrader.api.service.R5RealCashflowRiskTest.xml": {
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/c7137896-bisect/combo1-xml/TEST-com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest.xml": {
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/c7137896-bisect/combo1-xml/TEST-com.cryptoautotrader.api.service.SharedLoopRoundsActiveTest.xml": {
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/c7137896-bisect/combo1-xml/TEST-com.cryptoautotrader.api.service.Sma20LiveAlignedGapsTest.xml": {
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/c7137896-bisect/combo1-xml/TEST-com.cryptoautotrader.api.service.Sma20LiveAlignedPaperSameInputTest.xml": {
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/c7137896-bisect/combo1-xml/TEST-com.cryptoautotrader.api.service.Sma20LivePaperSameInputTest.xml": {
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/c7137896-bisect/combo1-xml/TEST-com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest.xml": {
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/c7137896-bisect/combo1-xml-webapi/TEST-com.cryptoautotrader.api.service.DynamicStopRaceTest.xml": {
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/c7137896-bisect/combo1-xml-webapi/TEST-com.cryptoautotrader.api.service.R5RealCashflowRiskTest.xml": {
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/c7137896-bisect/combo1-xml-webapi/TEST-com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest.xml": {
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/c7137896-bisect/combo1-xml-webapi/TEST-com.cryptoautotrader.api.service.SharedLoopRoundsActiveTest.xml": {
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/c7137896-bisect/combo1-xml-webapi/TEST-com.cryptoautotrader.api.service.Sma20LiveAlignedGapsTest.xml": {
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/c7137896-bisect/combo1-xml-webapi/TEST-com.cryptoautotrader.api.service.Sma20LiveAlignedPaperSameInputTest.xml": {
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/c7137896-bisect/combo1-xml-webapi/TEST-com.cryptoautotrader.api.service.Sma20LivePaperSameInputTest.xml": {
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/i-final/c7137896-bisect/combo1-xml-webapi/TEST-com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest.xml": {
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/loss-window/after-xml/TEST-com.cryptoautotrader.api.service.LiveLossWindowPgTest.xml": {
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/loss-window/before-xml/TEST-com.cryptoautotrader.api.service.LiveLossWindowPgTest.xml": {
+      "tests": 7,
+      "failures": 6,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": [
+        {
+          "class": "com.cryptoautotrader.api.service.LiveLossWindowPgTest",
+          "test": "① 실제 LIVE 손실 체결→확정 뒤 checkRisk — 일일 한도(1.5%)를 넘는 세션 손실(2.00%)이면 진입 승인이 거절된다",
+          "message": "org.opentest4j.AssertionFailedError: [세션 손실 2.00% > 일일 한도 1.5% — 진입 승인 거절] \r\nExpecting value to be false but was true"
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.LiveLossWindowPgTest",
+          "test": "② 확정 전 0 · 확정 뒤 정확히 한 번(재확정·재시도에도) · 늦은 정정은 차분만 · FILL 행은 만들지 않는다",
+          "message": "org.opentest4j.AssertionFailedError: [확정 손실 2,001 — 일] \r\nexpected: 2001.00\r\n but was: 0"
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.LiveLossWindowPgTest",
+          "test": "③ 부분 매도 뒤 나머지 매도 — 두 매도의 손실이 각각 한 번씩(1,000.50 + 2,000.00)",
+          "message": "org.opentest4j.AssertionFailedError: \r\nexpected: 1000.50\r\n but was: 0"
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.LiveLossWindowPgTest",
+          "test": "④ 확정 롤백(세션 갱신 실패) — 합산 0, 실패 해소 뒤 재확정에서 한 번",
+          "message": "org.opentest4j.AssertionFailedError: \r\nexpected: 2001.00\r\n but was: 0"
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.LiveLossWindowPgTest",
+          "test": "⑤ 이익 매도와 손실 매도 — 손실만 합산(이익과 상쇄하지 않음)",
+          "message": "org.opentest4j.AssertionFailedError: \r\nexpected: 2001.00\r\n but was: 0"
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.LiveLossWindowPgTest",
+          "test": "⑦ 창 경계 — 반영 시각 T 에서 since=T 포함(≥), since=T+1µs 제외",
+          "message": "org.opentest4j.AssertionFailedError: [T 포함·T+1µs 제외 — 그 한 건 2,001] \r\nexpected: 2001.00\r\n but was: 0.0000"
+        }
+      ]
+    },
+    "docs/evidence/v153-20261112/loss-window/related-xml/TEST-com.cryptoautotrader.api.service.DynamicCircuitBreakerTest.xml": {
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/loss-window/related-xml/TEST-com.cryptoautotrader.api.service.DynamicPaperTradingTest.xml": {
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/loss-window/related-xml/TEST-com.cryptoautotrader.api.service.DynamicTakeProfitCapTest.xml": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/loss-window/related-xml/TEST-com.cryptoautotrader.api.service.LiveSellIdempotencyTest.xml": {
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/loss-window/related-xml/TEST-com.cryptoautotrader.api.service.OrderExecutionEngineSellPriceTest.xml": {
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/loss-window/related-xml/TEST-com.cryptoautotrader.api.service.OrderExecutionEngineTest.xml": {
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/loss-window/related-xml/TEST-com.cryptoautotrader.api.service.PaperLiveAlignmentTest.xml": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/loss-window/related-xml/TEST-com.cryptoautotrader.api.service.PoolLossLimitTest.xml": {
+      "tests": 22,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/loss-window/related-xml/TEST-com.cryptoautotrader.api.service.RiskConfigMissingTest.xml": {
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/loss-window/related-xml/TEST-com.cryptoautotrader.api.service.RiskManagementServiceTest.xml": {
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/loss-window/related-xml/TEST-com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest.xml": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    },
+    "docs/evidence/v153-20261112/loss-window/related-xml/TEST-com.cryptoautotrader.api.service.TelegramRiskLimitRetryHttpTest.xml": {
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failures_detail": []
+    }
+  }
+}

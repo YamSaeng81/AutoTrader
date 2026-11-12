@@ -1,0 +1,3 @@
+web-api tests 11 fail 1 err 0 skip 0 pass 10
+FAIL com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest # 단위 — 작업자를 붙잡은 동안 쌓인 시세가 같은 객체·같은 순서(관측 시각 원문 그대로)로 처리기에 간다, 상한 초과는 새 시세만 버리고 센다
+    java.lang.ClassCastException: class com.cryptoautotrader.api.service.RealtimeProtectionDispatcher$Snapshot cannot be cast to class java.lang.Class (com.cryptoautotrader.api.service.RealtimeProtectionDispatcher$Snapshot is in unnamed module of loader 'app'; java.lang.Class is in module java.base of loader 'bootstrap')

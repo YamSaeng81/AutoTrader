@@ -1,0 +1,20 @@
+수집 미완료 결과·종류:
+      1 sourceId=bloomberg_rss 결과=FAILED 종류=IOException
+      1 sourceId=coingecko_trending 결과=FAILED 종류=IOException
+     23 sourceId=cryptopanic 결과=FAILED 종류=HTTP_403
+      1 sourceId=cryptopanic 결과=FAILED 종류=IOException
+      1 sourceId=tokenpost_rss 결과=FAILED 종류=IOException
+      1 sourceId=upbit_notice 결과=FAILED 종류=IOException
+Connection reset 줄 12
+ERROR 줄 로거별:
+      1  ERROR c.c.a.news.source.CryptoPanicSource
+      1  ERROR c.c.a.news.source.UpbitNoticeSource
+      1  ERROR c.c.a.n.s.CoinGeckoTrendingSource
+      1  ERROR c.c.api.llm.provider.ClaudeProvider
+      2  ERROR c.c.api.news.source.RssNewsSource
+      3  ERROR c.c.a.service.DataCollectionService
+      3  ERROR c.c.a.service.MarketDataSyncService
+      1  ERROR c.c.a.s.TelegramNotificationService
+      6  ERROR c.c.e.upbit.UpbitCandleCollector
+      1  ERROR c.c.exchange.upbit.UpbitOrderClient
+      3  ERROR c.c.exchange.upbit.UpbitRestClient

@@ -1,0 +1,5 @@
+web-api tests 14 fail 2 err 0 skip 0 pass 12
+FAIL com.cryptoautotrader.api.service.ProtectionPendingWitnessTest # futureObservedPendingQuoteSuppressesFollowingCurrentStopQuote()
+    org.opentest4j.AssertionFailedError:  expected: 0L  but was: 1L
+FAIL com.cryptoautotrader.api.service.ProtectionPendingWitnessTest # queuedReboundRemovesStopCrossingWithoutAnyRejection()
+    org.opentest4j.AssertionFailedError:  expected: 0L  but was: 2L

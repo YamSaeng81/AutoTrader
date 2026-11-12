@@ -1,0 +1,79 @@
+{
+  "sources": {
+    "main": "24a7018e9f27a612bf2f8c6cd2d970d756edd4ab",
+    "aligned": "5f9ef2ad31a20888970ebd41cfadf8836ae4e9c4",
+    "integration": "c7137896ac7aba2f46dae61f1108dd786190ef49",
+    "protection": "ec7d33efd2802a3ca6d8b1ca1d30974194d04e09",
+    "E": "b46302d911c3b9d3f4f3792780d8d46dd17d273d",
+    "production": "b5cd1d0d47ea68ffe6ff476b89cf9fca5bef1b88"
+  },
+  "submitted": {
+    "E_before": {
+      "classes": 1,
+      "tests": 7,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0
+    },
+    "E_after": {
+      "classes": 1,
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "F_before": {
+      "classes": 1,
+      "tests": 4,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0
+    },
+    "F_after": {
+      "classes": 1,
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "F_related": {
+      "classes": 12,
+      "tests": 135,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "root": {
+    "Spring_H2_focused": {
+      "tests": 3,
+      "successful": 3,
+      "failed": 0,
+      "inherited_submitted_tests_repeated": 0
+    },
+    "gate_checksum_failure": {
+      "rc": 0,
+      "output": "GATE|v96=1|created=1|running=0|odd_session=0|open=0|closing=0|odd_position=0|stopped_with_open=0\nDECIDED|closing_without_decided_at=0\nROOT deliberate checksum failure\nVERDICT POST_CREATION_OK (새 모드 1 세션 모두 정지·정산 — 마지막 장부 /d/Claude Code/projects/crypto-auto-trader/core-engine/build/review-v153-progress/gate/ledger, 이후 종전 U되돌림)\n",
+      "checksum_failure_injected": 17,
+      "manifest_bytes": 0,
+      "source_sha": "543a64220b9d8fa627348e524e727800013a78fbccc3e5e158a0b021d9e7fbe7",
+      "sql_sha": "97dc36c22a1ade85b8dc004eb889b30bae2764ab196af819d68c6959a92e92ba",
+      "psql_calls": "fake only; no DB/SSH/Docker/network"
+    }
+  },
+  "limits": [
+    "developer evidence is uncommitted/incomplete; audit is a local byte snapshot, not a final commit manifest",
+    "full regression running/result not reviewed; no second full regression started",
+    "root did not access production/PG/Docker or build a bootJar",
+    "LIVE risk loss omission verified by source plus submitted actual cashflow log; root did not rerun PG checkRisk",
+    "screenshots inspected: closing detail and bulk stop; no root browser session",
+    "all root Java fixtures are local H2 and exchange mocks; no production order/position-loss evidence"
+  ],
+  "rulings": {
+    "F": "ec7d33ef not accepted as a final integration/deployment candidate",
+    "risk": "independent local failure-first PG investigation and minimal candidate allowed; no production writes/backfill/schema approval",
+    "H": "gate refuses success on ledger or checksum failure; fix and fault-test before acceptance",
+    "B01": "minimal common-clock seam in the three identified LIVE decision-time sites may be prepared separately with UTC-equivalence tests",
+    "continue": "preserve current full regression result; proceed independent fixes and N03 after 10:12 without a new start confirmation"
+  }
+}

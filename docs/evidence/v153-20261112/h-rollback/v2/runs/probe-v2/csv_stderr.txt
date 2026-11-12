@@ -1,0 +1,12 @@
+== csv_stderr (FAKE_PSQL=csv_stderr)
+GATE|v96=1|created=1|running=0|odd_session=0|open=0|closing=0|odd_position=0|stopped_with_open=0
+DECIDED|closing_without_decided_at=0
+VERDICT LEDGER_REFUSED (positions.csv 오류 출력 있음(positions.csv.err 보존) — 장부 미완결, 구판 복구 불가)
+exit=4 ledger=failed okword=no
+total 8
+drwxr-xr-x 1 SangJoon_Lee 197121  0 Nov 12 09:32 .
+drwxr-xr-x 1 SangJoon_Lee 197121  0 Nov 12 09:32 ..
+-rw-r--r-- 1 SangJoon_Lee 197121 61 Nov 12 09:32 LEDGER_FAILED
+-rw-r--r-- 1 SangJoon_Lee 197121 19 Nov 12 09:32 positions.csv
+-rw-r--r-- 1 SangJoon_Lee 197121 21 Nov 12 09:32 positions.csv.err
+-rw-r--r-- 1 SangJoon_Lee 197121 20 Nov 12 09:32 sessions.csv

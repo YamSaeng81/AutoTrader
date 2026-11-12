@@ -1,0 +1,50 @@
+> Task :strategy-lib:compileJava UP-TO-DATE
+> Task :strategy-lib:processResources NO-SOURCE
+> Task :strategy-lib:classes UP-TO-DATE
+> Task :strategy-lib:jar UP-TO-DATE
+> Task :core-engine:compileJava UP-TO-DATE
+> Task :core-engine:processResources NO-SOURCE
+> Task :core-engine:classes UP-TO-DATE
+> Task :core-engine:jar UP-TO-DATE
+> Task :exchange-adapter:compileJava UP-TO-DATE
+> Task :exchange-adapter:processResources NO-SOURCE
+> Task :exchange-adapter:classes UP-TO-DATE
+> Task :exchange-adapter:jar UP-TO-DATE
+> Task :web-api:compileJava
+> Task :web-api:processResources UP-TO-DATE
+> Task :web-api:classes
+> Task :web-api:compileTestJava
+> Task :web-api:processTestResources UP-TO-DATE
+> Task :web-api:testClasses
+Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+
+> Task :web-api:test
+
+E R5 ? 실제 매수→매도 커밋 뒤 위험 입력: 이익·수수료 경계·손실에서 LIVE 관례 손익과 PAPER 위험 손익 부호 일치, 연속 손실·일 손실 판정 > 일/주/월 창 ? 실제 손절 손실 1건, 1·7·30일 경계 포함·1?s 뒤 제외: PAPER alignedRiskCheck = LIVE 창 함수 FAILED
+    java.util.NoSuchElementException at R5RealCashflowRiskTest.java:366
+
+E R5 ? 실제 매수→매도 커밋 뒤 위험 입력: 이익·수수료 경계·손실에서 LIVE 관례 손익과 PAPER 위험 손익 부호 일치, 연속 손실·일 손실 판정 > 연속 손실 한도 2 ? 앞선 손실 + 실제 수수료 경계: 위험 입력은 이익이라 줄이 끊김(둘 다 0회·CB 없음), 성적 관례였다면 2회 FAILED
+    java.lang.ArrayIndexOutOfBoundsException at R5RealCashflowRiskTest.java:184
+
+E R5 ? 실제 매수→매도 커밋 뒤 위험 입력: 이익·수수료 경계·손실에서 LIVE 관례 손익과 PAPER 위험 손익 부호 일치, 연속 손실·일 손실 판정 > 연속 손실 한도 2 ? 앞선 손실(저장 행) + 실제 손절 손실: 둘 다 2회·CB 발동 FAILED
+    java.lang.AssertionError at R5RealCashflowRiskTest.java:189
+
+E R5 ? 실제 매수→매도 커밋 뒤 위험 입력: 이익·수수료 경계·손실에서 LIVE 관례 손익과 PAPER 위험 손익 부호 일치, 연속 손실·일 손실 판정 > 연속 손실 한도 2 ? 앞선 이익 + 실제 손절 손실: 둘 다 1회·CB 없음 FAILED
+    java.lang.AssertionError at R5RealCashflowRiskTest.java:189
+
+7 tests completed, 4 failed
+
+> Task :web-api:test FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':web-api:test'.
+> There were failing tests. See the report at: file:///D:/tmp/sma20p-b5cd1d0/web-api/build/reports/tests/test/index.html
+
+* Try:
+> Run with --scan to get full insights.
+
+BUILD FAILED in 20s
+11 actionable tasks: 3 executed, 8 up-to-date
+exit=1

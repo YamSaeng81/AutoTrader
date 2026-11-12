@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.RiskManagementServiceTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-11-12T02:00:12" hostname="DESKTOP-SF1KUQ5" time="0.003">
+  <properties/>
+  <testcase name="소액 세션(1만원) 30만원 손실 — 기존 버그: 3% 미만, 수정 후: 명백히 한도 초과" classname="com.cryptoautotrader.api.service.RiskManagementServiceTest" time="0.001"/>
+  <testcase name="이익이 손실을 상쇄해도 총손실 기준으로 판정 — net=+50k여도 gross loss=200k 이면 한도 평가" classname="com.cryptoautotrader.api.service.RiskManagementServiceTest" time="0.0"/>
+  <testcase name="RUNNING 세션 없으면 config.portfolioLimitKrw 로 폴백" classname="com.cryptoautotrader.api.service.RiskManagementServiceTest" time="0.0"/>
+  <testcase name="자본 사용률 80% 이하이고 손실 없으면 통과" classname="com.cryptoautotrader.api.service.RiskManagementServiceTest" time="0.001"/>
+  <testcase name="자본 사용률 80% 초과 시 신규 매수 차단" classname="com.cryptoautotrader.api.service.RiskManagementServiceTest" time="0.0"/>
+  <system-out><![CDATA[11:00:12.086 [Test worker] WARN  c.c.a.service.RiskManagementService - 리스크 체크 거부: 일일 손실 한도 초과: 3000.00% > 3.00% (일일=3000.0000%, 주간=3000.0000%, 월간=3000.0000%, 포지션=0, 자본사용률=0.00%, 드로우다운=100.00%)
+11:00:12.086 [Test worker] WARN  c.c.a.service.RiskManagementService - 리스크 체크 거부: 일일 손실 한도 초과: 5.00% > 3.00% (일일=5.0000%, 주간=5.0000%, 월간=5.0000%, 포지션=0, 자본사용률=0.00%, 드로우다운=100.00%)
+11:00:12.088 [Test worker] WARN  c.c.a.service.RiskManagementService - 리스크 체크 거부: 자본 사용률 한도 초과: 90.0% > 80.0% (추가 진입 시 과투자 위험) (일일=0%, 주간=0%, 월간=0%, 포지션=0, 자본사용률=90.00%, 드로우다운=0%)
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

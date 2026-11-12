@@ -1,0 +1,14 @@
+== sha_empty_ok (FAKE_SHA=empty_ok)
+GATE|v96=1|created=1|running=0|odd_session=0|open=0|closing=0|odd_position=0|stopped_with_open=0
+DECIDED|closing_without_decided_at=0
+VERDICT LEDGER_REFUSED (체크섬 목록이 4줄이 아님 — 장부 미완결, 구판 복구 불가)
+exit=4 ledger=failed okword=no
+total 9
+drwxr-xr-x 1 CodexSandboxOffline 197121  0 Nov 12 10:46 .
+drwxr-xr-x 1 CodexSandboxOffline 197121  0 Nov 12 10:46 ..
+-rw-r--r-- 1 CodexSandboxOffline 197121 35 Nov 12 10:46 LEDGER_FAILED
+-rw-r--r-- 1 CodexSandboxOffline 197121  0 Nov 12 10:46 SHA256SUMS
+-rw-r--r-- 1 CodexSandboxOffline 197121 97 Nov 12 10:46 gate-line.txt
+-rw-r--r-- 1 CodexSandboxOffline 197121 20 Nov 12 10:46 orders.csv
+-rw-r--r-- 1 CodexSandboxOffline 197121 19 Nov 12 10:46 positions.csv
+-rw-r--r-- 1 CodexSandboxOffline 197121 20 Nov 12 10:46 sessions.csv

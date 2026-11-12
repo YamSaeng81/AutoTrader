@@ -1,0 +1,22 @@
+--- before/LiveTradingService.java
++++ probe-only/LiveTradingService.java
+@@ -1372,7 +1372,7 @@
+                                 () -> approveQueuedEntry(sessionId, coinPair, buyReason, finalSignal,
+                                         regimeAtSignal, candlesAtSignal, signalLogRef, expiresAt),
+                                 expired -> saveSignalQuality(signalLogRef, false, expired)),
+-                                Instant.now());
++                                (entryClock != null ? entryClock.now() : Instant.now()));
+                         if (notQueued != null) {
+                             saveSignalQuality(signalLogRef, false, notQueued);
+                         }
+--- before/PaperTradingService.java
++++ probe-only/PaperTradingService.java
+@@ -1070,7 +1070,7 @@
+                             EntryPriorityRounds.KIND_PAPER, sessionId, coinPair, roundKey,
+                             () -> approveAlignedEntry(sessionId, coinPair, finalSignal, regimeAtSignal, candlesAtSignal, logRef, expiresAt),
+                             expired -> saveSignalQuality(logRef, false, expired)),
+-                            Instant.now());
++                            (entryClock != null ? entryClock.now() : Instant.now()));
+                     if (notQueued != null) saveSignalQuality(savedSignalLog, false, notQueued);
+                     return;
+                 } else if (openPos.isEmpty()) {

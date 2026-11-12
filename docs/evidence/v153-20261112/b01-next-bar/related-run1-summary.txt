@@ -1,0 +1,3 @@
+web-api tests 96 fail 1 err 0 skip 0 pass 95
+FAIL com.cryptoautotrader.api.service.RealNextBarClockTest # nextClosedBarArrivesByCommonClock()
+    org.opentest4j.AssertionFailedError: [LIVE 는 직전 닫힌 봉을 평가]  expected: 2026-11-11T23:29:29Z  but was: null

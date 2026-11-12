@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.core.selector.Ema200RegimeGateTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-11-12T01:38:51" hostname="DESKTOP-SF1KUQ5" time="0.002">
+  <properties/>
+  <testcase name="평균회귀 전략(COMPOSITE_MEANREV_BB)은 게이트 면제, 추세추종·null은 비면제" classname="com.cryptoautotrader.core.selector.Ema200RegimeGateTest" time="0.0"/>
+  <testcase name="현재가가 EMA200 위면 BUY 허용" classname="com.cryptoautotrader.core.selector.Ema200RegimeGateTest" time="0.0"/>
+  <testcase name="캔들 200개 미만이면 산출 불가 → 정상 사이즈(1.0)" classname="com.cryptoautotrader.core.selector.Ema200RegimeGateTest" time="0.0"/>
+  <testcase name="마진 내 근소 하회면 BUY 허용 (동적 세션 완화)" classname="com.cryptoautotrader.core.selector.Ema200RegimeGateTest" time="0.0"/>
+  <testcase name="캔들 200개 미만이면 EMA200 산출 불가 → 보수적으로 허용" classname="com.cryptoautotrader.core.selector.Ema200RegimeGateTest" time="0.0"/>
+  <testcase name="마진을 넘는 하회는 여전히 차단" classname="com.cryptoautotrader.core.selector.Ema200RegimeGateTest" time="0.0"/>
+  <testcase name="DOGE도 예외 없이 EMA200 아래면 BUY 차단 (2026-07-15 면제 제거 — 세션 189 5연속 손절 반증)" classname="com.cryptoautotrader.core.selector.Ema200RegimeGateTest" time="0.0"/>
+  <testcase name="EMA200 딥 하회(2·마진 초과)면 차단(0.0)" classname="com.cryptoautotrader.core.selector.Ema200RegimeGateTest" time="0.0"/>
+  <testcase name="현재가가 EMA200 아래면 BUY 차단" classname="com.cryptoautotrader.core.selector.Ema200RegimeGateTest" time="0.0"/>
+  <testcase name="coinPair가 null이어도 NPE 없이 EMA200 규칙 적용" classname="com.cryptoautotrader.core.selector.Ema200RegimeGateTest" time="0.0"/>
+  <testcase name="EMA200 근접 하회(마진~2·마진)면 감액 사이즈(0.5)" classname="com.cryptoautotrader.core.selector.Ema200RegimeGateTest" time="0.0"/>
+  <testcase name="EMA200 위(마진 이내)면 정상 사이즈(1.0)" classname="com.cryptoautotrader.core.selector.Ema200RegimeGateTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

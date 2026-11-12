@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="F 실시간 보호 전달 — 실행기 포화 중 발행 지속·시세 장부·LIVE/DYNAMIC 손절 주문 의도·중복 없음·비가격 방어·해제 후 처리" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-11-12T00:39:02" hostname="DESKTOP-SF1KUQ5" time="0.741">
+  <properties/>
+  <testcase name="작업자 바쁨·대기열 여유 — 발행 예외 없음, 해제 전 매도 0, 해제 뒤 손절 1회(대기 지연 = 앞선 작업 완료까지), 거절 0" classname="com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest" time="0.039"/>
+  <testcase name="종료된 실행기 — 발행 예외 없음, 거절 수·고정 사유·대기 유지, 처리기 호출 없음" classname="com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest" time="0.205"/>
+  <testcase name="대기열 가득 — 발행 예외 없음·시세 장부 갱신·다음 코인 전달, 해제 전 매도 0, 해제 후 새 시세 없이 LIVE·DYNAMIC 손절 1회씩, 재시세에 중복 없음" classname="com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest" time="0.057"/>
+  <testcase name="비교 — 행 잠금 400ms 중: 안 A(호출 스레드) 발행 지연 ≥ 잠금, 안 B(대기칸) 발행 지연 &lt; 잠금, 두 안 모두 손절 1회" classname="com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest" time="0.435"/>
+  <system-out><![CDATA[09:39:02.736 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest
+09:39:02.752 [market-data-2] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=8, KRW-F1X65300, 손익=-6.666700%
+[F153] 작업자 바쁨: 예외 null 매도 1 상태 CLOSING | LIVE Snapshot[engine=LIVE, rejected=0, pendingCoins=0, processed=1, replaced=0, lastRejectReason=null]
+09:39:02.981 [Test worker] WARN  c.c.a.s.RealtimeProtectionDispatcher - [실시간 보호] LIVE 실행기 포화 ? 보호 점검 접수 거절, 코인별 최신 시세 대기 유지 (대기 코인 1, 누적 거절 1)
+09:39:02.982 [Test worker] WARN  c.c.a.s.RealtimeProtectionDispatcher - [실시간 보호] DYNAMIC 실행기 포화 ? 보호 점검 접수 거절, 코인별 최신 시세 대기 유지 (대기 코인 1, 누적 거절 1)
+[F153] 종료 거절: 예외 null | Snapshot[engine=LIVE, rejected=2, pendingCoins=1, processed=0, replaced=0, lastRejectReason=실행기 포화 ? 보호 점검 접수 거절, 코인별 최신 시세 대기 유지]
+[F153] 포화 준비: 코어/떠 있던 작업자 2 · 채움 100 · 비코어 래치 2 · 작업자 4/4 · 대기열 100/100 · 끼어든 작업 0 []
+09:39:03.000 [Test worker] WARN  c.c.a.s.RealtimeProtectionDispatcher - [실시간 보호] LIVE 실행기 포화 ? 보호 점검 접수 거절, 코인별 최신 시세 대기 유지 (대기 코인 1, 누적 거절 1)
+09:39:03.001 [Test worker] WARN  c.c.a.s.RealtimeProtectionDispatcher - [실시간 보호] DYNAMIC 실행기 포화 ? 보호 점검 접수 거절, 코인별 최신 시세 대기 유지 (대기 코인 1, 누적 거절 1)
+09:39:03.007 [market-data-2] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=10, KRW-F3X36900, 손익=-6.666700%
+09:39:03.008 [market-data-3] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-F2X22000 @ 280 pnl=-6.666700% (id=8)
+09:39:03.010 [market-data-2] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=9, KRW-F2X22000, 손익=-6.666700%
+[F153] 포화 중 발행 예외: null / null / null
+[F153] 포화 중 시세 장부 a=280 b=280
+[F153] 포화 중 매도: a=0 b=0 | LIVE Snapshot[engine=LIVE, rejected=3, pendingCoins=2, processed=1, replaced=1, lastRejectReason=실행기 포화 ? 보호 점검 접수 거절, 코인별 최신 시세 대기 유지] | DYNAMIC Snapshot[engine=DYNAMIC, rejected=3, pendingCoins=2, processed=1, replaced=1, lastRejectReason=실행기 포화 ? 보호 점검 접수 거절, 코인별 최신 시세 대기 유지]
+[F153] 해제·재접수(true) 뒤 매도: a=2 b=1 상태 la=CLOSING da=CLOSING lb=CLOSING | LIVE Snapshot[engine=LIVE, rejected=3, pendingCoins=0, processed=3, replaced=1, lastRejectReason=실행기 포화 ? 보호 점검 접수 거절, 코인별 최신 시세 대기 유지] | DYNAMIC Snapshot[engine=DYNAMIC, rejected=3, pendingCoins=0, processed=3, replaced=1, lastRejectReason=실행기 포화 ? 보호 점검 접수 거절, 코인별 최신 시세 대기 유지]
+[F153] 재시세 뒤 매도: a=2 b=1 발행 예외 null 거래소 주문 증가 3
+[F153] 포화 준비: 코어/떠 있던 작업자 4 · 채움 100 · 비코어 래치 0 · 작업자 4/4 · 대기열 100/100 · 끼어든 작업 0 []
+09:39:03.056 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=11, KRW-F4X86500, 손익=-6.666700%
+[F153] 포화 준비: 코어/떠 있던 작업자 4 · 채움 100 · 비코어 래치 0 · 작업자 4/4 · 대기열 100/100 · 끼어든 작업 0 []
+09:39:03.465 [market-data-2] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=12, KRW-F5X49600, 손익=-6.666700%
+[F153] 비교(잠금 400ms): 안 A 발행 403ms 매도 1 | 안 B 발행 0ms 매도 1
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

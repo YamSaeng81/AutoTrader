@@ -1,0 +1,28 @@
+[WebServer] 
+[WebServer] -----
+[WebServer] FATAL: An unexpected Turbopack error occurred. A panic log has been written to C:\Users\SANGJO~1\AppData\Local\Temp\next-panic-82b2ca7351e31c68639222510b5a7023.log.
+[WebServer] 
+[WebServer] To help make Turbopack better, report this error by clicking here: https://github.com/vercel/next.js/discussions/new?category=turbopack-error-report&title=Turbopack%20Error%3A%20Symlink%20node_modules%20is%20invalid%2C%20it%20points%20out%20of%20the%20filesystem%20root&body=Turbopack%20version%3A%20%6023c46498%60%0ANext.js%20version%3A%20%600.0.0%60%0A%0AError%20message%3A%0A%60%60%60%0ATurbopack%20Error%3A%20Symlink%20node_modules%20is%20invalid%2C%20it%20points%20out%20of%20the%20filesystem%20root%0A%60%60%60&labels=Turbopack,Turbopack%20Panic%20Backtrace
+[WebServer] -----
+[WebServer] 
+[WebServer] Error [TurbopackInternalError]: Symlink node_modules is invalid, it points out of the filesystem root
+[WebServer] 
+[WebServer] Debug info:
+[WebServer] - Execution of get_entrypoints_with_issues_operation failed
+[WebServer] - Execution of EntrypointsOperation::new failed
+[WebServer] - Execution of Project::entrypoints failed
+[WebServer] - Execution of AppProject::routes failed
+[WebServer] - Execution of directory_tree_to_entrypoints_internal failed
+[WebServer] - Execution of directory_tree_to_loader_tree failed
+[WebServer] - Execution of try_get_next_package failed
+[WebServer] - Execution of *ResolveResult::first_source failed
+[WebServer] - Execution of resolve failed
+[WebServer] - Execution of resolve_internal failed
+[WebServer] - Execution of find_package failed
+[WebServer] - Symlink node_modules is invalid, it points out of the filesystem root
+[WebServer]     at ignore-listed frames {
+[WebServer]   location: undefined
+[WebServer] }
+Error: Process from config.webServer was not able to start. Exit code: 1
+
+exit=1

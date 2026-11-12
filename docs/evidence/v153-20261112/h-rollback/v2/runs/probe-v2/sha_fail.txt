@@ -1,0 +1,15 @@
+== sha_fail (FAKE_SHA=fail)
+GATE|v96=1|created=1|running=0|odd_session=0|open=0|closing=0|odd_position=0|stopped_with_open=0
+DECIDED|closing_without_decided_at=0
+FAKE checksum failure
+VERDICT LEDGER_REFUSED (체크섬 생성 실패 — 장부 미완결, 구판 복구 불가)
+exit=4 ledger=failed okword=no
+total 9
+drwxr-xr-x 1 SangJoon_Lee 197121  0 Nov 12 09:32 .
+drwxr-xr-x 1 SangJoon_Lee 197121  0 Nov 12 09:32 ..
+-rw-r--r-- 1 SangJoon_Lee 197121 24 Nov 12 09:32 LEDGER_FAILED
+-rw-r--r-- 1 SangJoon_Lee 197121  0 Nov 12 09:32 SHA256SUMS
+-rw-r--r-- 1 SangJoon_Lee 197121 97 Nov 12 09:32 gate-line.txt
+-rw-r--r-- 1 SangJoon_Lee 197121 20 Nov 12 09:32 orders.csv
+-rw-r--r-- 1 SangJoon_Lee 197121 19 Nov 12 09:32 positions.csv
+-rw-r--r-- 1 SangJoon_Lee 197121 20 Nov 12 09:32 sessions.csv

@@ -1,0 +1,126 @@
+{
+  "refs": {
+    "main": "24a7018e9f27a612bf2f8c6cd2d970d756edd4ab",
+    "F": "9d92a0f7e9c5fdc4d55251d7e3335e4f616f34de",
+    "loss": "0b23b44ebc5aae3b6f9e01de19e768233419e43e",
+    "B01": "8e81d0b429f25ba05413d1c2257f438e6382d610",
+    "integration": "9bce7dc114096ba72f656720554e14831e852f5f",
+    "production": "b5cd1d0d47ea68ffe6ff476b89cf9fca5bef1b88"
+  },
+  "scope": "local uncommitted evidence snapshot; no committed-blob or production verification claimed",
+  "captured_files": 436,
+  "submitted_xml": {
+    "F2_before": {
+      "classes": 1,
+      "tests": 11,
+      "failures": 5,
+      "errors": 0,
+      "skipped": 0
+    },
+    "F2_after": {
+      "classes": 1,
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "F2_related": {
+      "classes": 12,
+      "tests": 142,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "loss_before": {
+      "classes": 1,
+      "tests": 7,
+      "failures": 6,
+      "errors": 0,
+      "skipped": 0
+    },
+    "loss_after": {
+      "classes": 1,
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "loss_related": {
+      "classes": 12,
+      "tests": 60,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "integration_related": {
+      "classes": 36,
+      "tests": 293,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "PG_including_separate_base_replay": {
+      "classes": 8,
+      "tests": 52,
+      "failures": 2,
+      "errors": 0,
+      "skipped": 0
+    },
+    "integration_PG_final": {
+      "classes": 7,
+      "tests": 36,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0
+    },
+    "PG_base": {
+      "classes": 1,
+      "tests": 16,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "N03": {
+    "four_files": {
+      "20261112-1000.txt": {
+        "local": "abb9641e085ba42d35cd7d7001a6dd71637d535f5229a0ea732f332825e3cba5",
+        "matches_local_copy_list": true,
+        "listed_in_preserved_server_output": true
+      },
+      "20261112-1000.txt.msg": {
+        "local": "7fdc9bb4cef4f0665f28f3486ac9af3ca3b6f15f95750eed8d984f5c45b60c02",
+        "matches_local_copy_list": true,
+        "listed_in_preserved_server_output": true
+      },
+      "20261112-1000.txt.raw": {
+        "local": "7273158d5bda9206680add3da10411bc539176662003fb2629705279549ca173",
+        "matches_local_copy_list": true,
+        "listed_in_preserved_server_output": true
+      },
+      "last_send": {
+        "local": "41baaa4999750b607b450bdab2650caeca77a1cbcfb8574004942ff6ce6a49b7",
+        "matches_local_copy_list": true,
+        "listed_in_preserved_server_output": true
+      }
+    },
+    "same_error_bodies_after_removing_docker_prefix": 23,
+    "raw_error_lines_byte_equal": false,
+    "read_time": "2026-11-12 10:25:36~10:25:40 KST"
+  },
+  "root_executed": {
+    "F2_dispatcher_fairness": "1/1, mocked handlers and deterministic queued executor, no Spring/DB/order proof",
+    "H_v2_fake_commands": "10/10, original submitted probe and gate; no DB/network/Docker",
+    "D_original_B01": "1 failed: LIVE marker null before close",
+    "D_hour_aligned_fixture": "1 failed at actual BUY; close boundary markers pass",
+    "D_hour_aligned_diagnostic": "same remaining failure; actual LIVE/PAPER BUY signals but no round outcomes",
+    "D_submission_clock_probe": "1/1: scratch-only LIVE/PAPER submit timestamps use EntryClock, default UTC; same hour-aligned D assertions unchanged"
+  },
+  "root_not_run": [
+    "production/SSH/DB/Docker/PG",
+    "developer full regression",
+    "142/60/293 related suites",
+    "bootJar or frontend build",
+    "commit or push"
+  ]
+}

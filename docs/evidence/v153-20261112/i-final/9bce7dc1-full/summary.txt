@@ -1,0 +1,38 @@
+core-engine tests 298 fail 0 err 0 skip 7 pass 291
+exchange-adapter tests 11 fail 0 err 0 skip 0 pass 11
+strategy-lib tests 113 fail 0 err 0 skip 0 pass 113
+web-api tests 1273 fail 17 err 0 skip 42 pass 1214
+FAIL com.cryptoautotrader.api.service.SharedLoopRoundsActiveTest # 대조(새 9 없음) → 처리(새 9) → 대조 재실행: 기존 76 결정·REAL 후보 결과·REAL 주문 같음, PAPER 후보는 모든 REAL 뒤
+    org.opentest4j.AssertionFailedError: [대조1(새 9 없음) REAL 후보 결과]  expected: "진입"  but was: "후보 없음"
+FAIL com.cryptoautotrader.api.service.SharedMarketDataExecutorSaturationTest # saturateReleaseRecoverAndQueueDelay()
+    org.opentest4j.AssertionFailedError: [대기열 가득]  expected: 0  but was: 100
+FAIL com.cryptoautotrader.api.service.Sma20LiveAlignedGapsTest # B01 실제 매수 → +0.32% 전략 SELL 경계 → 매도 → 잔액: 판단 평균가는 둘 다 체결가, 가용 잔액 같음, 수수료 각 1회
+    java.lang.IndexOutOfBoundsException: Index 0 out of bounds for length 0
+FAIL com.cryptoautotrader.api.service.Sma20LiveAlignedGapsTest # B03 위험 관문 — 연속 손실 한도면 둘 다 세션 정지(서킷 브레이커), 일일 손실 한도면 승인 거절(모의 계좌 입력, REAL 풀 불변)
+    java.lang.AssertionError:  Expecting actual:   "후보 없음" to start with:   "리스크 한도: 일일 손실 한도 초과" 
+FAIL com.cryptoautotrader.api.service.Sma20LiveAlignedGapsTest # B05 승인 E검사 통과 뒤·매수 저장 전에 정지 커밋 — 정지된 세션에 열린 포지션·부분 반영이 남지 않는다
+    java.lang.AssertionError: 승인이 E검사를 지나 매수 직전에 도달 — 15초 안에 도달하지 않았다
+FAIL com.cryptoautotrader.api.service.Sma20LiveAlignedPaperSameInputTest # A04a E 직전 — 둘 다 진입
+    java.lang.IndexOutOfBoundsException: Index 0 out of bounds for length 0
+FAIL com.cryptoautotrader.api.service.Sma20LiveAlignedPaperSameInputTest # A11 같은 체결가 대역 — LIVE 매수 주문을 PAPER 체결가로 정산(운영 폴러 checkOrderStatus): 잔액 같음, 수량·수수료는 수수료 기준 차이
+    java.lang.IndexOutOfBoundsException: Index 0 out of bounds for length 0
+FAIL com.cryptoautotrader.api.service.Sma20LiveAlignedPaperSameInputTest # A09b 공유 풀 총 한도 부족 — LIVE 만 막힘(REAL 계좌 관문 — 남은 차이)
+    org.opentest4j.AssertionFailedError: [풀 한도 — 실행 전 기대와 관측이 다르다(기대값을 고치지 말고 보고)]  Expecting value to be true but was false
+FAIL com.cryptoautotrader.api.service.Sma20LiveAlignedPaperSameInputTest # A01 정상 진입 — 평가 직후 둘 다 대기, 승인 뒤 둘 다 진입·같은 매수금·같은 손절/익절 거리, 기준가 차이는 슬리피지뿐
+    java.lang.AssertionError:  Expected size: 1 but was: 0 in: []
+FAIL com.cryptoautotrader.api.service.Sma20LiveAlignedPaperSameInputTest # A09a 전역 위험 한도 거절 — LIVE 만 막힘(REAL 계좌 관문, 모의 계좌 대응물 없음 — 남은 차이)
+    org.opentest4j.AssertionFailedError: [위험 한도 — 실행 전 기대와 관측이 다르다(기대값을 고치지 말고 보고)]  Expecting value to be true but was false
+FAIL com.cryptoautotrader.api.service.Sma20LiveAlignedPaperSameInputTest # A05 신호 뒤 +2% — 둘 다 승인 시각 가격 기준(PAPER 는 거기에 슬리피지)
+    java.lang.AssertionError:  Expected size: 1 but was: 0 in: []
+FAIL com.cryptoautotrader.api.service.Sma20LivePaperSameInputTest # S09b 공유 풀 총 한도 부족 — LIVE 예약 거절, PAPER 진입(독립 가상 잔액)
+    java.lang.AssertionError:  Expected size: 1 but was: 0 in: []
+FAIL com.cryptoautotrader.api.service.Sma20LivePaperSameInputTest # S04b 승인 실행 만료 E 경계(E 정각) — LIVE 만료로 진입 없음, PAPER 진입
+    java.lang.AssertionError:  Expected size: 1 but was: 0 in: []
+FAIL com.cryptoautotrader.api.service.Sma20LivePaperSameInputTest # S09a 전역 위험 한도 거절 — LIVE 승인 시각 checkRisk 거절로 진입 없음, PAPER 진입
+    java.lang.AssertionError:  Expected size: 1 but was: 0 in: []
+FAIL com.cryptoautotrader.api.service.Sma20LivePaperSameInputTest # S01 정상 진입 — 결정·매수금 같음, 시점(PAPER 평가 즉시 / LIVE 회차 승인 뒤)과 기준가(PAPER 슬리피지 0.1%) 다름
+    java.lang.AssertionError:  Expected size: 1 but was: 0 in: []
+FAIL com.cryptoautotrader.api.service.Sma20LivePaperSameInputTest # S05 신호 뒤 가격 변화(평가와 승인 사이 +2%) — 매수금 같음, LIVE 기준가는 승인 시각 가격, PAPER 는 평가 시각 가격
+    java.lang.AssertionError:  Expected size: 1 but was: 0 in: []
+FAIL com.cryptoautotrader.api.service.Sma20LivePaperSameInputTest # S04a 승인 실행 만료 E 직전(E−1ms) — LIVE 진입, PAPER 는 이미 평가 시각에 진입
+    org.opentest4j.AssertionFailedError: [E 직전 진입 — 실행 전 기대와 관측이 다르다(기대값을 고치지 말고 보고)]  Expecting value to be true but was false

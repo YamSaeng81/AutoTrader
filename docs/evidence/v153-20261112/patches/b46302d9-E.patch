@@ -1,0 +1,251 @@
+From b46302d911c3b9d3f4f3792780d8d46dd17d273d Mon Sep 17 00:00:00 2001
+From: YamSaeng81 <manicstr81@gmail.com>
+Date: Thu, 12 Nov 2026 08:43:21 +0900
+Subject: [PATCH] =?UTF-8?q?E=20=EB=B3=B4=EC=99=84=20=E2=80=94=20=EA=B0=99?=
+ =?UTF-8?q?=EC=9D=80=20=EC=84=B8=EC=85=98=20=EC=97=B0=EC=86=8D=20=EC=86=90?=
+ =?UTF-8?q?=EC=8B=A4=20=ED=95=9C=EB=8F=84=202(=EC=86=90=EC=8B=A4=E2=86=92?=
+ =?UTF-8?q?=EC=86=90=EC=8B=A4=202=C2=B7CB,=20=EC=86=90=EC=8B=A4=E2=86=92?=
+ =?UTF-8?q?=EC=88=98=EC=88=98=EB=A3=8C=20=EA=B2=BD=EA=B3=84=200,=20?=
+ =?UTF-8?q?=EC=9D=B4=EC=9D=B5=E2=86=92=EC=86=90=EC=8B=A4=201,=20LIVE=3DPAP?=
+ =?UTF-8?q?ER)=C2=B7PAPER=20=EC=9D=BC/=EC=A3=BC/=EC=9B=94=20=EC=B0=BD=20?=
+ =?UTF-8?q?=EA=B2=BD=EA=B3=84(=ED=8F=AC=ED=95=A8=20=E2=89=A5,=201=C2=B5s?=
+ =?UTF-8?q?=20=EB=92=A4=20=EC=A0=9C=EC=99=B8)=20=E2=80=94=20=EC=84=A0?=
+ =?UTF-8?q?=ED=83=9D=20=EB=AA=A8=EB=93=9C=20alignedRiskCheck=20=EC=B0=BD?=
+ =?UTF-8?q?=20=EA=B8=B0=EC=A4=80=20=EC=8B=9C=EA=B0=81=EC=9D=84=20=EA=B3=B5?=
+ =?UTF-8?q?=ED=86=B5=20=EC=8B=9C=EA=B3=84=EB=A1=9C(=EC=9A=B4=EC=98=81=20?=
+ =?UTF-8?q?=EA=B8=B0=EB=B3=B8=20UTC)=20(=EC=B4=9D=EA=B4=84=20v1.153=20E)?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- 수정 전 6/7(창 시험 +1일+1µs 에서 PAPER 가 시계를 따르지 않음) → 수정 후 7/7.
+- 앞선 거래 1건은 저장 행(엔진 경로 아님) — 같은 세션 두 번째 진입은 다음 일봉(24h)이 필요하고 캔들 조회 상한·최신성·보유 시간이 실제 시각이라 시험 안에서 만들 수 없다.
+- 관측: LIVE 세션 매도는 OrderExecutionEngine.handleSellFill 이 trade_log FILL 기록 전에 반환 → LIVE 전역 checkRisk 의 일/주/월 손실 창(sumRealizedLossSince)에 세션 손실이 들어가지 않는다. 제품 수정 없음(총괄 판단 대상).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ .../api/service/PaperTradingService.java      |   3 +-
+ .../api/service/R5RealCashflowRiskTest.java   | 164 +++++++++++++++++-
+ 2 files changed, 161 insertions(+), 6 deletions(-)
+
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java
+index b460b572..3352fe61 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java
+@@ -1530,7 +1530,8 @@ public class PaperTradingService {
+             return RiskCheckResult.reject("초기 자본이 0 — 신규 진입 차단");
+         }
+         List<PaperPositionEntity> closed = positionRepo.findBySessionIdAndStatus(s.getId(), "CLOSED");
+-        Instant now = Instant.now();
++        // 창의 기준 시각은 공통 시계(운영 기본 시스템 UTC — 동작 같음). 시험이 일/주/월 경계를 시계로 옮길 수 있게 한다 (2026-11-12, 총괄 v1.153 E).
++        Instant now = entryClock != null ? entryClock.now() : Instant.now();
+         BigDecimal daily = alignedGrossLossPct(closed, now.minus(1, ChronoUnit.DAYS), cap);
+         BigDecimal weekly = alignedGrossLossPct(closed, now.minus(7, ChronoUnit.DAYS), cap);
+         BigDecimal monthly = alignedGrossLossPct(closed, now.minus(30, ChronoUnit.DAYS), cap);
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/R5RealCashflowRiskTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/R5RealCashflowRiskTest.java
+index 0ad2977d..36d65f9a 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/R5RealCashflowRiskTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/R5RealCashflowRiskTest.java
+@@ -66,13 +66,16 @@ class R5RealCashflowRiskTest extends AbstractSma20SameInputFixture {
+ 
+     @BeforeEach
+     void saveRisk() {
+-        savedRisk = jdbc.queryForMap("SELECT id, consecutive_loss_limit, max_daily_loss_pct, circuit_breaker_enabled FROM risk_config ORDER BY id DESC LIMIT 1");
++        savedRisk = jdbc.queryForMap("SELECT id, consecutive_loss_limit, max_daily_loss_pct, max_weekly_loss_pct, max_monthly_loss_pct,"
++                + " circuit_breaker_enabled FROM risk_config ORDER BY id DESC LIMIT 1");
+     }
+ 
+     @AfterEach
+     void restoreRisk() {
+-        jdbc.update("UPDATE risk_config SET consecutive_loss_limit = ?, max_daily_loss_pct = ?, circuit_breaker_enabled = ? WHERE id = ?",
+-                savedRisk.get("consecutive_loss_limit"), savedRisk.get("max_daily_loss_pct"), savedRisk.get("circuit_breaker_enabled"), savedRisk.get("id"));
++        jdbc.update("UPDATE risk_config SET consecutive_loss_limit = ?, max_daily_loss_pct = ?, max_weekly_loss_pct = ?, max_monthly_loss_pct = ?,"
++                        + " circuit_breaker_enabled = ? WHERE id = ?",
++                savedRisk.get("consecutive_loss_limit"), savedRisk.get("max_daily_loss_pct"), savedRisk.get("max_weekly_loss_pct"),
++                savedRisk.get("max_monthly_loss_pct"), savedRisk.get("circuit_breaker_enabled"), savedRisk.get("id"));
+     }
+ 
+     private PaperTradingService paperTarget() {
+@@ -122,21 +125,29 @@ class R5RealCashflowRiskTest extends AbstractSma20SameInputFixture {
+ 
+     /** 실제 매수(공통 시계 마감 정각) → 같은 체결가 → 실제 실시간 청산(exitFactor × 체결가) → LIVE 체결·정산. */
+     private Trip roundTrip(String exitFactor, boolean viaStopLoss) {
++        return roundTrip(exitFactor, viaStopLoss, (l, p) -> { });
++    }
++
++    /** {@code before}: 세션 생성 직후·매수 전에 부른다(앞선 거래 저장 행 등). */
++    private Trip roundTrip(String exitFactor, boolean viaStopLoss,
++                           java.util.function.BiConsumer<LiveTradingSessionEntity, VirtualBalanceEntity> before) {
+         List<Candle> cs = uptrend(lastOpen);
+         insertCache(BTC, cs);
+         LiveTradingSessionEntity l = live(BTC);
+         VirtualBalanceEntity p = paper(BTC);
++        before.accept(l, p);
+         entryClock.setForTest(Clock.fixed(lastOpen.plus(1, ChronoUnit.HOURS), ZoneOffset.UTC));
+         evaluateLive(l);
+         runPaper(p);
+         approveRound();
+         awaitDrained();
+-        PaperPositionEntity pp = paperPositions(p).get(0);
++        // 앞선 거래 저장 행(CLOSED)이 있을 수 있다 — 이번 매수의 OPEN 포지션을 고른다(1회차는 get(0) 으로 앞선 행을 집어 실패, 시험 코드 결함).
++        PaperPositionEntity pp = paperPositions(p).stream().filter(x -> "OPEN".equals(x.getStatus())).findFirst().orElseThrow();
+         OrderEntity buy = liveOrders(l, "BUY").get(0);
+         Mockito.doReturn(buyFilled(buy, pp.getEntryPrice())).when(upbitOrderClient).getOrder(buy.getExchangeOrderId());
+         orderExecutionEngine.checkOrderStatus(buy.getId());
+         awaitDrained();
+-        PositionEntity lp = livePositions(l).get(0);
++        PositionEntity lp = livePositions(l).stream().filter(x -> "OPEN".equals(x.getStatus())).findFirst().orElseThrow();
+         BigDecimal fill = pp.getEntryPrice();
+         BigDecimal exit = fill.multiply(new BigDecimal(exitFactor)).setScale(0, RoundingMode.HALF_UP);
+ 
+@@ -244,4 +255,147 @@ class R5RealCashflowRiskTest extends AbstractSma20SameInputFixture {
+         RiskCheckResult r = ReflectionTestUtils.invokeMethod(paperTarget(), "alignedRiskCheck", t.paper());
+         assertThat(r.isApproved()).as("일 손실 0.01% 초과 — 거절").isFalse();
+     }
++
++    // ── v1.153 E 보완: 같은 세션 연속 손실 한도 2 · 일/주/월 창 경계 (2026-11-12) ──────────────────────────────
++
++    @Autowired private com.cryptoautotrader.api.repository.TradeLogRepository tradeLogRepository;
++
++    /**
++     * 앞선 거래 1건 — <b>저장 행</b>(엔진 경로 아님). 일봉 전략의 같은 세션 두 번째 진입은 다음 일봉(24시간 뒤)이어야 하는데, 캔들 조회 상한·
++     * 최신성 관문·보유 시간이 실제 시각이라 시험 안에서 만들 수 없다(B01 다음 매도 봉과 같은 막힘, 인계에 분리). 그래서 마지막 거래만 엔진 실제 경로다.
++     * PAPER 는 투입금 = 수량 × 평균가로 두어 위험 입력 = 기록 손익. 잔액·총자산은 바꾸지 않는다.
++     */
++    private void priorClosed(LiveTradingSessionEntity l, VirtualBalanceEntity p, BigDecimal pnl, Instant closedAt) {
++        BigDecimal entry = new BigDecimal("12000000");
++        BigDecimal size = CAP.divide(entry, 8, RoundingMode.DOWN);
++        BigDecimal invested = size.multiply(entry);
++        positionRepository.save(PositionEntity.builder()
++                .coinPair(l.getCoinPair()).side("BUY").entryPrice(entry).avgPrice(entry).size(size)
++                .investedKrw(invested).entryAllocationKrw(invested).realizedPnl(pnl).unrealizedPnl(BigDecimal.ZERO)
++                .status("CLOSED").sessionId(l.getId()).sessionKind("LIVE")
++                .openedAt(closedAt.minus(5, ChronoUnit.HOURS)).closedAt(closedAt).build());
++        paperPositionRepo.save(PaperPositionEntity.builder()
++                .sessionKind("PAPER").sessionId(p.getId()).coinPair(p.getCoinPair()).side("BUY")
++                .entryPrice(entry).avgPrice(entry).size(size).positionFee(BigDecimal.ZERO).investedKrw(invested)
++                .realizedPnl(pnl).status("CLOSED").openedAt(closedAt.minus(5, ChronoUnit.HOURS)).closedAt(closedAt).build());
++    }
++
++    private static int streak(List<BigDecimal> newestFirst) {
++        int n = 0;
++        for (BigDecimal v : newestFirst) {
++            if (v != null && v.signum() < 0) n++; else break;
++        }
++        return n;
++    }
++
++    /** 한도 2 에서 두 엔진 연속 손실 수·CB 를 커밋된 행으로 판정. PAPER 성적 실현(종전 관례) 줄도 참고로 남긴다. */
++    private void judgeStreak(String name, Trip t, int expectStreak, boolean expectTriggered) {
++        jdbc.update("UPDATE risk_config SET consecutive_loss_limit = 2, circuit_breaker_enabled = true WHERE id = ?", savedRisk.get("id"));
++        List<PositionEntity> lc = positionRepository.findBySessionKindAndSessionIdAndStatusOrderByClosedAtDesc("LIVE", t.live().getId(), "CLOSED");
++        List<PaperPositionEntity> pc = paperPositionRepo.findBySessionIdAndStatus(t.paper().getId(), "CLOSED").stream()
++                .sorted(java.util.Comparator.comparing(PaperPositionEntity::getClosedAt).reversed()).toList();
++        int liveStreak = streak(lc.stream().map(PositionEntity::getRealizedPnl).toList());
++        int paperStreak = streak(pc.stream().map(PaperTradingService::riskPnl).toList());
++        int paperScoreStreak = streak(pc.stream().map(PaperPositionEntity::getRealizedPnl).toList());
++        var liveCb = riskManagementService.checkCircuitBreaker(liveRepo.findById(t.live().getId()).orElseThrow());
++        CircuitBreakerResult paperCb = ReflectionTestUtils.invokeMethod(paperTarget(), "alignedCircuitBreaker",
++                balanceRepo.findById(t.paper().getId()).orElseThrow());
++        System.out.println(String.format("[R5-연속] %s: 행 LIVE %s / PAPER 위험 %s / PAPER 성적 %s | 연속 손실 LIVE %d / PAPER %d (성적 관례였다면 %d)"
++                        + " | 한도2 CB LIVE=%s(%s) PAPER=%s(%s)",
++                name, lc.stream().map(PositionEntity::getRealizedPnl).toList(), pc.stream().map(PaperTradingService::riskPnl).toList(),
++                pc.stream().map(PaperPositionEntity::getRealizedPnl).toList(), liveStreak, paperStreak, paperScoreStreak,
++                liveCb.isTriggered(), liveCb.getReason(), paperCb.isTriggered(), paperCb.getReason()));
++        row("R5 연속 " + name, "연속 손실 수", liveStreak, paperStreak, true);
++        row("R5 연속 " + name, "한도2 CB", liveCb.isTriggered(), paperCb.isTriggered(), true);
++        assertThat(lc).hasSize(2);
++        assertThat(pc).hasSize(2);
++        assertThat(liveStreak).as(name + " LIVE 연속 손실").isEqualTo(expectStreak);
++        assertThat(paperStreak).as(name + " PAPER 연속 손실(위험 입력)").isEqualTo(expectStreak);
++        assertThat(liveCb.isTriggered()).as(name + " LIVE CB").isEqualTo(expectTriggered);
++        assertThat(paperCb.isTriggered()).as(name + " PAPER CB").isEqualTo(expectTriggered);
++    }
++
++    private Trip withPrior(String exitFactor, boolean viaStopLoss, String priorPnl) {
++        return roundTrip(exitFactor, viaStopLoss, (l, p) -> {
++            // 한도 2 는 매수 전부터 — 앞선 1건만으로는 진입이 막히지 않는다(1 < 2).
++            jdbc.update("UPDATE risk_config SET consecutive_loss_limit = 2, circuit_breaker_enabled = true WHERE id = ?", savedRisk.get("id"));
++            priorClosed(l, p, new BigDecimal(priorPnl), lastOpen.minus(2, ChronoUnit.DAYS));
++        });
++    }
++
++    @Test
++    @DisplayName("연속 손실 한도 2 — 앞선 손실(저장 행) + 실제 손절 손실: 둘 다 2회·CB 발동")
++    void consecutiveLossThenLoss() {
++        judgeStreak("손실→손실", withPrior("0.99", true, "-150"), 2, true);
++    }
++
++    @Test
++    @DisplayName("연속 손실 한도 2 — 앞선 손실 + 실제 수수료 경계: 위험 입력은 이익이라 줄이 끊김(둘 다 0회·CB 없음), 성적 관례였다면 2회")
++    void consecutiveLossThenFeeBoundary() {
++        Trip t = withPrior("1.002", false, "-150");
++        judgeStreak("손실→수수료 경계", t, 0, false);
++        assertThat(t.pp().getRealizedPnl().signum()).as("성적 실현은 음수(종전 관례면 연속 2회)").isNegative();
++    }
++
++    @Test
++    @DisplayName("연속 손실 한도 2 — 앞선 이익 + 실제 손절 손실: 둘 다 1회·CB 없음")
++    void consecutiveWinThenLoss() {
++        judgeStreak("이익→손실", withPrior("0.99", true, "150"), 1, false);
++    }
++
++    private static String window(String reason, boolean approved) {
++        if (approved || reason == null) return "창 밖";
++        if (reason.startsWith("일일 손실")) return "일";
++        if (reason.startsWith("주간 손실")) return "주";
++        if (reason.startsWith("월간 손실")) return "월";
++        return "창 밖(" + reason + ")";
++    }
++
++    /**
++     * 실제 손절 손실 1건을 시계로 1일·7일·30일 경계(포함)와 1µs 뒤(제외)에서 본다. PAPER 는 제품 {@code alignedRiskCheck}(시계 = EntryClock).
++     *
++     * <p>LIVE 전역 {@code checkRisk} 의 창 함수 {@code calculateLossPct} 는 trade_log FILL({@code created_at >= since})을 합산하는데,
++     * <b>세션 연결 매도는 {@code OrderExecutionEngine.handleSellFill} 이 FILL 기록 전에 반환</b>하고 정산은
++     * {@code reconcileClosingPositions} 가 trade_log 없이 한다(1회차에서 FILL 행을 찾지 못해 알게 됨). 그래서 LIVE 쪽은 같은 T 의 창 값을
++     * <b>관측만</b> 남기고 단언하지 않는다 — 같아야 한다는 시험이 아니라 현행 공백의 기록이다(제품 수정 없음, 총괄 판단 대상).</p>
++     */
++    @Test
++    @DisplayName("일/주/월 창 — 실제 손절 손실 1건, 1·7·30일 경계 포함·1µs 뒤 제외(PAPER alignedRiskCheck), LIVE 창 함수는 세션 매도 FILL 부재 관측")
++    void lossWindows() {
++        Trip t = roundTrip("0.99", true);
++        Instant paperAnchor = paperPositionRepo.findById(t.pp().getId()).orElseThrow().getClosedAt();
++        Instant liveClosed = positionRepository.findById(t.lp().getId()).orElseThrow().getClosedAt();
++        Long sellId = liveOrders(t.live(), "SELL").get(0).getId();
++        Long buyId = liveOrders(t.live(), "BUY").get(0).getId();
++        var logs = tradeLogRepository.findAll().stream()
++                .filter(x -> sellId.equals(x.getOrderId()) || buyId.equals(x.getOrderId())).toList();
++        long sellFill = logs.stream().filter(x -> sellId.equals(x.getOrderId()) && "FILL".equals(x.getEventType())).count();
++        System.out.println("[R5-창] 기준 시각: PAPER 청산 " + paperAnchor + " / LIVE 포지션 청산 " + liveClosed
++                + " | LIVE 세션 매수·매도 주문의 trade_log 행 " + logs.size() + "건, 매도 FILL " + sellFill + "건 — "
++                + logs.stream().map(x -> x.getOrderId() + ":" + x.getEventType() + ":" + x.getNewState()).toList());
++        jdbc.update("UPDATE risk_config SET max_daily_loss_pct = 0.01, max_weekly_loss_pct = 0.01, max_monthly_loss_pct = 0.01 WHERE id = ?",
++                savedRisk.get("id"));
++        record Probe(String label, java.time.Duration offset, String expect) { }
++        java.time.Duration us = java.time.Duration.ofNanos(1000);
++        List<Probe> probes = List.of(
++                new Probe("0 청산 시각", java.time.Duration.ZERO, "일"),
++                new Probe("1 +1일(경계 포함)", java.time.Duration.ofDays(1), "일"),
++                new Probe("2 +1일+1µs", java.time.Duration.ofDays(1).plus(us), "주"),
++                new Probe("3 +7일(경계 포함)", java.time.Duration.ofDays(7), "주"),
++                new Probe("4 +7일+1µs", java.time.Duration.ofDays(7).plus(us), "월"),
++                new Probe("5 +30일(경계 포함)", java.time.Duration.ofDays(30), "월"),
++                new Probe("6 +30일+1µs", java.time.Duration.ofDays(30).plus(us), "창 밖"));
++        for (Probe pr : probes) {
++            entryClock.setForTest(Clock.fixed(paperAnchor.plus(pr.offset()), ZoneOffset.UTC));
++            RiskCheckResult pr2 = ReflectionTestUtils.invokeMethod(paperTarget(), "alignedRiskCheck",
++                    balanceRepo.findById(t.paper().getId()).orElseThrow());
++            String paperWin = window(pr2.getReason(), pr2.isApproved());
++            // LIVE 창 함수(calculateLossPct)는 PG 전용 JSON 연산자(->>)라 H2 에서 실행되지 않는다(1회차 SQL 문법 오류로 확인, 원문 보존).
++            // 합산 대상인 세션 매도 FILL 이 0건이므로 LIVE 는 어느 시각이든 이 손실을 창에 넣을 수 없다 — 관측으로만 남긴다.
++            System.out.println(String.format("[R5-창] %s: PAPER %s (%s) | LIVE 세션 매도 FILL %d건(관측)", pr.label(), paperWin,
++                    pr2.isApproved() ? "승인" : pr2.getReason(), sellFill));
++            row("R5 창", pr.label(), "FILL " + sellFill + "건(관측)", paperWin, false);
++            assertThat(paperWin).as(pr.label() + " PAPER").isEqualTo(pr.expect());
++        }
++    }
+ }
+-- 
+2.51.1.windows.1
+

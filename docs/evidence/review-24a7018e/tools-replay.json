@@ -1,0 +1,80 @@
+[
+  {
+    "run": "run-a",
+    "input": "ok",
+    "completed": 8,
+    "csv_rows": 8
+  },
+  {
+    "run": "run-a",
+    "input": "neg_fp_missing.db_check.out",
+    "rejected": true,
+    "reason": "P2A: 규칙 지문이 없거나 복수이거나 형식이 다르다"
+  },
+  {
+    "run": "run-a",
+    "input": "neg_fp_multiple.db_check.out",
+    "rejected": true,
+    "reason": "P2A: 규칙 지문이 없거나 복수이거나 형식이 다르다"
+  },
+  {
+    "run": "run-a",
+    "input": "neg_one_row_1us.db_check.out",
+    "rejected": true,
+    "reason": "DB started_at 이 저장 후 API 시작 시각과 다르다(다른 DB·다른 생성 회차의 같은 ID 일 수 있다): P3B"
+  },
+  {
+    "run": "run-a",
+    "input": "neg_stored_ratio.db_check.out",
+    "rejected": true,
+    "reason": "P2A: DB 저장값 불일치 — 투자 비율"
+  },
+  {
+    "run": "run-a",
+    "input": "neg_trade_before_t0.db_check.out",
+    "rejected": true,
+    "reason": "T0 이전 주문·포지션이 있다 — 동시 시작이 성립하지 않는다"
+  },
+  {
+    "run": "run-b-otherdb",
+    "input": "ok",
+    "completed": 8,
+    "csv_rows": 8
+  },
+  {
+    "run": "run-b-otherdb",
+    "input": "neg_fp_missing.db_check.out",
+    "rejected": true,
+    "reason": "P2A: 규칙 지문이 없거나 복수이거나 형식이 다르다"
+  },
+  {
+    "run": "run-b-otherdb",
+    "input": "neg_fp_multiple.db_check.out",
+    "rejected": true,
+    "reason": "P2A: 규칙 지문이 없거나 복수이거나 형식이 다르다"
+  },
+  {
+    "run": "run-b-otherdb",
+    "input": "neg_one_row_1us.db_check.out",
+    "rejected": true,
+    "reason": "DB started_at 이 저장 후 API 시작 시각과 다르다(다른 DB·다른 생성 회차의 같은 ID 일 수 있다): P3B"
+  },
+  {
+    "run": "run-b-otherdb",
+    "input": "neg_other_db.db_check.out",
+    "rejected": true,
+    "reason": "DB started_at 이 저장 후 API 시작 시각과 다르다(다른 DB·다른 생성 회차의 같은 ID 일 수 있다): P1A,P1B,P2A,P2B,P3A,P3B,P4A,P4B"
+  },
+  {
+    "run": "run-b-otherdb",
+    "input": "neg_stored_ratio.db_check.out",
+    "rejected": true,
+    "reason": "P2A: DB 저장값 불일치 — 투자 비율"
+  },
+  {
+    "run": "run-b-otherdb",
+    "input": "neg_trade_before_t0.db_check.out",
+    "rejected": true,
+    "reason": "T0 이전 주문·포지션이 있다 — 동시 시작이 성립하지 않는다"
+  }
+]

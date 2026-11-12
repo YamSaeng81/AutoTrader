@@ -1,0 +1,11 @@
+web-api tests 11 fail 5 err 0 skip 0 pass 6
+FAIL com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest # 단위 — 처리기 예외는 그 시세 하나만 실패로 세고 같은 코인의 다음 시세를 계속 처리, 발행 쪽 예외 없음
+    org.opentest4j.AssertionFailedError:  Expecting actual:   ["282"] to contain exactly (and in same order):   ["280", "281", "282"] but could not find the following elements:   ["280", "281"] 
+FAIL com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest # 계약 — 급등 뒤 반락(310→290→280), 정상 300 뒤 280, 미래 관측(+24h) 300 뒤 정상 280: 각 기준 실행과 같다
+    org.opentest4j.AssertionFailedError: [310→290→280 — 경계 결과 = 기준 실행 결과]  expected: {"A"="LIVE=OPEN DYNAMIC=OPEN 매도=0"}  but was: {"A"="LIVE=CLOSING DYNAMIC=CLOSING 매도=2"}
+FAIL com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest # 단위 — 작업자를 붙잡은 동안 쌓인 시세가 같은 객체·같은 순서(관측 시각 원문 그대로)로 처리기에 간다, 상한 초과는 새 시세만 버리고 센다
+    java.lang.IllegalArgumentException: Could not find field 'LANE_CAPACITY' on target object [null] or target class [class com.cryptoautotrader.api.service.RealtimeProtectionDispatcher]
+FAIL com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest # 계약 — 대기 중 280→300(손절가 285): 기준과 같고 두 엔진 손절(총괄 탐침 ①의 반대 결과)
+    org.opentest4j.AssertionFailedError: [280→300 — 경계 결과 = 기준 실행 결과]  expected: {"A"="LIVE=CLOSING DYNAMIC=CLOSING 매도=2"}  but was: {"A"="LIVE=OPEN DYNAMIC=OPEN 매도=0"}
+FAIL com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest # 계약 — 서로 다른 코인 교차(A280·B300·A300·B280): 코인별로 기준 실행과 같다
+    org.opentest4j.AssertionFailedError: [A/B 교차 — 경계 결과 = 기준 실행 결과]  expected: {"A"="LIVE=CLOSING DYNAMIC=CLOSING 매도=2", "B"="LIVE=CLOSING DYNAMIC=OPEN 매도=1"}  but was: {"A"="LIVE=OPEN DYNAMIC=OPEN 매도=0", "B"="LIVE=CLOSING DYNAMIC=CLOSING 매도=2"}
