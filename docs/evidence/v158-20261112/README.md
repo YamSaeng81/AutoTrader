@@ -149,7 +149,7 @@
 
 **(2) c95b74e6 — 전체 회귀 1** (`runs/int-full`, 종료 1, 19분 26초): core-engine 298(건너뜀 7)·exchange-adapter 11·strategy-lib 113 실패 0, web-api 1,354 중 **실패 3**·건너뜀 71 — `PositionLimit` 2(H2 손실 조회 → 1eed27d1), 탐침 1.
 
-**(3) 1eed27d1 — 전체 회귀 2** (`runs/int-full2-1eed27d1`, 2026-11-12 21:07:47~21:27:20, 종료 1, 작업 사본 변경 0): core-engine 298 중 실패 0·건너뜀 7, exchange-adapter 11/11, strategy-lib 113/113, web-api 1,354 중 **실패 1·건너뜀 71**·성공 1,282. 실패는 예상한 탐침 1건(`SubmitOrderBoundaryProbeTest`)뿐이며 실패로 기록한다. 원문(Gradle 로그·XML 276개·요약·시각)은 후속 시험 전에 옮기고 체크섬을 고정했다(그 폴더 `SHA256SUMS` 278줄, 파일 자체 sha256 `b0777fc4…`). web-api 건너뜀 71 은 19개 클래스에서 나온다 — 환경 변수가 없을 때 건너뛰는 실제 PG 시험(손실·정리·phantom·V96·N15 잠금·정산 반올림 등)·A/B 실제 연결 2·수동 실행기 `PullbackMtfBacktestRunner` 등. 참고: Gradle 콘솔 집계는 "1344 completed, 61 skipped" 로 XML 집계와 건너뜀 쪽에서 10건 다르다(전체 회귀 1 도 같은 차이, 원인 미확인 — 수치는 XML 기준).
+**(3) 1eed27d1 — 전체 회귀 2** (`runs/int-full2-1eed27d1`, 2026-11-12 21:07:47~21:27:20, 종료 1, 작업 사본 변경 0): core-engine 298 중 실패 0·건너뜀 7, exchange-adapter 11/11, strategy-lib 113/113, web-api 1,354 중 **실패 1·건너뜀 71**·성공 1,282. 실패는 예상한 탐침 1건(`SubmitOrderBoundaryProbeTest`)뿐이며 실패로 기록한다. 원문(Gradle 로그·XML 276개·요약·시각)은 후속 시험 전에 옮기고 체크섬을 고정했다(그 폴더 `SHA256SUMS` 279줄, 파일 자체 sha256 `b0777fc4…`). web-api 건너뜀 71 은 19개 클래스에서 나온다 — 환경 변수가 없을 때 건너뛰는 실제 PG 시험(손실·정리·phantom·V96·N15 잠금·정산 반올림 등)·A/B 실제 연결 2·수동 실행기 `PullbackMtfBacktestRunner` 등. 참고: Gradle 콘솔 집계는 "1344 completed, 61 skipped" 로 XML 집계와 건너뜀 쪽에서 10건 다르다(전체 회귀 1 도 같은 차이, 원인 미확인 — 수치는 XML 기준).
 
 **(4) 4a4a04a3 — 새 SHA 추가 검증** (1eed27d1 대비 바뀐 것은 시험 1파일, 아래 블롭 대조)
 - 시험 외 블롭 동일: `git ls-tree -r` 에서 `/src/test/` 를 뺀 736줄이 1eed27d1·4a4a04a3 같음(`blob-1eed27d1-vs-4a4a04a3/`). 제품·리소스·빌드 입력·마이그레이션 변경 0.
