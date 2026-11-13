@@ -1,0 +1,48 @@
+diff -r -x runs -x scenarios-v160.sh -x scenarios-v159.sh -x scenarios-v161.sh v160d4/sim/adv.sh v161d4/sim/adv.sh
+3c3
+< S=/d/tmp/v160d4/sim/runs/$1; echo $(( $(cat $S/state/clock) + $2 )) > $S/state/clock
+---
+> S=/d/tmp/v161d4/sim/runs/$1; echo $(( $(cat $S/state/clock) + $2 )) > $S/state/clock
+diff -r -x runs -x scenarios-v160.sh -x scenarios-v159.sh -x scenarios-v161.sh v160d4/sim/conf.local.sh v161d4/sim/conf.local.sh
+1c1
+< # V160D4 대역 값 — 후보 88f06345(integration/v158, 802b691a + 시험 2경로)·백엔드 빌드 입력이 같은 4a4a04a3 로컬 bootJar(0834382a…)·실제 git diff --name-only b5cd1d0 88f06345(102경로)
+---
+> # V161D4 대역 값 — V160D4 대역과 같은 후보 88f06345·4a4a04a3 로컬 bootJar(0834382a…)·실제 git diff --name-only b5cd1d0 88f06345(102경로). 판 표지·기록 폴더·FEIMGOLD만 다르다
+diff -r -x runs -x scenarios-v160.sh -x scenarios-v159.sh -x scenarios-v161.sh v160d4/sim/conf.sh v161d4/sim/conf.sh
+4c4
+< R=/d/tmp/v160d4/sim
+---
+> R=/d/tmp/v161d4/sim
+13c13
+< BLOCKS=${D2_BLOCKS:-/d/tmp/v160d4/blocks-d4}
+---
+> BLOCKS=${D2_BLOCKS:-/d/tmp/v161d4/blocks-d4}
+16c16,17
+< FEI0=sha256:$(printf '%s' standin-frontend | /usr/bin/sha256sum | cut -c1-64)
+---
+> FEI0=sha256:d825a9f5b00d3dac93ee154f32f91b5a1474248fefaa3651f0d0c3b0cc2f7f66   # V161D4: 실행 중 구판 frontend = 운영 읽기 실제 값(n03-1113-1000/frontend-image.txt). U변수 FEIMGOLD 와 같다
+> FEIOLD=sha256:$(printf %s standin-frontend | /usr/bin/sha256sum | cut -c1-64)   # V160D4 대역이 쓰던 frontend 대역 값(거부 사례용)
+diff -r -x runs -x scenarios-v160.sh -x scenarios-v159.sh -x scenarios-v161.sh v160d4/sim/init.sh v161d4/sim/init.sh
+5c5
+< . /d/tmp/v160d4/sim/conf.sh
+---
+> . /d/tmp/v161d4/sim/conf.sh
+23a24
+> echo "$FEI0" > "$S/state/svc/frontend"   # V161D4: 실행 중 frontend = 운영 실제 값(위 for 의 대역 값을 덮어쓴다)
+48,49c49,51
+< [ -n "${NO_UV159:-}" ] || printf 'FEIMGOLD=%s   # 대역 치환: 승인 판에서 기입할 미정 값(GS 는 V160D4 U변수의 실제 값)
+< ' "$FEI0" >> "$S/vars.sh"
+---
+> # V161D4: FEIMGOLD 는 U변수의 실제 값을 그대로 쓴다(대역 치환 없음). 거부 사례만 FE_OVERRIDE 로 덧붙인다
+> [ -z "${FE_OVERRIDE:-}" ] || printf 'FEIMGOLD=%s   # 대역 치환(거부 사례)
+> ' "$FE_OVERRIDE" >> "$S/vars.sh"
+diff -r -x runs -x scenarios-v160.sh -x scenarios-v159.sh -x scenarios-v161.sh v160d4/sim/sim.sh v161d4/sim/sim.sh
+6c6
+< . /d/tmp/v160d4/sim/conf.sh
+---
+> . /d/tmp/v161d4/sim/conf.sh
+diff -r -x runs -x scenarios-v160.sh -x scenarios-v159.sh -x scenarios-v161.sh v160d4/sim/stubs/git v161d4/sim/stubs/git
+4c4
+< . /d/tmp/v160d4/sim/conf.sh
+---
+> . /d/tmp/v161d4/sim/conf.sh

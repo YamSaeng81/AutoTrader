@@ -12,7 +12,7 @@
 | 시작 가능 여부 | [준비 목록](LIVE_READINESS.md) | 현재 체크 항목 |
 | F 명령 | [실행 절차](LIMITED_LIVE_TEST_RUNBOOK.md) | 필요한 F 변수/블록과 선행 조건 |
 | 점검 설치·전환·결과 해석 | [OPS](OPS_DAILY_CHECK.md) | 필요한 §번호 |
-| 새 코드 수용·허용 범위 | [최신 총괄 v1.160](evidence/review-6385e1d5/README.md) | 작업에 해당하는 결정과 제한 |
+| 새 코드 수용·허용 범위 | [최신 총괄 v1.161](evidence/review-76cf6768/README.md) | 작업에 해당하는 결정과 제한 |
 | 엔진 공통 제약 | [ENGINE_PARITY](ENGINE_PARITY.md) | 변경하는 규칙/엔진의 항목 |
 
 ## 고정 계약·상세 설계 — 필요한 부분만

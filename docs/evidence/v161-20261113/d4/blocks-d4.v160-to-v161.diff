@@ -1,0 +1,58 @@
+diff -r v160-20261113/d4/blocks-d4/U0.sh v161-20261113/d4/blocks-d4/U0.sh
+4c4
+< [ "$M" = "$HOME/maint-v160" ] && [ "${UB:-}" = V160D4 ] && [ "$NEW" = 88f06345af31888c2c8669ebe8ad00ca02cfd6d8 ] && [ -n "${JARN:-}" ] && type fresh_idle > /dev/null 2>&1 && type n21mark > /dev/null 2>&1 && type n21after > /dev/null 2>&1 && [ -n "${BTCIN:-}" ] && type sid203 > /dev/null 2>&1 && type newsobs > /dev/null 2>&1 && type httpobs > /dev/null 2>&1 && type holdobs > /dev/null 2>&1 && type entryobs > /dev/null 2>&1 && type n17obs > /dev/null 2>&1 && type n19obs > /dev/null 2>&1 && type n20obs > /dev/null 2>&1 || stop "변수 순서 — F 변수 → G 변수 → v1.160 통합 후보 초안 D4 U 변수"
+---
+> [ "$M" = "$HOME/maint-v161" ] && [ "${UB:-}" = V161D4 ] && [ "$NEW" = 88f06345af31888c2c8669ebe8ad00ca02cfd6d8 ] && [ -n "${JARN:-}" ] && type fresh_idle > /dev/null 2>&1 && type n21mark > /dev/null 2>&1 && type n21after > /dev/null 2>&1 && [ -n "${BTCIN:-}" ] && type sid203 > /dev/null 2>&1 && type newsobs > /dev/null 2>&1 && type httpobs > /dev/null 2>&1 && type holdobs > /dev/null 2>&1 && type entryobs > /dev/null 2>&1 && type n17obs > /dev/null 2>&1 && type n19obs > /dev/null 2>&1 && type n20obs > /dev/null 2>&1 || stop "변수 순서 — F 변수 → G 변수 → v1.161 통합 후보 초안 D4 U 변수"
+diff -r v160-20261113/d4/blocks-d4/U1.sh v161-20261113/d4/blocks-d4/U1.sh
+4c4
+< [ "${UB:-}" = V160D4 ] || stop "U 변수가 v1.160 통합 후보 초안 D4 판이 아님 — F → G → v1.160 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+---
+> [ "${UB:-}" = V161D4 ] || stop "U 변수가 v1.161 통합 후보 초안 D4 판이 아님 — F → G → v1.161 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+diff -r "v160-20261113/d4/blocks-d4/U1�\220\230�\217\214림.sh" "v161-20261113/d4/blocks-d4/U1�\220\230�\217\214림.sh"
+6c6
+< [ "${UB:-}" = V160D4 ] || stop "U 변수가 v1.160 통합 후보 초안 D4 판이 아님 — F → G → v1.160 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+---
+> [ "${UB:-}" = V161D4 ] || stop "U 변수가 v1.161 통합 후보 초안 D4 판이 아님 — F → G → v1.161 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+diff -r v160-20261113/d4/blocks-d4/U2.sh v161-20261113/d4/blocks-d4/U2.sh
+4c4
+< [ "${UB:-}" = V160D4 ] || stop "U 변수가 v1.160 통합 후보 초안 D4 판이 아님 — F → G → v1.160 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+---
+> [ "${UB:-}" = V161D4 ] || stop "U 변수가 v1.161 통합 후보 초안 D4 판이 아님 — F → G → v1.161 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+diff -r v160-20261113/d4/blocks-d4/U3.sh v161-20261113/d4/blocks-d4/U3.sh
+4c4
+< [ "${UB:-}" = V160D4 ] || stop "U 변수가 v1.160 통합 후보 초안 D4 판이 아님 — F → G → v1.160 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+---
+> [ "${UB:-}" = V161D4 ] || stop "U 변수가 v1.161 통합 후보 초안 D4 판이 아님 — F → G → v1.161 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+diff -r v160-20261113/d4/blocks-d4/U4.sh v161-20261113/d4/blocks-d4/U4.sh
+4c4
+< [ "${UB:-}" = V160D4 ] || stop "U 변수가 v1.160 통합 후보 초안 D4 판이 아님 — F → G → v1.160 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+---
+> [ "${UB:-}" = V161D4 ] || stop "U 변수가 v1.161 통합 후보 초안 D4 판이 아님 — F → G → v1.161 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+diff -r v160-20261113/d4/blocks-d4/UF2.sh v161-20261113/d4/blocks-d4/UF2.sh
+1c1
+< # UF2(V160D4 새 블록) — U3(deploy) 통과 뒤 frontend 만 새 이미지로 교체한다. backend 먼저·frontend 나중이 기본안이다.
+---
+> # UF2(V161D4 새 블록) — U3(deploy) 통과 뒤 frontend 만 새 이미지로 교체한다. backend 먼저·frontend 나중이 기본안이다.
+7c7
+< [ "${UB:-}" = V160D4 ] || stop "U 변수가 v1.160 통합 후보 초안 D4 판이 아님 — F → G → v1.160 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+---
+> [ "${UB:-}" = V161D4 ] || stop "U 변수가 v1.161 통합 후보 초안 D4 판이 아님 — F → G → v1.161 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+diff -r "v160-20261113/d4/blocks-d4/U�\220\230�\217\214림.sh" "v161-20261113/d4/blocks-d4/U�\220\230�\217\214림.sh"
+4c4
+< [ "${UB:-}" = V160D4 ] || stop "U 변수가 v1.160 통합 후보 초안 D4 판이 아님 — F → G → v1.160 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+---
+> [ "${UB:-}" = V161D4 ] || stop "U 변수가 v1.161 통합 후보 초안 D4 판이 아님 — F → G → v1.161 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+diff -r "v160-20261113/d4/blocks-d4/U�\222��\200측.sh" "v161-20261113/d4/blocks-d4/U�\222��\200측.sh"
+4c4
+< [ "${UB:-}" = V160D4 ] || stop "U 변수가 v1.160 통합 후보 초안 D4 판이 아님 — F → G → v1.160 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+---
+> [ "${UB:-}" = V161D4 ] || stop "U 변수가 v1.161 통합 후보 초안 D4 판이 아님 — F → G → v1.161 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+diff -r "v160-20261113/d4/blocks-d4/U�\200�\210\230.sh" "v161-20261113/d4/blocks-d4/U�\200�\210\230.sh"
+1c1
+< M=~/maint-v160; mkdir -p "$M"; OPS=~/ops-scripts; UB=V160D4   # v1.160 통합 후보(integration/v158 88f0634) 배포 초안 D4(미승인·실행 금지) 판 표지 — U 블록 전부가 확인한다. 원본 구조 V159D4(v159-20261113/d4, 그 원본 SMA20PD4 sma20p-d4-af7ffa58), 생성기 mkdraft6.py(값만 변경). backend+frontend 같은 릴리스, DDL V96(새 backend 기동 때 Flyway)
+---
+> M=~/maint-v161; mkdir -p "$M"; OPS=~/ops-scripts; UB=V161D4   # v1.161 통합 후보(integration/v158 88f0634) 배포 D4(미승인·실행 금지) 판 표지 — U 블록 전부가 확인한다. 원본 구조 V160D4(v160-20261113/d4, 그 원본 V159D4·SMA20PD4 sma20p-d4-af7ffa58), 생성기 mkdraft7.py(값만 변경). backend+frontend 같은 릴리스, DDL V96(새 backend 기동 때 Flyway)
+184c184
+< FEIMGOLD=미정   # 실행 중 frontend 이미지 ID — 추정하지 않는다. U0 직전 읽기 전용 확인(docker inspect frontend)값을 총괄 승인 판에 기입. 미정이면 U0 가 멈춘다
+---
+> FEIMGOLD=sha256:d825a9f5b00d3dac93ee154f32f91b5a1474248fefaa3651f0d0c3b0cc2f7f66   # 실행 중 frontend 이미지 ID — 운영 읽기 2026-11-13 13:39:36 KST(N03 11-13 10:00 회차 읽기, 컨테이너 9a63d15ab110, docs/evidence/n03-1113-1000/frontend-image.txt). U0 가 실행 중 frontend 와 다시 대조하고 다르면 멈춘다

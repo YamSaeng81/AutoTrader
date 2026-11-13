@@ -1,0 +1,50 @@
+== w01 정상: U변수 실제 FEIMGOLD(대역 치환 없음)로 U0→U1→U2(V96)→U3→UF2→U4→U뒤관측
+PASS w01 — 대역 덧붙임에 FEIMGOLD 없음 = 0
+PASS w01 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS w01 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS w01 — image-fe-before(U0 실제 대조값) = sha256:d825a9f5b00d
+PASS w01 — frontend 보존 태그 b5cd1d0 = sha256:d825a9f5b00d
+PASS w01 — U1 뒤 실행 frontend(구판 그대로) = sha256:d825a9f5b00d
+PASS w01 — HEAD = 88f06345af31888c2c8
+PASS w01 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS w01 U3 — 종료 0 · '✅ U3(deploy) 통과' · checkout 1
+PASS w01 — U3 뒤 실행 frontend(아직 구판) = sha256:d825a9f5b00d
+PASS w01 UF2 — 종료 0 · '✅ UF2 통과' · checkout 1
+PASS w01 — UF2 뒤 실행 frontend = sha256:d7e406185258
+PASS w01 U4 — 종료 0 · '✅ U4 통과' · checkout 1
+PASS w01 U뒤관측 — 종료 0 · '' · checkout 1
+PASS w01 — start_66.py sha256 = 68d441ce0ed66d0a654
+PASS w01 — 옛 기록 폴더 maint-v160 안 만듦 = 없음
+== w02 UF2 뒤 U되돌림 — frontend 를 실제 FEIMGOLD 이미지로 원복
+PASS w02 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS w02 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS w02 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS w02 U3 — 종료 0 · '✅ U3(deploy) 통과' · checkout 1
+PASS w02 UF2 — 종료 0 · '✅ UF2 통과' · checkout 1
+PASS w02 U되돌림 — 종료 0 · 'b5cd1d0 (#27 이미지) 로 복귀' · checkout 2
+PASS w02 — frontend 원복 = sha256:d825a9f5b00d
+PASS w02 — backend = sha256:52e12428a60d
+PASS w02 — HEAD = b5cd1d0d47ea68ffe6f
+== w03 U1 뒤 U2 하지 않음 → U1-되돌림(frontend latest 를 실제 FEIMGOLD 로)
+PASS w03 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS w03 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS w03 U1되돌림 — 종료 0 · '↩ U1-되돌림 끝' · checkout 2
+PASS w03 — frontend latest = sha256:d825a9f5b00d
+PASS w03 — 실행 frontend = sha256:d825a9f5b00d
+PASS w03 — backend latest = sha256:52e12428a60d
+== FEIMGOLD 거부(바꾸기 전 멈춤, checkout 0)
+PASS w04 U0 — 종료 1 · 'FEIMGOLD 가 미정' · checkout 0
+PASS w05 U0 — 종료 1 · 'FEIMGOLD 가 미정' · checkout 0
+PASS w06 U0 — 종료 1 · '실행 중 frontend 이미지가 FEIMGOLD 와 다름' · checkout 0
+PASS w07 U0 — 종료 1 · '실행 중 frontend 이미지가 FEIMGOLD 와 다름' · checkout 0
+PASS w07 — image-fe-before(실제 읽은 값 기록) = sha256:2d711642b726
+== 판 표지·기록 폴더 거부(옛 판과 섞으면 멈춤, checkout 0)
+PASS w12 U0 — 종료 1 · 'FEIMGOLD 가 미정' · checkout 0
+PASS w08 U0 — 종료 1 · '변수 순서 — F 변수 → G 변수 → v1.161 통합 후보 초안 D4 U 변수' · checkout 0
+PASS w09 U0 — 종료 1 · '변수 순서 — F 변수 → G 변수 → v1.160 통합 후보 초안 D4 U 변수' · checkout 0
+PASS w10 U0 — 종료 1 · '변수 순서 — F 변수 → G 변수 → v1.161 통합 후보 초안 D4 U 변수' · checkout 0
+PASS w11 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS w11 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS w11 U2 — 종료 1 · 'U 변수가 v1.161 통합 후보 초안 D4 판이 아님' · checkout 1
+PASS 전체 — 금지 명령 기록 줄 수 합 = 0
+== 결과: PASS 44 · FAIL 0

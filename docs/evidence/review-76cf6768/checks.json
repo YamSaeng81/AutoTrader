@@ -1,0 +1,275 @@
+{
+  "submission_commit": "76cf676889a4b634420b2adbfdbb17db47cbcabd",
+  "candidate": "88f06345af31888c2c8669ebe8ad00ca02cfd6d8",
+  "evidence": {
+    "count": 460,
+    "blob_mismatches": [],
+    "working_mismatches": []
+  },
+  "prior_review": {
+    "count": 2,
+    "blob_mismatches": [],
+    "working_mismatches": []
+  },
+  "runs": {
+    "int-full-88f06345": {
+      "tests": 1776,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 78,
+      "xml": 276,
+      "passed": 1698
+    },
+    "related-88f06345": {
+      "tests": 145,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 7,
+      "xml": 12,
+      "passed": 138
+    },
+    "obs-sched-alone-2": {
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xml": 1,
+      "passed": 2
+    },
+    "obs-sched-failpath-temp": {
+      "tests": 2,
+      "failures": 2,
+      "errors": 0,
+      "skipped": 0,
+      "xml": 1,
+      "passed": 0
+    }
+  },
+  "full_by_module": {
+    "core-engine": {
+      "tests": 298,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 7,
+      "xml": 47,
+      "passed": 291
+    },
+    "exchange-adapter": {
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xml": 2,
+      "passed": 11
+    },
+    "strategy-lib": {
+      "tests": 113,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xml": 17,
+      "passed": 113
+    },
+    "web-api": {
+      "tests": 1354,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 71,
+      "xml": 210,
+      "passed": 1283
+    }
+  },
+  "nested_full_manifest": {
+    "count": 282,
+    "blob_mismatches": [],
+    "working_mismatches": []
+  },
+  "candidate_diff": [
+    "M\tweb-api/src/test/java/com/cryptoautotrader/api/service/SchedulerProfileCleanupTest.java",
+    "A\tweb-api/src/test/java/com/cryptoautotrader/api/support/OrderFlowObservation.java"
+  ],
+  "trees": {
+    "web-api/src/main": {
+      "802b691a": "9d64414412e809e365b5960a2dbbac9729203982",
+      "88f06345": "9d64414412e809e365b5960a2dbbac9729203982"
+    },
+    "core-engine": {
+      "802b691a": "23cb84217b66911a0541d30887c305c9230f285a",
+      "88f06345": "23cb84217b66911a0541d30887c305c9230f285a"
+    },
+    "exchange-adapter": {
+      "802b691a": "19eef8344e7480e6f06d6a6b4489275b7486b3c8",
+      "88f06345": "19eef8344e7480e6f06d6a6b4489275b7486b3c8"
+    },
+    "strategy-lib": {
+      "802b691a": "5a2e176f50ff72dd8700fcddad0c418e3e94fb98",
+      "88f06345": "5a2e176f50ff72dd8700fcddad0c418e3e94fb98"
+    },
+    "build.gradle": {
+      "802b691a": "44e1ddc565f6a92a067f9a5af8d728c7a97cceb0",
+      "88f06345": "44e1ddc565f6a92a067f9a5af8d728c7a97cceb0"
+    },
+    "web-api/build.gradle": {
+      "802b691a": "ead830cc95cef3513b928c13bc480089eaf4382c",
+      "88f06345": "ead830cc95cef3513b928c13bc480089eaf4382c"
+    },
+    "settings.gradle": {
+      "802b691a": "3c5b845ef3a270e8c2582b0bb7a177a9b79bffb7",
+      "88f06345": "3c5b845ef3a270e8c2582b0bb7a177a9b79bffb7"
+    },
+    "crypto-trader-frontend": {
+      "802b691a": "ba34ee0fdb60912664cfb1e8243f77f30aae2020",
+      "88f06345": "ba34ee0fdb60912664cfb1e8243f77f30aae2020"
+    }
+  },
+  "jar": {
+    "path": "D:/tmp/v159/jar/4a4a04a3.jar",
+    "sha256": "0834382ab008e1b203b6f74718799dc183e63b2c3cf9d67b6c974b6c30c5e100"
+  },
+  "git_diff_numstat": [
+    "178\t0\tweb-api/src/test/java/com/cryptoautotrader/api/service/SchedulerProfileCleanupTest.java",
+    "333\t0\tweb-api/src/test/java/com/cryptoautotrader/api/support/OrderFlowObservation.java"
+  ],
+  "d4_num_blocks": 10,
+  "gs": {
+    "docs/evidence/v159-20261113/rollback-gate-v3/gate.sql": "c9dc20563d6921d4e96cf6abc4b3737efeea94ecbaefddfbc23736056aabd56b",
+    "docs/evidence/v159-20261113/rollback-gate-v3/rollback_gate.sh": "fe19aab4e7396d50641a210b60cf328a117916ee8fab127bb3e53678522d6a42",
+    "docs/evidence/v159-20261113/d4-draft/preflight-real-loss-readonly.v2.sql": "af4105c1f70f6f095b8f1bbbb1c722acd717b2dcd46190e3a9224cd949c5cab0"
+  },
+  "local_branch_refs": [
+    "88f06345af31888c2c8669ebe8ad00ca02cfd6d8 refs/heads/integration/v158",
+    "76cf676889a4b634420b2adbfdbb17db47cbcabd refs/heads/main"
+  ],
+  "remote_tracking_refs": [
+    "802b691a6606821d6db838bf5aca0f4cf468205a refs/remotes/origin/integration/v158",
+    "6385e1d5f64eb09a95791ba253a30d2b21341082 refs/remotes/origin/main"
+  ],
+  "d4": {
+    "syntax": [
+      {
+        "block": "U0.sh",
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "block": "U1.sh",
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "block": "U1되돌림.sh",
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "block": "U2.sh",
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "block": "U3.sh",
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "block": "U4.sh",
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "block": "UF2.sh",
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "block": "U되돌림.sh",
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "block": "U뒤관측.sh",
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "block": "U변수.sh",
+        "exit": 0,
+        "stderr": ""
+      }
+    ],
+    "block_hashes": [
+      {
+        "path": "U0.sh",
+        "ok": true
+      },
+      {
+        "path": "U1.sh",
+        "ok": true
+      },
+      {
+        "path": "U1되돌림.sh",
+        "ok": true
+      },
+      {
+        "path": "U2.sh",
+        "ok": true
+      },
+      {
+        "path": "U3.sh",
+        "ok": true
+      },
+      {
+        "path": "U4.sh",
+        "ok": true
+      },
+      {
+        "path": "UF2.sh",
+        "ok": true
+      },
+      {
+        "path": "U되돌림.sh",
+        "ok": true
+      },
+      {
+        "path": "U뒤관측.sh",
+        "ok": true
+      },
+      {
+        "path": "U변수.sh",
+        "ok": true
+      }
+    ],
+    "expected_paths": 102,
+    "parsed_paths": 102,
+    "path_list_matches": true,
+    "summary_tail": [
+      "PASS v21 U3 — 종료 0 · '✅ U3(deploy) 통과' · checkout 1",
+      "PASS v21 U되돌림 — 종료 1 · '관문 원문 해시가 다름' · checkout 1",
+      "PASS v21 — HEAD(되돌리지 않음) = 88f06345af31888c2c8",
+      "PASS v22 U0 — 종료 1 · 'GS(관문·조회문 고정 커밋)가 미정이거나 없음' · checkout 0",
+      "== 결과: PASS 96 · FAIL 0"
+    ],
+    "gs_fixed_full_sha": true,
+    "frontend_image_still_unknown": true,
+    "missing_paths": [],
+    "extra_paths": []
+  },
+  "current_document_checks": {
+    "current_doc_lines": {
+      "docs/LIMITED_LIVE_TEST_PLAN.md": 122,
+      "docs/START_HERE.md": 36,
+      "docs/CURRENT_HANDOFF.md": 30,
+      "docs/LIVE_READINESS.md": 46,
+      "docs/NOVEMBER_LIVE_UPGRADE.md": 56,
+      "docs/PROGRESS.md": 48,
+      "docs/README.md": 41,
+      "docs/evidence/review-76cf6768/README.md": 48
+    },
+    "local_links_checked": 93,
+    "missing_links": [],
+    "unexpected_cjk_or_kana": [],
+    "night_policy_unchanged": true,
+    "diff_check_exit": 0
+  },
+  "review_scope": "Local Git blobs, preserved artifacts/XML and source reading; bash -n only. No Gradle/PG/standin rerun, no network or production action."
+}
