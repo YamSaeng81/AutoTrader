@@ -304,8 +304,11 @@ class N16InvalidPriceReproTest extends IntegrationTestBase {
         System.out.println("[N16 ③] tp 없는 ticker → 파서 체결가 " + got.get(0).getTradePrice() + " · 체결 시각 " + got.get(0).getTradeTimestamp());
 
         ReflectionTestUtils.invokeMethod(target("LIVE"), "onWsTick", got.get(0));
-        drain(marketDataExecutor);
-        drain(orderExecutor);
+        // 🔴 (G1 후속, 총괄 v1.165 §3-6, 2026-11-13, 시험만) onWsTick 은 이벤트를 내고 처리기는 디스패처가 marketDataExecutor 에서 돌린다. 아래
+        //    단언(매도 0·OPEN·장부 없음)은 모두 음성이라 처리기가 돌기 전에도 참이다 — DrainGapGate 500ms 에서 옛 대기 뒤 단언이 통과한 시점에
+        //    디스패처는 pendingEvents=1·processed 그대로였다(g1 근거 n16-orig-gate500-probe). 앞선 작업 완료를 실행기 장벽으로 기다린다.
+        com.cryptoautotrader.api.support.ExecutorBarrier.awaitPriorTasks(marketDataExecutor.getThreadPoolExecutor(), 20_000);
+        com.cryptoautotrader.api.support.ExecutorBarrier.awaitPriorTasks(orderExecutor.getThreadPoolExecutor(), 20_000);
         System.out.println("[N16 ③] 처리 뒤 거래소 매도 " + exchangeSells(f) + " · 포지션 " + positionStatus(f)
                 + " · 장부 " + markPriceBook.get(f.coin()));
         assertThat(got.get(0).getTradePrice()).as("운영 파서: 없는 tp → 0").isEqualByComparingTo("0");

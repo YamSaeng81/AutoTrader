@@ -107,19 +107,14 @@ class LateOrderSubmissionAfterStopTest extends IntegrationTestBase {
         createdSessions.clear();
     }
 
+    /**
+     * 🔴 (G1 후속, 총괄 v1.165 §3-6, 2026-11-13, 시험만) 아래 단언은 모두 <b>음성</b>(매수 0회·활성 주문 없음·임시 포지션 없음)이라 제출 작업이
+     * 시작하기 전에도 참이다. 옛 조건(대기열 비었음·active 0·taskCount == completed)은 작업자가 작업을 꺼낸 뒤 실행 표시 전에도 참이어서,
+     * DrainGapGate 500ms 에서 이 대기가 제출 63ms 뒤 {@code completed=0} 인 채 반환하고 단언이 모두 통과한 뒤에야 작업이 정지 거절을 기록했다
+     * (g1 근거 late-orig-gate500-probe). 이 호출 전에 넣은 작업이 끝났음을 실행기 장벽(확정 신호)으로 기다린다. 시간 초과는 실패다.
+     */
     private void awaitOrderExecutorDrained() {
-        var pool = orderExecutor.getThreadPoolExecutor();
-        long deadline = System.currentTimeMillis() + 15_000;
-        while (System.currentTimeMillis() < deadline) {
-            if (pool.getQueue().isEmpty() && pool.getActiveCount() == 0
-                    && pool.getTaskCount() == pool.getCompletedTaskCount()) {
-                sleep(50);
-                if (pool.getQueue().isEmpty() && pool.getActiveCount() == 0
-                    && pool.getTaskCount() == pool.getCompletedTaskCount()) return;
-            }
-            sleep(50);
-        }
-        throw new AssertionError("orderExecutor 가 15초 안에 비워지지 않았다 — 비동기 작업이 정체됐다");
+        com.cryptoautotrader.api.support.ExecutorBarrier.awaitPriorTasks(orderExecutor.getThreadPoolExecutor(), 15_000);
     }
 
     private void sleep(long ms) {

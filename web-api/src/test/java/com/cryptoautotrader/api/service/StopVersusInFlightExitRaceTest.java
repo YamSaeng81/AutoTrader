@@ -14,6 +14,7 @@ import com.cryptoautotrader.api.repository.PositionRepository;
 import com.cryptoautotrader.api.support.IntegrationTestBase;
 import com.cryptoautotrader.exchange.upbit.UpbitOrderClient;
 import com.cryptoautotrader.exchange.upbit.UpbitRestClient;
+import com.cryptoautotrader.exchange.upbit.UpbitWebSocketClient;
 import com.cryptoautotrader.exchange.upbit.dto.OrderResponse;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -94,6 +95,12 @@ class StopVersusInFlightExitRaceTest extends IntegrationTestBase {
 
     @MockBean private UpbitOrderClient upbitOrderClient;
     @MockBean private UpbitRestClient upbitRestClient;
+    /**
+     * 외부 연결 격리 (총괄 v1.165 §3-1, 2026-11-13) — 409차 진단 실행에서 이 클래스가 실제 Upbit WebSocket 에 연결하고 구독을 보냈다(각 1줄).
+     * 실시간 손절은 시험이 {@link RealtimeProtectionDispatcher#onPrice} 로 직접 넣으므로 실제 연결은 필요 없다. 텔레그램도 대역으로 둔다.
+     */
+    @MockBean private UpbitWebSocketClient upbitWebSocketClient;
+    @MockBean private TelegramNotificationService telegramNotificationService;
 
     /** 정지 트랜잭션 안에서 반드시 불리는 지점 — 결정적 끼어들기를 여기에 심는다. */
     @SpyBean private PositionStateTransition positionStateTransition;
@@ -246,21 +253,28 @@ class StopVersusInFlightExitRaceTest extends IntegrationTestBase {
     }
 
     /**
-     * (다) 의 끼어들기 전용 — 정지 트랜잭션이 마지막 등록 조회 안(목 응답)에서 멈춘 동안에는 종전 대기 조건을 그대로 쓴다
-     * (총괄 v1.164 §3-2, 2026-11-13). 여기서 시세 작업 완료를 장벽으로 기다리거나, 종전 대기 그대로 실행기 시작만 50ms 늦춰도
-     * (DrainGapGate) 두 번째 WS 보호 매도 의도가 INTENT_READY 로 커밋된 뒤 20초 동안 제출되지 않았다 — 실행기 작업자는 모두 대기,
-     * 오류 기록 없음. 대기 방식과 무관한 시점 의존 관측이며 원인은 미확인이다(w20 근거 §4). 이 시험이 보는 것은 정지와 WS 의 순서이고,
-     * 뒤의 {@link #awaitSells} 가 실제 접수를 기다린다. 미확인 관측은 별도 항목으로 남기고 기대값은 바꾸지 않는다.
+     * (다) 의 끼어들기 전용 — 정지 목 응답 안에서 두 번째 매도의 접수를 <b>독립 트랜잭션</b>으로 기다린다 (G1 조사, 총괄 v1.165 §3-5, 2026-11-13, 시험만).
+     *
+     * <p>종전에는 {@link #awaitSells} 로 기다렸다. 그 읽기는 목 응답을 부른 정지 트랜잭션의 영속성 컨텍스트를 거치므로, 의도 커밋 뒤·claim 전에
+     * 한 번 읽히면 그 엔티티가 1차 캐시에 남아 실제 접수(SUBMITTED·거래소 주문번호) 뒤에도 {@code INTENT_READY/null} 을 돌려준다. 장벽이나 실행기
+     * 시작 50ms 지연이 그 순간을 만들어 20초 단언이 실패했고(409차 관측 G1), 그 단언 실패가 정지 트랜잭션을 롤백시켰다. 같은 주문의 제출 경계·
+     * 독립 읽기·거래소 대역 호출은 정상이었다({@code G1SubmitBoundaryDiagTest} ①⑤). 기대값·단언은 그대로다.</p>
      */
-    private void drainInsideStopAnswer(ThreadPoolTaskExecutor executor) {
-        var pool = executor.getThreadPoolExecutor();
+    private void awaitCommittedSells(Fx f, int n) {
         long deadline = System.currentTimeMillis() + 20_000;
+        List<Map<String, Object>> rows = List.of();
         while (System.currentTimeMillis() < deadline) {
-            if (pool.getQueue().isEmpty() && pool.getActiveCount() == 0
-                    && pool.getTaskCount() == pool.getCompletedTaskCount()) return;
+            TransactionTemplate t = new TransactionTemplate(txManager);
+            t.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+            rows = t.execute(st -> jdbc.queryForList(
+                    "SELECT state, exchange_order_id FROM \"order\" WHERE position_id = ? AND side = 'SELL'", f.positionId()));
+            if (rows.size() == n && rows.stream().allMatch(r -> r.get("EXCHANGE_ORDER_ID") != null)) {
+                drain(orderExecutor);
+                return;
+            }
             sleep(50);
         }
-        throw new AssertionError(executor.getThreadNamePrefix() + " 실행기가 비워지지 않았다");
+        throw new AssertionError("매도 " + n + "건이 접수 상태가 되지 않았다(독립 트랜잭션): " + rows);
     }
 
     private static void sleep(long ms) {
@@ -438,8 +452,8 @@ class StopVersusInFlightExitRaceTest extends IntegrationTestBase {
         Runnable reclose = () -> {
             // ② 정지의 마지막 등록 조회가 결과를 읽은 직후 — WS 가 다시 CLOSING 으로 바꾸고 두 번째 매도를 낸다.
             wsStopLoss(f);
-            drainInsideStopAnswer(marketDataExecutor);
-            awaitSells(f, 2);
+            drain(marketDataExecutor);
+            awaitCommittedSells(f, 2);
             assertThat(committedStatus(f.positionId())).isEqualTo("CLOSING");
         };
         Mockito.doAnswer(inv -> {

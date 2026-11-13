@@ -122,6 +122,11 @@ class N15PgLockWaitExpiryTest {
     @MockBean private com.cryptoautotrader.exchange.upbit.UpbitOrderClient upbitOrderClient;
     @MockBean private TelegramNotificationService telegramService;
     @MockBean private PortfolioSyncService portfolioSyncService;
+    /**
+     * 외부 연결 격리 (총괄 v1.165 §3-1, 2026-11-13) — 이 클래스의 게이트500 실행(g1 근거 n15pg-gate500)에서 실제 Upbit WebSocket 연결·구독
+     * (KRW-IOTA)이 있었다. 시험은 시세를 직접 넣으므로 실제 연결은 필요 없다.
+     */
+    @MockBean private com.cryptoautotrader.exchange.upbit.UpbitWebSocketClient upbitWebSocketClient;
     @SpyBean private RiskManagementService riskManagementService;
     @SpyBean private PoolLossGuard poolLossGuard;
 
@@ -208,20 +213,13 @@ class N15PgLockWaitExpiryTest {
         limits.setMaxConcurrentPositions(savedSlots);
     }
 
+    /**
+     * 🔴 (G1 후속, 총괄 v1.165 §3-6, 2026-11-13, 시험만) 옛 조건(대기열 비었음·active 0·taskCount == completed)은 작업자가 작업을 꺼낸 뒤 실행
+     * 표시 전에도 참이다. DrainGapGate 500ms 실제 PG 실행(g1 근거 n15pg-gate500)에서 대조군 매수의 claim 작업이 정리(세션 행 삭제) <b>뒤에</b> 돌아
+     * "status=없음" 으로 철회를 시도했다. 이 호출 전에 넣은 작업이 끝났음을 실행기 장벽(확정 신호)으로 기다린다. 시간 초과는 실패다.
+     */
     private static void drain(org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor executor) {
-        var pool = executor.getThreadPoolExecutor();
-        long deadline = System.currentTimeMillis() + 20_000;
-        while (System.currentTimeMillis() < deadline) {
-            if (pool.getQueue().isEmpty() && pool.getActiveCount() == 0
-                    && pool.getTaskCount() == pool.getCompletedTaskCount()) return;
-            try {
-                Thread.sleep(50);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                return;
-            }
-        }
-        throw new AssertionError("실행기가 20초 안에 비워지지 않았다");
+        com.cryptoautotrader.api.support.ExecutorBarrier.awaitPriorTasks(executor.getThreadPoolExecutor(), 20_000);
     }
 
     private void wireClock(Clock c) throws Exception {
