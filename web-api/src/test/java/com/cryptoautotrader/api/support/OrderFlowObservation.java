@@ -70,6 +70,16 @@ public final class OrderFlowObservation {
     /** 완료 콜백을 이미 등록한 트랜잭션(EntityManager 동일성). */
     private static final Set<Object> TX_WATCHED = Collections.synchronizedSet(Collections.newSetFromMap(new IdentityHashMap<>()));
     private static volatile ThreadPoolTaskExecutor orderExecutor;
+    /**
+     * 추가로 SQL 을 적을 스레드 이름 앞부분 (G1 조사, 총괄 v1.165 §3-2, 2026-11-13). 기본은 비어 있어 종전과 같다 —
+     * 시세 실행기(market-data-)·시험 스레드처럼 실행기 밖에서 의도를 만드는 경로를 같은 주문 번호로 잇는 데 쓴다.
+     */
+    public static final java.util.Set<String> EXTRA_THREAD_PREFIXES = java.util.concurrent.ConcurrentHashMap.newKeySet();
+    /**
+     * 주문 실행기 작업 시작을 붙잡는 시험 전용 문 (G1 조사). {@code null} 이면 종전과 같이 바로 시작한다. 닫힌 문을 넣으면 작업자는
+     * 접수(EXEC_SUBMIT) 뒤 실행 전에 이 문이 열릴 때까지 기다린다 — 시간 지연 대신 명시적 신호로 "의도 커밋 뒤·claim 전" 순간을 만든다.
+     */
+    public static volatile java.util.concurrent.CountDownLatch orderStartGate;
 
     private static final Pattern WS = Pattern.compile("\\s+");
     private static final Pattern WATCHED_TABLES = Pattern.compile(
@@ -184,7 +194,14 @@ public final class OrderFlowObservation {
         String thread = Thread.currentThread().getName();
         boolean worker = thread.startsWith("order-exec-");
         boolean scheduler = thread.startsWith("scheduler-");
-        if (!worker && !scheduler) {
+        boolean extra = false;
+        for (String prefix : EXTRA_THREAD_PREFIXES) {
+            if (thread.startsWith(prefix)) {
+                extra = true;
+                break;
+            }
+        }
+        if (!worker && !scheduler && !extra) {
             return;
         }
         String flat = WS.matcher(sql).replaceAll(" ").trim();
@@ -229,6 +246,17 @@ public final class OrderFlowObservation {
             record("EXEC_SUBMIT", "task=" + id + " " + executorStats());
             return () -> {
                 CURRENT_TASK.set(id);
+                java.util.concurrent.CountDownLatch gate = orderStartGate;
+                if (gate != null && gate.getCount() > 0) {
+                    record("EXEC_HELD", "시작 문 대기");
+                    try {
+                        if (!gate.await(60, java.util.concurrent.TimeUnit.SECONDS)) {
+                            record("EXEC_HELD_TIMEOUT", "60초 안에 문이 열리지 않았다 — 그대로 시작");
+                        }
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
                 record("EXEC_START", String.format(Locale.ROOT, "대기 %.3fs", (System.nanoTime() - accepted) / 1e9));
                 try {
                     command.run();
