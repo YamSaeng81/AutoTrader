@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="CompositePullbackMtfStrategy — 눌림목 회복 진입 전략" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-11-13T01:44:22" hostname="DESKTOP-SF1KUQ5" time="0.002">
+  <properties/>
+  <testcase name="데이터 부족(200 미만) → HOLD" classname="com.cryptoautotrader.core.selector.CompositePullbackMtfStrategyTest" time="0.0"/>
+  <testcase name="횡보장(ADX 미달) → HOLD (진입 금지)" classname="com.cryptoautotrader.core.selector.CompositePullbackMtfStrategyTest" time="0.001"/>
+  <testcase name="기본 식별자 — 이름/최소 캔들 수" classname="com.cryptoautotrader.core.selector.CompositePullbackMtfStrategyTest" time="0.0"/>
+  <testcase name="상승 추세 중 EMA20/VWAP 눌림 후 회복 → BUY (RSI/ADX 게이트 완화)" classname="com.cryptoautotrader.core.selector.CompositePullbackMtfStrategyTest" time="0.0"/>
+  <testcase name="종가가 EMA20 아래로 이탈 → SELL" classname="com.cryptoautotrader.core.selector.CompositePullbackMtfStrategyTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,6 @@
+88f06345af31888c2c8669ebe8ad00ca02cfd6d8
+SchedulerProfileCleanupTest 주문 흐름 관측(시험만, 총괄 v1.160 §3) — 같은 주문의 CLOSING·의도 저장·호출자 커밋·실행기 접수/시작·claim·거래소 대역 호출·결과 저장/커밋을 시각·스레드·트랜잭션 자원으로 연결
+
+ .../api/service/SchedulerProfileCleanupTest.java   | 178 +++++++++++
+ .../api/support/OrderFlowObservation.java          | 333 +++++++++++++++++++++
+ 2 files changed, 511 insertions(+)

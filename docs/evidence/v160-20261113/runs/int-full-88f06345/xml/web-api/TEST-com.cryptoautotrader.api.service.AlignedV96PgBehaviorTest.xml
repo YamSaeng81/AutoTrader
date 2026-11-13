@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="V96 실제 PG — 조건부 피크 갱신·동시 갱신·정밀도·호출자 롤백·엔티티 저장 불간섭·재기동 복원과 첫 유효 시세 정산 1회" tests="5" skipped="5" failures="0" errors="0" timestamp="2026-11-13T02:02:00" hostname="DESKTOP-SF1KUQ5" time="0.0">
+  <properties/>
+  <testcase name="재기동 — 같은 PG 로 2번 컨텍스트 기동: 대기 복원·사유/시각 보존·피크 30,000→25,000 발동 유지·첫 유효 시세 정산 1회·두 번째 0회" classname="com.cryptoautotrader.api.service.AlignedV96PgBehaviorTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <testcase name="조건부 피크 — NULL→올림, 낮은 값·같은 값은 0행, 높은 값만 1행, version 불변, 엔티티 저장은 열을 바꾸지 않음" classname="com.cryptoautotrader.api.service.AlignedV96PgBehaviorTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <testcase name="동시 갱신 — 16개 스레드가 서로 다른 값을 동시에 올려도 결과는 최댓값, 늦은 낮은 값이 내리지 못함" classname="com.cryptoautotrader.api.service.AlignedV96PgBehaviorTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <testcase name="판단 시각 정밀도 — CLOSING 전환 시각은 마이크로초로 저장·엔티티 값과 같음, 사유·상태 같은 커밋" classname="com.cryptoautotrader.api.service.AlignedV96PgBehaviorTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <testcase name="호출자 롤백 — 별도 트랜잭션(REQUIRES_NEW)으로 올린 피크는 바깥 롤백 뒤에도 남음, 바깥 트랜잭션이 행을 읽기만 했을 때 대기 없음" classname="com.cryptoautotrader.api.service.AlignedV96PgBehaviorTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

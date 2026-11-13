@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="N16 재현 — 비정상 가격·관측 시각" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-11-13T02:03:21" hostname="DESKTOP-SF1KUQ5" time="0.533">
+  <properties/>
+  <testcase name="④d 호가 — 미래 호가 시각도 수신 시각으로 제한되어 후속 없으면 120초 기준으로 낡고, 정상 호가가 덮는다" classname="com.cryptoautotrader.api.service.N16InvalidPriceReproTest" time="0.007"/>
+  <testcase name="④e 생산 이벤트 경로 — 미래 관측 시각 이벤트(가격 정상)는 장부에 서버 수신 시각으로 적히고, 수신 시각 없는 직접 기록은 한 번 읽은 서버 시각으로 제한된다" classname="com.cryptoautotrader.api.service.N16InvalidPriceReproTest" time="0.059"/>
+  <testcase name="④c 체결 — 과거 관측은 수신 시각으로 올리지 않는다(낡은 체결가 재수신은 낡은 채), 더 이른 정상 관측의 역순 보호와 같은 유효 시각의 기존 동작은 그대로" classname="com.cryptoautotrader.api.service.N16InvalidPriceReproTest" time="0.005"/>
+  <testcase name="④a 체결 — 미래 100 뒤 정상 90 이 덮고, 장부 시각은 수신 시각이며 원래 관측 시각은 따로 남는다" classname="com.cryptoautotrader.api.service.N16InvalidPriceReproTest" time="0.005"/>
+  <testcase name="LIVE 가격 0" classname="com.cryptoautotrader.api.service.N16InvalidPriceReproTest" time="0.065"/>
+  <testcase name="LIVE 가격 -1" classname="com.cryptoautotrader.api.service.N16InvalidPriceReproTest" time="0.061"/>
+  <testcase name="DYNAMIC 가격 0" classname="com.cryptoautotrader.api.service.N16InvalidPriceReproTest" time="0.06"/>
+  <testcase name="DYNAMIC 가격 -1" classname="com.cryptoautotrader.api.service.N16InvalidPriceReproTest" time="0.076"/>
+  <testcase name="LIVE" classname="com.cryptoautotrader.api.service.N16InvalidPriceReproTest" time="0.059"/>
+  <testcase name="⑤ 관측 시각 EPOCH·null — 장부는 신선한 값을 지키고(EPOCH 는 더 이르다, null 은 거절) EPOCH 이벤트는 처리기가 낡은 값으로 버린다" classname="com.cryptoautotrader.api.service.N16InvalidPriceReproTest" time="0.004"/>
+  <testcase name="④b 체결 — 미래 값 뒤 후속 관측이 없으면 기존 120초 기준으로 낡고(120.999초 허용·121초 거절), 23시간 뒤 풀·포지션 평가는 낡음, 보강이 다시 조회한다" classname="com.cryptoautotrader.api.service.N16InvalidPriceReproTest" time="0.006"/>
+  <testcase name="LIVE" classname="com.cryptoautotrader.api.service.N16InvalidPriceReproTest" time="0.057"/>
+  <testcase name="DYNAMIC" classname="com.cryptoautotrader.api.service.N16InvalidPriceReproTest" time="0.059"/>
+  <system-out><![CDATA[11:03:21.927 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.N16InvalidPriceReproTest
+11:03:21.930 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[N16 ④d] 미래 호가 기록 true · 장부 시각 2026-11-13T02:03:21.932413900Z · 121초 뒤 null · 정상 호가 기록 true · 2초 뒤 90.00000000
+11:03:21.936 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[N16 ④e] 이벤트 장부 290@2026-11-13T02:03:21.938410200Z 수신 2026-11-13T02:03:21.938410200Z · 매도 0 · 수신 없는 기록 true 2026-11-13T02:03:21.990626800Z 수신 2026-11-13T02:03:21.990626800Z
+11:03:21.996 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[N16 ④c] 10분 전 체결 기록 true · 장부 시각 2026-11-13T01:53:21.997154300Z · 신선 null · 정상 280 true · 더 이른 1 false · 같은 유효 시각 281 true · 현재 281
+11:03:22.001 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[N16 ④a] 미래 100 기록 true · 장부 시각 2026-11-13T02:03:22.002674900Z (수신 2026-11-13T02:03:22.002674900Z, 원래 관측 2026-11-14T02:03:22.002674900Z) · 정상 90 기록 true · 2초 뒤 신선한 가격 90
+11:03:22.012 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:03:22.014 [Test worker] WARN  c.c.api.service.LiveTradingService - 가격이 아닌 실시간 시세 무시: KRW-N16L6 0 관측 2026-11-13T02:03:22.014181200Z 출처 WS_TRADE
+[N16 ①] LIVE 가격 0 → 거래소 매도 0 · 포지션 OPEN · 점검 시각 null · 이력 null · 매도 주문 []
+11:03:22.018 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=300, KRW-N16L6, 손익=-6.666700%
+11:03:22.076 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:03:22.077 [Test worker] WARN  c.c.api.service.LiveTradingService - 가격이 아닌 실시간 시세 무시: KRW-N16L7 -1 관측 2026-11-13T02:03:22.077615Z 출처 WS_TRADE
+[N16 ①] LIVE 가격 -1 → 거래소 매도 0 · 포지션 OPEN · 점검 시각 null · 이력 null · 매도 주문 []
+11:03:22.077 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=301, KRW-N16L7, 손익=-6.666700%
+11:03:22.136 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:03:22.138 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 가격이 아닌 실시간 시세 무시: KRW-N16D8 0 관측 2026-11-13T02:03:22.138933100Z 출처 WS_TRADE
+[N16 ①] DYNAMIC 가격 0 → 거래소 매도 0 · 포지션 OPEN · 점검 시각 null · 매도 주문 []
+11:03:22.138 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-N16D8 @ 280 pnl=-6.666700% (id=223)
+11:03:22.199 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:03:22.201 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 가격이 아닌 실시간 시세 무시: KRW-N16D9 -1 관측 2026-11-13T02:03:22.201547600Z 출처 WS_TRADE
+[N16 ①] DYNAMIC 가격 -1 → 거래소 매도 0 · 포지션 OPEN · 점검 시각 null · 매도 주문 []
+11:03:22.204 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-N16D9 @ 280 pnl=-6.666700% (id=224)
+11:03:22.274 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[N16 ③] tp 없는 ticker → 파서 체결가 0 · 체결 시각 2026-11-13T02:03:22.275Z
+11:03:22.276 [market-data-2] WARN  c.c.api.service.LiveTradingService - 가격이 아닌 실시간 시세 무시: KRW-N16L10 0 관측 2026-11-13T02:03:22.275Z 출처 WS_TRADE
+11:03:22.276 [market-data-1] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 가격이 아닌 실시간 시세 무시: KRW-N16L10 0 관측 2026-11-13T02:03:22.275Z 출처 WS_TRADE
+[N16 ③] 처리 뒤 거래소 매도 0 · 포지션 OPEN · 장부 null
+11:03:22.334 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[N16 ⑤] EPOCH 1 이벤트 → 거래소 매도 0 · 점검 시각 null
+11:03:22.338 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:03:22.340 [Test worker] ERROR c.c.api.service.HeldMarkRefresher - ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N16L12] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-N16L12 호가 없음; 
+[N16 ④b] 120.999초 100 · 121초 null · 23시간 null · 풀 평가 시각 2026-11-13T02:03:22.339300Z · 포지션 판정 MARK_STALE · 23시간 뒤 보강 대상 [KRW-N16L12] · 시세 조회 1회
+11:03:22.346 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:03:22.347 [Test worker] WARN  c.c.api.service.LiveTradingService - 가격이 아닌 실시간 시세 무시: KRW-N16L13 null 관측 2026-11-13T02:03:22.347315700Z 출처 WS_TRADE
+11:03:22.348 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=305, KRW-N16L13, 손익=-6.666700%
+[N16 ②] LIVE null 뒤 점검 시각 null · 다음 280 → 거래소 매도 1 · 포지션 CLOSING
+11:03:22.404 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:03:22.405 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 가격이 아닌 실시간 시세 무시: KRW-N16D14 null 관측 2026-11-13T02:03:22.405189300Z 출처 WS_TRADE
+11:03:22.406 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-N16D14 @ 280 pnl=-6.666700% (id=225)
+[N16 ②] DYNAMIC null 뒤 점검 시각 null · 다음 280 → 거래소 매도 1 · 포지션 CLOSING
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

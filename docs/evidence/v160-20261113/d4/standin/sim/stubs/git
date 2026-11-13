@@ -1,0 +1,36 @@
+#!/bin/bash
+# 가짜 git(D4 대역 사본) — HEAD 는 $SIM/state/HEAD. 실제 git·원격 접속을 부르지 않는다. 커밋 두 개(OLDC·NEWC, conf.sh)만 안다. D3: start_66.py 블롭 조회·체크아웃 시 원문 교체를 더했다.
+. "$(dirname "$0")/_lib.sh"; calllog git "$@"
+. /d/tmp/v160d4/sim/conf.sh
+[ -f "$SIM/env.sh" ] && . "$SIM/env.sh"
+case "$1" in
+  rev-parse) NFP=scripts/prospective/start_66.py
+    case "$2" in
+      HEAD) cat "$ST/HEAD" ;;
+      # D4: 운영 b5cd1d0 과 후보의 start_66.py·시험 파일은 같은 블롭이다(실제 git rev-parse 값). 예상 밖 HEAD(MIDC)는 다른 값
+      HEAD:$NFP) case "$(cat "$ST/HEAD")" in "$NEWC"|"$OLDC") echo 6305e512f88e0e9e6f0ec32ec99a28c48bc3fc8d ;; *) echo 460031d30ce488f4604be6eb6aea78c10db50caf ;; esac ;;
+      "$NEWC:$NFP"|"$OLDC:$NFP") echo 6305e512f88e0e9e6f0ec32ec99a28c48bc3fc8d ;;
+      "$NEWC:web-api/src/main/resources/db/migration/V96__paper_aligned_runtime_state.sql") echo "${V96BLOB:-5b92eef03548c6bd1feaef2b35451563d5327246}" ;;   # V159D4
+      HEAD:scripts/prospective/test_freshness_recheck_fail.py|"$NEWC:scripts/prospective/test_freshness_recheck_fail.py") echo 15166c0e7d66bcb078579b18a3e3699f6a91bb0a ;;
+      *) forbid git-rev-parse "$@" ;;
+    esac ;;
+  status) [ -n "${DIRTY:-}" ] && echo " M $DIRTY"; exit 0 ;;
+  fetch) echo "(대역) fetch 하지 않음" >&2 ;;
+  cat-file) case "$3" in "$NEWC^{commit}"|"$OLDC^{commit}"|"$GSC^{commit}") exit 0 ;; *) exit 1 ;; esac ;;
+  ls-tree) [ "$2" = --name-only ] && [ "$3" = "$NEWC" ] || forbid git-ls-tree "$@"   # V159D4: 후보의 V9x 마이그레이션 목록
+    printf 'web-api/src/main/resources/db/migration/%s
+' V94__sell_quarantine_release.sql ${V95EXTRA:-} V96__paper_aligned_runtime_state.sql ;;
+  merge-base) [ "$2" = --is-ancestor ] && [ "$3" = "$OLDC" ] && [ "$4" = "$NEWC" ] ;;
+  diff) [ "$2" = --name-only ] && [ "$3" = "$OLDC" ] && [ "$4" = "$NEWC" ] || forbid git-diff "$@"
+        printf '%s\n' $D2_DIFF ${DIFF_EXTRA:-} ;;
+  checkout) [ "$2" = --quiet ] || forbid git-checkout "$@"; case "$3" in "$OLDC"|"$NEWC") echo "$3" > "$ST/HEAD" ;; *) echo "대역: 모르는 커밋 $3" >&2; exit 1 ;; esac
+    # D3: 작업 사본의 감시 스크립트도 그 커밋 원문으로 바꾼다(새 시험 파일은 NEWC 에만 있다)
+    P=$SIM/home/crypto_trader/AutoTrader/scripts/prospective
+    cp "$SIM/fix/start_66.$3.py" "$P/start_66.py"
+    cp "$SIM/fix/testfile.py" "$P/test_freshness_recheck_fail.py" ;;   # D4: 시험 파일은 두 커밋 모두에 있다
+  show) case "$2" in "$GSC:docs/evidence/v159-20261113/d4-draft/preflight-real-loss-readonly.v2.sql") cat "$SIM/fix/gs/preflight-real-loss-readonly.v2.sql" ;;
+    "$GSC:docs/evidence/v159-20261113/rollback-gate-v3/gate.sql") cat "$SIM/fix/gs/gate.sql" ;;
+    "$GSC:docs/evidence/v159-20261113/rollback-gate-v3/rollback_gate.sh") cat "$SIM/fix/gs/rollback_gate.sh" ;;
+    "$QSC:scripts/ops/maint_checks.sql") cat "$SIM/fix/maint_checks.sql" ;; "$QSC:scripts/ops/maint_verify.py") cat "$SIM/fix/maint_verify.py" ;; *) forbid git-show "$@" ;; esac ;;
+  *) forbid "git-$1" "$@" ;;
+esac

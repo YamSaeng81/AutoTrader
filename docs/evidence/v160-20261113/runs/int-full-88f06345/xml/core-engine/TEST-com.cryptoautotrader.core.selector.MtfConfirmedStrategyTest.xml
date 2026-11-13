@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="MtfConfirmedStrategy — HTF 확인 래퍼 (SL/TP 보존 · strictHtf)" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-11-13T01:44:22" hostname="DESKTOP-SF1KUQ5" time="0.001">
+  <properties/>
+  <testcase name="기본(lenient): HTF HOLD면 LTF 신호를 통과시킨다" classname="com.cryptoautotrader.core.selector.MtfConfirmedStrategyTest" time="0.001"/>
+  <testcase name="방향 일치 통과 시 하위(LTF) 전략의 SL/TP를 보존한다" classname="com.cryptoautotrader.core.selector.MtfConfirmedStrategyTest" time="0.0"/>
+  <testcase name="방향 불일치(H4=SELL vs H1=BUY)는 strict 여부와 무관하게 차단한다" classname="com.cryptoautotrader.core.selector.MtfConfirmedStrategyTest" time="0.0"/>
+  <testcase name="strictHtf=true: HTF HOLD면 진입을 차단한다" classname="com.cryptoautotrader.core.selector.MtfConfirmedStrategyTest" time="0.0"/>
+  <testcase name="strictHtf=true: HTF 데이터 부족이면 진입을 차단한다" classname="com.cryptoautotrader.core.selector.MtfConfirmedStrategyTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.SessionBalanceUpdaterTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-11-13T02:04:40" hostname="DESKTOP-SF1KUQ5" time="0.035">
+  <properties/>
+  <testcase name="단일 스레드 mutation: version 증가 + 값 반영" classname="com.cryptoautotrader.api.service.SessionBalanceUpdaterTest" time="0.006"/>
+  <testcase name="동시 increment 10회 → 모든 증분이 보존된다 (last-write-wins 없음)" classname="com.cryptoautotrader.api.service.SessionBalanceUpdaterTest" time="0.029"/>
+  <system-out><![CDATA[11:04:40.050 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.SessionBalanceUpdaterTest
+11:04:40.054 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:04:40.059 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:04:40.064 [pool-34-thread-3] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=433 attempt=1 backoff=5ms
+11:04:40.064 [pool-34-thread-5] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=433 attempt=1 backoff=5ms
+11:04:40.065 [pool-34-thread-6] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=433 attempt=1 backoff=10ms
+11:04:40.065 [pool-34-thread-1] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=433 attempt=1 backoff=5ms
+11:04:40.065 [pool-34-thread-4] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=433 attempt=1 backoff=8ms
+11:04:40.073 [pool-34-thread-1] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=433 attempt=2 backoff=10ms
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

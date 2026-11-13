@@ -1,0 +1,341 @@
+{
+  "review": "v1.160 / 400",
+  "submission": "6385e1d5f64eb09a95791ba253a30d2b21341082",
+  "candidate": "802b691a6606821d6db838bf5aca0f4cf468205a",
+  "manifest": {
+    "entries": 1553,
+    "git_matches": 1553,
+    "git_mismatches": [],
+    "local_mismatches": []
+  },
+  "candidate_diff_from_4a4a04a3": {
+    "crypto-trader-frontend/.dockerignore": {
+      "sha256": "f26d5a1be757dba59dc32d6a3a82e1b0f99d3cc99b67ed0e1714ee54ce08d5fa"
+    },
+    "web-api/src/test/java/com/cryptoautotrader/api/service/N16InvalidPriceReproTest.java": {
+      "sha256": "9622534e49bc21838bd9f7cc4009d073da534da53fc2816421be4fb2ac5d1ef1"
+    }
+  },
+  "runs": {
+    "int-full-4a4a04a3": {
+      "modules": {
+        "core-engine": {
+          "tests": 298,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 7,
+          "xml": 47,
+          "passed": 291
+        },
+        "exchange-adapter": {
+          "tests": 11,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "xml": 2,
+          "passed": 11
+        },
+        "strategy-lib": {
+          "tests": 113,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "xml": 17,
+          "passed": 113
+        },
+        "web-api": {
+          "tests": 1354,
+          "failures": 2,
+          "errors": 0,
+          "skipped": 71,
+          "xml": 210,
+          "passed": 1281
+        }
+      },
+      "failures": [
+        "com.cryptoautotrader.api.service.N16InvalidPriceReproTest#LIVE",
+        "com.cryptoautotrader.api.service.N16InvalidPriceReproTest#DYNAMIC"
+      ]
+    },
+    "int-full-802b691a": {
+      "modules": {
+        "core-engine": {
+          "tests": 298,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 7,
+          "xml": 47,
+          "passed": 291
+        },
+        "exchange-adapter": {
+          "tests": 11,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "xml": 2,
+          "passed": 11
+        },
+        "strategy-lib": {
+          "tests": 113,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "xml": 17,
+          "passed": 113
+        },
+        "web-api": {
+          "tests": 1354,
+          "failures": 1,
+          "errors": 0,
+          "skipped": 71,
+          "xml": 210,
+          "passed": 1282
+        }
+      },
+      "failures": [
+        "com.cryptoautotrader.api.service.SchedulerProfileCleanupTest#LIVE"
+      ]
+    },
+    "diag-full-sched": {
+      "modules": {
+        "web-api": {
+          "tests": 1354,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 71,
+          "xml": 210,
+          "passed": 1283
+        }
+      },
+      "failures": []
+    },
+    "n16-fix-alone": {
+      "modules": {
+        "web-api": {
+          "tests": 13,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "xml": 1,
+          "passed": 13
+        }
+      },
+      "failures": []
+    },
+    "diag-full-n16": {
+      "modules": {
+        "web-api": {
+          "tests": 1354,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 71,
+          "xml": 210,
+          "passed": 1283
+        }
+      },
+      "failures": []
+    }
+  },
+  "pg_runs": {
+    "pg-balancelist": {
+      "modules": {
+        "web-api": {
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "xml": 1,
+          "passed": 2
+        }
+      },
+      "failures": []
+    },
+    "pg-n13loop": {
+      "modules": {
+        "web-api": {
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "xml": 1,
+          "passed": 4
+        }
+      },
+      "failures": []
+    },
+    "pg-n13sqleq": {
+      "modules": {
+        "web-api": {
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "xml": 1,
+          "passed": 6
+        }
+      },
+      "failures": []
+    },
+    "pg-n15": {
+      "modules": {
+        "web-api": {
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "xml": 1,
+          "passed": 6
+        }
+      },
+      "failures": []
+    },
+    "pg-partialsell": {
+      "modules": {
+        "web-api": {
+          "tests": 7,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "xml": 1,
+          "passed": 7
+        }
+      },
+      "failures": []
+    },
+    "pg-perfs5": {
+      "modules": {
+        "web-api": {
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "xml": 1,
+          "passed": 1
+        }
+      },
+      "failures": []
+    },
+    "pg-preflight-parity": {
+      "modules": {
+        "web-api": {
+          "tests": 10,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "xml": 1,
+          "passed": 10
+        }
+      },
+      "failures": []
+    },
+    "pg-preflight-parity-r1-toolbug": {
+      "modules": {
+        "web-api": {
+          "tests": 10,
+          "failures": 1,
+          "errors": 0,
+          "skipped": 0,
+          "xml": 1,
+          "passed": 9
+        }
+      },
+      "failures": [
+        "com.cryptoautotrader.api.service.RealLossPreflightSqlParityPgTest#DYNAMIC REAL \uc190\uc2e4\uc774 \uc788\ub294\ub370 RUNNING DYNAMIC REAL \uc790\ubcf8 0 \u2192 \ud310\uc815 \ubd88\uac00(\uac70\uc808)"
+      ]
+    },
+    "pg-settleround": {
+      "modules": {
+        "web-api": {
+          "tests": 16,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "xml": 1,
+          "passed": 16
+        }
+      },
+      "failures": []
+    },
+    "pg-startedat": {
+      "modules": {
+        "web-api": {
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "xml": 1,
+          "passed": 1
+        }
+      },
+      "failures": []
+    },
+    "pg-v96behavior": {
+      "modules": {
+        "web-api": {
+          "tests": 5,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "xml": 1,
+          "passed": 5
+        }
+      },
+      "failures": []
+    },
+    "pg-v96mig": {
+      "modules": {
+        "web-api": {
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "xml": 1,
+          "passed": 1
+        }
+      },
+      "failures": []
+    }
+  },
+  "preserved_jar": {
+    "path": "D:\\tmp\\v159\\jar\\4a4a04a3.jar",
+    "sha256": "0834382ab008e1b203b6f74718799dc183e63b2c3cf9d67b6c974b6c30c5e100"
+  },
+  "review_method": "Source, fixed Git blobs, preserved XML and artifact hashes. No tests or production commands run by reviewer.",
+  "source_audit": {
+    "web-api/src/test/java/com/cryptoautotrader/api/service/SchedulerProfileCleanupTest.java": {
+      "sha256": "42f0a4db476933a853cdbc249aef8cb4d4da4c996300183f990b626de779b464",
+      "reviewed_worktree_matches": true
+    },
+    "web-api/src/test/java/com/cryptoautotrader/api/service/N16InvalidPriceReproTest.java": {
+      "sha256": "9622534e49bc21838bd9f7cc4009d073da534da53fc2816421be4fb2ac5d1ef1",
+      "reviewed_worktree_matches": true
+    },
+    "web-api/src/main/java/com/cryptoautotrader/api/service/OrderExecutionEngine.java": {
+      "sha256": "ea6c727f1081750fa55c414c5f0d476c646dd36e2fcaafb950105896926e7cff",
+      "reviewed_worktree_matches": true
+    },
+    "web-api/src/main/java/com/cryptoautotrader/api/config/AsyncConfig.java": {
+      "sha256": "3ddfcb992b24e129f60595d7eb5d0265ed7ed391e0678ad8f3c95807d92197ec",
+      "reviewed_worktree_matches": true
+    },
+    "web-api/src/test/java/com/cryptoautotrader/api/support/IntegrationTestBase.java": {
+      "sha256": "d10495319006d4d0290dd705d2177157d22c1bb4d7d56606ef75cde33f5990b8",
+      "reviewed_worktree_matches": true
+    }
+  },
+  "gs_sources": {
+    "rollback-gate-v3/gate.sql": "c9dc20563d6921d4e96cf6abc4b3737efeea94ecbaefddfbc23736056aabd56b",
+    "rollback-gate-v3/rollback_gate.sh": "fe19aab4e7396d50641a210b60cf328a117916ee8fab127bb3e53678522d6a42",
+    "d4-draft/preflight-real-loss-readonly.v2.sql": "af4105c1f70f6f095b8f1bbbb1c722acd717b2dcd46190e3a9224cd949c5cab0"
+  },
+  "oldbin_preserved_result": {
+    "checks": 18,
+    "passed": 18
+  },
+  "d4_standin_summary": "== \uacb0\uacfc: PASS 88 \u00b7 FAIL 0",
+  "runbook": {
+    "original_blocks": 15,
+    "current_blocks": 16,
+    "original_bodies_unchanged_and_ordered": true
+  }
+}

@@ -1,0 +1,915 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="scheduler 프로필 — 정리 작업이 대기 행을 가져간다" tests="2" skipped="0" failures="2" errors="0" timestamp="2026-11-13T01:38:12" hostname="DESKTOP-SF1KUQ5" time="120.741">
+  <properties/>
+  <testcase name="LIVE" classname="com.cryptoautotrader.api.service.SchedulerProfileCleanupTest" time="60.464">
+    <failure message="org.opentest4j.AssertionFailedError: [scheduler 프로필에서 @Scheduled 정리 작업이 60초 안에 대기 행을 가져가야 한다] &#13;&#10;Expecting value to be true but was false" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: [scheduler 프로필에서 @Scheduled 정리 작업이 60초 안에 대기 행을 가져가야 한다] 
+Expecting value to be true but was false
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base@17.0.12/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base@17.0.12/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)
+	at app//com.cryptoautotrader.api.service.SchedulerProfileCleanupTest.scheduledWorkerPicksUpPendingCleanup(SchedulerProfileCleanupTest.java:193)
+	at java.base@17.0.12/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:992)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="DYNAMIC" classname="com.cryptoautotrader.api.service.SchedulerProfileCleanupTest" time="60.276">
+    <failure message="org.opentest4j.AssertionFailedError: [scheduler 프로필에서 @Scheduled 정리 작업이 60초 안에 대기 행을 가져가야 한다] &#13;&#10;Expecting value to be true but was false" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: [scheduler 프로필에서 @Scheduled 정리 작업이 60초 안에 대기 행을 가져가야 한다] 
+Expecting value to be true but was false
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base@17.0.12/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base@17.0.12/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)
+	at app//com.cryptoautotrader.api.service.SchedulerProfileCleanupTest.scheduledWorkerPicksUpPendingCleanup(SchedulerProfileCleanupTest.java:193)
+	at java.base@17.0.12/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:992)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <system-out><![CDATA[10:37:58.692 [Test worker] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.cryptoautotrader.api.service.SchedulerProfileCleanupTest]: SchedulerProfileCleanupTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+10:37:58.922 [Test worker] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.SchedulerProfileCleanupTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.5)
+
+10:37:59.425 [background-preinit] INFO  o.h.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.1.Final
+10:38:00.649 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Multiple Spring Data modules found, entering strict repository configuration mode
+10:38:00.651 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+10:38:00.853 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 194 ms. Found 39 JPA repository interfaces.
+10:38:00.867 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Multiple Spring Data modules found, entering strict repository configuration mode
+10:38:00.869 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+10:38:00.884 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.BacktestJobRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+10:38:00.885 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.BacktestMetricsRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+10:38:00.885 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.BacktestRunRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+10:38:00.885 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.BacktestTradeRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+10:38:00.886 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.CandleDataRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+10:38:00.886 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.DailyHealthSnapshotRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+10:38:00.886 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.DiscordChannelConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+10:38:00.887 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.DiscordSendLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+10:38:00.887 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.DynamicSellSettlementRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+10:38:00.888 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.DynamicSessionRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+10:38:00.888 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.ExecutionDriftLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+10:38:00.888 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.KillCriteriaJudgmentRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+10:38:00.888 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.LiveTradingSessionRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+10:38:00.888 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.LlmCallLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+10:38:00.889 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.LlmProviderConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+10:38:00.890 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.LlmTaskConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+10:38:00.890 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.MarketDataCacheRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+10:38:00.891 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.NewsItemCacheRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+10:38:00.891 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.NewsSourceConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+10:38:00.892 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.NightlySchedulerConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+10:38:00.892 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.NotionReportConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+10:38:00.892 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.NotionReportLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+10:38:00.892 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.OrderRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+10:38:00.892 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.OrderSettlementDiscrepancyRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+10:38:00.893 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.paper.PaperOrderRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+10:38:00.893 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.paper.PaperPositionRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+10:38:00.893 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.paper.VirtualBalanceRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+10:38:00.893 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.PositionCleanupRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+10:38:00.894 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.PositionRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+10:38:00.895 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.RegimeChangeLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+10:38:00.895 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.RiskConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+10:38:00.895 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.RulesetSnapshotRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+10:38:00.895 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.StrategyConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+10:38:00.896 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.StrategyLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+10:38:00.896 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.StrategyTimeframeEnabledRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+10:38:00.896 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.StrategyTypeEnabledRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+10:38:00.896 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.TelegramNotificationLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+10:38:00.896 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.TradeLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+10:38:00.896 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.WeightOptimizerSnapshotRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+10:38:00.896 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 21 ms. Found 0 Redis repository interfaces.
+10:38:03.152 [Test worker] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 0 (http)
+10:38:03.176 [Test worker] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-auto-1"]
+10:38:03.182 [Test worker] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+10:38:03.183 [Test worker] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.20]
+10:38:03.366 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+10:38:03.368 [Test worker] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 3890 ms
+10:38:03.772 [Test worker] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+10:38:04.015 [Test worker] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:testdb user=SA
+10:38:04.018 [Test worker] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+10:38:04.291 [Test worker] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+10:38:04.420 [Test worker] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 6.4.4.Final
+10:38:04.554 [Test worker] INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
+10:38:04.782 [Test worker] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+10:38:04.835 [Test worker] WARN  org.hibernate.orm.deprecation - HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+10:38:06.186 [Test worker] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+10:38:06.188 [Test worker] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+10:38:06.271 [Test worker] WARN  c.c.api.config.SingleInstanceGuard - ? 단일 인스턴스 강제가 꺼져 있다(trading.single-instance.enabled=false) ? 시험 전용 설정이다
+10:38:06.883 [Test worker] INFO  o.s.d.j.r.query.QueryEnhancerFactory - Hibernate is in classpath; If applicable, HQL parser will be used.
+10:38:10.069 [Test worker] WARN  c.c.api.service.DbResetService - DB_RESET_PASSWORD 미설정 ? DB 초기화 기능이 비활성화됩니다(모든 요청 거부).
+10:38:11.259 [Test worker] INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 1 endpoint(s) beneath base path '/actuator'
+10:38:11.324 [Test worker] INFO  o.s.s.web.DefaultSecurityFilterChain - Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@26bd4efb, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@6f183392, org.springframework.security.web.context.SecurityContextHolderFilter@6be06c7e, org.springframework.security.web.header.HeaderWriterFilter@46ec33f9, org.springframework.web.filter.CorsFilter@547f4eff, org.springframework.security.web.authentication.logout.LogoutFilter@59453ca0, com.cryptoautotrader.api.config.ApiTokenAuthFilter@3be60847, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@57e6d85f, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@5e632684, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@728561a2, org.springframework.security.web.session.SessionManagementFilter@79647b58, org.springframework.security.web.access.ExceptionTranslationFilter@1eceaded, org.springframework.security.web.access.intercept.AuthorizationFilter@4c58a7b5]
+10:38:11.827 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+10:38:11.985 [Test worker] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-auto-1"]
+10:38:11.993 [Test worker] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 12956 (http) with context path ''
+10:38:12.208 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[관측 정리시험] 시작 LIVE context=crypto-auto-trader@279dd959 startup=2026-11-13T01:37:59.477Z db=jdbc:h2:mem:testdb 관측장치=true
+[관측 정리시험] 시작 orderExecutor pool=0/core2/max4 active=0 queued=0 remaining=50 tasks=0 completed=0 largest=0 shutdown=false
+[관측 정리시험] 시작 DB 부하 RUNNING_LIVE=0 RUNNING_DYNAMIC=0 활성주문=0 OPEN/CLOSING포지션=0 INTENT_READY=0 정리대기=0
+10:38:17.016 [scheduler-5] ERROR c.c.api.service.HeldMarkRefresher - ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-DOGE] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-DOGE 호가 없음; 
+10:38:22.117 [scheduler-2] WARN  c.c.api.service.LiveTradingService - 정지 후 정리 ? 청산 매도 제출 (posId=1, sessionId=1, 수량=9.80000000, 사유=LATE_FILL)
+10:38:37.020 [scheduler-4] WARN  c.c.api.service.PositionLimitGuard - [포지션 한도] 포지션 #1 KRW-DOGE LIVE#1 ? 반영값 없는 체결 주문 0건(매수 원가 0.00): 평가하지 않는다(고점 유지)
+10:38:47.029 [scheduler-8] WARN  c.c.api.service.PositionLimitGuard - [포지션 한도] 포지션 #1 KRW-DOGE LIVE#1 ? 반영값 없는 체결 주문 0건(매수 원가 0.00): 평가하지 않는다(고점 유지)
+10:38:57.039 [scheduler-8] WARN  c.c.api.service.PositionLimitGuard - [포지션 한도] 포지션 #1 KRW-DOGE LIVE#1 ? 반영값 없는 체결 주문 0건(매수 원가 0.00): 평가하지 않는다(고점 유지)
+10:39:07.050 [scheduler-3] WARN  c.c.api.service.PositionLimitGuard - [포지션 한도] 포지션 #1 KRW-DOGE LIVE#1 ? 반영값 없는 체결 주문 0건(매수 원가 0.00): 평가하지 않는다(고점 유지)
+[관측 정리시험] 결과 LIVE picked=false sessionId=1 positionId=1 관측누락=0
+[관측 정리시험] 결과 orderExecutor pool=1/core2/max4 active=1 queued=0 remaining=50 tasks=1 completed=0 largest=1 shutdown=false
+[관측 정리시험] 주문 ID=1 SIDE=SELL STATE=UNKNOWN FAILURE_CODE=- CLIENT_ORDER_ID=cat-ec0d4107-8452-4bb4-ab1b-dd21bbdac498 EXCHANGE_ORDER_ID=- CREATED_AT=2026-11-13 10:38:22.097338 INTENT_COMMITTED_AT=2026-11-13 10:38:22.096337 CLAIMED_AT=2026-11-13 10:38:22.125549 SUBMITTED_AT=- UNKNOWN_REASON=식별자로 조회되지 않음 ? 미접수로 단정하지 않는다 (시도 9회)
+[관측 정리시험]   거래로그 ID=1 EVENT_TYPE=STATE_CHANGE OLD_STATE=- NEW_STATE=INTENT_READY CREATED_AT=2026-11-13 10:38:22.105509
+[관측 정리시험]   거래로그 ID=2 EVENT_TYPE=STATE_CHANGE OLD_STATE=INTENT_READY NEW_STATE=SUBMITTING CREATED_AT=2026-11-13 10:38:22.127672
+[관측 정리시험]   거래로그 ID=3 EVENT_TYPE=STATE_CHANGE OLD_STATE=SUBMITTING NEW_STATE=UNKNOWN CREATED_AT=2026-11-13 10:38:27.086559
+[관측 정리시험] 정리행 POSITION_ID=1 SESSION_KIND=LIVE SESSION_ID=1 ATTEMPTS=1 LAST_ATTEMPT_AT=2026-11-13 10:38:22.070873 LAST_NOTE=청산 매도 체결 대기 DONE_AT=-
+[관측 정리시험] 포지션 ID=1 STATUS=CLOSING SIZE=9.80000000 CLOSING_AT=2026-11-13 10:38:22.070873 CLOSED_AT=-
+[관측 정리시험] 이 주문의 실행기 작업=[1] (거래소 대역 호출 식별자 기준)
+[관측 정리시험] 분류 보조: UNKNOWN(제출 결과 불명) (접수후미시작=[] 진행중=[1] 스택=[])
+[관측 정리시험] #2 +-0.000s 2026-11-13T01:38:12.233190300Z [Test worker] MARK tx=- 시험 시작 LIVE
+[관측 정리시험] #3 +0.074s 2026-11-13T01:38:12.306946600Z [Test worker] TEST_REGISTERED tx=- sessionKind=LIVE sessionId=1 positionId=1
+[관측 정리시험] #4 +9.850s 2026-11-13T01:38:22.083444500Z [scheduler-2] SQL_W tx=? CH@55a6b4e2 EM@660cefe6 update position set status='CLOSING',closing_at=?,exit_reason=? where id=? and status='OPEN'
+[관측 정리시험] #5 +9.864s 2026-11-13T01:38:22.097337700Z [scheduler-2] SQL_W tx=? CH@55a6b4e2 EM@660cefe6 insert into "order" (applied_executed_funds,applied_paid_fee,cancel_checked_at,cancel_confirmed_at,cancel_requested_at,cancelled_at,claimed_at,client_order_id,c…
+[관측 정리시험] #6 +9.872s 2026-11-13T01:38:22.105508600Z [scheduler-2] SQL_W tx=? CH@55a6b4e2 EM@660cefe6 insert into trade_log (created_at,detail_json,event_type,new_state,old_state,order_id,id) values (?,? format json,?,?,?,?,default)
+[관측 정리시험] #7 +9.882s 2026-11-13T01:38:22.116032500Z [scheduler-2] SQL_W tx=? CH@55a6b4e2 EM@660cefe6 update position_cleanup set attempts=(attempts+1),last_attempt_at=?,last_note=? where position_id=? and done_at is null
+[관측 정리시험] #8 +9.885s 2026-11-13T01:38:22.118558200Z [scheduler-2] TX_COMMIT tx=? CH@55a6b4e2 EM@660cefe6 커밋 tx=? CH@55a6b4e2 EM@660cefe6
+[관측 정리시험] #9 +9.891s 2026-11-13T01:38:22.124540700Z [scheduler-2] EXEC_SUBMIT tx=? CH@55a6b4e2 EM@660cefe6 task=1 orderExecutor pool=0/core2/max4 active=0 queued=0 remaining=50 tasks=0 completed=0 largest=0 shutdown=false
+[관측 정리시험] #10 +9.892s 2026-11-13T01:38:22.125549Z [order-exec-1] EXEC_START tx=- task=1 대기 0.004s
+[관측 정리시험] #11 +9.894s 2026-11-13T01:38:22.126542200Z [order-exec-1] SQL_W tx=? CH@1cb29be EM@419b65e8 task=1 update "order" set state='SUBMITTING',claimed_at=? where id=? and state='INTENT_READY'
+[관측 정리시험] #12 +9.895s 2026-11-13T01:38:22.127671700Z [order-exec-1] SQL_W tx=? CH@1cb29be EM@419b65e8 task=1 insert into trade_log (created_at,detail_json,event_type,new_state,old_state,order_id,id) values (?,? format json,?,?,?,?,default)
+[관측 정리시험] #13 +9.895s 2026-11-13T01:38:22.128669200Z [order-exec-1] TX_COMMIT tx=? CH@1cb29be EM@419b65e8 task=1 커밋 tx=? CH@1cb29be EM@419b65e8
+[관측 정리시험] #14 +9.897s 2026-11-13T01:38:22.129678100Z [order-exec-1] SQL_R tx=? CH@44adec29 EM@1502c3e7 task=1 select oe1_0.id,oe1_0.applied_executed_funds,oe1_0.applied_paid_fee,oe1_0.cancel_checked_at,oe1_0.cancel_confirmed_at,oe1_0.cancel_requested_at,oe1_0.cancelled_…
+[관측 정리시험] #15 +9.898s 2026-11-13T01:38:22.130668800Z [order-exec-1] TX_COMMIT tx=? CH@44adec29 EM@1502c3e7 task=1 커밋 tx=? CH@44adec29 EM@1502c3e7
+[관측 정리시험] #16 +9.902s 2026-11-13T01:38:22.135357300Z [order-exec-1] EXCHANGE_CALL tx=- task=1 identifier=cat-ec0d4107-8452-4bb4-ab1b-dd21bbdac498
+[관측 정리시험] #17 +14.851s 2026-11-13T01:38:27.082934500Z [scheduler-6] SQL_W tx=? CH@677789e8 EM@260a317c update "order" set unknown_probe_count=(unknown_probe_count+1),unknown_probed_at=? where id=?
+[관측 정리시험] #18 +14.854s 2026-11-13T01:38:27.087559500Z [scheduler-6] SQL_W tx=? CH@677789e8 EM@260a317c insert into trade_log (created_at,detail_json,event_type,new_state,old_state,order_id,id) values (?,? format json,?,?,?,?,default)
+[관측 정리시험] #19 +14.859s 2026-11-13T01:38:27.093062500Z [scheduler-6] SQL_W tx=? CH@677789e8 EM@260a317c update "order" set applied_executed_funds=?,applied_paid_fee=?,cancel_checked_at=?,cancel_confirmed_at=?,cancel_requested_at=?,cancelled_at=?,claimed_at=?,clien…
+[관측 정리시험] #20 +14.861s 2026-11-13T01:38:27.094068400Z [scheduler-6] TX_COMMIT tx=? CH@677789e8 EM@260a317c 커밋 tx=? CH@677789e8 EM@260a317c
+[관측 정리시험] #21 +19.871s 2026-11-13T01:38:32.104972Z [scheduler-7] SQL_W tx=? CH@585ac15e EM@5c7e7973 update "order" set unknown_probe_count=(unknown_probe_count+1),unknown_probed_at=? where id=?
+[관측 정리시험] #22 +19.873s 2026-11-13T01:38:32.105478Z [scheduler-7] SQL_W tx=? CH@585ac15e EM@5c7e7973 update "order" set applied_executed_funds=?,applied_paid_fee=?,cancel_checked_at=?,cancel_confirmed_at=?,cancel_requested_at=?,cancelled_at=?,claimed_at=?,clien…
+[관측 정리시험] #23 +19.873s 2026-11-13T01:38:32.106483900Z [scheduler-7] TX_COMMIT tx=? CH@585ac15e EM@5c7e7973 커밋 tx=? CH@585ac15e EM@5c7e7973
+[관측 정리시험] #24 +19.901s 2026-11-13T01:38:32.133961300Z [scheduler-4] SQL_W tx=? CH@302753dd EM@6139883f update position_cleanup set last_note=? where position_id=? and done_at is null
+[관측 정리시험] #25 +19.902s 2026-11-13T01:38:32.133961300Z [scheduler-4] TX_COMMIT tx=? CH@302753dd EM@6139883f 커밋 tx=? CH@302753dd EM@6139883f
+[관측 정리시험] #26 +24.880s 2026-11-13T01:38:37.113896600Z [scheduler-3] SQL_W tx=? CH@78c6ea15 EM@5651f77b update "order" set unknown_probe_count=(unknown_probe_count+1),unknown_probed_at=? where id=?
+[관측 정리시험] #27 +24.881s 2026-11-13T01:38:37.114890600Z [scheduler-3] SQL_W tx=? CH@78c6ea15 EM@5651f77b update "order" set applied_executed_funds=?,applied_paid_fee=?,cancel_checked_at=?,cancel_confirmed_at=?,cancel_requested_at=?,cancelled_at=?,claimed_at=?,clien…
+[관측 정리시험] #28 +24.882s 2026-11-13T01:38:37.114890600Z [scheduler-3] TX_COMMIT tx=? CH@78c6ea15 EM@5651f77b 커밋 tx=? CH@78c6ea15 EM@5651f77b
+[관측 정리시험] #29 +29.891s 2026-11-13T01:38:42.124345400Z [scheduler-4] SQL_W tx=? CH@7787ab80 EM@29112d44 update "order" set unknown_probe_count=(unknown_probe_count+1),unknown_probed_at=? where id=?
+[관측 정리시험] #30 +29.892s 2026-11-13T01:38:42.125342Z [scheduler-4] SQL_W tx=? CH@7787ab80 EM@29112d44 update "order" set applied_executed_funds=?,applied_paid_fee=?,cancel_checked_at=?,cancel_confirmed_at=?,cancel_requested_at=?,cancelled_at=?,claimed_at=?,clien…
+[관측 정리시험] #31 +29.892s 2026-11-13T01:38:42.125342Z [scheduler-4] TX_COMMIT tx=? CH@7787ab80 EM@29112d44 커밋 tx=? CH@7787ab80 EM@29112d44
+[관측 정리시험] #32 +29.921s 2026-11-13T01:38:42.154411400Z [scheduler-6] SQL_W tx=? CH@2b50612f EM@6d8d5283 update position_cleanup set last_note=? where position_id=? and done_at is null
+[관측 정리시험] #33 +29.921s 2026-11-13T01:38:42.154411400Z [scheduler-6] TX_COMMIT tx=? CH@2b50612f EM@6d8d5283 커밋 tx=? CH@2b50612f EM@6d8d5283
+[관측 정리시험] #34 +34.904s 2026-11-13T01:38:47.137036600Z [scheduler-1] SQL_W tx=? CH@7a738048 EM@75e384e0 update "order" set unknown_probe_count=(unknown_probe_count+1),unknown_probed_at=? where id=?
+[관측 정리시험] #35 +34.906s 2026-11-13T01:38:47.139036500Z [scheduler-1] SQL_W tx=? CH@7a738048 EM@75e384e0 update "order" set applied_executed_funds=?,applied_paid_fee=?,cancel_checked_at=?,cancel_confirmed_at=?,cancel_requested_at=?,cancelled_at=?,claimed_at=?,clien…
+[관측 정리시험] #36 +34.906s 2026-11-13T01:38:47.139036500Z [scheduler-1] TX_COMMIT tx=? CH@7a738048 EM@75e384e0 커밋 tx=? CH@7a738048 EM@75e384e0
+[관측 정리시험] #37 +39.920s 2026-11-13T01:38:52.153286800Z [scheduler-5] SQL_W tx=? CH@75d47d84 EM@35b3f75c update "order" set unknown_probe_count=(unknown_probe_count+1),unknown_probed_at=? where id=?
+[관측 정리시험] #38 +39.921s 2026-11-13T01:38:52.154288300Z [scheduler-5] SQL_W tx=? CH@75d47d84 EM@35b3f75c update "order" set applied_executed_funds=?,applied_paid_fee=?,cancel_checked_at=?,cancel_confirmed_at=?,cancel_requested_at=?,cancelled_at=?,claimed_at=?,clien…
+[관측 정리시험] #39 +39.921s 2026-11-13T01:38:52.155288700Z [scheduler-5] TX_COMMIT tx=? CH@75d47d84 EM@35b3f75c 커밋 tx=? CH@75d47d84 EM@35b3f75c
+[관측 정리시험] #40 +39.924s 2026-11-13T01:38:52.156800800Z [scheduler-5] SQL_W tx=? CH@3b899ac0 EM@200a995 update position_cleanup set last_note=? where position_id=? and done_at is null
+[관측 정리시험] #41 +39.924s 2026-11-13T01:38:52.157799200Z [scheduler-5] TX_COMMIT tx=? CH@3b899ac0 EM@200a995 커밋 tx=? CH@3b899ac0 EM@200a995
+[관측 정리시험] #42 +44.930s 2026-11-13T01:38:57.163156100Z [scheduler-1] SQL_W tx=? CH@7116c479 EM@2674038c update "order" set unknown_probe_count=(unknown_probe_count+1),unknown_probed_at=? where id=?
+[관측 정리시험] #43 +44.931s 2026-11-13T01:38:57.164156600Z [scheduler-1] SQL_W tx=? CH@7116c479 EM@2674038c update "order" set applied_executed_funds=?,applied_paid_fee=?,cancel_checked_at=?,cancel_confirmed_at=?,cancel_requested_at=?,cancelled_at=?,claimed_at=?,clien…
+[관측 정리시험] #44 +44.931s 2026-11-13T01:38:57.164156600Z [scheduler-1] TX_COMMIT tx=? CH@7116c479 EM@2674038c 커밋 tx=? CH@7116c479 EM@2674038c
+[관측 정리시험] #45 +49.930s 2026-11-13T01:39:02.163194400Z [scheduler-4] SQL_W tx=? CH@386565bb EM@56a6cafc update position_cleanup set last_note=? where position_id=? and done_at is null
+[관측 정리시험] #46 +49.930s 2026-11-13T01:39:02.164193900Z [scheduler-4] TX_COMMIT tx=? CH@386565bb EM@56a6cafc 커밋 tx=? CH@386565bb EM@56a6cafc
+[관측 정리시험] #47 +49.946s 2026-11-13T01:39:02.179409100Z [scheduler-6] SQL_W tx=? CH@12b15f82 EM@2c7e898f update "order" set unknown_probe_count=(unknown_probe_count+1),unknown_probed_at=? where id=?
+[관측 정리시험] #48 +49.947s 2026-11-13T01:39:02.180407500Z [scheduler-6] SQL_W tx=? CH@12b15f82 EM@2c7e898f update "order" set applied_executed_funds=?,applied_paid_fee=?,cancel_checked_at=?,cancel_confirmed_at=?,cancel_requested_at=?,cancelled_at=?,claimed_at=?,clien…
+[관측 정리시험] #49 +49.947s 2026-11-13T01:39:02.180407500Z [scheduler-6] TX_COMMIT tx=? CH@12b15f82 EM@2c7e898f 커밋 tx=? CH@12b15f82 EM@2c7e898f
+[관측 정리시험] #50 +54.956s 2026-11-13T01:39:07.189965800Z [scheduler-5] SQL_W tx=? CH@31d580c6 EM@18dcbc8d update "order" set unknown_probe_count=(unknown_probe_count+1),unknown_probed_at=? where id=?
+[관측 정리시험] #51 +54.958s 2026-11-13T01:39:07.190966400Z [scheduler-5] SQL_W tx=? CH@31d580c6 EM@18dcbc8d update "order" set applied_executed_funds=?,applied_paid_fee=?,cancel_checked_at=?,cancel_confirmed_at=?,cancel_requested_at=?,cancelled_at=?,claimed_at=?,clien…
+[관측 정리시험] #52 +54.958s 2026-11-13T01:39:07.190966400Z [scheduler-5] TX_COMMIT tx=? CH@31d580c6 EM@18dcbc8d 커밋 tx=? CH@31d580c6 EM@18dcbc8d
+[관측 정리시험] #53 +59.948s 2026-11-13T01:39:12.181808900Z [scheduler-8] SQL_W tx=? CH@5450fa36 EM@28892a70 update position_cleanup set last_note=? where position_id=? and done_at is null
+[관측 정리시험] #54 +59.949s 2026-11-13T01:39:12.181808900Z [scheduler-8] TX_COMMIT tx=? CH@5450fa36 EM@28892a70 커밋 tx=? CH@5450fa36 EM@28892a70
+[관측 정리시험] #55 +59.964s 2026-11-13T01:39:12.197112400Z [scheduler-5] SQL_W tx=? CH@72f45de8 EM@695e516 update "order" set unknown_probe_count=(unknown_probe_count+1),unknown_probed_at=? where id=?
+[관측 정리시험] #56 +59.965s 2026-11-13T01:39:12.198105500Z [scheduler-5] SQL_W tx=? CH@72f45de8 EM@695e516 update "order" set applied_executed_funds=?,applied_paid_fee=?,cancel_checked_at=?,cancel_confirmed_at=?,cancel_requested_at=?,cancelled_at=?,claimed_at=?,clien…
+[관측 정리시험] #57 +59.966s 2026-11-13T01:39:12.199205500Z [scheduler-5] TX_COMMIT tx=? CH@72f45de8 EM@695e516 커밋 tx=? CH@72f45de8 EM@695e516
+[관측 정리시험] #58 +60.300s 2026-11-13T01:39:12.533539Z [Test worker] TEST_AWAIT_END tx=- picked=false
+[관측 정리시험] 스레드 덤프 9개 (60초 초과, 정리 전)
+[관측 정리시험] "scheduler-1" WAITING on java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@cf500b5
+    at java.base@17.0.12/jdk.internal.misc.Unsafe.park(Native Method)
+    at java.base@17.0.12/java.util.concurrent.locks.LockSupport.park(LockSupport.java:341)
+    at java.base@17.0.12/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionNode.block(AbstractQueuedSynchronizer.java:506)
+    at java.base@17.0.12/java.util.concurrent.ForkJoinPool.unmanagedBlock(ForkJoinPool.java:3465)
+    at java.base@17.0.12/java.util.concurrent.ForkJoinPool.managedBlock(ForkJoinPool.java:3436)
+    at java.base@17.0.12/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:1623)
+    at java.base@17.0.12/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:1177)
+    at java.base@17.0.12/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:899)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1062)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1122)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+    at java.base@17.0.12/java.lang.Thread.run(Thread.java:842)
+[관측 정리시험] "scheduler-2" WAITING on java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@cf500b5
+    at java.base@17.0.12/jdk.internal.misc.Unsafe.park(Native Method)
+    at java.base@17.0.12/java.util.concurrent.locks.LockSupport.park(LockSupport.java:341)
+    at java.base@17.0.12/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionNode.block(AbstractQueuedSynchronizer.java:506)
+    at java.base@17.0.12/java.util.concurrent.ForkJoinPool.unmanagedBlock(ForkJoinPool.java:3465)
+    at java.base@17.0.12/java.util.concurrent.ForkJoinPool.managedBlock(ForkJoinPool.java:3436)
+    at java.base@17.0.12/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:1623)
+    at java.base@17.0.12/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:1177)
+    at java.base@17.0.12/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:899)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1062)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1122)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+    at java.base@17.0.12/java.lang.Thread.run(Thread.java:842)
+[관측 정리시험] "scheduler-3" WAITING on java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@cf500b5
+    at java.base@17.0.12/jdk.internal.misc.Unsafe.park(Native Method)
+    at java.base@17.0.12/java.util.concurrent.locks.LockSupport.park(LockSupport.java:341)
+    at java.base@17.0.12/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionNode.block(AbstractQueuedSynchronizer.java:506)
+    at java.base@17.0.12/java.util.concurrent.ForkJoinPool.unmanagedBlock(ForkJoinPool.java:3465)
+    at java.base@17.0.12/java.util.concurrent.ForkJoinPool.managedBlock(ForkJoinPool.java:3436)
+    at java.base@17.0.12/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:1623)
+    at java.base@17.0.12/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:1177)
+    at java.base@17.0.12/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:899)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1062)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1122)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+    at java.base@17.0.12/java.lang.Thread.run(Thread.java:842)
+[관측 정리시험] "scheduler-4" TIMED_WAITING on java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@cf500b5
+    at java.base@17.0.12/jdk.internal.misc.Unsafe.park(Native Method)
+    at java.base@17.0.12/java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:252)
+    at java.base@17.0.12/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.awaitNanos(AbstractQueuedSynchronizer.java:1672)
+    at java.base@17.0.12/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:1182)
+    at java.base@17.0.12/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:899)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1062)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1122)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+    at java.base@17.0.12/java.lang.Thread.run(Thread.java:842)
+[관측 정리시험] "scheduler-5" WAITING on java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@cf500b5
+    at java.base@17.0.12/jdk.internal.misc.Unsafe.park(Native Method)
+    at java.base@17.0.12/java.util.concurrent.locks.LockSupport.park(LockSupport.java:341)
+    at java.base@17.0.12/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionNode.block(AbstractQueuedSynchronizer.java:506)
+    at java.base@17.0.12/java.util.concurrent.ForkJoinPool.unmanagedBlock(ForkJoinPool.java:3465)
+    at java.base@17.0.12/java.util.concurrent.ForkJoinPool.managedBlock(ForkJoinPool.java:3436)
+    at java.base@17.0.12/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:1623)
+    at java.base@17.0.12/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:1177)
+    at java.base@17.0.12/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:899)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1062)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1122)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+    at java.base@17.0.12/java.lang.Thread.run(Thread.java:842)
+[관측 정리시험] "scheduler-6" WAITING on java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@cf500b5
+    at java.base@17.0.12/jdk.internal.misc.Unsafe.park(Native Method)
+    at java.base@17.0.12/java.util.concurrent.locks.LockSupport.park(LockSupport.java:341)
+    at java.base@17.0.12/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionNode.block(AbstractQueuedSynchronizer.java:506)
+    at java.base@17.0.12/java.util.concurrent.ForkJoinPool.unmanagedBlock(ForkJoinPool.java:3465)
+    at java.base@17.0.12/java.util.concurrent.ForkJoinPool.managedBlock(ForkJoinPool.java:3436)
+    at java.base@17.0.12/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:1623)
+    at java.base@17.0.12/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:1177)
+    at java.base@17.0.12/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:899)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1062)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1122)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+    at java.base@17.0.12/java.lang.Thread.run(Thread.java:842)
+[관측 정리시험] "scheduler-7" TIMED_WAITING on java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@cf500b5
+    at java.base@17.0.12/jdk.internal.misc.Unsafe.park(Native Method)
+    at java.base@17.0.12/java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:252)
+    at java.base@17.0.12/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.awaitNanos(AbstractQueuedSynchronizer.java:1672)
+    at java.base@17.0.12/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:1182)
+    at java.base@17.0.12/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:899)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1062)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1122)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+    at java.base@17.0.12/java.lang.Thread.run(Thread.java:842)
+[관측 정리시험] "scheduler-8" WAITING on java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@cf500b5
+    at java.base@17.0.12/jdk.internal.misc.Unsafe.park(Native Method)
+    at java.base@17.0.12/java.util.concurrent.locks.LockSupport.park(LockSupport.java:341)
+    at java.base@17.0.12/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionNode.block(AbstractQueuedSynchronizer.java:506)
+    at java.base@17.0.12/java.util.concurrent.ForkJoinPool.unmanagedBlock(ForkJoinPool.java:3465)
+    at java.base@17.0.12/java.util.concurrent.ForkJoinPool.managedBlock(ForkJoinPool.java:3436)
+    at java.base@17.0.12/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:1623)
+    at java.base@17.0.12/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:1177)
+    at java.base@17.0.12/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:899)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1062)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1122)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+    at java.base@17.0.12/java.lang.Thread.run(Thread.java:842)
+[관측 정리시험] "order-exec-1" TIMED_WAITING
+    at java.base@17.0.12/java.lang.Thread.sleep(Native Method)
+    at app//com.cryptoautotrader.api.service.SchedulerProfileCleanupTest.lambda$exchange$1(SchedulerProfileCleanupTest.java:102)
+    at app//com.cryptoautotrader.api.service.SchedulerProfileCleanupTest$$Lambda$2885/0x00000257a6025830.answer(Unknown Source)
+    at app//org.mockito.internal.stubbing.StubbedInvocationMatcher.answer(StubbedInvocationMatcher.java:42)
+    at app//org.mockito.internal.handler.MockHandlerImpl.handle(MockHandlerImpl.java:103)
+    at app//org.mockito.internal.handler.NullResultGuardian.handle(NullResultGuardian.java:29)
+    at app//org.mockito.internal.handler.InvocationNotifierHandler.handle(InvocationNotifierHandler.java:34)
+    at app//org.mockito.internal.creation.bytebuddy.MockMethodInterceptor.doIntercept(MockMethodInterceptor.java:82)
+    at app//org.mockito.internal.creation.bytebuddy.MockMethodAdvice.handle(MockMethodAdvice.java:134)
+    at app//com.cryptoautotrader.exchange.upbit.UpbitOrderClient.createOrder(UpbitOrderClient.java:110)
+    at app//com.cryptoautotrader.api.service.OrderExecutionEngine.submitToExchange(OrderExecutionEngine.java:2374)
+    at app//com.cryptoautotrader.api.service.OrderExecutionEngine.callExchangeAndRecord(OrderExecutionEngine.java:1013)
+    at app//com.cryptoautotrader.api.service.OrderExecutionEngine.submitPreparedOrder(OrderExecutionEngine.java:670)
+    at java.base@17.0.12/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+    at java.base@17.0.12/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+    at java.base@17.0.12/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+    at java.base@17.0.12/java.lang.reflect.Method.invoke(Method.java:568)
+    at app//org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354)
+    at app//org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+    at app//org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+    at app//org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+    at app//org.springframework.aop.interceptor.AsyncExecutionInterceptor.lambda$invoke$0(AsyncExecutionInterceptor.java:113)
+    at app//org.springframework.aop.interceptor.AsyncExecutionInterceptor$$Lambda$2823/0x00000257a5fbba80.call(Unknown Source)
+    at java.base@17.0.12/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+    at app//com.cryptoautotrader.api.support.OrderFlowObservation.lambda$decorator$0(OrderFlowObservation.java:234)
+    at app//com.cryptoautotrader.api.support.OrderFlowObservation$$Lambda$3082/0x00000257a6081ce0.run(Unknown Source)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+    at java.base@17.0.12/java.lang.Thread.run(Thread.java:842)
+[스케줄러 LIVE] 가져감=false 시도=1 메모=청산 매도 체결 대기 마지막시도=2026-11-13T01:38:22.070873Z 포지션=CLOSING 대기행(LIVE)=1
+10:39:12.653 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[관측 정리시험] 시작 DYNAMIC context=crypto-auto-trader@279dd959 startup=2026-11-13T01:37:59.477Z db=jdbc:h2:mem:testdb 관측장치=true
+[관측 정리시험] 시작 orderExecutor pool=1/core2/max4 active=1 queued=0 remaining=50 tasks=1 completed=0 largest=1 shutdown=false
+[관측 정리시험] 시작 DB 부하 RUNNING_LIVE=0 RUNNING_DYNAMIC=0 활성주문=0 OPEN/CLOSING포지션=0 INTENT_READY=0 정리대기=0
+10:39:17.065 [scheduler-2] WARN  c.c.api.service.PositionLimitGuard - [포지션 한도] 포지션 #2 KRW-DOGE DYNAMIC#1 ? 반영값 없는 체결 주문 0건(매수 원가 0.00): 평가하지 않는다(고점 유지)
+10:39:22.113 [scheduler-2] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 정지 후 정리 ? 청산 매도 제출 (posId=2, sessionId=1, 수량=9.80000000, 사유=LATE_FILL)
+10:39:27.080 [scheduler-6] WARN  c.c.api.service.PositionLimitGuard - [포지션 한도] 포지션 #2 KRW-DOGE DYNAMIC#1 ? 반영값 없는 체결 주문 0건(매수 원가 0.00): 평가하지 않는다(고점 유지)
+10:39:37.099 [scheduler-8] WARN  c.c.api.service.PositionLimitGuard - [포지션 한도] 포지션 #2 KRW-DOGE DYNAMIC#1 ? 반영값 없는 체결 주문 0건(매수 원가 0.00): 평가하지 않는다(고점 유지)
+10:39:42.022 [scheduler-4] WARN  o.h.e.jdbc.spi.SqlExceptionHelper - SQL Error: 42102, SQLState: 42S02
+10:39:42.023 [scheduler-4] ERROR o.h.e.jdbc.spi.SqlExceptionHelper - Table "NIGHTLY_SCHEDULER_CONFIG" not found; SQL statement:
+select nsce1_0.id,nsce1_0.coin_pairs,nsce1_0.enabled,nsce1_0.end_date,nsce1_0.fee_pct,nsce1_0.in_sample_ratio,nsce1_0.include_backtest,nsce1_0.include_walk_forward,nsce1_0.initial_capital,nsce1_0.last_batch_job_id,nsce1_0.last_triggered_at,nsce1_0.last_wf_job_id,nsce1_0.run_hour,nsce1_0.run_minute,nsce1_0.slippage_pct,nsce1_0.start_date,nsce1_0.strategy_types,nsce1_0.timeframe,nsce1_0.updated_at,nsce1_0.window_count from nightly_scheduler_config nsce1_0 where nsce1_0.id=? [42102-224]
+10:39:42.023 [scheduler-4] INFO  o.h.e.i.DefaultLoadEventListener - HHH000327: Error performing load command
+org.hibernate.exception.SQLGrammarException: could not prepare statement [Table "NIGHTLY_SCHEDULER_CONFIG" not found; SQL statement:
+select nsce1_0.id,nsce1_0.coin_pairs,nsce1_0.enabled,nsce1_0.end_date,nsce1_0.fee_pct,nsce1_0.in_sample_ratio,nsce1_0.include_backtest,nsce1_0.include_walk_forward,nsce1_0.initial_capital,nsce1_0.last_batch_job_id,nsce1_0.last_triggered_at,nsce1_0.last_wf_job_id,nsce1_0.run_hour,nsce1_0.run_minute,nsce1_0.slippage_pct,nsce1_0.start_date,nsce1_0.strategy_types,nsce1_0.timeframe,nsce1_0.updated_at,nsce1_0.window_count from nightly_scheduler_config nsce1_0 where nsce1_0.id=? [42102-224]] [select nsce1_0.id,nsce1_0.coin_pairs,nsce1_0.enabled,nsce1_0.end_date,nsce1_0.fee_pct,nsce1_0.in_sample_ratio,nsce1_0.include_backtest,nsce1_0.include_walk_forward,nsce1_0.initial_capital,nsce1_0.last_batch_job_id,nsce1_0.last_triggered_at,nsce1_0.last_wf_job_id,nsce1_0.run_hour,nsce1_0.run_minute,nsce1_0.slippage_pct,nsce1_0.start_date,nsce1_0.strategy_types,nsce1_0.timeframe,nsce1_0.updated_at,nsce1_0.window_count from nightly_scheduler_config nsce1_0 where nsce1_0.id=?]
+	at org.hibernate.exception.internal.SQLExceptionTypeDelegate.convert(SQLExceptionTypeDelegate.java:66)
+	at org.hibernate.exception.internal.StandardSQLExceptionConverter.convert(StandardSQLExceptionConverter.java:58)
+	at org.hibernate.engine.jdbc.spi.SqlExceptionHelper.convert(SqlExceptionHelper.java:108)
+	at org.hibernate.engine.jdbc.internal.StatementPreparerImpl$StatementPreparationTemplate.prepareStatement(StatementPreparerImpl.java:194)
+	at org.hibernate.engine.jdbc.internal.StatementPreparerImpl.prepareQueryStatement(StatementPreparerImpl.java:155)
+	at org.hibernate.sql.exec.spi.JdbcSelectExecutor.lambda$list$0(JdbcSelectExecutor.java:85)
+	at org.hibernate.sql.results.jdbc.internal.DeferredResultSetAccess.executeQuery(DeferredResultSetAccess.java:231)
+	at org.hibernate.sql.results.jdbc.internal.DeferredResultSetAccess.getResultSet(DeferredResultSetAccess.java:167)
+	at org.hibernate.sql.results.jdbc.internal.JdbcValuesResultSetImpl.advanceNext(JdbcValuesResultSetImpl.java:218)
+	at org.hibernate.sql.results.jdbc.internal.JdbcValuesResultSetImpl.processNext(JdbcValuesResultSetImpl.java:98)
+	at org.hibernate.sql.results.jdbc.internal.AbstractJdbcValues.next(AbstractJdbcValues.java:19)
+	at org.hibernate.sql.results.internal.RowProcessingStateStandardImpl.next(RowProcessingStateStandardImpl.java:66)
+	at org.hibernate.sql.results.spi.ListResultsConsumer.consume(ListResultsConsumer.java:187)
+	at org.hibernate.sql.results.spi.ListResultsConsumer.consume(ListResultsConsumer.java:33)
+	at org.hibernate.sql.exec.internal.JdbcSelectExecutorStandardImpl.doExecuteQuery(JdbcSelectExecutorStandardImpl.java:209)
+	at org.hibernate.sql.exec.internal.JdbcSelectExecutorStandardImpl.executeQuery(JdbcSelectExecutorStandardImpl.java:83)
+	at org.hibernate.sql.exec.spi.JdbcSelectExecutor.list(JdbcSelectExecutor.java:76)
+	at org.hibernate.sql.exec.spi.JdbcSelectExecutor.list(JdbcSelectExecutor.java:65)
+	at org.hibernate.loader.ast.internal.SingleIdLoadPlan.load(SingleIdLoadPlan.java:145)
+	at org.hibernate.loader.ast.internal.SingleIdLoadPlan.load(SingleIdLoadPlan.java:117)
+	at org.hibernate.loader.ast.internal.SingleIdEntityLoaderStandardImpl.load(SingleIdEntityLoaderStandardImpl.java:75)
+	at org.hibernate.persister.entity.AbstractEntityPersister.doLoad(AbstractEntityPersister.java:3748)
+	at org.hibernate.persister.entity.AbstractEntityPersister.load(AbstractEntityPersister.java:3737)
+	at org.hibernate.event.internal.DefaultLoadEventListener.loadFromDatasource(DefaultLoadEventListener.java:604)
+	at org.hibernate.event.internal.DefaultLoadEventListener.loadFromCacheOrDatasource(DefaultLoadEventListener.java:590)
+	at org.hibernate.event.internal.DefaultLoadEventListener.load(DefaultLoadEventListener.java:560)
+	at org.hibernate.event.internal.DefaultLoadEventListener.doLoad(DefaultLoadEventListener.java:544)
+	at org.hibernate.event.internal.DefaultLoadEventListener.load(DefaultLoadEventListener.java:207)
+	at org.hibernate.event.internal.DefaultLoadEventListener.loadWithRegularProxy(DefaultLoadEventListener.java:290)
+	at org.hibernate.event.internal.DefaultLoadEventListener.proxyOrLoad(DefaultLoadEventListener.java:242)
+	at org.hibernate.event.internal.DefaultLoadEventListener.doOnLoad(DefaultLoadEventListener.java:111)
+	at org.hibernate.event.internal.DefaultLoadEventListener.onLoad(DefaultLoadEventListener.java:68)
+	at org.hibernate.event.service.internal.EventListenerGroupImpl.fireEventOnEachListener(EventListenerGroupImpl.java:138)
+	at org.hibernate.internal.SessionImpl.fireLoadNoChecks(SessionImpl.java:1222)
+	at org.hibernate.internal.SessionImpl.fireLoad(SessionImpl.java:1210)
+	at org.hibernate.loader.internal.IdentifierLoadAccessImpl.load(IdentifierLoadAccessImpl.java:209)
+	at org.hibernate.loader.internal.IdentifierLoadAccessImpl.doLoad(IdentifierLoadAccessImpl.java:160)
+	at org.hibernate.loader.internal.IdentifierLoadAccessImpl.lambda$load$1(IdentifierLoadAccessImpl.java:149)
+	at org.hibernate.loader.internal.IdentifierLoadAccessImpl.perform(IdentifierLoadAccessImpl.java:112)
+	at org.hibernate.loader.internal.IdentifierLoadAccessImpl.load(IdentifierLoadAccessImpl.java:149)
+	at org.hibernate.internal.SessionImpl.find(SessionImpl.java:2424)
+	at org.hibernate.internal.SessionImpl.find(SessionImpl.java:2395)
+	at jdk.internal.reflect.GeneratedMethodAccessor72.invoke(Unknown Source)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.springframework.orm.jpa.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler.invoke(SharedEntityManagerCreator.java:319)
+	at jdk.proxy3/jdk.proxy3.$Proxy223.find(Unknown Source)
+	at org.springframework.data.jpa.repository.support.SimpleJpaRepository.findById(SimpleJpaRepository.java:313)
+	at jdk.internal.reflect.GeneratedMethodAccessor71.invoke(Unknown Source)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354)
+	at org.springframework.data.repository.core.support.RepositoryMethodInvoker$RepositoryFragmentMethodInvoker.lambda$new$0(RepositoryMethodInvoker.java:277)
+	at org.springframework.data.repository.core.support.RepositoryMethodInvoker.doInvoke(RepositoryMethodInvoker.java:170)
+	at org.springframework.data.repository.core.support.RepositoryMethodInvoker.invoke(RepositoryMethodInvoker.java:158)
+	at org.springframework.data.repository.core.support.RepositoryComposition$RepositoryFragments.invoke(RepositoryComposition.java:516)
+	at org.springframework.data.repository.core.support.RepositoryComposition.invoke(RepositoryComposition.java:285)
+	at org.springframework.data.repository.core.support.RepositoryFactorySupport$ImplementationMethodExecutionInterceptor.invoke(RepositoryFactorySupport.java:628)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.data.repository.core.support.QueryExecutorMethodInterceptor.doInvoke(QueryExecutorMethodInterceptor.java:168)
+	at org.springframework.data.repository.core.support.QueryExecutorMethodInterceptor.invoke(QueryExecutorMethodInterceptor.java:143)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.data.projection.DefaultMethodInvokingMethodInterceptor.invoke(DefaultMethodInvokingMethodInterceptor.java:70)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.transaction.interceptor.TransactionInterceptor$1.proceedWithInvocation(TransactionInterceptor.java:123)
+	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:392)
+	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.invoke(PersistenceExceptionTranslationInterceptor.java:137)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.data.jpa.repository.support.CrudMethodMetadataPostProcessor$CrudMethodMetadataPopulatingMethodInterceptor.invoke(CrudMethodMetadataPostProcessor.java:164)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:97)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.JdkDynamicAopProxy.invoke(JdkDynamicAopProxy.java:223)
+	at jdk.proxy3/jdk.proxy3.$Proxy271.findById(Unknown Source)
+	at com.cryptoautotrader.api.service.NightlySchedulerConfigService.getOrCreate(NightlySchedulerConfigService.java:167)
+	at com.cryptoautotrader.api.service.NightlySchedulerConfigService.checkAndRun(NightlySchedulerConfigService.java:86)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:716)
+	at com.cryptoautotrader.api.service.NightlySchedulerConfigService$$SpringCGLIB$$0.checkAndRun(<generated>)
+	at com.cryptoautotrader.api.service.BacktestAutoSchedulerService.tick(BacktestAutoSchedulerService.java:30)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.springframework.scheduling.support.ScheduledMethodRunnable.runInternal(ScheduledMethodRunnable.java:130)
+	at org.springframework.scheduling.support.ScheduledMethodRunnable.lambda$run$2(ScheduledMethodRunnable.java:124)
+	at io.micrometer.observation.Observation.observe(Observation.java:499)
+	at org.springframework.scheduling.support.ScheduledMethodRunnable.run(ScheduledMethodRunnable.java:124)
+	at org.springframework.scheduling.support.DelegatingErrorHandlingRunnable.run(DelegatingErrorHandlingRunnable.java:54)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:539)
+	at java.base/java.util.concurrent.FutureTask.runAndReset(FutureTask.java:305)
+	at java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:305)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "NIGHTLY_SCHEDULER_CONFIG" not found; SQL statement:
+select nsce1_0.id,nsce1_0.coin_pairs,nsce1_0.enabled,nsce1_0.end_date,nsce1_0.fee_pct,nsce1_0.in_sample_ratio,nsce1_0.include_backtest,nsce1_0.include_walk_forward,nsce1_0.initial_capital,nsce1_0.last_batch_job_id,nsce1_0.last_triggered_at,nsce1_0.last_wf_job_id,nsce1_0.run_hour,nsce1_0.run_minute,nsce1_0.slippage_pct,nsce1_0.start_date,nsce1_0.strategy_types,nsce1_0.timeframe,nsce1_0.updated_at,nsce1_0.window_count from nightly_scheduler_config nsce1_0 where nsce1_0.id=? [42102-224]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:514)
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:489)
+	at org.h2.message.DbException.get(DbException.java:223)
+	at org.h2.message.DbException.get(DbException.java:199)
+	at org.h2.command.Parser.getTableOrViewNotFoundDbException(Parser.java:8064)
+	at org.h2.command.Parser.getTableOrViewNotFoundDbException(Parser.java:8035)
+	at org.h2.command.Parser.readTableOrView(Parser.java:8024)
+	at org.h2.command.Parser.readTablePrimary(Parser.java:1788)
+	at org.h2.command.Parser.readTableReference(Parser.java:2268)
+	at org.h2.command.Parser.parseSelectFromPart(Parser.java:2718)
+	at org.h2.command.Parser.parseSelect(Parser.java:2824)
+	at org.h2.command.Parser.parseQueryPrimary(Parser.java:2708)
+	at org.h2.command.Parser.parseQueryTerm(Parser.java:2564)
+	at org.h2.command.Parser.parseQueryExpressionBody(Parser.java:2543)
+	at org.h2.command.Parser.parseQueryExpressionBodyAndEndOfQuery(Parser.java:2536)
+	at org.h2.command.Parser.parseQueryExpression(Parser.java:2529)
+	at org.h2.command.Parser.parseQuery(Parser.java:2498)
+	at org.h2.command.Parser.parsePrepared(Parser.java:627)
+	at org.h2.command.Parser.parse(Parser.java:592)
+	at org.h2.command.Parser.parse(Parser.java:564)
+	at org.h2.command.Parser.prepareCommand(Parser.java:483)
+	at org.h2.engine.SessionLocal.prepareLocal(SessionLocal.java:639)
+	at org.h2.engine.SessionLocal.prepareCommand(SessionLocal.java:559)
+	at org.h2.jdbc.JdbcConnection.prepareCommand(JdbcConnection.java:1166)
+	at org.h2.jdbc.JdbcPreparedStatement.<init>(JdbcPreparedStatement.java:93)
+	at org.h2.jdbc.JdbcConnection.prepareStatement(JdbcConnection.java:316)
+	at com.zaxxer.hikari.pool.ProxyConnection.prepareStatement(ProxyConnection.java:327)
+	at com.zaxxer.hikari.pool.HikariProxyConnection.prepareStatement(HikariProxyConnection.java)
+	at org.hibernate.engine.jdbc.internal.StatementPreparerImpl$5.doPrepare(StatementPreparerImpl.java:153)
+	at org.hibernate.engine.jdbc.internal.StatementPreparerImpl$StatementPreparationTemplate.prepareStatement(StatementPreparerImpl.java:183)
+	... 97 common frames omitted
+10:39:42.030 [scheduler-4] ERROR c.c.a.s.BacktestAutoSchedulerService - [BacktestAutoScheduler] 스케줄 체크 오류: could not prepare statement [Table "NIGHTLY_SCHEDULER_CONFIG" not found; SQL statement:
+select nsce1_0.id,nsce1_0.coin_pairs,nsce1_0.enabled,nsce1_0.end_date,nsce1_0.fee_pct,nsce1_0.in_sample_ratio,nsce1_0.include_backtest,nsce1_0.include_walk_forward,nsce1_0.initial_capital,nsce1_0.last_batch_job_id,nsce1_0.last_triggered_at,nsce1_0.last_wf_job_id,nsce1_0.run_hour,nsce1_0.run_minute,nsce1_0.slippage_pct,nsce1_0.start_date,nsce1_0.strategy_types,nsce1_0.timeframe,nsce1_0.updated_at,nsce1_0.window_count from nightly_scheduler_config nsce1_0 where nsce1_0.id=? [42102-224]] [select nsce1_0.id,nsce1_0.coin_pairs,nsce1_0.enabled,nsce1_0.end_date,nsce1_0.fee_pct,nsce1_0.in_sample_ratio,nsce1_0.include_backtest,nsce1_0.include_walk_forward,nsce1_0.initial_capital,nsce1_0.last_batch_job_id,nsce1_0.last_triggered_at,nsce1_0.last_wf_job_id,nsce1_0.run_hour,nsce1_0.run_minute,nsce1_0.slippage_pct,nsce1_0.start_date,nsce1_0.strategy_types,nsce1_0.timeframe,nsce1_0.updated_at,nsce1_0.window_count from nightly_scheduler_config nsce1_0 where nsce1_0.id=?]; SQL [select nsce1_0.id,nsce1_0.coin_pairs,nsce1_0.enabled,nsce1_0.end_date,nsce1_0.fee_pct,nsce1_0.in_sample_ratio,nsce1_0.include_backtest,nsce1_0.include_walk_forward,nsce1_0.initial_capital,nsce1_0.last_batch_job_id,nsce1_0.last_triggered_at,nsce1_0.last_wf_job_id,nsce1_0.run_hour,nsce1_0.run_minute,nsce1_0.slippage_pct,nsce1_0.start_date,nsce1_0.strategy_types,nsce1_0.timeframe,nsce1_0.updated_at,nsce1_0.window_count from nightly_scheduler_config nsce1_0 where nsce1_0.id=?]
+org.springframework.dao.InvalidDataAccessResourceUsageException: could not prepare statement [Table "NIGHTLY_SCHEDULER_CONFIG" not found; SQL statement:
+select nsce1_0.id,nsce1_0.coin_pairs,nsce1_0.enabled,nsce1_0.end_date,nsce1_0.fee_pct,nsce1_0.in_sample_ratio,nsce1_0.include_backtest,nsce1_0.include_walk_forward,nsce1_0.initial_capital,nsce1_0.last_batch_job_id,nsce1_0.last_triggered_at,nsce1_0.last_wf_job_id,nsce1_0.run_hour,nsce1_0.run_minute,nsce1_0.slippage_pct,nsce1_0.start_date,nsce1_0.strategy_types,nsce1_0.timeframe,nsce1_0.updated_at,nsce1_0.window_count from nightly_scheduler_config nsce1_0 where nsce1_0.id=? [42102-224]] [select nsce1_0.id,nsce1_0.coin_pairs,nsce1_0.enabled,nsce1_0.end_date,nsce1_0.fee_pct,nsce1_0.in_sample_ratio,nsce1_0.include_backtest,nsce1_0.include_walk_forward,nsce1_0.initial_capital,nsce1_0.last_batch_job_id,nsce1_0.last_triggered_at,nsce1_0.last_wf_job_id,nsce1_0.run_hour,nsce1_0.run_minute,nsce1_0.slippage_pct,nsce1_0.start_date,nsce1_0.strategy_types,nsce1_0.timeframe,nsce1_0.updated_at,nsce1_0.window_count from nightly_scheduler_config nsce1_0 where nsce1_0.id=?]; SQL [select nsce1_0.id,nsce1_0.coin_pairs,nsce1_0.enabled,nsce1_0.end_date,nsce1_0.fee_pct,nsce1_0.in_sample_ratio,nsce1_0.include_backtest,nsce1_0.include_walk_forward,nsce1_0.initial_capital,nsce1_0.last_batch_job_id,nsce1_0.last_triggered_at,nsce1_0.last_wf_job_id,nsce1_0.run_hour,nsce1_0.run_minute,nsce1_0.slippage_pct,nsce1_0.start_date,nsce1_0.strategy_types,nsce1_0.timeframe,nsce1_0.updated_at,nsce1_0.window_count from nightly_scheduler_config nsce1_0 where nsce1_0.id=?]
+	at org.springframework.orm.jpa.vendor.HibernateJpaDialect.convertHibernateAccessException(HibernateJpaDialect.java:277)
+	at org.springframework.orm.jpa.vendor.HibernateJpaDialect.translateExceptionIfPossible(HibernateJpaDialect.java:241)
+	at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.translateExceptionIfPossible(AbstractEntityManagerFactoryBean.java:550)
+	at org.springframework.dao.support.ChainedPersistenceExceptionTranslator.translateExceptionIfPossible(ChainedPersistenceExceptionTranslator.java:61)
+	at org.springframework.dao.support.DataAccessUtils.translateIfNecessary(DataAccessUtils.java:335)
+	at org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.invoke(PersistenceExceptionTranslationInterceptor.java:152)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.data.jpa.repository.support.CrudMethodMetadataPostProcessor$CrudMethodMetadataPopulatingMethodInterceptor.invoke(CrudMethodMetadataPostProcessor.java:164)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:97)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.JdkDynamicAopProxy.invoke(JdkDynamicAopProxy.java:223)
+	at jdk.proxy3/jdk.proxy3.$Proxy271.findById(Unknown Source)
+	at com.cryptoautotrader.api.service.NightlySchedulerConfigService.getOrCreate(NightlySchedulerConfigService.java:167)
+	at com.cryptoautotrader.api.service.NightlySchedulerConfigService.checkAndRun(NightlySchedulerConfigService.java:86)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:716)
+	at com.cryptoautotrader.api.service.NightlySchedulerConfigService$$SpringCGLIB$$0.checkAndRun(<generated>)
+	at com.cryptoautotrader.api.service.BacktestAutoSchedulerService.tick(BacktestAutoSchedulerService.java:30)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.springframework.scheduling.support.ScheduledMethodRunnable.runInternal(ScheduledMethodRunnable.java:130)
+	at org.springframework.scheduling.support.ScheduledMethodRunnable.lambda$run$2(ScheduledMethodRunnable.java:124)
+	at io.micrometer.observation.Observation.observe(Observation.java:499)
+	at org.springframework.scheduling.support.ScheduledMethodRunnable.run(ScheduledMethodRunnable.java:124)
+	at org.springframework.scheduling.support.DelegatingErrorHandlingRunnable.run(DelegatingErrorHandlingRunnable.java:54)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:539)
+	at java.base/java.util.concurrent.FutureTask.runAndReset(FutureTask.java:305)
+	at java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:305)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: org.hibernate.exception.SQLGrammarException: could not prepare statement [Table "NIGHTLY_SCHEDULER_CONFIG" not found; SQL statement:
+select nsce1_0.id,nsce1_0.coin_pairs,nsce1_0.enabled,nsce1_0.end_date,nsce1_0.fee_pct,nsce1_0.in_sample_ratio,nsce1_0.include_backtest,nsce1_0.include_walk_forward,nsce1_0.initial_capital,nsce1_0.last_batch_job_id,nsce1_0.last_triggered_at,nsce1_0.last_wf_job_id,nsce1_0.run_hour,nsce1_0.run_minute,nsce1_0.slippage_pct,nsce1_0.start_date,nsce1_0.strategy_types,nsce1_0.timeframe,nsce1_0.updated_at,nsce1_0.window_count from nightly_scheduler_config nsce1_0 where nsce1_0.id=? [42102-224]] [select nsce1_0.id,nsce1_0.coin_pairs,nsce1_0.enabled,nsce1_0.end_date,nsce1_0.fee_pct,nsce1_0.in_sample_ratio,nsce1_0.include_backtest,nsce1_0.include_walk_forward,nsce1_0.initial_capital,nsce1_0.last_batch_job_id,nsce1_0.last_triggered_at,nsce1_0.last_wf_job_id,nsce1_0.run_hour,nsce1_0.run_minute,nsce1_0.slippage_pct,nsce1_0.start_date,nsce1_0.strategy_types,nsce1_0.timeframe,nsce1_0.updated_at,nsce1_0.window_count from nightly_scheduler_config nsce1_0 where nsce1_0.id=?]
+	at org.hibernate.exception.internal.SQLExceptionTypeDelegate.convert(SQLExceptionTypeDelegate.java:66)
+	at org.hibernate.exception.internal.StandardSQLExceptionConverter.convert(StandardSQLExceptionConverter.java:58)
+	at org.hibernate.engine.jdbc.spi.SqlExceptionHelper.convert(SqlExceptionHelper.java:108)
+	at org.hibernate.engine.jdbc.internal.StatementPreparerImpl$StatementPreparationTemplate.prepareStatement(StatementPreparerImpl.java:194)
+	at org.hibernate.engine.jdbc.internal.StatementPreparerImpl.prepareQueryStatement(StatementPreparerImpl.java:155)
+	at org.hibernate.sql.exec.spi.JdbcSelectExecutor.lambda$list$0(JdbcSelectExecutor.java:85)
+	at org.hibernate.sql.results.jdbc.internal.DeferredResultSetAccess.executeQuery(DeferredResultSetAccess.java:231)
+	at org.hibernate.sql.results.jdbc.internal.DeferredResultSetAccess.getResultSet(DeferredResultSetAccess.java:167)
+	at org.hibernate.sql.results.jdbc.internal.JdbcValuesResultSetImpl.advanceNext(JdbcValuesResultSetImpl.java:218)
+	at org.hibernate.sql.results.jdbc.internal.JdbcValuesResultSetImpl.processNext(JdbcValuesResultSetImpl.java:98)
+	at org.hibernate.sql.results.jdbc.internal.AbstractJdbcValues.next(AbstractJdbcValues.java:19)
+	at org.hibernate.sql.results.internal.RowProcessingStateStandardImpl.next(RowProcessingStateStandardImpl.java:66)
+	at org.hibernate.sql.results.spi.ListResultsConsumer.consume(ListResultsConsumer.java:187)
+	at org.hibernate.sql.results.spi.ListResultsConsumer.consume(ListResultsConsumer.java:33)
+	at org.hibernate.sql.exec.internal.JdbcSelectExecutorStandardImpl.doExecuteQuery(JdbcSelectExecutorStandardImpl.java:209)
+	at org.hibernate.sql.exec.internal.JdbcSelectExecutorStandardImpl.executeQuery(JdbcSelectExecutorStandardImpl.java:83)
+	at org.hibernate.sql.exec.spi.JdbcSelectExecutor.list(JdbcSelectExecutor.java:76)
+	at org.hibernate.sql.exec.spi.JdbcSelectExecutor.list(JdbcSelectExecutor.java:65)
+	at org.hibernate.loader.ast.internal.SingleIdLoadPlan.load(SingleIdLoadPlan.java:145)
+	at org.hibernate.loader.ast.internal.SingleIdLoadPlan.load(SingleIdLoadPlan.java:117)
+	at org.hibernate.loader.ast.internal.SingleIdEntityLoaderStandardImpl.load(SingleIdEntityLoaderStandardImpl.java:75)
+	at org.hibernate.persister.entity.AbstractEntityPersister.doLoad(AbstractEntityPersister.java:3748)
+	at org.hibernate.persister.entity.AbstractEntityPersister.load(AbstractEntityPersister.java:3737)
+	at org.hibernate.event.internal.DefaultLoadEventListener.loadFromDatasource(DefaultLoadEventListener.java:604)
+	at org.hibernate.event.internal.DefaultLoadEventListener.loadFromCacheOrDatasource(DefaultLoadEventListener.java:590)
+	at org.hibernate.event.internal.DefaultLoadEventListener.load(DefaultLoadEventListener.java:560)
+	at org.hibernate.event.internal.DefaultLoadEventListener.doLoad(DefaultLoadEventListener.java:544)
+	at org.hibernate.event.internal.DefaultLoadEventListener.load(DefaultLoadEventListener.java:207)
+	at org.hibernate.event.internal.DefaultLoadEventListener.loadWithRegularProxy(DefaultLoadEventListener.java:290)
+	at org.hibernate.event.internal.DefaultLoadEventListener.proxyOrLoad(DefaultLoadEventListener.java:242)
+	at org.hibernate.event.internal.DefaultLoadEventListener.doOnLoad(DefaultLoadEventListener.java:111)
+	at org.hibernate.event.internal.DefaultLoadEventListener.onLoad(DefaultLoadEventListener.java:68)
+	at org.hibernate.event.service.internal.EventListenerGroupImpl.fireEventOnEachListener(EventListenerGroupImpl.java:138)
+	at org.hibernate.internal.SessionImpl.fireLoadNoChecks(SessionImpl.java:1222)
+	at org.hibernate.internal.SessionImpl.fireLoad(SessionImpl.java:1210)
+	at org.hibernate.loader.internal.IdentifierLoadAccessImpl.load(IdentifierLoadAccessImpl.java:209)
+	at org.hibernate.loader.internal.IdentifierLoadAccessImpl.doLoad(IdentifierLoadAccessImpl.java:160)
+	at org.hibernate.loader.internal.IdentifierLoadAccessImpl.lambda$load$1(IdentifierLoadAccessImpl.java:149)
+	at org.hibernate.loader.internal.IdentifierLoadAccessImpl.perform(IdentifierLoadAccessImpl.java:112)
+	at org.hibernate.loader.internal.IdentifierLoadAccessImpl.load(IdentifierLoadAccessImpl.java:149)
+	at org.hibernate.internal.SessionImpl.find(SessionImpl.java:2424)
+	at org.hibernate.internal.SessionImpl.find(SessionImpl.java:2395)
+	at jdk.internal.reflect.GeneratedMethodAccessor72.invoke(Unknown Source)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.springframework.orm.jpa.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler.invoke(SharedEntityManagerCreator.java:319)
+	at jdk.proxy3/jdk.proxy3.$Proxy223.find(Unknown Source)
+	at org.springframework.data.jpa.repository.support.SimpleJpaRepository.findById(SimpleJpaRepository.java:313)
+	at jdk.internal.reflect.GeneratedMethodAccessor71.invoke(Unknown Source)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354)
+	at org.springframework.data.repository.core.support.RepositoryMethodInvoker$RepositoryFragmentMethodInvoker.lambda$new$0(RepositoryMethodInvoker.java:277)
+	at org.springframework.data.repository.core.support.RepositoryMethodInvoker.doInvoke(RepositoryMethodInvoker.java:170)
+	at org.springframework.data.repository.core.support.RepositoryMethodInvoker.invoke(RepositoryMethodInvoker.java:158)
+	at org.springframework.data.repository.core.support.RepositoryComposition$RepositoryFragments.invoke(RepositoryComposition.java:516)
+	at org.springframework.data.repository.core.support.RepositoryComposition.invoke(RepositoryComposition.java:285)
+	at org.springframework.data.repository.core.support.RepositoryFactorySupport$ImplementationMethodExecutionInterceptor.invoke(RepositoryFactorySupport.java:628)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.data.repository.core.support.QueryExecutorMethodInterceptor.doInvoke(QueryExecutorMethodInterceptor.java:168)
+	at org.springframework.data.repository.core.support.QueryExecutorMethodInterceptor.invoke(QueryExecutorMethodInterceptor.java:143)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.data.projection.DefaultMethodInvokingMethodInterceptor.invoke(DefaultMethodInvokingMethodInterceptor.java:70)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.transaction.interceptor.TransactionInterceptor$1.proceedWithInvocation(TransactionInterceptor.java:123)
+	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:392)
+	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.invoke(PersistenceExceptionTranslationInterceptor.java:137)
+	... 32 common frames omitted
+Caused by: org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "NIGHTLY_SCHEDULER_CONFIG" not found; SQL statement:
+select nsce1_0.id,nsce1_0.coin_pairs,nsce1_0.enabled,nsce1_0.end_date,nsce1_0.fee_pct,nsce1_0.in_sample_ratio,nsce1_0.include_backtest,nsce1_0.include_walk_forward,nsce1_0.initial_capital,nsce1_0.last_batch_job_id,nsce1_0.last_triggered_at,nsce1_0.last_wf_job_id,nsce1_0.run_hour,nsce1_0.run_minute,nsce1_0.slippage_pct,nsce1_0.start_date,nsce1_0.strategy_types,nsce1_0.timeframe,nsce1_0.updated_at,nsce1_0.window_count from nightly_scheduler_config nsce1_0 where nsce1_0.id=? [42102-224]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:514)
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:489)
+	at org.h2.message.DbException.get(DbException.java:223)
+	at org.h2.message.DbException.get(DbException.java:199)
+	at org.h2.command.Parser.getTableOrViewNotFoundDbException(Parser.java:8064)
+	at org.h2.command.Parser.getTableOrViewNotFoundDbException(Parser.java:8035)
+	at org.h2.command.Parser.readTableOrView(Parser.java:8024)
+	at org.h2.command.Parser.readTablePrimary(Parser.java:1788)
+	at org.h2.command.Parser.readTableReference(Parser.java:2268)
+	at org.h2.command.Parser.parseSelectFromPart(Parser.java:2718)
+	at org.h2.command.Parser.parseSelect(Parser.java:2824)
+	at org.h2.command.Parser.parseQueryPrimary(Parser.java:2708)
+	at org.h2.command.Parser.parseQueryTerm(Parser.java:2564)
+	at org.h2.command.Parser.parseQueryExpressionBody(Parser.java:2543)
+	at org.h2.command.Parser.parseQueryExpressionBodyAndEndOfQuery(Parser.java:2536)
+	at org.h2.command.Parser.parseQueryExpression(Parser.java:2529)
+	at org.h2.command.Parser.parseQuery(Parser.java:2498)
+	at org.h2.command.Parser.parsePrepared(Parser.java:627)
+	at org.h2.command.Parser.parse(Parser.java:592)
+	at org.h2.command.Parser.parse(Parser.java:564)
+	at org.h2.command.Parser.prepareCommand(Parser.java:483)
+	at org.h2.engine.SessionLocal.prepareLocal(SessionLocal.java:639)
+	at org.h2.engine.SessionLocal.prepareCommand(SessionLocal.java:559)
+	at org.h2.jdbc.JdbcConnection.prepareCommand(JdbcConnection.java:1166)
+	at org.h2.jdbc.JdbcPreparedStatement.<init>(JdbcPreparedStatement.java:93)
+	at org.h2.jdbc.JdbcConnection.prepareStatement(JdbcConnection.java:316)
+	at com.zaxxer.hikari.pool.ProxyConnection.prepareStatement(ProxyConnection.java:327)
+	at com.zaxxer.hikari.pool.HikariProxyConnection.prepareStatement(HikariProxyConnection.java)
+	at org.hibernate.engine.jdbc.internal.StatementPreparerImpl$5.doPrepare(StatementPreparerImpl.java:153)
+	at org.hibernate.engine.jdbc.internal.StatementPreparerImpl$StatementPreparationTemplate.prepareStatement(StatementPreparerImpl.java:183)
+	... 97 common frames omitted
+10:39:47.104 [scheduler-5] WARN  c.c.api.service.PositionLimitGuard - [포지션 한도] 포지션 #2 KRW-DOGE DYNAMIC#1 ? 반영값 없는 체결 주문 0건(매수 원가 0.00): 평가하지 않는다(고점 유지)
+10:39:57.111 [scheduler-7] WARN  c.c.api.service.PositionLimitGuard - [포지션 한도] 포지션 #2 KRW-DOGE DYNAMIC#1 ? 반영값 없는 체결 주문 0건(매수 원가 0.00): 평가하지 않는다(고점 유지)
+10:40:07.123 [scheduler-2] WARN  c.c.api.service.PositionLimitGuard - [포지션 한도] 포지션 #2 KRW-DOGE DYNAMIC#1 ? 반영값 없는 체결 주문 0건(매수 원가 0.00): 평가하지 않는다(고점 유지)
+[관측 정리시험] 결과 DYNAMIC picked=false sessionId=1 positionId=2 관측누락=0
+[관측 정리시험] 결과 orderExecutor pool=2/core2/max4 active=1 queued=0 remaining=50 tasks=2 completed=1 largest=2 shutdown=false
+[관측 정리시험] 주문 ID=2 SIDE=SELL STATE=UNKNOWN FAILURE_CODE=- CLIENT_ORDER_ID=cat-f34b0bd2-e078-443e-8fff-5c1d77ecf3c4 EXCHANGE_ORDER_ID=- CREATED_AT=2026-11-13 10:39:22.110693 INTENT_COMMITTED_AT=2026-11-13 10:39:22.110693 CLAIMED_AT=2026-11-13 10:39:22.114051 SUBMITTED_AT=- UNKNOWN_REASON=식별자로 조회되지 않음 ? 미접수로 단정하지 않는다 (시도 10회)
+[관측 정리시험]   거래로그 ID=4 EVENT_TYPE=STATE_CHANGE OLD_STATE=- NEW_STATE=INTENT_READY CREATED_AT=2026-11-13 10:39:22.111688
+[관측 정리시험]   거래로그 ID=5 EVENT_TYPE=STATE_CHANGE OLD_STATE=INTENT_READY NEW_STATE=SUBMITTING CREATED_AT=2026-11-13 10:39:22.116055
+[관측 정리시험]   거래로그 ID=6 EVENT_TYPE=STATE_CHANGE OLD_STATE=SUBMITTING NEW_STATE=UNKNOWN CREATED_AT=2026-11-13 10:39:22.215492
+[관측 정리시험] 정리행 POSITION_ID=2 SESSION_KIND=DYNAMIC SESSION_ID=1 ATTEMPTS=1 LAST_ATTEMPT_AT=2026-11-13 10:39:22.108694 LAST_NOTE=청산 매도 체결 대기 DONE_AT=-
+[관측 정리시험] 포지션 ID=2 STATUS=CLOSING SIZE=9.80000000 CLOSING_AT=2026-11-13 10:39:22.108694 CLOSED_AT=-
+[관측 정리시험] 이 주문의 실행기 작업=[2] (거래소 대역 호출 식별자 기준)
+[관측 정리시험] 분류 보조: UNKNOWN(제출 결과 불명) (접수후미시작=[] 진행중=[2] 스택=["order-exec-1" WAITING on java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@5607a154 → 프로세스 잠금 대기])
+[관측 정리시험] #59 +-0.000s 2026-11-13T01:39:12.655495400Z [Test worker] MARK tx=- 시험 시작 DYNAMIC
+[관측 정리시험] #60 +0.005s 2026-11-13T01:39:12.661500Z [Test worker] TEST_REGISTERED tx=- sessionKind=DYNAMIC sessionId=1 positionId=2
+[관측 정리시험] #61 +9.453s 2026-11-13T01:39:22.108693500Z [scheduler-2] SQL_W tx=? CH@39183bcc EM@7c6a47c5 update position set status='CLOSING',closing_at=?,exit_reason=? where id=? and status='OPEN'
+[관측 정리시험] #62 +9.455s 2026-11-13T01:39:22.110693100Z [scheduler-2] SQL_W tx=? CH@39183bcc EM@7c6a47c5 insert into "order" (applied_executed_funds,applied_paid_fee,cancel_checked_at,cancel_confirmed_at,cancel_requested_at,cancelled_at,claimed_at,client_order_id,c…
+[관측 정리시험] #63 +9.455s 2026-11-13T01:39:22.111688200Z [scheduler-2] SQL_W tx=? CH@39183bcc EM@7c6a47c5 insert into trade_log (created_at,detail_json,event_type,new_state,old_state,order_id,id) values (?,? format json,?,?,?,?,default)
+[관측 정리시험] #64 +9.457s 2026-11-13T01:39:22.113046200Z [scheduler-2] SQL_W tx=? CH@39183bcc EM@7c6a47c5 update position_cleanup set attempts=(attempts+1),last_attempt_at=?,last_note=? where position_id=? and done_at is null
+[관측 정리시험] #65 +9.458s 2026-11-13T01:39:22.113046200Z [scheduler-2] TX_COMMIT tx=? CH@39183bcc EM@7c6a47c5 커밋 tx=? CH@39183bcc EM@7c6a47c5
+[관측 정리시험] #66 +9.458s 2026-11-13T01:39:22.114050700Z [scheduler-2] EXEC_SUBMIT tx=? CH@39183bcc EM@7c6a47c5 task=2 orderExecutor pool=1/core2/max4 active=1 queued=0 remaining=50 tasks=1 completed=0 largest=1 shutdown=false
+[관측 정리시험] #67 +9.458s 2026-11-13T01:39:22.114050700Z [order-exec-2] EXEC_START tx=- task=2 대기 0.001s
+[관측 정리시험] #68 +9.459s 2026-11-13T01:39:22.115056200Z [order-exec-2] SQL_W tx=? CH@5201c26c EM@17034648 task=2 update "order" set state='SUBMITTING',claimed_at=? where id=? and state='INTENT_READY'
+[관측 정리시험] #69 +9.460s 2026-11-13T01:39:22.116055400Z [order-exec-2] SQL_W tx=? CH@5201c26c EM@17034648 task=2 insert into trade_log (created_at,detail_json,event_type,new_state,old_state,order_id,id) values (?,? format json,?,?,?,?,default)
+[관측 정리시험] #70 +9.461s 2026-11-13T01:39:22.117056900Z [order-exec-2] TX_COMMIT tx=? CH@5201c26c EM@17034648 task=2 커밋 tx=? CH@5201c26c EM@17034648
+[관측 정리시험] #71 +9.462s 2026-11-13T01:39:22.118055900Z [order-exec-2] SQL_R tx=? CH@6a455a26 EM@851934e task=2 select oe1_0.id,oe1_0.applied_executed_funds,oe1_0.applied_paid_fee,oe1_0.cancel_checked_at,oe1_0.cancel_confirmed_at,oe1_0.cancel_requested_at,oe1_0.cancelled_…
+[관측 정리시험] #72 +9.462s 2026-11-13T01:39:22.118055900Z [order-exec-2] TX_COMMIT tx=? CH@6a455a26 EM@851934e task=2 커밋 tx=? CH@6a455a26 EM@851934e
+[관측 정리시험] #73 +9.463s 2026-11-13T01:39:22.119057100Z [order-exec-2] EXCHANGE_CALL tx=- task=2 identifier=cat-f34b0bd2-e078-443e-8fff-5c1d77ecf3c4
+[관측 정리시험] #74 +9.559s 2026-11-13T01:39:22.214490500Z [scheduler-4] SQL_W tx=? CH@35b4ecf7 EM@3b5d212e update "order" set unknown_probe_count=(unknown_probe_count+1),unknown_probed_at=? where id=?
+[관측 정리시험] #75 +9.560s 2026-11-13T01:39:22.215492300Z [scheduler-4] SQL_W tx=? CH@35b4ecf7 EM@3b5d212e insert into trade_log (created_at,detail_json,event_type,new_state,old_state,order_id,id) values (?,? format json,?,?,?,?,default)
+[관측 정리시험] #76 +9.561s 2026-11-13T01:39:22.215492300Z [scheduler-4] SQL_W tx=? CH@35b4ecf7 EM@3b5d212e update "order" set applied_executed_funds=?,applied_paid_fee=?,cancel_checked_at=?,cancel_confirmed_at=?,cancel_requested_at=?,cancelled_at=?,claimed_at=?,clien…
+[관측 정리시험] #77 +9.561s 2026-11-13T01:39:22.216998100Z [scheduler-4] TX_COMMIT tx=? CH@35b4ecf7 EM@3b5d212e 커밋 tx=? CH@35b4ecf7 EM@3b5d212e
+[관측 정리시험] #78 +14.579s 2026-11-13T01:39:27.234732100Z [scheduler-1] SQL_W tx=? CH@7411920b EM@bb2d894 update "order" set unknown_probe_count=(unknown_probe_count+1),unknown_probed_at=? where id=?
+[관측 정리시험] #79 +14.580s 2026-11-13T01:39:27.235736900Z [scheduler-1] SQL_W tx=? CH@7411920b EM@bb2d894 update "order" set applied_executed_funds=?,applied_paid_fee=?,cancel_checked_at=?,cancel_confirmed_at=?,cancel_requested_at=?,cancelled_at=?,claimed_at=?,clien…
+[관측 정리시험] #80 +14.580s 2026-11-13T01:39:27.236737100Z [scheduler-1] TX_COMMIT tx=? CH@7411920b EM@bb2d894 커밋 tx=? CH@7411920b EM@bb2d894
+[관측 정리시험] #81 +19.464s 2026-11-13T01:39:32.120481500Z [scheduler-5] SQL_W tx=? CH@32801a21 EM@91f3677 update position_cleanup set last_note=? where position_id=? and done_at is null
+[관측 정리시험] #82 +19.465s 2026-11-13T01:39:32.120481500Z [scheduler-5] TX_COMMIT tx=? CH@32801a21 EM@91f3677 커밋 tx=? CH@32801a21 EM@91f3677
+[관측 정리시험] #83 +19.492s 2026-11-13T01:39:32.147755300Z [order-exec-1] EXCHANGE_RETURN tx=- task=1 identifier=cat-ec0d4107-8452-4bb4-ab1b-dd21bbdac498 uuid=uuid-sched-sell-144453037607800
+[관측 정리시험] #84 +19.492s 2026-11-13T01:39:32.147755300Z [order-exec-1] SQL_R tx=? CH@2a57bca4 EM@2a4ec920 task=1 select oe1_0.id,oe1_0.applied_executed_funds,oe1_0.applied_paid_fee,oe1_0.cancel_checked_at,oe1_0.cancel_confirmed_at,oe1_0.cancel_requested_at,oe1_0.cancelled_…
+[관측 정리시험] #85 +19.493s 2026-11-13T01:39:32.149151700Z [order-exec-1] TX_COMMIT tx=? CH@2a57bca4 EM@2a4ec920 task=1 커밋 tx=? CH@2a57bca4 EM@2a4ec920
+[관측 정리시험] #86 +19.493s 2026-11-13T01:39:32.149151700Z [order-exec-1] EXEC_END tx=- task=1 
+[관측 정리시험] #87 +19.587s 2026-11-13T01:39:32.242612200Z [scheduler-8] SQL_W tx=? CH@51346010 EM@40381573 update "order" set unknown_probe_count=(unknown_probe_count+1),unknown_probed_at=? where id=?
+[관측 정리시험] #88 +19.588s 2026-11-13T01:39:32.243618400Z [scheduler-8] SQL_W tx=? CH@51346010 EM@40381573 update "order" set applied_executed_funds=?,applied_paid_fee=?,cancel_checked_at=?,cancel_confirmed_at=?,cancel_requested_at=?,cancelled_at=?,claimed_at=?,clien…
+[관측 정리시험] #89 +19.588s 2026-11-13T01:39:32.243618400Z [scheduler-8] TX_COMMIT tx=? CH@51346010 EM@40381573 커밋 tx=? CH@51346010 EM@40381573
+[관측 정리시험] #90 +24.595s 2026-11-13T01:39:37.251150500Z [scheduler-4] SQL_W tx=? CH@5e94345 EM@5ee6f8 update "order" set unknown_probe_count=(unknown_probe_count+1),unknown_probed_at=? where id=?
+[관측 정리시험] #91 +24.595s 2026-11-13T01:39:37.251150500Z [scheduler-4] SQL_W tx=? CH@5e94345 EM@5ee6f8 update "order" set applied_executed_funds=?,applied_paid_fee=?,cancel_checked_at=?,cancel_confirmed_at=?,cancel_requested_at=?,cancelled_at=?,claimed_at=?,clien…
+[관측 정리시험] #92 +24.596s 2026-11-13T01:39:37.251150500Z [scheduler-4] TX_COMMIT tx=? CH@5e94345 EM@5ee6f8 커밋 tx=? CH@5e94345 EM@5ee6f8
+[관측 정리시험] #93 +29.475s 2026-11-13T01:39:42.130510200Z [scheduler-6] SQL_W tx=? CH@3645072e EM@14ab63e5 update position_cleanup set last_note=? where position_id=? and done_at is null
+[관측 정리시험] #94 +29.476s 2026-11-13T01:39:42.130510200Z [scheduler-6] TX_COMMIT tx=? CH@3645072e EM@14ab63e5 커밋 tx=? CH@3645072e EM@14ab63e5
+[관측 정리시험] #95 +29.614s 2026-11-13T01:39:42.270200400Z [scheduler-2] SQL_W tx=? CH@5245db4d EM@198e840f update "order" set unknown_probe_count=(unknown_probe_count+1),unknown_probed_at=? where id=?
+[관측 정리시험] #96 +29.615s 2026-11-13T01:39:42.271196600Z [scheduler-2] SQL_W tx=? CH@5245db4d EM@198e840f update "order" set applied_executed_funds=?,applied_paid_fee=?,cancel_checked_at=?,cancel_confirmed_at=?,cancel_requested_at=?,cancelled_at=?,claimed_at=?,clien…
+[관측 정리시험] #97 +29.615s 2026-11-13T01:39:42.271196600Z [scheduler-2] TX_COMMIT tx=? CH@5245db4d EM@198e840f 커밋 tx=? CH@5245db4d EM@198e840f
+[관측 정리시험] #98 +34.633s 2026-11-13T01:39:47.289548200Z [scheduler-1] SQL_W tx=? CH@179b901f EM@4e014c0e update "order" set unknown_probe_count=(unknown_probe_count+1),unknown_probed_at=? where id=?
+[관측 정리시험] #99 +34.634s 2026-11-13T01:39:47.289548200Z [scheduler-1] SQL_W tx=? CH@179b901f EM@4e014c0e update "order" set applied_executed_funds=?,applied_paid_fee=?,cancel_checked_at=?,cancel_confirmed_at=?,cancel_requested_at=?,cancelled_at=?,claimed_at=?,clien…
+[관측 정리시험] #100 +34.634s 2026-11-13T01:39:47.289548200Z [scheduler-1] TX_COMMIT tx=? CH@179b901f EM@4e014c0e 커밋 tx=? CH@179b901f EM@4e014c0e
+[관측 정리시험] #101 +39.489s 2026-11-13T01:39:52.144843Z [scheduler-5] SQL_W tx=? CH@6a6e6da8 EM@fda522c update position_cleanup set last_note=? where position_id=? and done_at is null
+[관측 정리시험] #102 +39.490s 2026-11-13T01:39:52.145845400Z [scheduler-5] TX_COMMIT tx=? CH@6a6e6da8 EM@fda522c 커밋 tx=? CH@6a6e6da8 EM@fda522c
+[관측 정리시험] #103 +39.641s 2026-11-13T01:39:52.297107200Z [scheduler-4] SQL_W tx=? CH@44a50580 EM@32efb9bd update "order" set unknown_probe_count=(unknown_probe_count+1),unknown_probed_at=? where id=?
+[관측 정리시험] #104 +39.642s 2026-11-13T01:39:52.298103100Z [scheduler-4] SQL_W tx=? CH@44a50580 EM@32efb9bd update "order" set applied_executed_funds=?,applied_paid_fee=?,cancel_checked_at=?,cancel_confirmed_at=?,cancel_requested_at=?,cancelled_at=?,claimed_at=?,clien…
+[관측 정리시험] #105 +39.643s 2026-11-13T01:39:52.298103100Z [scheduler-4] TX_COMMIT tx=? CH@44a50580 EM@32efb9bd 커밋 tx=? CH@44a50580 EM@32efb9bd
+[관측 정리시험] #106 +44.656s 2026-11-13T01:39:57.312195100Z [scheduler-1] SQL_W tx=? CH@6df6c9f1 EM@5debe263 update "order" set unknown_probe_count=(unknown_probe_count+1),unknown_probed_at=? where id=?
+[관측 정리시험] #107 +44.657s 2026-11-13T01:39:57.313198800Z [scheduler-1] SQL_W tx=? CH@6df6c9f1 EM@5debe263 update "order" set applied_executed_funds=?,applied_paid_fee=?,cancel_checked_at=?,cancel_confirmed_at=?,cancel_requested_at=?,cancelled_at=?,claimed_at=?,clien…
+[관측 정리시험] #108 +44.657s 2026-11-13T01:39:57.313198800Z [scheduler-1] TX_COMMIT tx=? CH@6df6c9f1 EM@5debe263 커밋 tx=? CH@6df6c9f1 EM@5debe263
+[관측 정리시험] #109 +49.507s 2026-11-13T01:40:02.162806800Z [scheduler-4] SQL_W tx=? CH@6d30d16b EM@76f07f8c update position_cleanup set last_note=? where position_id=? and done_at is null
+[관측 정리시험] #110 +49.507s 2026-11-13T01:40:02.163805900Z [scheduler-4] TX_COMMIT tx=? CH@6d30d16b EM@76f07f8c 커밋 tx=? CH@6d30d16b EM@76f07f8c
+[관측 정리시험] #111 +49.669s 2026-11-13T01:40:02.325317700Z [scheduler-5] SQL_W tx=? CH@6e136697 EM@5ca4f3b5 update "order" set unknown_probe_count=(unknown_probe_count+1),unknown_probed_at=? where id=?
+[관측 정리시험] #112 +49.670s 2026-11-13T01:40:02.326317200Z [scheduler-5] SQL_W tx=? CH@6e136697 EM@5ca4f3b5 update "order" set applied_executed_funds=?,applied_paid_fee=?,cancel_checked_at=?,cancel_confirmed_at=?,cancel_requested_at=?,cancelled_at=?,claimed_at=?,clien…
+[관측 정리시험] #113 +49.670s 2026-11-13T01:40:02.326317200Z [scheduler-5] TX_COMMIT tx=? CH@6e136697 EM@5ca4f3b5 커밋 tx=? CH@6e136697 EM@5ca4f3b5
+[관측 정리시험] #114 +54.683s 2026-11-13T01:40:07.338501100Z [scheduler-3] SQL_W tx=? CH@5dd48b54 EM@15d3acd update "order" set unknown_probe_count=(unknown_probe_count+1),unknown_probed_at=? where id=?
+[관측 정리시험] #115 +54.684s 2026-11-13T01:40:07.340506800Z [scheduler-3] SQL_W tx=? CH@5dd48b54 EM@15d3acd update "order" set applied_executed_funds=?,applied_paid_fee=?,cancel_checked_at=?,cancel_confirmed_at=?,cancel_requested_at=?,cancelled_at=?,claimed_at=?,clien…
+[관측 정리시험] #116 +54.685s 2026-11-13T01:40:07.340506800Z [scheduler-3] TX_COMMIT tx=? CH@5dd48b54 EM@15d3acd 커밋 tx=? CH@5dd48b54 EM@15d3acd
+[관측 정리시험] #117 +59.512s 2026-11-13T01:40:12.168035200Z [scheduler-8] SQL_W tx=? CH@58603487 EM@479d5809 update position_cleanup set last_note=? where position_id=? and done_at is null
+[관측 정리시험] #118 +59.513s 2026-11-13T01:40:12.169041100Z [scheduler-8] TX_COMMIT tx=? CH@58603487 EM@479d5809 커밋 tx=? CH@58603487 EM@479d5809
+[관측 정리시험] #119 +59.697s 2026-11-13T01:40:12.353521200Z [scheduler-6] SQL_W tx=? CH@500f0e4a EM@1787c2d7 update "order" set unknown_probe_count=(unknown_probe_count+1),unknown_probed_at=? where id=?
+[관측 정리시험] #120 +59.698s 2026-11-13T01:40:12.353521200Z [scheduler-6] SQL_W tx=? CH@500f0e4a EM@1787c2d7 update "order" set applied_executed_funds=?,applied_paid_fee=?,cancel_checked_at=?,cancel_confirmed_at=?,cancel_requested_at=?,cancelled_at=?,claimed_at=?,clien…
+[관측 정리시험] #121 +59.698s 2026-11-13T01:40:12.354522600Z [scheduler-6] TX_COMMIT tx=? CH@500f0e4a EM@1787c2d7 커밋 tx=? CH@500f0e4a EM@1787c2d7
+[관측 정리시험] #122 +60.233s 2026-11-13T01:40:12.889486100Z [Test worker] TEST_AWAIT_END tx=- picked=false
+[관측 정리시험] 스레드 덤프 10개 (60초 초과, 정리 전)
+[관측 정리시험] "scheduler-1" WAITING on java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@cf500b5
+    at java.base@17.0.12/jdk.internal.misc.Unsafe.park(Native Method)
+    at java.base@17.0.12/java.util.concurrent.locks.LockSupport.park(LockSupport.java:341)
+    at java.base@17.0.12/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionNode.block(AbstractQueuedSynchronizer.java:506)
+    at java.base@17.0.12/java.util.concurrent.ForkJoinPool.unmanagedBlock(ForkJoinPool.java:3465)
+    at java.base@17.0.12/java.util.concurrent.ForkJoinPool.managedBlock(ForkJoinPool.java:3436)
+    at java.base@17.0.12/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:1623)
+    at java.base@17.0.12/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:1177)
+    at java.base@17.0.12/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:899)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1062)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1122)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+    at java.base@17.0.12/java.lang.Thread.run(Thread.java:842)
+[관측 정리시험] "scheduler-2" WAITING on java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@cf500b5
+    at java.base@17.0.12/jdk.internal.misc.Unsafe.park(Native Method)
+    at java.base@17.0.12/java.util.concurrent.locks.LockSupport.park(LockSupport.java:341)
+    at java.base@17.0.12/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionNode.block(AbstractQueuedSynchronizer.java:506)
+    at java.base@17.0.12/java.util.concurrent.ForkJoinPool.unmanagedBlock(ForkJoinPool.java:3465)
+    at java.base@17.0.12/java.util.concurrent.ForkJoinPool.managedBlock(ForkJoinPool.java:3436)
+    at java.base@17.0.12/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:1623)
+    at java.base@17.0.12/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:1177)
+    at java.base@17.0.12/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:899)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1062)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1122)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+    at java.base@17.0.12/java.lang.Thread.run(Thread.java:842)
+[관측 정리시험] "scheduler-3" WAITING on java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@cf500b5
+    at java.base@17.0.12/jdk.internal.misc.Unsafe.park(Native Method)
+    at java.base@17.0.12/java.util.concurrent.locks.LockSupport.park(LockSupport.java:341)
+    at java.base@17.0.12/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionNode.block(AbstractQueuedSynchronizer.java:506)
+    at java.base@17.0.12/java.util.concurrent.ForkJoinPool.unmanagedBlock(ForkJoinPool.java:3465)
+    at java.base@17.0.12/java.util.concurrent.ForkJoinPool.managedBlock(ForkJoinPool.java:3436)
+    at java.base@17.0.12/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:1623)
+    at java.base@17.0.12/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:1177)
+    at java.base@17.0.12/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:899)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1062)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1122)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+    at java.base@17.0.12/java.lang.Thread.run(Thread.java:842)
+[관측 정리시험] "scheduler-4" TIMED_WAITING on java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@cf500b5
+    at java.base@17.0.12/jdk.internal.misc.Unsafe.park(Native Method)
+    at java.base@17.0.12/java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:252)
+    at java.base@17.0.12/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.awaitNanos(AbstractQueuedSynchronizer.java:1672)
+    at java.base@17.0.12/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:1182)
+    at java.base@17.0.12/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:899)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1062)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1122)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+    at java.base@17.0.12/java.lang.Thread.run(Thread.java:842)
+[관측 정리시험] "scheduler-5" WAITING on java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@cf500b5
+    at java.base@17.0.12/jdk.internal.misc.Unsafe.park(Native Method)
+    at java.base@17.0.12/java.util.concurrent.locks.LockSupport.park(LockSupport.java:341)
+    at java.base@17.0.12/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionNode.block(AbstractQueuedSynchronizer.java:506)
+    at java.base@17.0.12/java.util.concurrent.ForkJoinPool.unmanagedBlock(ForkJoinPool.java:3465)
+    at java.base@17.0.12/java.util.concurrent.ForkJoinPool.managedBlock(ForkJoinPool.java:3436)
+    at java.base@17.0.12/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:1623)
+    at java.base@17.0.12/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:1177)
+    at java.base@17.0.12/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:899)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1062)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1122)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+    at java.base@17.0.12/java.lang.Thread.run(Thread.java:842)
+[관측 정리시험] "scheduler-6" WAITING on java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@cf500b5
+    at java.base@17.0.12/jdk.internal.misc.Unsafe.park(Native Method)
+    at java.base@17.0.12/java.util.concurrent.locks.LockSupport.park(LockSupport.java:341)
+    at java.base@17.0.12/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionNode.block(AbstractQueuedSynchronizer.java:506)
+    at java.base@17.0.12/java.util.concurrent.ForkJoinPool.unmanagedBlock(ForkJoinPool.java:3465)
+    at java.base@17.0.12/java.util.concurrent.ForkJoinPool.managedBlock(ForkJoinPool.java:3436)
+    at java.base@17.0.12/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:1623)
+    at java.base@17.0.12/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:1177)
+    at java.base@17.0.12/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:899)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1062)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1122)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+    at java.base@17.0.12/java.lang.Thread.run(Thread.java:842)
+[관측 정리시험] "scheduler-7" WAITING on java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@cf500b5
+    at java.base@17.0.12/jdk.internal.misc.Unsafe.park(Native Method)
+    at java.base@17.0.12/java.util.concurrent.locks.LockSupport.park(LockSupport.java:341)
+    at java.base@17.0.12/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionNode.block(AbstractQueuedSynchronizer.java:506)
+    at java.base@17.0.12/java.util.concurrent.ForkJoinPool.unmanagedBlock(ForkJoinPool.java:3465)
+    at java.base@17.0.12/java.util.concurrent.ForkJoinPool.managedBlock(ForkJoinPool.java:3436)
+    at java.base@17.0.12/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:1623)
+    at java.base@17.0.12/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:1177)
+    at java.base@17.0.12/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:899)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1062)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1122)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+    at java.base@17.0.12/java.lang.Thread.run(Thread.java:842)
+[관측 정리시험] "scheduler-8" WAITING on java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@cf500b5
+    at java.base@17.0.12/jdk.internal.misc.Unsafe.park(Native Method)
+    at java.base@17.0.12/java.util.concurrent.locks.LockSupport.park(LockSupport.java:341)
+    at java.base@17.0.12/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionNode.block(AbstractQueuedSynchronizer.java:506)
+    at java.base@17.0.12/java.util.concurrent.ForkJoinPool.unmanagedBlock(ForkJoinPool.java:3465)
+    at java.base@17.0.12/java.util.concurrent.ForkJoinPool.managedBlock(ForkJoinPool.java:3436)
+    at java.base@17.0.12/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:1623)
+    at java.base@17.0.12/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:1177)
+    at java.base@17.0.12/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:899)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1062)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1122)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+    at java.base@17.0.12/java.lang.Thread.run(Thread.java:842)
+[관측 정리시험] "order-exec-1" WAITING on java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject@5607a154
+    at java.base@17.0.12/jdk.internal.misc.Unsafe.park(Native Method)
+    at java.base@17.0.12/java.util.concurrent.locks.LockSupport.park(LockSupport.java:341)
+    at java.base@17.0.12/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionNode.block(AbstractQueuedSynchronizer.java:506)
+    at java.base@17.0.12/java.util.concurrent.ForkJoinPool.unmanagedBlock(ForkJoinPool.java:3465)
+    at java.base@17.0.12/java.util.concurrent.ForkJoinPool.managedBlock(ForkJoinPool.java:3436)
+    at java.base@17.0.12/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:1623)
+    at java.base@17.0.12/java.util.concurrent.LinkedBlockingQueue.take(LinkedBlockingQueue.java:435)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1062)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1122)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+    at java.base@17.0.12/java.lang.Thread.run(Thread.java:842)
+[관측 정리시험] "order-exec-2" TIMED_WAITING
+    at java.base@17.0.12/java.lang.Thread.sleep(Native Method)
+    at app//com.cryptoautotrader.api.service.SchedulerProfileCleanupTest.lambda$exchange$1(SchedulerProfileCleanupTest.java:102)
+    at app//com.cryptoautotrader.api.service.SchedulerProfileCleanupTest$$Lambda$2885/0x00000257a6025830.answer(Unknown Source)
+    at app//org.mockito.internal.stubbing.StubbedInvocationMatcher.answer(StubbedInvocationMatcher.java:42)
+    at app//org.mockito.internal.handler.MockHandlerImpl.handle(MockHandlerImpl.java:103)
+    at app//org.mockito.internal.handler.NullResultGuardian.handle(NullResultGuardian.java:29)
+    at app//org.mockito.internal.handler.InvocationNotifierHandler.handle(InvocationNotifierHandler.java:34)
+    at app//org.mockito.internal.creation.bytebuddy.MockMethodInterceptor.doIntercept(MockMethodInterceptor.java:82)
+    at app//org.mockito.internal.creation.bytebuddy.MockMethodAdvice.handle(MockMethodAdvice.java:134)
+    at app//com.cryptoautotrader.exchange.upbit.UpbitOrderClient.createOrder(UpbitOrderClient.java:110)
+    at app//com.cryptoautotrader.api.service.OrderExecutionEngine.submitToExchange(OrderExecutionEngine.java:2374)
+    at app//com.cryptoautotrader.api.service.OrderExecutionEngine.callExchangeAndRecord(OrderExecutionEngine.java:1013)
+    at app//com.cryptoautotrader.api.service.OrderExecutionEngine.submitPreparedOrder(OrderExecutionEngine.java:670)
+    at java.base@17.0.12/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+    at java.base@17.0.12/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+    at java.base@17.0.12/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+    at java.base@17.0.12/java.lang.reflect.Method.invoke(Method.java:568)
+    at app//org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354)
+    at app//org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+    at app//org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+    at app//org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+    at app//org.springframework.aop.interceptor.AsyncExecutionInterceptor.lambda$invoke$0(AsyncExecutionInterceptor.java:113)
+    at app//org.springframework.aop.interceptor.AsyncExecutionInterceptor$$Lambda$2823/0x00000257a5fbba80.call(Unknown Source)
+    at java.base@17.0.12/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+    at app//com.cryptoautotrader.api.support.OrderFlowObservation.lambda$decorator$0(OrderFlowObservation.java:234)
+    at app//com.cryptoautotrader.api.support.OrderFlowObservation$$Lambda$3082/0x00000257a6081ce0.run(Unknown Source)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+    at java.base@17.0.12/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+    at java.base@17.0.12/java.lang.Thread.run(Thread.java:842)
+[스케줄러 DYNAMIC] 가져감=false 시도=1 메모=청산 매도 체결 대기 마지막시도=2026-11-13T01:39:22.108694Z 포지션=CLOSING 대기행(DYNAMIC)=1
+10:40:12.930 [Test worker] INFO  o.a.coyote.http11.Http11NioProtocol - Stopping ProtocolHandler ["http-nio-auto-1-12956"]
+10:40:32.124 [Test worker] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+10:40:32.124 [Test worker] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+10:40:32.126 [Test worker] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+10:40:32.128 [Test worker] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+10:40:32.129 [Test worker] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

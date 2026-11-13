@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.news.NewsFetchGapReproTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-13T02:01:40" hostname="DESKTOP-SF1KUQ5" time="0.871">
+  <properties/>
+  <testcase name="RSS: Connection reset 은 수집 완료가 아니고, 정상 빈 응답은 수집 완료 0건" classname="com.cryptoautotrader.api.news.NewsFetchGapReproTest" time="0.4"/>
+  <testcase name="UPBIT_NOTICE: Connection reset 은 수집 완료가 아니고, 정상 빈 응답은 수집 완료 0건" classname="com.cryptoautotrader.api.news.NewsFetchGapReproTest" time="0.237"/>
+  <testcase name="CRYPTOPANIC: Connection reset 은 수집 완료가 아니고, 정상 빈 응답은 수집 완료 0건" classname="com.cryptoautotrader.api.news.NewsFetchGapReproTest" time="0.232"/>
+  <system-out><![CDATA[11:01:41.100 [Test worker] DEBUG c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 시작 ? sourceId=stub_reset
+11:01:41.314 [Test worker] ERROR c.c.api.news.source.RssNewsSource - [RssNewsSource] 수집 실패 ? sourceId=stub_reset: HTTP/1.1 header parser received no bytes
+11:01:41.316 [Test worker] WARN  c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 미완료 ? sourceId=stub_reset 결과=FAILED 종류=IOException 판정=2026-11-13T02:01:41.316598Z 받은=0건 신규=0건
+11:01:41.317 [Test worker] DEBUG c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 시작 ? sourceId=stub_empty
+11:01:41.347 [Test worker] INFO  c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 완료 ? sourceId=stub_empty 전체=0건 신규=0건
+[repro RSS] reset 대역 요청 2회 → 수집기 기록 [[NewsAggregator] 수집 시작 ? sourceId=stub_reset, [NewsAggregator] 수집 미완료 ? sourceId=stub_reset 결과=FAILED 종류=IOException 판정=2026-11-13T02:01:41.316598Z 받은=0건 신규=0건]
+[repro RSS] empty 대역 요청 1회 → 수집기 기록 [[NewsAggregator] 수집 시작 ? sourceId=stub_empty, [NewsAggregator] 수집 완료 ? sourceId=stub_empty 전체=0건 신규=0건]
+11:01:41.378 [Test worker] DEBUG c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 시작 ? sourceId=stub_reset
+11:01:41.604 [Test worker] ERROR c.c.a.news.source.UpbitNoticeSource - [UpbitNoticeSource] 수집 실패: HTTP/1.1 header parser received no bytes
+11:01:41.605 [Test worker] WARN  c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 미완료 ? sourceId=stub_reset 결과=FAILED 종류=IOException 판정=2026-11-13T02:01:41.604536600Z 받은=0건 신규=0건
+11:01:41.605 [Test worker] DEBUG c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 시작 ? sourceId=stub_empty
+11:01:41.608 [Test worker] INFO  c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 완료 ? sourceId=stub_empty 전체=0건 신규=0건
+[repro UPBIT_NOTICE] reset 대역 요청 2회 → 수집기 기록 [[NewsAggregator] 수집 시작 ? sourceId=stub_reset, [NewsAggregator] 수집 미완료 ? sourceId=stub_reset 결과=FAILED 종류=IOException 판정=2026-11-13T02:01:41.604536600Z 받은=0건 신규=0건]
+[repro UPBIT_NOTICE] empty 대역 요청 1회 → 수집기 기록 [[NewsAggregator] 수집 시작 ? sourceId=stub_empty, [NewsAggregator] 수집 완료 ? sourceId=stub_empty 전체=0건 신규=0건]
+11:01:41.616 [Test worker] DEBUG c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 시작 ? sourceId=stub_reset
+11:01:41.836 [Test worker] ERROR c.c.a.news.source.CryptoPanicSource - [CryptoPanicSource] 수집 실패: HTTP/1.1 header parser received no bytes
+11:01:41.837 [Test worker] WARN  c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 미완료 ? sourceId=stub_reset 결과=FAILED 종류=IOException 판정=2026-11-13T02:01:41.837281200Z 받은=0건 신규=0건
+11:01:41.837 [Test worker] DEBUG c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 시작 ? sourceId=stub_empty
+11:01:41.839 [Test worker] INFO  c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 완료 ? sourceId=stub_empty 전체=0건 신규=0건
+[repro CRYPTOPANIC] reset 대역 요청 2회 → 수집기 기록 [[NewsAggregator] 수집 시작 ? sourceId=stub_reset, [NewsAggregator] 수집 미완료 ? sourceId=stub_reset 결과=FAILED 종류=IOException 판정=2026-11-13T02:01:41.837281200Z 받은=0건 신규=0건]
+[repro CRYPTOPANIC] empty 대역 요청 1회 → 수집기 기록 [[NewsAggregator] 수집 시작 ? sourceId=stub_empty, [NewsAggregator] 수집 완료 ? sourceId=stub_empty 전체=0건 신규=0건]
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

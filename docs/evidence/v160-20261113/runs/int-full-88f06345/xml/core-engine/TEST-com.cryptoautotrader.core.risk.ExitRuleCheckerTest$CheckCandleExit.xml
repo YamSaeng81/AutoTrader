@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="§15 checkCandleExit — 캔들 기반 청산 체크" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-11-13T01:44:19" hostname="DESKTOP-SF1KUQ5" time="0.004">
+  <properties/>
+  <testcase name="SL 만 터치 — STOP_LOSS 반환, ambiguous=false" classname="com.cryptoautotrader.core.risk.ExitRuleCheckerTest$CheckCandleExit" time="0.003"/>
+  <testcase name="TP 만 터치 — TAKE_PROFIT 반환" classname="com.cryptoautotrader.core.risk.ExitRuleCheckerTest$CheckCandleExit" time="0.001"/>
+  <testcase name="SL·TP 모두 미터치 — NONE 반환" classname="com.cryptoautotrader.core.risk.ExitRuleCheckerTest$CheckCandleExit" time="0.0"/>
+  <testcase name="SL·TP 동시 터치 — STOP_LOSS 반환, ambiguous=true" classname="com.cryptoautotrader.core.risk.ExitRuleCheckerTest$CheckCandleExit" time="0.0"/>
+  <testcase name="SL 정확히 접촉 — 손절 발동" classname="com.cryptoautotrader.core.risk.ExitRuleCheckerTest$CheckCandleExit" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

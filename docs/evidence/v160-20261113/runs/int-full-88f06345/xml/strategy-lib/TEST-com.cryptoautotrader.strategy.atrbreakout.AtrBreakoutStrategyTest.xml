@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.strategy.atrbreakout.AtrBreakoutStrategyTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-11-13T01:45:00" hostname="DESKTOP-SF1KUQ5" time="0.018">
+  <properties/>
+  <testcase name="데이터_부족시_HOLD()" classname="com.cryptoautotrader.strategy.atrbreakout.AtrBreakoutStrategyTest" time="0.005"/>
+  <testcase name="ATR이_0이면_예외_대신_HOLD()" classname="com.cryptoautotrader.strategy.atrbreakout.AtrBreakoutStrategyTest" time="0.001"/>
+  <testcase name="저거래량_하방돌파_손절SELL은_거래량필터_미적용()" classname="com.cryptoautotrader.strategy.atrbreakout.AtrBreakoutStrategyTest" time="0.001"/>
+  <testcase name="하방_돌파_손절비활성_HOLD()" classname="com.cryptoautotrader.strategy.atrbreakout.AtrBreakoutStrategyTest" time="0.0"/>
+  <testcase name="하방_돌파_손절활성_SELL()" classname="com.cryptoautotrader.strategy.atrbreakout.AtrBreakoutStrategyTest" time="0.0"/>
+  <testcase name="상방_돌파시_BUY()" classname="com.cryptoautotrader.strategy.atrbreakout.AtrBreakoutStrategyTest" time="0.001"/>
+  <testcase name="신호_강도가_0이상_100이하()" classname="com.cryptoautotrader.strategy.atrbreakout.AtrBreakoutStrategyTest" time="0.002"/>
+  <testcase name="저거래량_상방돌파는_거래량필터로_HOLD()" classname="com.cryptoautotrader.strategy.atrbreakout.AtrBreakoutStrategyTest" time="0.001"/>
+  <testcase name="최소_캔들수_확인()" classname="com.cryptoautotrader.strategy.atrbreakout.AtrBreakoutStrategyTest" time="0.001"/>
+  <testcase name="이름은_ATR_BREAKOUT()" classname="com.cryptoautotrader.strategy.atrbreakout.AtrBreakoutStrategyTest" time="0.0"/>
+  <testcase name="비돌파_저거래량_캔들은_돌파없음_사유로_HOLD()" classname="com.cryptoautotrader.strategy.atrbreakout.AtrBreakoutStrategyTest" time="0.002"/>
+  <testcase name="비돌파_구간에서_HOLD()" classname="com.cryptoautotrader.strategy.atrbreakout.AtrBreakoutStrategyTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

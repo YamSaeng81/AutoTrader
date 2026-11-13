@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="거래소가 접수했는데 응답이 없을 때 (선행 조건 5)" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-13T02:05:05" hostname="DESKTOP-SF1KUQ5" time="0.191">
+  <properties/>
+  <testcase name="현재 동작을 측정한다 — 중복 제출·추적 단서·세션 행 UPDATE 경로" classname="com.cryptoautotrader.api.service.SubmitResponseUnknownTest" time="0.06"/>
+  <testcase name="응답 불명 경로 뒤에도 정지가 진행된다" classname="com.cryptoautotrader.api.service.SubmitResponseUnknownTest" time="0.061"/>
+  <testcase name="접수 가능성이 있는 주문은 종결하지 않고 추적 단서를 남긴다" classname="com.cryptoautotrader.api.service.SubmitResponseUnknownTest" time="0.069"/>
+  <system-out><![CDATA[11:05:05.986 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.SubmitResponseUnknownTest
+11:05:05.988 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:05:05.999 [order-exec-1] ERROR c.c.api.service.OrderExecutionEngine - 거래소 주문 제출의 결과가 불명이다 (orderId=674, 식별자=cat-baba0bc1-7eb1-4306-bc3b-2d9bdda0a4e4, 분류=SubmitRejection[explicit=false, status=null, errorName=null, errorMessage=null]): java.net.http.HttpTimeoutException: request timed out
+java.lang.RuntimeException: java.net.http.HttpTimeoutException: request timed out
+	at com.cryptoautotrader.api.service.SubmitResponseUnknownTest.lambda$stubAcceptThenTimeout$1(SubmitResponseUnknownTest.java:158)
+	at org.mockito.internal.stubbing.StubbedInvocationMatcher.answer(StubbedInvocationMatcher.java:42)
+	at org.mockito.internal.handler.MockHandlerImpl.handle(MockHandlerImpl.java:103)
+	at org.mockito.internal.handler.NullResultGuardian.handle(NullResultGuardian.java:29)
+	at org.mockito.internal.handler.InvocationNotifierHandler.handle(InvocationNotifierHandler.java:34)
+	at org.mockito.internal.creation.bytebuddy.MockMethodInterceptor.doIntercept(MockMethodInterceptor.java:82)
+	at org.mockito.internal.creation.bytebuddy.MockMethodAdvice.handle(MockMethodAdvice.java:134)
+	at com.cryptoautotrader.exchange.upbit.UpbitOrderClient.createOrder(UpbitOrderClient.java:110)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.submitToExchange(OrderExecutionEngine.java:2374)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.callExchangeAndRecord(OrderExecutionEngine.java:1013)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.submitOrder(OrderExecutionEngine.java:413)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at org.springframework.aop.interceptor.AsyncExecutionInterceptor.lambda$invoke$0(AsyncExecutionInterceptor.java:113)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.http.HttpTimeoutException: request timed out
+	... 24 common frames omitted
+11:05:06.049 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:05:06.053 [order-exec-2] ERROR c.c.api.service.OrderExecutionEngine - 거래소 주문 제출의 결과가 불명이다 (orderId=675, 식별자=cat-effcb3b7-5b80-4fc4-8815-0c0a71f1747b, 분류=SubmitRejection[explicit=false, status=null, errorName=null, errorMessage=null]): java.net.http.HttpTimeoutException: request timed out
+java.lang.RuntimeException: java.net.http.HttpTimeoutException: request timed out
+	at com.cryptoautotrader.api.service.SubmitResponseUnknownTest.lambda$stubAcceptThenTimeout$1(SubmitResponseUnknownTest.java:158)
+	at org.mockito.internal.stubbing.StubbedInvocationMatcher.answer(StubbedInvocationMatcher.java:42)
+	at org.mockito.internal.handler.MockHandlerImpl.handle(MockHandlerImpl.java:103)
+	at org.mockito.internal.handler.NullResultGuardian.handle(NullResultGuardian.java:29)
+	at org.mockito.internal.handler.InvocationNotifierHandler.handle(InvocationNotifierHandler.java:34)
+	at org.mockito.internal.creation.bytebuddy.MockMethodInterceptor.doIntercept(MockMethodInterceptor.java:82)
+	at org.mockito.internal.creation.bytebuddy.MockMethodAdvice.handle(MockMethodAdvice.java:134)
+	at com.cryptoautotrader.exchange.upbit.UpbitOrderClient.createOrder(UpbitOrderClient.java:110)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.submitToExchange(OrderExecutionEngine.java:2374)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.callExchangeAndRecord(OrderExecutionEngine.java:1013)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.submitOrder(OrderExecutionEngine.java:413)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at org.springframework.aop.interceptor.AsyncExecutionInterceptor.lambda$invoke$0(AsyncExecutionInterceptor.java:113)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.http.HttpTimeoutException: request timed out
+	... 24 common frames omitted
+11:05:06.105 [Test worker] WARN  c.c.api.service.OrderExecutionEngine - 식별자로 취소할 주문이 거래소에 없다 ? 미접수로 단정하지 않고 상태를 유지한다 (orderId=675, 식별자=cat-effcb3b7-5b80-4fc4-8815-0c0a71f1747b)
+11:05:06.106 [Test worker] WARN  c.c.api.service.LiveTradingService - 정지 ? 매수 확인 전인 size=0 포지션은 열어 두고 정리 대기로 둔다 (posId=759, sessionId=520)
+11:05:06.107 [Test worker] WARN  c.c.api.service.LiveTradingService - ? 정지했으나 **정리 미완료** ? 미해결 제출 1건이 남았다 (sessionId=520). 그 주문은 접수됐을 수 있으므로 자금·슬롯을 점유한 것으로 두고 추적을 계속한다. 종결은 근거를 확인한 사람이 한다.
+11:05:06.110 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:05:06.113 [order-exec-1] ERROR c.c.api.service.OrderExecutionEngine - 거래소 주문 제출의 결과가 불명이다 (orderId=676, 식별자=cat-a75918e2-b318-4e76-ae77-83db52580723, 분류=SubmitRejection[explicit=false, status=null, errorName=null, errorMessage=null]): java.net.http.HttpTimeoutException: request timed out
+java.lang.RuntimeException: java.net.http.HttpTimeoutException: request timed out
+	at com.cryptoautotrader.api.service.SubmitResponseUnknownTest.lambda$stubAcceptThenTimeout$1(SubmitResponseUnknownTest.java:158)
+	at org.mockito.internal.stubbing.StubbedInvocationMatcher.answer(StubbedInvocationMatcher.java:42)
+	at org.mockito.internal.handler.MockHandlerImpl.handle(MockHandlerImpl.java:103)
+	at org.mockito.internal.handler.NullResultGuardian.handle(NullResultGuardian.java:29)
+	at org.mockito.internal.handler.InvocationNotifierHandler.handle(InvocationNotifierHandler.java:34)
+	at org.mockito.internal.creation.bytebuddy.MockMethodInterceptor.doIntercept(MockMethodInterceptor.java:82)
+	at org.mockito.internal.creation.bytebuddy.MockMethodAdvice.handle(MockMethodAdvice.java:134)
+	at com.cryptoautotrader.exchange.upbit.UpbitOrderClient.createOrder(UpbitOrderClient.java:110)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.submitToExchange(OrderExecutionEngine.java:2374)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.callExchangeAndRecord(OrderExecutionEngine.java:1013)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.submitOrder(OrderExecutionEngine.java:413)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at org.springframework.aop.interceptor.AsyncExecutionInterceptor.lambda$invoke$0(AsyncExecutionInterceptor.java:113)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.http.HttpTimeoutException: request timed out
+	... 24 common frames omitted
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,82 @@
+--- /d/tmp/v159d4/sim/conf.sh	2026-11-13 09:21:34.937552000 +0900
++++ /d/tmp/v160d4/sim/conf.sh	2026-11-13 10:47:31.328593000 +0900
+@@ -1,7 +1,7 @@
+ # SMA20 PAPER 후보 초안 D4 대역 공통 값(총괄 v1.144 H, D3 대역 장치를 옮김). 가짜 명령·init·sim 이 읽는다. 실제 서버 값은 D4 U변수 원문에 있고 여기서 바꾸지 않는다.
+ MIDC=99bd4eaadb0ff3037518c3cacbf6bb98de91bf4e   # 예상 밖 HEAD 사례용(로컬에 있는 다른 커밋)
+ REPOSRC="/d/Claude Code/projects/crypto-auto-trader"   # start_66.py 원문을 꺼내는 로컬 저장소(읽기만)
+-R=/d/tmp/v159d4/sim
++R=/d/tmp/v160d4/sim
+ . "$R/conf.local.sh"
+ OLDC=b5cd1d0d47ea68ffe6ff476b89cf9fca5bef1b88
+ NEWC=$D2_NEWC
+@@ -10,10 +10,11 @@
+ I26=sha256:52e12428a60df5413d6e495024220bbd4c8fa07830549556f0b47bbe6ad39055
+ JAR_OLD=/d/tmp/o1o3/jars/b5cd1d0.jar   # 보존 실제 jar(a7ef759f…)
+ JAR_NEW=$D2_JAR_NEW
+-BLOCKS=${D2_BLOCKS:-/d/tmp/v159d4/blocks-d4}
++BLOCKS=${D2_BLOCKS:-/d/tmp/v160d4/blocks-d4}
+ FG=/d/tmp/sma20pd4/fg
+ # V159D4 덧붙임 — frontend 대역 이미지(실행 중 구판)·관문/조회문 고정 커밋 대역 값·V96 Flyway 체크섬
+ FEI0=sha256:$(printf '%s' standin-frontend | /usr/bin/sha256sum | cut -c1-64)
+-GSC=feedfacefeedfacefeedfacefeedfacefeedface   # 대역 GS(로컬 근거 폴더의 실제 파일을 내준다)
++GSC=6385e1d5f64eb09a95791ba253a30d2b21341082   # V160D4: 실제 GS(총괄 v1.160 §5). 대역 git 은 이 커밋에서 실제로 꺼내 해시를 확인한 사본(GSD)을 사례마다 복사해 내준다
++GSD=/d/tmp/v160/gs-6385e1d5   # git show 6385e1d5:<경로> 원문 3개(gate.sql c9dc2056…·rollback_gate.sh fe19aab4…·preflight v2 af4105c1…)
+ EVD="/d/Claude Code/projects/crypto-auto-trader/docs/evidence/v159-20261113"
+ V96SUMX=-424836241
+--- /d/tmp/v159d4/sim/conf.local.sh	2026-11-13 09:21:04.447163900 +0900
++++ /d/tmp/v160d4/sim/conf.local.sh	2026-11-13 10:47:31.328593000 +0900
+@@ -1,4 +1,4 @@
+-# V159D4 대역 값 — 후보 802b691a(integration/v158)·백엔드 빌드 입력이 같은 4a4a04a3 로컬 bootJar(0834382a…)·실제 git diff --name-only b5cd1d0 802b691a(100경로)
+-D2_NEWC=802b691a6606821d6db838bf5aca0f4cf468205a
++# V160D4 대역 값 — 후보 88f06345(integration/v158, 802b691a + 시험 2경로)·백엔드 빌드 입력이 같은 4a4a04a3 로컬 bootJar(0834382a…)·실제 git diff --name-only b5cd1d0 88f06345(102경로)
++D2_NEWC=88f06345af31888c2c8669ebe8ad00ca02cfd6d8
+ D2_JAR_NEW=/d/tmp/v159/jar/4a4a04a3.jar
+-D2_DIFF="$(cat /d/tmp/v159/diffn-b5cd1d0-802b691a.txt)"
++D2_DIFF="$(cat /d/tmp/v160/d4/diffn-b5cd1d0-88f06345.txt)"
+--- /d/tmp/v159d4/sim/init.sh	2026-11-13 09:22:04.532922900 +0900
++++ /d/tmp/v160d4/sim/init.sh	2026-11-13 10:47:31.328593000 +0900
+@@ -2,7 +2,7 @@
+ # 사용: init.sh <대역 이름> <가짜 시작 시각(KST, 예 '2026-11-10 10:20:00')>
+ # 새 대역 폴더를 만든다. 이미 있으면 멈춘다(실행 출력 보존). D3 대역 init.sh 를 D4 값으로 옮겼다 — 실행 중 #27 이미지 기록 ~/maint-o13n21/image-new.txt, 복구 태그 1899b49(#26) 추가, 운영 판에도 시험 파일이 있다.
+ set -eu
+-. /d/tmp/v159d4/sim/conf.sh
++. /d/tmp/v160d4/sim/conf.sh
+ S=$R/runs/$1; [ ! -e "$S" ] || { echo "이미 있음 $S"; exit 2; }
+ mkdir -p "$S"/{state/fetag,state/tag,state/img,state/svc,fix,out,home/crypto_trader/AutoTrader/scripts/prospective,home/maint-o13n21,home/ops-scripts,home/sid203-ledger,home/daily-check}
+ TZ=KST-9 /usr/bin/date -d "$2" +%s > "$S/state/clock"
+@@ -45,8 +45,9 @@
+ printf 'freshness 저장(이전 회차)\n' > "$P/freshness_runs.log"
+ printf 'Nov 10 09:19:01 yhdeabba CRON[1]: (manicstr) CMD (이전 회차 — 기준 위치 앞)\n' > "$S/fix/syslog"
+ echo "SYSLOG=$S/fix/syslog   # 대역 치환: 가짜 시스템 기록(실제 /var/log/syslog 는 서버에만 있다)" > "$S/vars.sh"
+-[ -n "${NO_UV159:-}" ] || printf 'GS=%s; FEIMGOLD=%s   # 대역 치환: 승인 판에서 기입할 두 미정 값
+-' "$GSC" "$FEI0" >> "$S/vars.sh"
++[ -n "${NO_UV159:-}" ] || printf 'FEIMGOLD=%s   # 대역 치환: 승인 판에서 기입할 미정 값(GS 는 V160D4 U변수의 실제 값)
++' "$FEI0" >> "$S/vars.sh"
++mkdir -p "$S/fix/gs" && cp "$GSD"/gate.sql "$GSD"/rollback_gate.sh "$GSD"/preflight-real-loss-readonly.v2.sql "$S/fix/gs/"   # V160D4: 실제 GS 원문 사본
+ { printf '9001 bash -c '; cat $FG/F.sh $FG/G.sh $BLOCKS/*.sh | tr '\n' ' '; echo
+   echo '9002 /usr/bin/python3 scripts/prospective/start_66.py alerts --days 1 --no-mark'; } > "$S/state/procs.txt"
+ echo "대역 $S · 가짜 시각 $(TZ=KST-9 /usr/bin/date -d @"$(cat "$S/state/clock")" '+%F %T %Z')"
+--- /d/tmp/v159d4/sim/stubs/git	2026-11-13 09:22:04.532922900 +0900
++++ /d/tmp/v160d4/sim/stubs/git	2026-11-13 10:47:31.345488900 +0900
+@@ -1,7 +1,7 @@
+ #!/bin/bash
+ # 가짜 git(D4 대역 사본) — HEAD 는 $SIM/state/HEAD. 실제 git·원격 접속을 부르지 않는다. 커밋 두 개(OLDC·NEWC, conf.sh)만 안다. D3: start_66.py 블롭 조회·체크아웃 시 원문 교체를 더했다.
+ . "$(dirname "$0")/_lib.sh"; calllog git "$@"
+-. /d/tmp/v159d4/sim/conf.sh
++. /d/tmp/v160d4/sim/conf.sh
+ [ -f "$SIM/env.sh" ] && . "$SIM/env.sh"
+ case "$1" in
+   rev-parse) NFP=scripts/prospective/start_66.py
+@@ -28,9 +28,9 @@
+     P=$SIM/home/crypto_trader/AutoTrader/scripts/prospective
+     cp "$SIM/fix/start_66.$3.py" "$P/start_66.py"
+     cp "$SIM/fix/testfile.py" "$P/test_freshness_recheck_fail.py" ;;   # D4: 시험 파일은 두 커밋 모두에 있다
+-  show) case "$2" in "$GSC:docs/evidence/v159-20261113/d4-draft/preflight-real-loss-readonly.v2.sql") cat "$EVD/d4-draft/preflight-real-loss-readonly.v2.sql" ;;
+-    "$GSC:docs/evidence/v159-20261113/rollback-gate-v3/gate.sql") cat "$EVD/rollback-gate-v3/gate.sql" ;;
+-    "$GSC:docs/evidence/v159-20261113/rollback-gate-v3/rollback_gate.sh") cat "$EVD/rollback-gate-v3/rollback_gate.sh" ;;
++  show) case "$2" in "$GSC:docs/evidence/v159-20261113/d4-draft/preflight-real-loss-readonly.v2.sql") cat "$SIM/fix/gs/preflight-real-loss-readonly.v2.sql" ;;
++    "$GSC:docs/evidence/v159-20261113/rollback-gate-v3/gate.sql") cat "$SIM/fix/gs/gate.sql" ;;
++    "$GSC:docs/evidence/v159-20261113/rollback-gate-v3/rollback_gate.sh") cat "$SIM/fix/gs/rollback_gate.sh" ;;
+     "$QSC:scripts/ops/maint_checks.sql") cat "$SIM/fix/maint_checks.sql" ;; "$QSC:scripts/ops/maint_verify.py") cat "$SIM/fix/maint_verify.py" ;; *) forbid git-show "$@" ;; esac ;;
+   *) forbid "git-$1" "$@" ;;
+ esac

@@ -1,0 +1,105 @@
+== v01 정상: U0→U1→U2(V96)→U3→UF2(frontend)→U4→U뒤관측
+PASS v01 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS v01 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS v01 — HEAD = 88f06345af31888c2c8
+PASS v01 — backend 보존 태그 b5cd1d0 = sha256:52e12428a60d
+PASS v01 — frontend 보존 태그 b5cd1d0 = sha256:b8cbc478a72e
+PASS v01 — U1 뒤 실행 frontend(구판 그대로) = sha256:b8cbc478a72e
+PASS v01 — image-fe-new = frontend latest = sha256:d7e406185258
+PASS v01 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS v01 U3 — 종료 0 · '✅ U3(deploy) 통과' · checkout 1
+PASS v01 — U2 뒤 V96 적용 표지 = 있음
+PASS v01 — U3 뒤 실행 frontend(아직 구판) = sha256:b8cbc478a72e
+PASS v01 UF2 — 종료 0 · '✅ UF2 통과' · checkout 1
+PASS v01 — UF2 뒤 실행 frontend = sha256:d7e406185258
+PASS v01 U4 — 종료 0 · '✅ U4 통과' · checkout 1
+PASS v01 U뒤관측 — 종료 0 · '' · checkout 1
+PASS v01 — start_66.py sha256 = 68d441ce0ed66d0a654
+== U0 의 새 확인(바꾸기 전 멈춤)
+PASS v02 U0 — 종료 1 · 'FEIMGOLD 가 미정' · checkout 0
+PASS v03 U0 — 종료 1 · '배포 전 손실 관문이 진행 가능이 아님' · checkout 0
+PASS v04 U0 — 종료 1 · '배포 전 손실 조회 실패' · checkout 0
+PASS v05 U0 — 종료 1 · 'V95 이후 마이그레이션이 V96 하나' · checkout 0
+PASS v06 U0 — 종료 1 · '기대 102경로' · checkout 0
+PASS v07 U0 — 종료 1 · '실행 중 frontend 이미지가 FEIMGOLD 와 다름' · checkout 0
+PASS v08 U0 — 종료 1 · 'GS(관문·조회문 고정 커밋)가 미정' · checkout 0
+PASS v09 U0 — 종료 1 · '배포 전 손실 관문이 진행 가능이 아님' · checkout 0
+== U1 frontend 빌드 실패 → U1-되돌림(재기동 없음, backend·frontend latest 원복)
+PASS v10 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS v10 U1 — 종료 1 · 'frontend 빌드 실패' · checkout 1
+PASS v10 U1되돌림 — 종료 0 · '↩ U1-되돌림 끝' · checkout 2
+PASS v10 — HEAD = b5cd1d0d47ea68ffe6f
+PASS v10 — backend latest = sha256:52e12428a60d
+PASS v10 — frontend latest = sha256:b8cbc478a72e
+PASS v10 — 실행 backend = sha256:52e12428a60d
+PASS v10 — 실행 frontend = sha256:b8cbc478a72e
+== U1 성공 뒤 운영자가 U2 를 하지 않기로 함 → U1-되돌림(frontend latest 가 새 이미지에서 구판으로)
+PASS v11 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS v11 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS v11 U1되돌림 — 종료 0 · '↩ U1-되돌림 끝' · checkout 2
+PASS v11 — frontend latest = sha256:b8cbc478a72e
+PASS v11 — backend latest = sha256:52e12428a60d
+== U2 Flyway V96 이력 불일치 → 되돌림 필요로 멈춤
+PASS v12 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS v12 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS v12 U2 — 종료 1 · 'V95 이후 이력이 V96 한 줄' · checkout 1
+== UF2 순서 경계
+PASS v13 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS v13 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS v13 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS v13 UF2 — 종료 1 · 'U3(deploy) 미통과' · checkout 1
+PASS v13 — 실행 frontend = sha256:b8cbc478a72e
+PASS v14 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS v14 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS v14 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS v14 U3 — 종료 0 · '✅ U3(deploy) 통과' · checkout 1
+PASS v14 UF2 — 종료 1 · 'frontend 되돌림 필요: / 응답 502' · checkout 1
+== U되돌림 — 관문 3판 통과 뒤에만 frontend → backend
+PASS v15 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS v15 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS v15 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS v15 U3 — 종료 0 · '✅ U3(deploy) 통과' · checkout 1
+PASS v15 U되돌림 — 종료 0 · 'b5cd1d0 (#27 이미지) 로 복귀' · checkout 2
+PASS v15 — HEAD = b5cd1d0d47ea68ffe6f
+PASS v15 — backend = sha256:52e12428a60d
+PASS v15 — frontend(교체 전이라 그대로) = sha256:b8cbc478a72e
+PASS v15 — 관문 장부 완결 표지 = 있음
+PASS v15 — V96 표지(되돌려도 남는다) = 있음
+PASS v15 U3(rb) — 종료 0 · 'b5cd1d0 복귀 확인' · checkout 2
+PASS v16 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS v16 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS v16 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS v16 U3 — 종료 0 · '✅ U3(deploy) 통과' · checkout 1
+PASS v16 UF2 — 종료 0 · '✅ UF2 통과' · checkout 1
+PASS v16 U되돌림 — 종료 0 · 'b5cd1d0 (#27 이미지) 로 복귀' · checkout 2
+PASS v16 — frontend 원복 = sha256:b8cbc478a72e
+PASS v16 — backend = sha256:52e12428a60d
+PASS v17 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS v17 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS v17 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS v17 U3 — 종료 0 · '✅ U3(deploy) 통과' · checkout 1
+PASS v17 U되돌림 — 종료 1 · '관문이 ROLLBACK_GATE_OK 가 아님(종료 2)' · checkout 1
+PASS v17 — HEAD(되돌리지 않음) = 88f06345af31888c2c8
+PASS v17 — backend(새 바이너리 유지) = sha256:61a929833971
+PASS v17 — 되돌림 시각 표지 없음 = 없음
+PASS v18 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS v18 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS v18 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS v18 U3 — 종료 0 · '✅ U3(deploy) 통과' · checkout 1
+PASS v18 U되돌림 — 종료 1 · 'GS(관문 고정 커밋)가 미정' · checkout 1
+PASS v19 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS v19 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS v19 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS v19 U되돌림 — 종료 1 · '관문이 ROLLBACK_GATE_OK 가 아님(종료 4)' · checkout 1
+PASS v19 — HEAD(되돌리지 않음) = 88f06345af31888c2c8
+PASS 전체 — 금지 명령 기록 줄 수 합 = 0
+== V160D4 GS 실제 값(6385e1d5) — 원문 변조·없는 커밋이면 바꾸기 전에 멈춘다
+PASS v20 U0 — 종료 1 · '배포 전 손실 조회문 원문·해시가 다름' · checkout 0
+PASS v21 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS v21 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS v21 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS v21 U3 — 종료 0 · '✅ U3(deploy) 통과' · checkout 1
+PASS v21 U되돌림 — 종료 1 · '관문 원문 해시가 다름' · checkout 1
+PASS v21 — HEAD(되돌리지 않음) = 88f06345af31888c2c8
+PASS v22 U0 — 종료 1 · 'GS(관문·조회문 고정 커밋)가 미정이거나 없음' · checkout 0
+== 결과: PASS 96 · FAIL 0

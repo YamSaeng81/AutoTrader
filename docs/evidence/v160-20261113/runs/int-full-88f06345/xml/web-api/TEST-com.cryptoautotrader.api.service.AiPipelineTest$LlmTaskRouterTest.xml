@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="LlmTaskRouter" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-13T02:01:44" hostname="DESKTOP-SF1KUQ5" time="0.171">
+  <properties/>
+  <testcase name="task 설정 없으면 MockProvider로 폴백" classname="com.cryptoautotrader.api.service.AiPipelineTest$LlmTaskRouterTest" time="0.168"/>
+  <testcase name="task 활성화 → 지정 provider로 라우팅" classname="com.cryptoautotrader.api.service.AiPipelineTest$LlmTaskRouterTest" time="0.001"/>
+  <testcase name="task 비활성화 → success=false 반환" classname="com.cryptoautotrader.api.service.AiPipelineTest$LlmTaskRouterTest" time="0.002"/>
+  <system-out><![CDATA[11:01:44.934 [Test worker] WARN  c.c.api.llm.LlmTaskRouter - [LlmTaskRouter] task 설정 없음: LOG_SUMMARY → MockProvider 사용
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

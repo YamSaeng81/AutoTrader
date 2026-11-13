@@ -1,0 +1,76 @@
+diff -r "d:/Claude Code/projects/crypto-auto-trader/docs/evidence/v159-20261113/d4/blocks-d4/U0.sh" blocks-d4/U0.sh
+4c4
+< [ "$M" = "$HOME/maint-v159" ] && [ "${UB:-}" = V159D4 ] && [ "$NEW" = 802b691a6606821d6db838bf5aca0f4cf468205a ] && [ -n "${JARN:-}" ] && type fresh_idle > /dev/null 2>&1 && type n21mark > /dev/null 2>&1 && type n21after > /dev/null 2>&1 && [ -n "${BTCIN:-}" ] && type sid203 > /dev/null 2>&1 && type newsobs > /dev/null 2>&1 && type httpobs > /dev/null 2>&1 && type holdobs > /dev/null 2>&1 && type entryobs > /dev/null 2>&1 && type n17obs > /dev/null 2>&1 && type n19obs > /dev/null 2>&1 && type n20obs > /dev/null 2>&1 || stop "변수 순서 — F 변수 → G 변수 → v1.159 통합 후보 초안 D4 U 변수"
+---
+> [ "$M" = "$HOME/maint-v160" ] && [ "${UB:-}" = V160D4 ] && [ "$NEW" = 88f06345af31888c2c8669ebe8ad00ca02cfd6d8 ] && [ -n "${JARN:-}" ] && type fresh_idle > /dev/null 2>&1 && type n21mark > /dev/null 2>&1 && type n21after > /dev/null 2>&1 && [ -n "${BTCIN:-}" ] && type sid203 > /dev/null 2>&1 && type newsobs > /dev/null 2>&1 && type httpobs > /dev/null 2>&1 && type holdobs > /dev/null 2>&1 && type entryobs > /dev/null 2>&1 && type n17obs > /dev/null 2>&1 && type n19obs > /dev/null 2>&1 && type n20obs > /dev/null 2>&1 || stop "변수 순서 — F 변수 → G 변수 → v1.160 통합 후보 초안 D4 U 변수"
+14c14
+< [ "$(git diff --name-only $OLD $NEW)" = "$DIFFN" ] || stop "diff 가 정확히 기대 100경로(시험 70·제품 Java 20·V96 1·build.gradle 1·프런트 8)가 아님"
+---
+> [ "$(git diff --name-only $OLD $NEW)" = "$DIFFN" ] || stop "diff 가 정확히 기대 102경로(시험 72·제품 Java 20·V96 1·build.gradle 1·프런트 8)가 아님"
+diff -r "d:/Claude Code/projects/crypto-auto-trader/docs/evidence/v159-20261113/d4/blocks-d4/U1.sh" blocks-d4/U1.sh
+4c4
+< [ "${UB:-}" = V159D4 ] || stop "U 변수가 v1.159 통합 후보 초안 D4 판이 아님 — F → G → v1.159 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+---
+> [ "${UB:-}" = V160D4 ] || stop "U 변수가 v1.160 통합 후보 초안 D4 판이 아님 — F → G → v1.160 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+diff -r "d:/Claude Code/projects/crypto-auto-trader/docs/evidence/v159-20261113/d4/blocks-d4/U1�\220\230�\217\214림.sh" "blocks-d4/U1�\220\230�\217\214림.sh"
+6c6
+< [ "${UB:-}" = V159D4 ] || stop "U 변수가 v1.159 통합 후보 초안 D4 판이 아님 — F → G → v1.159 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+---
+> [ "${UB:-}" = V160D4 ] || stop "U 변수가 v1.160 통합 후보 초안 D4 판이 아님 — F → G → v1.160 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+diff -r "d:/Claude Code/projects/crypto-auto-trader/docs/evidence/v159-20261113/d4/blocks-d4/U2.sh" blocks-d4/U2.sh
+4c4
+< [ "${UB:-}" = V159D4 ] || stop "U 변수가 v1.159 통합 후보 초안 D4 판이 아님 — F → G → v1.159 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+---
+> [ "${UB:-}" = V160D4 ] || stop "U 변수가 v1.160 통합 후보 초안 D4 판이 아님 — F → G → v1.160 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+diff -r "d:/Claude Code/projects/crypto-auto-trader/docs/evidence/v159-20261113/d4/blocks-d4/U3.sh" blocks-d4/U3.sh
+4c4
+< [ "${UB:-}" = V159D4 ] || stop "U 변수가 v1.159 통합 후보 초안 D4 판이 아님 — F → G → v1.159 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+---
+> [ "${UB:-}" = V160D4 ] || stop "U 변수가 v1.160 통합 후보 초안 D4 판이 아님 — F → G → v1.160 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+diff -r "d:/Claude Code/projects/crypto-auto-trader/docs/evidence/v159-20261113/d4/blocks-d4/U4.sh" blocks-d4/U4.sh
+4c4
+< [ "${UB:-}" = V159D4 ] || stop "U 변수가 v1.159 통합 후보 초안 D4 판이 아님 — F → G → v1.159 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+---
+> [ "${UB:-}" = V160D4 ] || stop "U 변수가 v1.160 통합 후보 초안 D4 판이 아님 — F → G → v1.160 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+diff -r "d:/Claude Code/projects/crypto-auto-trader/docs/evidence/v159-20261113/d4/blocks-d4/UF2.sh" blocks-d4/UF2.sh
+1c1
+< # UF2(V159D4 새 블록) — U3(deploy) 통과 뒤 frontend 만 새 이미지로 교체한다. backend 먼저·frontend 나중이 기본안이다.
+---
+> # UF2(V160D4 새 블록) — U3(deploy) 통과 뒤 frontend 만 새 이미지로 교체한다. backend 먼저·frontend 나중이 기본안이다.
+7c7
+< [ "${UB:-}" = V159D4 ] || stop "U 변수가 v1.159 통합 후보 초안 D4 판이 아님 — F → G → v1.159 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+---
+> [ "${UB:-}" = V160D4 ] || stop "U 변수가 v1.160 통합 후보 초안 D4 판이 아님 — F → G → v1.160 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+diff -r "d:/Claude Code/projects/crypto-auto-trader/docs/evidence/v159-20261113/d4/blocks-d4/U�\220\230�\217\214림.sh" "blocks-d4/U�\220\230�\217\214림.sh"
+4c4
+< [ "${UB:-}" = V159D4 ] || stop "U 변수가 v1.159 통합 후보 초안 D4 판이 아님 — F → G → v1.159 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+---
+> [ "${UB:-}" = V160D4 ] || stop "U 변수가 v1.160 통합 후보 초안 D4 판이 아님 — F → G → v1.160 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+diff -r "d:/Claude Code/projects/crypto-auto-trader/docs/evidence/v159-20261113/d4/blocks-d4/U�\222��\200측.sh" "blocks-d4/U�\222��\200측.sh"
+4c4
+< [ "${UB:-}" = V159D4 ] || stop "U 변수가 v1.159 통합 후보 초안 D4 판이 아님 — F → G → v1.159 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+---
+> [ "${UB:-}" = V160D4 ] || stop "U 변수가 v1.160 통합 후보 초안 D4 판이 아님 — F → G → v1.160 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+diff -r "d:/Claude Code/projects/crypto-auto-trader/docs/evidence/v159-20261113/d4/blocks-d4/U�\200�\210\230.sh" "blocks-d4/U�\200�\210\230.sh"
+1,2c1,2
+< M=~/maint-v159; mkdir -p "$M"; OPS=~/ops-scripts; UB=V159D4   # v1.159 통합 후보(integration/v158 802b691) 배포 초안 D4(미승인·실행 금지) 판 표지 — U 블록 전부가 확인한다. 원본 구조 V159D4(sma20p-d4-802b6918), 생성기 mkdraft5.py. backend+frontend 같은 릴리스, DDL V96(새 backend 기동 때 Flyway)
+< OLD=b5cd1d0d47ea68ffe6ff476b89cf9fca5bef1b88; NEW=802b691a6606821d6db838bf5aca0f4cf468205a
+---
+> M=~/maint-v160; mkdir -p "$M"; OPS=~/ops-scripts; UB=V160D4   # v1.160 통합 후보(integration/v158 88f0634) 배포 초안 D4(미승인·실행 금지) 판 표지 — U 블록 전부가 확인한다. 원본 구조 V159D4(v159-20261113/d4, 그 원본 SMA20PD4 sma20p-d4-af7ffa58), 생성기 mkdraft6.py(값만 변경). backend+frontend 같은 릴리스, DDL V96(새 backend 기동 때 Flyway)
+> OLD=b5cd1d0d47ea68ffe6ff476b89cf9fca5bef1b88; NEW=88f06345af31888c2c8669ebe8ad00ca02cfd6d8
+100a101
+>   web-api/src/test/java/com/cryptoautotrader/api/service/SchedulerProfileCleanupTest.java \
+114a116
+>   web-api/src/test/java/com/cryptoautotrader/api/support/OrderFlowObservation.java \
+116c118
+<   web-api/src/test/resources/schema-h2.sql)"   # git diff --name-only OLD NEW — 100경로(시험 70·제품 Java 20·V96 1·build.gradle 1·프런트 8)
+---
+>   web-api/src/test/resources/schema-h2.sql)"   # git diff --name-only OLD NEW — 102경로(시험 72·제품 Java 20·V96 1·build.gradle 1·프런트 8)
+178c180
+<   '추가 BOOT-INF/classes/db/migration/V96__paper_aligned_runtime_state.sql')"   # 보존 b5cd1d0.jar(a7ef759f…) 대 로컬 bootJar 4a4a04a3=802b691a 입력(0834382a…), 비교기 v2 — 변경 48·추가 14
+---
+>   '추가 BOOT-INF/classes/db/migration/V96__paper_aligned_runtime_state.sql')"   # 보존 b5cd1d0.jar(a7ef759f…) 대 로컬 bootJar 4a4a04a3=802b691a=88f06345 입력(0834382a…, 88f06345 는 시험 2경로만 다름), 비교기 v2 — 변경 48·추가 14
+183c185
+< GS=미정   # 관문 3판·손실 조회문 v2 를 담은 main 고정 커밋 — 근거 커밋 뒤 총괄 승인 판에 기입. 미정이면 U0·U되돌림이 멈춘다
+---
+> GS=6385e1d5f64eb09a95791ba253a30d2b21341082   # 관문 3판·손실 조회문 v2 를 담은 main 고정 커밋(총괄 v1.160 §5 지정). 꺼낸 원문 해시가 GATESQL·GATESH·PFSUM 과 다르면 U0·U되돌림이 멈춘다

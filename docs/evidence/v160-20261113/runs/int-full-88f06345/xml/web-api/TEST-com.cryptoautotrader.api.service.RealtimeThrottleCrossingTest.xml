@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="v1.155 §4-2 실시간 점검 간격 — 보호 가격 첫 통과 시세 (LIVE/DYNAMIC 직접 처리기)" tests="21" skipped="0" failures="0" errors="0" timestamp="2026-11-13T02:03:51" hostname="DESKTOP-SF1KUQ5" time="3.004">
+  <properties/>
+  <testcase name="D2 DYNAMIC 익절 — 익절가 330, 329 점검 뒤 5초 간격 안(4초)의 331(첫 통과): 점검·익절 1" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.009"/>
+  <testcase name="P6 LIVE 같은 코인 두 보호선(백분율 5%·절대 280) — 285.00025 점검 없음, 284 백분율 손절, 279 절대 손절: 매도 2" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.541"/>
+  <testcase name="P10 LIVE 반올림 경계 — 286 뒤 간격 안 285.0001(반올림 −5.0000%): 점검·손절 1" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.016"/>
+  <testcase name="P2 LIVE 백분율 손절(절대가 없음) — 286→285.00025→284(간격 안): 중간 미발동 시세는 점검하지 않고 284 점검·손절 1, 뒤 283 중복 0" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.017"/>
+  <testcase name="P3 DYNAMIC 절대 손절가 285 대조 — 같은 입력: 중간 점검 없음, 284 점검·손절 1" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.4"/>
+  <testcase name="P4 LIVE 절대 손절가 285 대조 — 같은 입력: 중간 점검 없음, 284 점검·손절 1" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.007"/>
+  <testcase name="L2 평상시 경로 경계 — 286 점검 뒤 정확히 5초 경과의 284: 수정 전후 모두 점검·손절 1" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.018"/>
+  <testcase name="P8 LIVE 백분율 — 0·낡은 280·285.00025 뒤 284: 앞 셋 점검·매도 없음, 284 점검·손절 1" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.006"/>
+  <testcase name="L7 비가격·낡은 시세 — 286 뒤 간격 안의 0·낡은(10분 전) 280 은 점검·매도·통과 기억 없음, 다음 유효 284 는 첫 통과로 점검" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.531"/>
+  <testcase name="L3 급등락 경로 — 310·290(급락 점검) 뒤 1초 간격 안(0.5초)의 280(첫 통과): 점검·손절 1" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.019"/>
+  <testcase name="P7 DYNAMIC 백분율 — 0·낡은 280·285.00025 뒤 284: 앞 셋 점검·매도 없음, 284 점검·손절 1" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.017"/>
+  <testcase name="L4 급등락 경로 경계 — 290 급락 점검 뒤 정확히 1초 경과의 280: 수정 전후 모두 점검·손절 1" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.402"/>
+  <testcase name="D4 DYNAMIC 단순 반복 — 손절가 위 290 세 번(간격 안): 첫 번만 점검, 매도 0" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.005"/>
+  <testcase name="D1 DYNAMIC 손절 — 286 점검 뒤 5초 간격 안(4초)의 284(첫 통과): 점검·손절 1" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.007"/>
+  <testcase name="P1 DYNAMIC 백분율 손절(절대가 없음) — 286→285.00025→284(간격 안): 중간 미발동 시세는 점검하지 않고 284 점검·손절 1, 뒤 283 중복 0" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.016"/>
+  <testcase name="P5 DYNAMIC 같은 코인 두 보호선(백분율 5%·절대 280) — 285.00025 점검 없음, 284 백분율 손절, 279 절대 손절: 매도 2" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.535"/>
+  <testcase name="P9 DYNAMIC 반올림 경계 — 286 뒤 간격 안 285.0001(반올림 −5.0000%): 점검·손절 1" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.019"/>
+  <testcase name="D3 DYNAMIC 경계 — 286 점검 뒤 정확히 5초 경과의 284: 수정 전후 모두 점검·손절 1" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.018"/>
+  <testcase name="L1 평상시 경로 — 286 점검 뒤 5초 간격 안(4초)의 284(손절가 285 첫 통과): 점검·손절 1" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.402"/>
+  <testcase name="L6 첫 통과 뒤 계속 아래 — 284(첫 통과) 뒤 283·282 는 간격 안이면 점검하지 않는다(유계), 매도 1(중복 없음)" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.012"/>
+  <testcase name="L5 단순 반복 — 손절가 위 290 세 번(간격 안): 첫 번만 점검, 매도 0 — 수정 전후 같다" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.003"/>
+  <system-out><![CDATA[11:03:51.087 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest
+11:03:51.093 [Test worker] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+11:03:51.094 [Test worker] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 종료 (scheduler 유지 ? 재연결 가능)
+[THR155] D2 | DYNAMIC | 331 점검=true | 상태=CLOSING 매도=1
+11:03:51.101 [HttpClient-797-Worker-0] WARN  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 종료: code=1000, reason=정상 종료
+11:03:51.101 [HttpClient-797-Worker-0] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+11:03:51.101 [HttpClient-797-Worker-0] INFO  c.c.e.upbit.UpbitWebSocketClient - 종료 요청됨. 재연결 스킵.
+11:03:51.101 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=403, KRW-T2X9200, 손익=-5.333300%
+11:03:51.103 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=404, KRW-T2X9200, 손익=-7.000000%
+[THR155] P6 | LIVE | 286=[true, true] | 285.00025=[false, false] | 284=[true, true] | 284뒤 매도=1 | 279=[false, true] | 백분율 포지션=CLOSING | 상태=CLOSING 매도=2
+11:03:51.642 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=405, KRW-T3X65100, 손익=-5.000000%
+[THR155] P10 | LIVE | 285.0001 점검=true | 상태=CLOSING 매도=1
+11:03:51.658 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=406, KRW-T4X85600, 손익=-5.333300%
+[THR155] P2 | LIVE | 286 점검=true | 285.00025 점검=false | 그때 매도=0 | 284 점검=true | 그때 매도=1 | 283 점검=false | 상태=CLOSING 매도=1
+11:03:51.676 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-T5X22000 @ 284 pnl=-5.333300% (id=259)
+[THR155] P3 | DYNAMIC | 285.00025 점검=false | 284 점검=true | 상태=CLOSING 매도=1
+11:03:52.076 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=407, KRW-T6X38700, 손익=-5.333300%
+[THR155] P4 | LIVE | 285.00025 점검=false | 284 점검=true | 상태=CLOSING 매도=1
+11:03:52.085 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=408, KRW-T7X36000, 손익=-5.333300%
+[THR155] L2 | LIVE | 284 점검=true | 상태=CLOSING 매도=1
+11:03:52.102 [Test worker] WARN  c.c.api.service.LiveTradingService - 가격이 아닌 실시간 시세 무시: KRW-T8X15000 0 관측 2026-11-13T02:03:52.102373600Z 출처 WS_TRADE
+11:03:52.103 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=409, KRW-T8X15000, 손익=-5.333300%
+[THR155] P8 | LIVE | 0=false | 낡은280=false | 285.00025=false | 앞 매도=0 | 284=true | 상태=CLOSING 매도=1
+11:03:52.109 [Test worker] WARN  c.c.api.service.LiveTradingService - 가격이 아닌 실시간 시세 무시: KRW-T9X98000 0 관측 2026-11-13T02:03:52.109377900Z 출처 WS_TRADE
+11:03:52.110 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=410, KRW-T9X98000, 손익=-5.333300%
+[THR155] L7 | LIVE | 0 점검=false | 낡은 280 점검=false | 무효 뒤 매도=0 | 284 점검=true | 상태=CLOSING 매도=1
+11:03:52.640 [Test worker] WARN  c.c.api.service.LiveTradingService - 급락 감지 (sessionId=411, KRW-T10X32100): 손익=-3.333300% ? SL 유지 285.00000000 (조임 없음)
+11:03:52.641 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=411, KRW-T10X32100, 손익=-6.666700%
+[THR155] L3 | LIVE | 290 점검=true | 280 점검=true | 상태=CLOSING 매도=1
+11:03:52.660 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 가격이 아닌 실시간 시세 무시: KRW-T11X74200 0 관측 2026-11-13T02:03:52.660254800Z 출처 WS_TRADE
+11:03:52.660 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-T11X74200 @ 284 pnl=-5.333300% (id=260)
+[THR155] P7 | DYNAMIC | 0=false | 낡은280=false | 285.00025=false | 앞 매도=0 | 284=true | 상태=CLOSING 매도=1
+11:03:52.676 [Test worker] WARN  c.c.api.service.LiveTradingService - 급락 감지 (sessionId=412, KRW-T12X77900): 손익=-3.333300% ? SL 유지 285.00000000 (조임 없음)
+11:03:52.677 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=412, KRW-T12X77900, 손익=-6.666700%
+[THR155] L4 | LIVE | 280 점검=true | 상태=CLOSING 매도=1
+[THR155] D4 | DYNAMIC | 점검=true,false,false | 상태=OPEN 매도=0
+11:03:53.083 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-T14X26300 @ 284 pnl=-5.333300% (id=262)
+[THR155] D1 | DYNAMIC | 284 점검=true | 상태=CLOSING 매도=1
+11:03:53.092 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-T15X65300 @ 284 pnl=-5.333300% (id=263)
+[THR155] P1 | DYNAMIC | 286 점검=true | 285.00025 점검=false | 그때 매도=0 | 284 점검=true | 그때 매도=1 | 283 점검=false | 상태=CLOSING 매도=1
+11:03:53.107 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-T16X44200 @ 284 pnl=-5.333300% (id=264)
+11:03:53.108 [Test worker] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+11:03:53.112 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-T16X44200 @ 279 pnl=-7.000000% (id=265)
+11:03:53.113 [Test worker] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+11:03:53.113 [Test worker] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 종료 (scheduler 유지 ? 재연결 가능)
+11:03:53.142 [ForkJoinPool.commonPool-worker-2] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 성공
+11:03:53.143 [ForkJoinPool.commonPool-worker-2] INFO  c.c.e.upbit.UpbitWebSocketClient - WebSocket 구독 메시지 전송: coins=[KRW-T16X44200]
+[THR155] P5 | DYNAMIC | 286=[true, true] | 285.00025=[false, false] | 284=[true, true] | 284뒤 매도=1 | 279=[false, true] | 백분율 포지션=CLOSING | 상태=CLOSING 매도=2
+11:03:53.642 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-T17X32600 @ 285.0001 pnl=-5.000000% (id=266)
+[THR155] P9 | DYNAMIC | 285.0001 점검=true | 상태=CLOSING 매도=1
+11:03:53.661 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-T18X21400 @ 284 pnl=-5.333300% (id=267)
+[THR155] D3 | DYNAMIC | 284 점검=true | 상태=CLOSING 매도=1
+11:03:53.679 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=413, KRW-T19X93000, 손익=-5.333300%
+[THR155] L1 | LIVE | 286 점검=true | 284 점검=true | 상태=CLOSING 매도=1
+11:03:54.081 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=414, KRW-T20X78800, 손익=-5.333300%
+[THR155] L6 | LIVE | 점검=true,false,false | 상태=CLOSING 매도=1
+[THR155] L5 | LIVE | 점검=true,false,false | 상태=OPEN 매도=0
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
