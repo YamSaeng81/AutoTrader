@@ -1,0 +1,49 @@
+-- /d/tmp/v161run/run.sh U0 deploy
+[로컬 시작] 2026-11-13 14:15:51 KST(이 PC 시계) 블록=U0 구분=deploy 출처=c8520c55
+(가짜 ssh — 서버 접속 없음) 인자수=4
+0000000   "  \n   )
+원격 스크립트 마지막 줄 = 블록 닫는 괄호
+[로컬 끝] 2026-11-13 14:15:51 KST rc=0
+rc=0
+-- /d/tmp/v161run/run.sh U1 deploy
+[로컬 시작] 2026-11-13 14:15:51 KST(이 PC 시계) 블록=U1 구분=deploy 출처=c8520c55
+(가짜 ssh — 서버 접속 없음) 인자수=4
+0000000   "  \n   )
+원격 스크립트 마지막 줄 = 블록 닫는 괄호
+[로컬 끝] 2026-11-13 14:15:51 KST rc=7
+rc=7
+-- /d/tmp/v161run/run.sh U1 deploy
+🔴 실행 틀 거절(종료 2): 이미 있는 출력 /d/tmp/v161run-selftest/out/out-U1-deploy.txt — 블록을 돌리지 않았다. 시도 꼬리를 붙여 다시
+rc=2
+-- /d/tmp/v161run/run.sh U1 deploy 2
+[로컬 시작] 2026-11-13 14:15:52 KST(이 PC 시계) 블록=U1 구분=deploy 시도=2 출처=c8520c55
+(가짜 ssh — 서버 접속 없음) 인자수=4
+0000000   "  \n   )
+원격 스크립트 마지막 줄 = 블록 닫는 괄호
+[로컬 끝] 2026-11-13 14:15:52 KST rc=7
+rc=7
+-- /d/tmp/v161run/run.sh U3 deploi
+🔴 실행 틀 거절: 두 번째 인자는 deploy 또는 rollback (받은 값 deploi)
+rc=2
+-- /d/tmp/v161run/run.sh U변수 deploy
+🔴 실행 틀 거절: 실행 블록 이름이 아님 U변수
+rc=2
+-- /d/tmp/v161run/run.sh U5 deploy
+🔴 실행 틀 거절: 실행 블록 이름이 아님 U5
+rc=2
+-- /d/tmp/v161run/run.sh U2 deploy
+🔴 실행 틀 거절(종료 2): 블록 해시가 blocks.json 과 다름
+rc=2
+-- 실제 bash 로 '( set -e; false )' 끝 스크립트 종료값(echo 미부착)
+rc=1
+-- 같은 스크립트 + 뒤 echo(지시서 §3의 잘못된 예)
+종료 1
+rc=0
+== exit-codes.txt
+2026-11-13 14:15:51 U0 deploy rc=0 out-U0-deploy.txt
+2026-11-13 14:15:51 U1 deploy rc=7 out-U1-deploy.txt
+2026-11-13 14:15:52 U1 deploy 2 rc=7 out-U1-deploy-2.txt
+exit-codes.txt
+out-U0-deploy.txt
+out-U1-deploy-2.txt
+out-U1-deploy.txt

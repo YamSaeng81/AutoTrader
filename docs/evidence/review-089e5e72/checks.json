@@ -1,0 +1,370 @@
+{
+  "review": "v1.162 / 404",
+  "scope": "Local Git/blob/source/hash/syntax review only; no production, network, Gradle, PG or full stand-in execution.",
+  "source_commit": "c8520c55902563bf32b3578bb8156cc2fe4e80f1",
+  "head": "089e5e7239fb7eaab01986081cd7fa62ca2f066a",
+  "candidate": "88f06345af31888c2c8669ebe8ad00ca02cfd6d8",
+  "manifests": {
+    "v161-20261113": {
+      "count": 133,
+      "blob_ok": 133,
+      "working_ok": 133,
+      "failures": []
+    },
+    "n03-1112-2200": {
+      "count": 16,
+      "blob_ok": 16,
+      "working_ok": 16,
+      "failures": []
+    },
+    "n03-1113-1000": {
+      "count": 19,
+      "blob_ok": 19,
+      "working_ok": 19,
+      "failures": []
+    },
+    "review-76cf6768": {
+      "count": 2,
+      "blob_ok": 2,
+      "working_ok": 2,
+      "failures": []
+    }
+  },
+  "blocks": [
+    {
+      "name": "U0.sh",
+      "sha256": "052b73b9b5650bcf9be8402cb3e89251a2eb32596df9fcb06ac1c633d2511bcf",
+      "working_matches": true,
+      "blob_matches": true,
+      "syntax_rc": 0,
+      "error": ""
+    },
+    {
+      "name": "U1.sh",
+      "sha256": "1c2adda930beb6f5e9ecdd24bf6720f7ee698d80d147181b64a16370d94849c8",
+      "working_matches": true,
+      "blob_matches": true,
+      "syntax_rc": 0,
+      "error": ""
+    },
+    {
+      "name": "U1되돌림.sh",
+      "sha256": "dc3befdae7e0116a088290a5d3462173d87e5065003815531e922cbc93b50220",
+      "working_matches": true,
+      "blob_matches": true,
+      "syntax_rc": 0,
+      "error": ""
+    },
+    {
+      "name": "U2.sh",
+      "sha256": "0f9f5f006afd95d25f3ce8c95f9d8b94bd3dd06a270ca55fc947d43ffb6da030",
+      "working_matches": true,
+      "blob_matches": true,
+      "syntax_rc": 0,
+      "error": ""
+    },
+    {
+      "name": "U3.sh",
+      "sha256": "4a1f73524449324953e7efd63aa6d90bb21e879ba6c5dd7d819eae8e320bf414",
+      "working_matches": true,
+      "blob_matches": true,
+      "syntax_rc": 0,
+      "error": ""
+    },
+    {
+      "name": "U4.sh",
+      "sha256": "1fa20c0cf7a0cd0187031a2e0e34c96dc5933288bfd2703b3170c58116679f4b",
+      "working_matches": true,
+      "blob_matches": true,
+      "syntax_rc": 0,
+      "error": ""
+    },
+    {
+      "name": "UF2.sh",
+      "sha256": "d1e55d048f9a6ad13cf061f09a37e6bd6144124964c2b05cb1198e4aba1974fd",
+      "working_matches": true,
+      "blob_matches": true,
+      "syntax_rc": 0,
+      "error": ""
+    },
+    {
+      "name": "U되돌림.sh",
+      "sha256": "1d62dc3b656192c8f498f1dafa51e467d57188869f3e8150ab6fdb4ea53d4128",
+      "working_matches": true,
+      "blob_matches": true,
+      "syntax_rc": 0,
+      "error": ""
+    },
+    {
+      "name": "U뒤관측.sh",
+      "sha256": "f7cab10ed081cc27d00532acf46ae5b3cf75e71f6513097bc398d1ffdf8a78b0",
+      "working_matches": true,
+      "blob_matches": true,
+      "syntax_rc": 0,
+      "error": ""
+    },
+    {
+      "name": "U변수.sh",
+      "sha256": "47170e8483872ccb732d6ed4294e0cde09bb43322ff8dd4535210a458fd69bf2",
+      "working_matches": true,
+      "blob_matches": true,
+      "syntax_rc": 0,
+      "error": ""
+    }
+  ],
+  "block_diff": [
+    {
+      "name": "U0.sh",
+      "removed": 1,
+      "added": 1
+    },
+    {
+      "name": "U1.sh",
+      "removed": 1,
+      "added": 1
+    },
+    {
+      "name": "U1되돌림.sh",
+      "removed": 1,
+      "added": 1
+    },
+    {
+      "name": "U2.sh",
+      "removed": 1,
+      "added": 1
+    },
+    {
+      "name": "U3.sh",
+      "removed": 1,
+      "added": 1
+    },
+    {
+      "name": "U4.sh",
+      "removed": 1,
+      "added": 1
+    },
+    {
+      "name": "UF2.sh",
+      "removed": 2,
+      "added": 2
+    },
+    {
+      "name": "U되돌림.sh",
+      "removed": 1,
+      "added": 1
+    },
+    {
+      "name": "U뒤관측.sh",
+      "removed": 1,
+      "added": 1
+    },
+    {
+      "name": "U변수.sh",
+      "removed": 2,
+      "added": 2
+    }
+  ],
+  "diffn": {
+    "count": 102,
+    "actual": 102,
+    "matches": true
+  },
+  "fixed_values": {
+    "OLD": "b5cd1d0d47ea68ffe6ff476b89cf9fca5bef1b88",
+    "NEW": "88f06345af31888c2c8669ebe8ad00ca02cfd6d8",
+    "IMGOLD": "sha256:52e12428a60df5413d6e495024220bbd4c8fa07830549556f0b47bbe6ad39055",
+    "FEIMGOLD": "sha256:d825a9f5b00d3dac93ee154f32f91b5a1474248fefaa3651f0d0c3b0cc2f7f66",
+    "GS": "6385e1d5f64eb09a95791ba253a30d2b21341082",
+    "JARN": "\"(끝) 881 895\""
+  },
+  "refs": {
+    "HEAD": "089e5e7239fb7eaab01986081cd7fa62ca2f066a",
+    "origin/main": "089e5e7239fb7eaab01986081cd7fa62ca2f066a",
+    "integration/v158": "88f06345af31888c2c8669ebe8ad00ca02cfd6d8",
+    "origin/integration/v158": "88f06345af31888c2c8669ebe8ad00ca02cfd6d8"
+  },
+  "standin": {
+    "r1": {
+      "pass_lines": 42,
+      "fail_lines": 1,
+      "forbidden_files": 11,
+      "forbidden_bytes": 0,
+      "summary": "== 결과: PASS 42 · FAIL 1"
+    },
+    "r2": {
+      "pass_lines": 44,
+      "fail_lines": 0,
+      "forbidden_files": 12,
+      "forbidden_bytes": 0,
+      "summary": "== 결과: PASS 44 · FAIL 0"
+    }
+  },
+  "gs_hashes": {
+    "docs/evidence/v159-20261113/rollback-gate-v3/gate.sql": "c9dc20563d6921d4e96cf6abc4b3737efeea94ecbaefddfbc23736056aabd56b",
+    "docs/evidence/v159-20261113/rollback-gate-v3/rollback_gate.sh": "fe19aab4e7396d50641a210b60cf328a117916ee8fab127bb3e53678522d6a42",
+    "docs/evidence/v159-20261113/d4-draft/preflight-real-loss-readonly.v2.sql": "af4105c1f70f6f095b8f1bbbb1c722acd717b2dcd46190e3a9224cd949c5cab0"
+  },
+  "source_089_vs_c852_blocks_unchanged": true,
+  "runbook_f_variable": {
+    "index": 0,
+    "sha256": "b7e3fc2c1753c2ac8f2c8f99aee56dc05b013cbce2045ca25c30d95dbe0353b6",
+    "first_line": "cd ~/crypto_trader/AutoTrader"
+  },
+  "n03": {
+    "n03-1112-2200": {
+      "server_report_payloads": {
+        "20261112-2200.txt": true,
+        "20261112-2200.txt.msg": true,
+        "20261112-2200.txt.raw": true,
+        "last_send": true
+      },
+      "error_sha_matches_server": true,
+      "error_count": 0,
+      "news_error_count": 0,
+      "printed_news_count": 0,
+      "read_times": [
+        "2026-11-13 04:39:27",
+        "server 2026-11-13 13:39:28 KST",
+        "2026-11-13 04:39:31"
+      ],
+      "no_connection_acquisition_failure": true,
+      "no_leak": true,
+      "sid_created_20200": true,
+      "btc_true_20": true,
+      "frontend_image": "sha256:d825a9f5b00d3dac93ee154f32f91b5a1474248fefaa3651f0d0c3b0cc2f7f66"
+    },
+    "n03-1113-1000": {
+      "server_report_payloads": {
+        "20261113-1000.txt": true,
+        "20261113-1000.txt.msg": true,
+        "20261113-1000.txt.raw": true,
+        "last_send": true
+      },
+      "error_sha_matches_server": true,
+      "error_count": 24,
+      "news_error_count": 6,
+      "printed_news_count": 5,
+      "read_times": [
+        "2026-11-13 04:39:31",
+        "server 2026-11-13 13:39:32 KST",
+        "2026-11-13 04:39:36"
+      ],
+      "no_connection_acquisition_failure": true,
+      "no_leak": true,
+      "sid_created_20200": true,
+      "btc_true_20": true,
+      "ledger_sha_matches_server": true,
+      "frontend_image": "sha256:d825a9f5b00d3dac93ee154f32f91b5a1474248fefaa3651f0d0c3b0cc2f7f66"
+    },
+    "daily_check": {
+      "sha256": "ff0a5d7dbc9e250d364a7f32f80106454b6f4b939d37c578f8192e8206e7c1cc",
+      "truncation_lines": [
+        {
+          "line": 426,
+          "text": "    while IFS= read -r l; do detail \"  · $(echo \"$l\" | sed 's/^backend-1 *| *//' | cut -c1-200)\"; done <<< \"$(echo \"$OTHER\" | head -5)\""
+        }
+      ]
+    },
+    "g_variable": {
+      "sha256": "4d7ff02a94194fc17e11ed062b4c0fdb80a395aa282c941e7b624be95851c822",
+      "syntax_rc": 0
+    },
+    "exit_status_demo": {
+      "append_echo_only": {
+        "rc": 0,
+        "stdout": "exit 1\n"
+      },
+      "capture_then_exit": {
+        "rc": 1,
+        "stdout": "exit 1\n"
+      }
+    }
+  },
+  "document_checks": {
+    "value_only_change": [
+      {
+        "name": "U0.sh",
+        "line": 4,
+        "permitted_value_change": true
+      },
+      {
+        "name": "U1.sh",
+        "line": 4,
+        "permitted_value_change": true
+      },
+      {
+        "name": "U1되돌림.sh",
+        "line": 6,
+        "permitted_value_change": true
+      },
+      {
+        "name": "U2.sh",
+        "line": 4,
+        "permitted_value_change": true
+      },
+      {
+        "name": "U3.sh",
+        "line": 4,
+        "permitted_value_change": true
+      },
+      {
+        "name": "U4.sh",
+        "line": 4,
+        "permitted_value_change": true
+      },
+      {
+        "name": "UF2.sh",
+        "line": 1,
+        "permitted_value_change": true
+      },
+      {
+        "name": "UF2.sh",
+        "line": 7,
+        "permitted_value_change": true
+      },
+      {
+        "name": "U되돌림.sh",
+        "line": 4,
+        "permitted_value_change": true
+      },
+      {
+        "name": "U뒤관측.sh",
+        "line": 4,
+        "permitted_value_change": true
+      },
+      {
+        "name": "U변수.sh",
+        "line": 1,
+        "permitted_value_change": true
+      },
+      {
+        "name": "U변수.sh",
+        "line": 184,
+        "permitted_value_change": true
+      }
+    ],
+    "changed_line_count": 12,
+    "night_body_sha256": "fca9bd2d9ffab55ae8b761524c9be0d2b9531bf6ff8bf599ba0aa57b4d1660f7",
+    "docs_line_counts": {
+      "START_HERE.md": 36,
+      "CURRENT_HANDOFF.md": 31,
+      "LIMITED_LIVE_TEST_PLAN.md": 123,
+      "LIVE_READINESS.md": 46,
+      "NOVEMBER_LIVE_UPGRADE.md": 56,
+      "PROGRESS.md": 53,
+      "README.md": 41
+    },
+    "bad_links": [],
+    "unwanted_characters": []
+  },
+  "night_body_unchanged": true,
+  "decisions": {
+    "source_accepted": true,
+    "u0_u1_authorized_after_exit_status_transport_check": true,
+    "u2_v96_frontend_requires_one_immediate_operator_confirmation": true,
+    "session_creation_authorized": false,
+    "operational_rollout_complete": false,
+    "prior_60second_failure_cause": "unresolved",
+    "pin_updates_authorized": false
+  }
+}
