@@ -1,0 +1,48 @@
+> Task :strategy-lib:compileJava UP-TO-DATE
+> Task :strategy-lib:processResources NO-SOURCE
+> Task :strategy-lib:classes UP-TO-DATE
+> Task :strategy-lib:jar UP-TO-DATE
+> Task :core-engine:compileJava UP-TO-DATE
+> Task :core-engine:processResources NO-SOURCE
+> Task :core-engine:classes UP-TO-DATE
+> Task :core-engine:jar UP-TO-DATE
+> Task :exchange-adapter:compileJava UP-TO-DATE
+> Task :exchange-adapter:processResources NO-SOURCE
+> Task :exchange-adapter:classes UP-TO-DATE
+> Task :exchange-adapter:jar UP-TO-DATE
+> Task :web-api:compileJava UP-TO-DATE
+> Task :web-api:processResources UP-TO-DATE
+> Task :web-api:classes UP-TO-DATE
+> Task :web-api:compileTestJava
+> Task :web-api:processTestResources UP-TO-DATE
+> Task :web-api:testClasses
+Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+> Task :web-api:test
+
+#5 정지 ∥ 진행 중 청산 ? 매도 1회, 정지 후에도 포지션 추적 유지 > ? (다) 정지의 마지막 등록 조회 도중 거절된 매도가 OPEN 으로 돌아오고 WS 가 다시 CLOSING ? 정지 후에도 정리 대기 (리뷰 29차) > LIVE FAILED
+    java.lang.AssertionError at StopVersusInFlightExitRaceTest.java:293
+
+#5 정지 ∥ 진행 중 청산 ? 매도 1회, 정지 후에도 포지션 추적 유지 > ? (다) 정지의 마지막 등록 조회 도중 거절된 매도가 OPEN 으로 돌아오고 WS 가 다시 CLOSING ? 정지 후에도 정리 대기 (리뷰 29차) > DYNAMIC FAILED
+    java.lang.AssertionError at StopVersusInFlightExitRaceTest.java:293
+
+15:19:53.392 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+15:19:53.393 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+15:19:53.395 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+15:19:53.396 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+15:19:53.398 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+
+> Task :web-api:test FAILED
+
+7 tests completed, 2 failed
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':web-api:test'.
+> There were failing tests. See the report at: file:///D:/tmp/w20-88f06345/web-api/build/reports/tests/test/index.html
+
+* Try:
+> Run with --scan to get full insights.
+
+BUILD FAILED in 1m 2s
+11 actionable tasks: 2 executed, 9 up-to-date
