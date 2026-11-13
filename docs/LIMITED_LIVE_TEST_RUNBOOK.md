@@ -12,7 +12,7 @@
 - 과거 SID 생성 요청 본문과 장부 cron 추가 시험은 [원문 보존본](LIMITED_LIVE_TEST_PLAN_ARCHIVE_20261112.md)에서만 읽는다. **이미 생성된 SID 203을 다시 만드는 명령이 아니다.**
 - 옛 §5-8은 아래 F 절차, 옛 §6-2/§6-3은 이 문서 끝의 중단·종료 조건을 뜻한다. 과거 구현 설명·개발 결과·배포 절차는 보존본에서 확인한다.
 
-**분리 후 남은 연결 보완:** F5-3 원문은 아직 `git show "$SHA":docs/LIMITED_LIVE_TEST_PLAN.md`에서 F3를 추출한다. 분리 이후 SHA의 현재 계획에는 F3가 없어 추출 결과가 0바이트이며, `awk`는 종료 0을 반환한다. **이 상태의 F5-3을 최종 S의 실행 사본으로 사용하지 않는다.** 최종 고정 전에 RUNBOOK 경로에서 추출하도록 새 출처를 검토하고, F3 비어 있음·기대 해시 불일치 시 실행 전에 멈추는 검사를 확인한다. 아래 고정 명령 본문과 과거 해시는 이번 점검에서 바꾸지 않았다. [추가 문서 점검](evidence/document-followup-review-20261112/README.md) 참조.
+**분리 후 남은 연결 보완:** F5-3 원문은 아직 `git show "$SHA":docs/LIMITED_LIVE_TEST_PLAN.md`에서 F3를 추출한다. 분리 이후 SHA의 현재 계획에는 F3가 없어 추출 결과가 0바이트이며, `awk`는 종료 0을 반환한다. **이 상태의 F5-3을 최종 S의 실행 사본으로 사용하지 않는다.** 최종 고정 전에 RUNBOOK 경로에서 추출하도록 새 출처를 검토하고, F3 비어 있음·기대 해시 불일치 시 실행 전에 멈추는 검사를 확인한다. 아래 고정 명령 본문과 과거 해시는 이번 점검에서 바꾸지 않았다. [추가 문서 점검](evidence/document-followup-review-20261112/README.md) 참조. → **v1.159(398차) 보완: 새 출처 [F5-3v](#f5-3v)를 F5-3 뒤에 추가했다.** 같은 커밋의 RUNBOOK에서 F3를 꺼내고, 꺼내기 실패·0바이트·기대 해시(`bb86fb39…`) 불일치면 F3·완료 조회를 실행하지 않고 멈춘다. 기존 15블록은 바이트 그대로이며, 대역 시험은 `scripts/ops/test_f53v_source.py`다. 최종 S의 기대 해시는 S 고정 때 다시 확인한다.
 
 ## F 절차
 
@@ -488,6 +488,37 @@ $PSQL -At -F ' | ' -c "SELECT *, CASE WHEN status IN ('STOPPED','EMERGENCY_STOPP
 - 🔴 끝 칸 `DB 정리 조건 충족` 은 **완료가 아니다**. 회계 반영 대기 0·반영값·보고값 없음 0·보고≠반영 0·거래소 BTC·KRW 대조는 위 F3 블록 출력으로 따로 확인한다.
 - 🔴 **`STOPPED`·`EMERGENCY_STOPPED` 만으로 청산·정산 완료라고 적지 않는다**(§6-2 5번). 위가 모두 맞을 때만 "청산·정산 완료 확인"으로 기록한다.
 - 미종결·열린 포지션·정리 대기가 남으면 몇 분 뒤 이 조회만 다시. 그대로면 §6-2 대응(불명 주문은 식별자로 업비트 조회, 직접 매도는 활성 주문 0·정리 대기 0 확인 뒤 남은 차이에만) 후 보고한다.
+
+<a id="f5-3v"></a>**F5-3v. 청산·정산 완료 확인 — 새 출처(v1.159, 398차): 분리 이후 커밋에서는 F5-3 대신 이 블록**
+분리(2026-11-12) 이후 커밋의 현재 계획에는 F3가 없어, 위 F5-3의 추출 줄은 0바이트를 만들고도 종료 0을 낸다. 이 블록은 같은 커밋의 **RUNBOOK**에서 F3를 꺼내고, 꺼내기 실패·빈 결과·기대 해시 불일치면 F3와 완료 조회를 **실행하지 않고** 멈춘다. F3 추출식·F3 실행 줄·완료 조회문은 위 F5-3과 같은 글자다. 위 F5-3 블록과 과거 해시는 바꾸지 않았다(분리 전 고정 커밋에는 옛 계획에 F3가 남아 있다). 기대 해시는 분리 전후 같은 F3 본문의 값이며, 최종 S 고정 때 리뷰가 그 커밋에서 다시 확인한다.
+```bash
+SHA=<리뷰가 확인한 커밋 SHA>                                       # 분리 이후 커밋 — F3 는 이 커밋의 RUNBOOK 에서 꺼낸다
+F3H=bb86fb397da00523f564a8f02a1960c98bb1ac03887629fe74372990929fa2bb  # 기대 F3 SHA256(분리 전후 같은 본문)
+rm -f "$E/f3-block.sh" "$E/f3-src-ok"
+( set -uo pipefail
+  stop() { echo "🔴 멈춤: $*"; exit 1; }
+  git fetch origin || stop "git fetch 실패 — F3·완료 조회 미실행"
+  git show "$SHA":docs/LIMITED_LIVE_TEST_RUNBOOK.md > "$E/f3-src-runbook.md" || stop "$SHA 에서 RUNBOOK 을 읽지 못함 — F3·완료 조회 미실행"
+  awk '/^\*\*F3\. /{f=1; next} f && /^```bash$/{g=1; next} g && /^```$/{exit} g' "$E/f3-src-runbook.md" > "$E/f3-block.sh" || stop "F3 추출 실패 — F3·완료 조회 미실행"
+  [ -s "$E/f3-block.sh" ] || stop "F3 추출 결과 0바이트 — F3·완료 조회 미실행"
+  h=$(sha256sum "$E/f3-block.sh" | cut -d' ' -f1); echo "F3 추출 $(wc -c < "$E/f3-block.sh")바이트 sha256 $h"
+  [ "$h" = "$F3H" ] || stop "F3 해시 불일치(기대 $F3H) — F3·완료 조회 미실행"
+  head -1 "$E/f3-block.sh"; tail -1 "$E/f3-block.sh"                # 첫 줄 S=$($PSQL …, 끝 줄 PY
+  touch "$E/f3-src-ok" )
+if [ -e "$E/f3-src-ok" ]; then
+( M=$E; . "$E/f3-block.sh" )                                        # 결과는 $E/f3.txt·$E/account-f3.json — 첫날 $M/f3.txt 는 그대로
+$PSQL -At -F ' | ' -c "SELECT *, CASE WHEN status IN ('STOPPED','EMERGENCY_STOPPED') AND active + open_pos + cleanup + unresolved = 0
+    THEN 'DB 정리 조건 충족 — 정산·거래소 대조 별도 확인 필요' ELSE '미완료' END AS verdict FROM (
+  SELECT status, available_krw, stopped_at AT TIME ZONE 'Asia/Seoul' AS stopped_kst,
+  (SELECT count(*) FROM \"order\" WHERE session_kind = 'LIVE' AND session_id = $SID AND state IN ('PENDING','INTENT_READY','SUBMITTING','UNKNOWN','SUBMITTED','PARTIAL_FILLED')) AS active,
+  (SELECT count(*) FROM position WHERE session_kind = 'LIVE' AND session_id = $SID AND status IN ('OPEN','CLOSING')) AS open_pos,
+  (SELECT count(*) FROM position_cleanup WHERE done_at IS NULL) AS cleanup,
+  (SELECT count(*) FROM order_settlement_discrepancy WHERE resolved_at IS NULL) AS unresolved
+  FROM live_trading_session WHERE id = $SID) x" | tee "$E/stop-check.txt"
+else echo "🔴 F3 출처 확인 실패 — 위 멈춤 사유를 그대로 보고한다(F3 를 손으로 옮기지 않는다)"; fi
+```
+- 기대·판정·다시 조회 조건은 위 F5-3 과 같다. `F3 추출 … sha256 bb86fb39…` 줄이 먼저 나와야 하며, 🔴 멈춤 줄이 나오면 F3 결과·`stop-check.txt` 가 없는 것이 정상이다 — 다른 커밋·파일에서 F3 를 꺼내 대신하지 않는다.
+- 추출 원문 `$E/f3-src-runbook.md`·`$E/f3-block.sh` 를 종료 근거와 함께 보존한다.
 
 **F5-4. 최종 비용·순손익 보고 — F5-3 완료 확인 뒤 (읽기 전용)**
 ```bash
