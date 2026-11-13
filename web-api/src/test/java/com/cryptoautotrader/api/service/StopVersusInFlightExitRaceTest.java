@@ -239,6 +239,20 @@ class StopVersusInFlightExitRaceTest extends IntegrationTestBase {
     }
 
     private void drain(ThreadPoolTaskExecutor executor) {
+        // 🔴 (총괄 v1.164 §3-2, 2026-11-13, 시험만) 옛 조건(대기열 비었음·active 0·taskCount == completed)은 놀고 있던 작업자가
+        //    작업을 꺼낸 뒤 실행 표시 전에도 참이다 — DrainGapGate(꺼낸 뒤 머묾)로 이 클래스의 단언이 작업 전에 읽히는 것을 고정 재현했다.
+        //    이 호출 전에 넣은 작업이 모두 끝났음을 실행기 장벽(확정 신호)으로 기다린다. 시간 초과는 실패다. 기대값·단언은 그대로다.
+        com.cryptoautotrader.api.support.ExecutorBarrier.awaitPriorTasks(executor.getThreadPoolExecutor(), 20_000);
+    }
+
+    /**
+     * (다) 의 끼어들기 전용 — 정지 트랜잭션이 마지막 등록 조회 안(목 응답)에서 멈춘 동안에는 종전 대기 조건을 그대로 쓴다
+     * (총괄 v1.164 §3-2, 2026-11-13). 여기서 시세 작업 완료를 장벽으로 기다리거나, 종전 대기 그대로 실행기 시작만 50ms 늦춰도
+     * (DrainGapGate) 두 번째 WS 보호 매도 의도가 INTENT_READY 로 커밋된 뒤 20초 동안 제출되지 않았다 — 실행기 작업자는 모두 대기,
+     * 오류 기록 없음. 대기 방식과 무관한 시점 의존 관측이며 원인은 미확인이다(w20 근거 §4). 이 시험이 보는 것은 정지와 WS 의 순서이고,
+     * 뒤의 {@link #awaitSells} 가 실제 접수를 기다린다. 미확인 관측은 별도 항목으로 남기고 기대값은 바꾸지 않는다.
+     */
+    private void drainInsideStopAnswer(ThreadPoolTaskExecutor executor) {
         var pool = executor.getThreadPoolExecutor();
         long deadline = System.currentTimeMillis() + 20_000;
         while (System.currentTimeMillis() < deadline) {
@@ -424,7 +438,7 @@ class StopVersusInFlightExitRaceTest extends IntegrationTestBase {
         Runnable reclose = () -> {
             // ② 정지의 마지막 등록 조회가 결과를 읽은 직후 — WS 가 다시 CLOSING 으로 바꾸고 두 번째 매도를 낸다.
             wsStopLoss(f);
-            drain(marketDataExecutor);
+            drainInsideStopAnswer(marketDataExecutor);
             awaitSells(f, 2);
             assertThat(committedStatus(f.positionId())).isEqualTo("CLOSING");
         };

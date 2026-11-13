@@ -195,29 +195,10 @@ class LiveStopUnderConcurrentWriteTest extends IntegrationTestBase {
      * 실행기를 직접 드레인한다: <b>큐가 비고 활성 스레드가 0</b> 이 되어야 제출 작업이 끝난 것이다.</p>
      */
     private void awaitOrderExecutorDrained() {
-        var pool = orderExecutor.getThreadPoolExecutor();
-        long deadline = System.currentTimeMillis() + 15_000;
-        while (System.currentTimeMillis() < deadline) {
-            if (pool.getQueue().isEmpty() && pool.getActiveCount() == 0
-                    && pool.getTaskCount() == pool.getCompletedTaskCount()) {
-                // 한 번 더 확인 — 작업이 큐에서 꺼내진 직후일 수 있다
-                try {
-                    Thread.sleep(50);
-                } catch (InterruptedException ie) {
-                    Thread.currentThread().interrupt();
-                    return;
-                }
-                if (pool.getQueue().isEmpty() && pool.getActiveCount() == 0
-                    && pool.getTaskCount() == pool.getCompletedTaskCount()) return;
-            }
-            try {
-                Thread.sleep(50);
-            } catch (InterruptedException ie) {
-                Thread.currentThread().interrupt();
-                return;
-            }
-        }
-        throw new AssertionError("orderExecutor 가 15초 안에 비워지지 않았다 — 비동기 작업이 정체됐다");
+        // 🔴 (총괄 v1.164 §3-2, 2026-11-13, 시험만) 옛 조건(대기열 비었음·active 0·taskCount == completed)은 놀고 있던 작업자가
+        //    작업을 꺼낸 뒤 실행 표시 전에도 참이다 — DrainGapGate(꺼낸 뒤 머묾)로 이 클래스의 단언이 작업 전에 읽히는 것을 고정 재현했다.
+        //    이 호출 전에 넣은 작업이 모두 끝났음을 실행기 장벽(확정 신호)으로 기다린다. 시간 초과는 실패다. 기대값·단언은 그대로다.
+        com.cryptoautotrader.api.support.ExecutorBarrier.awaitPriorTasks(orderExecutor.getThreadPoolExecutor(), 15_000);
     }
 
     @Test

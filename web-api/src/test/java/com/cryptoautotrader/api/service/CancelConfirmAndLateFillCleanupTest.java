@@ -264,21 +264,10 @@ class CancelConfirmAndLateFillCleanupTest extends IntegrationTestBase {
     }
 
     private void awaitDrained() {
-        var pool = orderExecutor.getThreadPoolExecutor();
-        long deadline = System.currentTimeMillis() + 20_000;
-        while (System.currentTimeMillis() < deadline) {
-            // 🔴 큐가 비고 실행 중 0 인 순간은 작업이 큐에서 실행으로 넘어가는 사이에도 생긴다(D5 간헐 실패, 2026-10-14) —
-            //    제출된 작업 수와 완료된 작업 수가 같아질 때까지 기다린다.
-            if (pool.getQueue().isEmpty() && pool.getActiveCount() == 0
-                    && pool.getTaskCount() == pool.getCompletedTaskCount()) return;
-            try {
-                Thread.sleep(50);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                return;
-            }
-        }
-        throw new AssertionError("orderExecutor 가 비워지지 않았다");
+        // 🔴 (총괄 v1.164 §3-2, 2026-11-13, 시험만) 옛 조건(대기열 비었음·active 0·taskCount == completed)은 놀고 있던 작업자가
+        //    작업을 꺼낸 뒤 실행 표시 전에도 참이다 — DrainGapGate(꺼낸 뒤 머묾)로 이 클래스의 단언이 작업 전에 읽히는 것을 고정 재현했다.
+        //    이 호출 전에 넣은 작업이 모두 끝났음을 실행기 장벽(확정 신호)으로 기다린다. 시간 초과는 실패다. 기대값·단언은 그대로다.
+        com.cryptoautotrader.api.support.ExecutorBarrier.awaitPriorTasks(orderExecutor.getThreadPoolExecutor(), 20_000);
     }
 
     // ── A. 취소 확인과 체결량 확인 ─────────────────────────────────────────

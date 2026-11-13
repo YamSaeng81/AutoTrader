@@ -160,19 +160,10 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
     }
 
     private void awaitDrained() {
-        var pool = orderExecutor.getThreadPoolExecutor();
-        long deadline = System.currentTimeMillis() + 15_000;
-        while (System.currentTimeMillis() < deadline) {
-            if (pool.getQueue().isEmpty() && pool.getActiveCount() == 0
-                    && pool.getTaskCount() == pool.getCompletedTaskCount()) return;
-            try {
-                Thread.sleep(50);
-            } catch (InterruptedException ie) {
-                Thread.currentThread().interrupt();
-                return;
-            }
-        }
-        throw new AssertionError("orderExecutor 가 비워지지 않았다 — 작업 스레드가 반환되지 않았다");
+        // 🔴 (총괄 v1.164 §3-2, 2026-11-13, 시험만) 옛 조건(대기열 비었음·active 0·taskCount == completed)은 놀고 있던 작업자가
+        //    작업을 꺼낸 뒤 실행 표시 전에도 참이다 — DrainGapGate(꺼낸 뒤 머묾)로 이 클래스의 단언이 작업 전에 읽히는 것을 고정 재현했다.
+        //    이 호출 전에 넣은 작업이 모두 끝났음을 실행기 장벽(확정 신호)으로 기다린다. 시간 초과는 실패다. 기대값·단언은 그대로다.
+        com.cryptoautotrader.api.support.ExecutorBarrier.awaitPriorTasks(orderExecutor.getThreadPoolExecutor(), 15_000);
     }
 
     private static void useCloseHour(int hourUtc) {
