@@ -1,0 +1,353 @@
+{
+  "reviewed_main": "9fd6c8560c7686b0f1264e478e2becd44bdaf7e4",
+  "local_origin_main": "9fd6c8560c7686b0f1264e478e2becd44bdaf7e4",
+  "candidate_base": "88f06345af31888c2c8669ebe8ad00ca02cfd6d8",
+  "test_candidate": "7d1d00aef6f76b5059e0d28dbd8d1d879223e6d1",
+  "candidate_remote_tracking_exists": false,
+  "manifest": {
+    "v164-wait20-20261113": {
+      "files": 177,
+      "working_mismatch": [],
+      "commit_mismatch": []
+    },
+    "n05-links-88f06345": {
+      "files": 8,
+      "working_mismatch": [],
+      "commit_mismatch": []
+    },
+    "review-960828e7": {
+      "files": 2,
+      "working_mismatch": [],
+      "commit_mismatch": []
+    }
+  },
+  "target_counts": {
+    "union": 21,
+    "v156": 20,
+    "v158": 19
+  },
+  "candidate_diff_paths": [
+    "web-api/src/test/java/com/cryptoautotrader/api/service/CancelConfirmAndLateFillCleanupTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/ClaimAndUnknownTrackingTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/DailySma20LiveOrderPathTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/ExchangeRecoveryRestartTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/IntentPrecommitAndOnceOnlyTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/LimitedTestExchangeRecoveryTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/LiveEmergencyStopUnderConcurrentWriteTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/LiveStopUnderConcurrentWriteTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/N17RestInvalidPriceTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/N19RestFallbackItemDefenseTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/SlWatchdogFreshnessTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/StaleRealtimeExitTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/StopVersusInFlightExitRaceTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/SubmitResponseUnknownTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/support/DrainGapGate.java",
+    "web-api/src/test/resources/META-INF/spring.factories"
+  ],
+  "all_changes_test_only": true,
+  "patches": {
+    "0001-v1.164-3-1-2-88f06345-DrainGapGate.patch": {
+      "commit": "032a1788966f136a6af747df6717750ab9889e02",
+      "equal_format_patch": false,
+      "diff_body_identical": true
+    },
+    "0002-v1.164-3-2-14.patch": {
+      "commit": "7d1d00aef6f76b5059e0d28dbd8d1d879223e6d1",
+      "equal_format_patch": false,
+      "diff_body_identical": true
+    }
+  },
+  "runs": {
+    "diag-stopversus-dump": {
+      "classes": 1,
+      "tests": 7,
+      "failures": 2,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 5,
+      "failed_classes": [
+        {
+          "class": "com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest",
+          "failures": 2
+        }
+      ],
+      "end_rc": [
+        "1"
+      ]
+    },
+    "diag-stopversus-dump2": {
+      "classes": 1,
+      "tests": 7,
+      "failures": 2,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 5,
+      "failed_classes": [
+        {
+          "class": "com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest",
+          "failures": 2
+        }
+      ],
+      "end_rc": [
+        "1"
+      ]
+    },
+    "exp-stopversus-L423old": {
+      "classes": 1,
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 7,
+      "failed_classes": [],
+      "end_rc": [
+        "0"
+      ]
+    },
+    "final-gate50": {
+      "classes": 18,
+      "tests": 222,
+      "failures": 2,
+      "errors": 0,
+      "skipped": 4,
+      "passed": 216,
+      "failed_classes": [
+        {
+          "class": "com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest",
+          "failures": 2
+        }
+      ],
+      "end_rc": [
+        "1"
+      ]
+    },
+    "final-nogate": {
+      "classes": 18,
+      "tests": 222,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 4,
+      "passed": 218,
+      "failed_classes": [],
+      "end_rc": [
+        "0"
+      ]
+    },
+    "final2-nogate-stopversus": {
+      "classes": 1,
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 7,
+      "failed_classes": [],
+      "end_rc": [
+        "0"
+      ]
+    },
+    "gate50-barrier-2cls": {
+      "classes": 2,
+      "tests": 11,
+      "failures": 2,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 9,
+      "failed_classes": [
+        {
+          "class": "com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest",
+          "failures": 2
+        }
+      ],
+      "end_rc": [
+        "1"
+      ]
+    },
+    "gate500-barrier-r1": {
+      "classes": 18,
+      "tests": 222,
+      "failures": 3,
+      "errors": 0,
+      "skipped": 4,
+      "passed": 215,
+      "failed_classes": [
+        {
+          "class": "com.cryptoautotrader.api.service.SlWatchdogFreshnessTest",
+          "failures": 1
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest",
+          "failures": 2
+        }
+      ],
+      "end_rc": [
+        "1"
+      ]
+    },
+    "gate500-r1": {
+      "classes": 18,
+      "tests": 222,
+      "failures": 42,
+      "errors": 0,
+      "skipped": 4,
+      "passed": 176,
+      "failed_classes": [
+        {
+          "class": "com.cryptoautotrader.api.service.CancelConfirmAndLateFillCleanupTest",
+          "failures": 2
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.ClaimAndUnknownTrackingTest",
+          "failures": 3
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest",
+          "failures": 14
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.ExchangeRecoveryRestartTest",
+          "failures": 3
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.IntentPrecommitAndOnceOnlyTest",
+          "failures": 2
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.LimitedTestExchangeRecoveryTest",
+          "failures": 2
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.LiveEmergencyStopUnderConcurrentWriteTest",
+          "failures": 3
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.LiveStopUnderConcurrentWriteTest",
+          "failures": 2
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.N17RestInvalidPriceTest",
+          "failures": 2
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest",
+          "failures": 1
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.SlWatchdogFreshnessTest",
+          "failures": 2
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.StaleRealtimeExitTest",
+          "failures": 2
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest",
+          "failures": 2
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.SubmitResponseUnknownTest",
+          "failures": 2
+        }
+      ],
+      "end_rc": [
+        "1"
+      ]
+    },
+    "nogate-barrier-r1": {
+      "classes": 18,
+      "tests": 222,
+      "failures": 2,
+      "errors": 0,
+      "skipped": 4,
+      "passed": 216,
+      "failed_classes": [
+        {
+          "class": "com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest",
+          "failures": 2
+        }
+      ],
+      "end_rc": [
+        "1"
+      ]
+    },
+    "nogate-orig-stopversus": {
+      "classes": 1,
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 7,
+      "failed_classes": [],
+      "end_rc": [
+        "0"
+      ]
+    },
+    "orig-gate50-stopversus": {
+      "classes": 1,
+      "tests": 7,
+      "failures": 2,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 5,
+      "failed_classes": [
+        {
+          "class": "com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest",
+          "failures": 2
+        }
+      ],
+      "end_rc": [
+        "1"
+      ]
+    }
+  },
+  "g1_diagnostic": {
+    "connection_success_lines": 1,
+    "subscription_send_lines": 1,
+    "dispatching_false_intent_lines": [
+      "[DUMP-ORDER] id=2 state=INTENT_READY reason=실시간 손절 ? 손익률 -6.666700% owner=inst-4b77764d-d990-4dda-9188-01bbb7036fc7 committedAt=2026-11-13T06:19:09.671980Z dispatching=false",
+      "[DUMP-ORDER] id=4 state=INTENT_READY reason=실시간 손절 ? pnl -6.666700% owner=inst-4b77764d-d990-4dda-9188-01bbb7036fc7 committedAt=2026-11-13T06:19:29.878219Z dispatching=false"
+    ]
+  },
+  "findings": {
+    "initial_42_includes_distinct_g1_failures": 2,
+    "initial_non_g1_failures": 40,
+    "initial_non_g1_failed_classes": 13,
+    "final_nogate_working_tree_not_clean_sha": true,
+    "final_single_stopversus_claims_only_comment_difference": true,
+    "g1_recovery_not_observed": true
+  },
+  "review_method": "Local evidence hashes, committed blobs, XML and fixed source inspection. No tests or production access executed by reviewer.",
+  "wait_patch_change_summary": {
+    "file_count": 14,
+    "assertion_lines_added_or_removed": []
+  },
+  "patches_header_difference_only": "Stored patches use [PATCH 1/2] and [PATCH 2/2]. git format-patch -1 uses [PATCH]. Diff bodies identical.",
+  "references": {
+    "main": "9fd6c8560c7686b0f1264e478e2becd44bdaf7e4",
+    "origin/main": "9fd6c8560c7686b0f1264e478e2becd44bdaf7e4",
+    "integration/v158": "88f06345af31888c2c8669ebe8ad00ca02cfd6d8",
+    "origin/integration/v158": "88f06345af31888c2c8669ebe8ad00ca02cfd6d8",
+    "candidate/wait20-gate-88f06345": "7d1d00aef6f76b5059e0d28dbd8d1d879223e6d1"
+  },
+  "final_document_checks": {
+    "local_links_checked": 116,
+    "broken_links": [],
+    "foreign_cjk_lines": [],
+    "night_policy_body_unchanged": true,
+    "line_counts": {
+      "START_HERE.md": 36,
+      "LIMITED_LIVE_TEST_PLAN.md": 127,
+      "CURRENT_HANDOFF.md": 33,
+      "LIVE_READINESS.md": 47,
+      "NOVEMBER_LIVE_UPGRADE.md": 57,
+      "PROGRESS.md": 54,
+      "README.md": 41
+    },
+    "recent_progress_sections": [
+      "410",
+      "409",
+      "408",
+      "407",
+      "406"
+    ]
+  }
+}

@@ -1,0 +1,26 @@
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/LateOrderSubmissionAfterStopTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/LateOrderSubmissionAfterStopTest.java
+index c7e6be3a..aa6cc6fb 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/LateOrderSubmissionAfterStopTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/LateOrderSubmissionAfterStopTest.java
+@@ -211,10 +211,12 @@ class LateOrderSubmissionAfterStopTest extends IntegrationTestBase {
+         //    그대로 성립하고, 이음매 없이도 재현된다.
+         liveTradingService.stopSession(sessionId);
+ 
++        System.out.println("[LATEDIAG] 제출 호출 " + Instant.now());
+         orderExecutionEngine.submitOrder(request);
+ 
+         // ── 비동기 작업 드레인 ──────────────────────────────────────
+         awaitOrderExecutorDrained();
++        System.out.println("[LATEDIAG] 대기 반환 " + Instant.now() + " " + orderExecutor.getThreadPoolExecutor());
+ 
+         assertThat(sessionRepository.findById(sessionId).orElseThrow().getStatus())
+                 .as("정지가 커밋돼 있어야 한다")
+@@ -238,5 +240,8 @@ class LateOrderSubmissionAfterStopTest extends IntegrationTestBase {
+                 "LIVE", sessionId, "KRW-DOGE", "OPEN"))
+                 .as("체결되지 않은 임시 포지션이 OPEN 으로 남으면 관리 주체 없는 포지션이 된다")
+                 .isEmpty();
++        System.out.println("[LATEDIAG] 단언 모두 통과 " + Instant.now());
++        com.cryptoautotrader.api.support.ExecutorBarrier.awaitPriorTasks(orderExecutor.getThreadPoolExecutor(), 20_000);
++        System.out.println("[LATEDIAG] 장벽 뒤 " + Instant.now());
+     }
+ }

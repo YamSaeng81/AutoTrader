@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="O1·O3 로그 출력 계약 — 강제 갱신 WARN/ERROR 원문 없음·수준/건수/결과 유지, 실시간 손절 문구 중립(REST·WS 모두)" tests="17" skipped="0" failures="0" errors="0" timestamp="2026-11-13T07:07:15" hostname="DESKTOP-SF1KUQ5" time="0.752">
+  <properties/>
+  <testcase name="O3 분류 — 새 사유 '실시간 손절 — …' 과 과거 '실시간 손절(WS) — …' 모두 STOP_LOSS(과거 조회 호환 유지)" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.005"/>
+  <testcase name="LIVE 1초 전" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.003"/>
+  <testcase name="LIVE 121초 전" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.185"/>
+  <testcase name="DYNAMIC 1초 전" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.004"/>
+  <testcase name="DYNAMIC 121초 전" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.175"/>
+  <testcase name="LIVE malformed" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.004"/>
+  <testcase name="LIVE exception" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.002"/>
+  <testcase name="DYNAMIC malformed" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.002"/>
+  <testcase name="DYNAMIC exception" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.003"/>
+  <testcase name="LIVE REST_TRADE" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.079"/>
+  <testcase name="LIVE WS_TRADE" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.078"/>
+  <testcase name="DYNAMIC REST_TRADE" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.089"/>
+  <testcase name="DYNAMIC WS_TRADE" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.092"/>
+  <testcase name="LIVE trade_price=-5.125" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.004"/>
+  <testcase name="LIVE trade_price=0.00000000" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.002"/>
+  <testcase name="DYNAMIC trade_price=-5.125" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.003"/>
+  <testcase name="DYNAMIC trade_price=0.00000000" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.005"/>
+  <system-out><![CDATA[16:07:15.022 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.O1O3LogContractTest
+16:07:15.024 [Test worker] INFO  o.a.c.c.C.[Tomcat-6].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+16:07:15.031 [Test worker] INFO  o.a.c.c.C.[Tomcat-6].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+16:07:15.036 [Test worker] INFO  o.a.c.c.C.[Tomcat-6].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+16:07:15.223 [Test worker] INFO  o.a.c.c.C.[Tomcat-6].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+16:07:15.227 [Test worker] INFO  o.a.c.c.C.[Tomcat-6].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+16:07:15.404 [Test worker] INFO  o.a.c.c.C.[Tomcat-6].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+16:07:15.406 [Test worker] ERROR c.c.api.service.LiveTradingService - [§9] SL 미점검 세션 강제 복구 실패 ? 조회·변환 예외(원문 생략)
+16:07:15.409 [Test worker] INFO  o.a.c.c.C.[Tomcat-6].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+16:07:15.410 [Test worker] ERROR c.c.api.service.LiveTradingService - [§9] SL 미점검 세션 강제 복구 실패 ? 조회·변환 예외(원문 생략)
+16:07:15.412 [Test worker] INFO  o.a.c.c.C.[Tomcat-6].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+16:07:15.412 [Test worker] ERROR c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검 세션 강제 복구 실패 ? 조회·변환 예외(원문 생략)
+16:07:15.414 [Test worker] INFO  o.a.c.c.C.[Tomcat-6].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+16:07:15.415 [Test worker] ERROR c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검 세션 강제 복구 실패 ? 조회·변환 예외(원문 생략)
+16:07:15.419 [Test worker] INFO  o.a.c.c.C.[Tomcat-6].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+16:07:15.421 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=107, KRW-OLCL9, 손익=-6.666700%
+16:07:15.497 [Test worker] INFO  o.a.c.c.C.[Tomcat-6].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+16:07:15.500 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=108, KRW-OLCL10, 손익=-6.666700%
+16:07:15.577 [Test worker] INFO  o.a.c.c.C.[Tomcat-6].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+16:07:15.579 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-OLCD11 @ 280 pnl=-6.666700% (id=43)
+16:07:15.669 [Test worker] INFO  o.a.c.c.C.[Tomcat-6].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+16:07:15.674 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-OLCD12 @ 280 pnl=-6.666700% (id=44)
+16:07:15.760 [Test worker] INFO  o.a.c.c.C.[Tomcat-6].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+16:07:15.762 [Test worker] WARN  c.c.api.service.LiveTradingService - [§9] REST 강제 갱신 시세가 가격이 아님 ? 발행하지 않음 (가격 분류=음수)
+16:07:15.765 [Test worker] INFO  o.a.c.c.C.[Tomcat-6].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+16:07:15.766 [Test worker] WARN  c.c.api.service.LiveTradingService - [§9] REST 강제 갱신 시세가 가격이 아님 ? 발행하지 않음 (가격 분류=0)
+16:07:15.768 [Test worker] INFO  o.a.c.c.C.[Tomcat-6].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+16:07:15.769 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] REST 강제 갱신 시세가 가격이 아님 ? 발행하지 않음 (가격 분류=음수)
+16:07:15.773 [Test worker] INFO  o.a.c.c.C.[Tomcat-6].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+16:07:15.774 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] REST 강제 갱신 시세가 가격이 아님 ? 발행하지 않음 (가격 분류=0)
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

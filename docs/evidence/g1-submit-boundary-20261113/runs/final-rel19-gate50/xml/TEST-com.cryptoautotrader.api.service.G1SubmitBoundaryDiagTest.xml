@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="&#x1f52c; G1 — 정지 중 WS 보호 매도 제출 경계 계측" tests="12" skipped="12" failures="0" errors="0" timestamp="2026-11-13T07:06:45" hostname="DESKTOP-SF1KUQ5" time="1.502">
+  <properties/>
+  <testcase name="LIVE" classname="com.cryptoautotrader.api.service.G1SubmitBoundaryDiagTest" time="0.14">
+    <skipped/>
+  </testcase>
+  <testcase name="DYNAMIC" classname="com.cryptoautotrader.api.service.G1SubmitBoundaryDiagTest" time="0.133">
+    <skipped/>
+  </testcase>
+  <testcase name="LIVE" classname="com.cryptoautotrader.api.service.G1SubmitBoundaryDiagTest" time="0.119">
+    <skipped/>
+  </testcase>
+  <testcase name="DYNAMIC" classname="com.cryptoautotrader.api.service.G1SubmitBoundaryDiagTest" time="0.119">
+    <skipped/>
+  </testcase>
+  <testcase name="LIVE 시작문=false" classname="com.cryptoautotrader.api.service.G1SubmitBoundaryDiagTest" time="0.121">
+    <skipped/>
+  </testcase>
+  <testcase name="DYNAMIC 시작문=false" classname="com.cryptoautotrader.api.service.G1SubmitBoundaryDiagTest" time="0.122">
+    <skipped/>
+  </testcase>
+  <testcase name="LIVE 시작문=true" classname="com.cryptoautotrader.api.service.G1SubmitBoundaryDiagTest" time="0.125">
+    <skipped/>
+  </testcase>
+  <testcase name="DYNAMIC 시작문=true" classname="com.cryptoautotrader.api.service.G1SubmitBoundaryDiagTest" time="0.121">
+    <skipped/>
+  </testcase>
+  <testcase name="LIVE" classname="com.cryptoautotrader.api.service.G1SubmitBoundaryDiagTest" time="0.119">
+    <skipped/>
+  </testcase>
+  <testcase name="DYNAMIC" classname="com.cryptoautotrader.api.service.G1SubmitBoundaryDiagTest" time="0.124">
+    <skipped/>
+  </testcase>
+  <testcase name="LIVE" classname="com.cryptoautotrader.api.service.G1SubmitBoundaryDiagTest" time="0.12">
+    <skipped/>
+  </testcase>
+  <testcase name="DYNAMIC" classname="com.cryptoautotrader.api.service.G1SubmitBoundaryDiagTest" time="0.123">
+    <skipped/>
+  </testcase>
+  <system-out><![CDATA[16:06:42.960 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.G1SubmitBoundaryDiagTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.5)
+
+16:06:43.500 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Multiple Spring Data modules found, entering strict repository configuration mode
+16:06:43.500 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+16:06:43.575 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 75 ms. Found 39 JPA repository interfaces.
+16:06:43.578 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Multiple Spring Data modules found, entering strict repository configuration mode
+16:06:43.578 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+16:06:43.584 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.BacktestJobRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+16:06:43.584 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.BacktestMetricsRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+16:06:43.584 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.BacktestRunRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+16:06:43.584 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.BacktestTradeRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+16:06:43.584 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.CandleDataRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+16:06:43.584 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.DailyHealthSnapshotRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+16:06:43.585 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.DiscordChannelConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+16:06:43.585 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.DiscordSendLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+16:06:43.585 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.DynamicSellSettlementRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+16:06:43.585 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.DynamicSessionRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+16:06:43.585 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.ExecutionDriftLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+16:06:43.585 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.KillCriteriaJudgmentRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+16:06:43.585 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.LiveTradingSessionRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+16:06:43.585 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.LlmCallLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+16:06:43.585 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.LlmProviderConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+16:06:43.585 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.LlmTaskConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+16:06:43.585 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.MarketDataCacheRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+16:06:43.585 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.NewsItemCacheRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+16:06:43.585 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.NewsSourceConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+16:06:43.585 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.NightlySchedulerConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+16:06:43.585 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.NotionReportConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+16:06:43.585 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.NotionReportLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+16:06:43.585 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.OrderRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+16:06:43.585 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.OrderSettlementDiscrepancyRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+16:06:43.585 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.paper.PaperOrderRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+16:06:43.585 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.paper.PaperPositionRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+16:06:43.586 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.paper.VirtualBalanceRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+16:06:43.586 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.PositionCleanupRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+16:06:43.586 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.PositionRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+16:06:43.586 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.RegimeChangeLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+16:06:43.586 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.RiskConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+16:06:43.586 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.RulesetSnapshotRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+16:06:43.586 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.StrategyConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+16:06:43.586 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.StrategyLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+16:06:43.586 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.StrategyTimeframeEnabledRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+16:06:43.586 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.StrategyTypeEnabledRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+16:06:43.586 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.TelegramNotificationLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+16:06:43.586 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.TradeLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+16:06:43.586 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.WeightOptimizerSnapshotRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+16:06:43.586 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 7 ms. Found 0 Redis repository interfaces.
+16:06:43.784 [Test worker] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 0 (http)
+16:06:43.785 [Test worker] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-auto-4"]
+16:06:43.785 [Test worker] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+16:06:43.785 [Test worker] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.20]
+16:06:43.818 [Test worker] INFO  o.a.c.c.C.[Tomcat-2].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+16:06:43.818 [Test worker] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 838 ms
+16:06:43.884 [Test worker] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-4 - Starting...
+16:06:43.885 [Test worker] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-4 - Added connection conn16: url=jdbc:h2:mem:testdb user=SA
+16:06:43.885 [Test worker] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-4 - Start completed.
+16:06:43.910 [Test worker] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+16:06:43.911 [Test worker] INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
+16:06:43.916 [Test worker] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+16:06:43.916 [Test worker] WARN  org.hibernate.orm.deprecation - HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+16:06:44.240 [Test worker] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+16:06:44.241 [Test worker] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+16:06:44.251 [Test worker] WARN  c.c.api.config.SingleInstanceGuard - ? 단일 인스턴스 강제가 꺼져 있다(trading.single-instance.enabled=false) ? 시험 전용 설정이다
+[DrainGapGate] marketDataExecutor 교체 ? 꺼낸 뒤 50ms 머묾 · core 2 max 4 queue 100 거절 AbortPolicy
+16:06:45.086 [Test worker] WARN  c.c.api.service.DbResetService - DB_RESET_PASSWORD 미설정 ? DB 초기화 기능이 비활성화됩니다(모든 요청 거부).
+[DrainGapGate] orderExecutor 교체 ? 꺼낸 뒤 50ms 머묾 · core 2 max 4 queue 50 거절 AbortPolicy
+16:06:45.265 [Test worker] INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 1 endpoint(s) beneath base path '/actuator'
+16:06:45.281 [Test worker] INFO  o.s.s.web.DefaultSecurityFilterChain - Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@3edf2098, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@1c2c23cc, org.springframework.security.web.context.SecurityContextHolderFilter@2c072d27, org.springframework.security.web.header.HeaderWriterFilter@4c4ac41e, org.springframework.web.filter.CorsFilter@31926990, org.springframework.security.web.authentication.logout.LogoutFilter@5aad0c2, com.cryptoautotrader.api.config.ApiTokenAuthFilter@73751220, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@11d1a7fc, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@1d4644c8, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@5bf8ae0b, org.springframework.security.web.session.SessionManagementFilter@11162876, org.springframework.security.web.access.ExceptionTranslationFilter@717aefae, org.springframework.security.web.access.intercept.AuthorizationFilter@5aff15ca]
+16:06:45.457 [Test worker] INFO  o.a.c.c.C.[Tomcat-2].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+16:06:45.477 [Test worker] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-auto-4"]
+16:06:45.480 [Test worker] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 2807 (http) with context path ''
+16:06:45.503 [Test worker] INFO  o.a.c.c.C.[Tomcat-2].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[G1DIAG] ---- 시간순 기록 1줄 (누락 0) ----
+[G1DIAG] #1 +0.000s 2026-11-13T07:06:45.145895600Z [Test worker] EXEC_OBSERVER tx=- orderExecutor 에 관측 꾸밈 장치 설정(초기화 콜백 전)
+[G1DIAG] 외부 연결 감시 설치=false 시도(JVM 전체) []
+16:06:45.643 [Test worker] INFO  o.a.c.c.C.[Tomcat-2].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[G1DIAG] ---- 시간순 기록 1줄 (누락 0) ----
+[G1DIAG] #1 +0.000s 2026-11-13T07:06:45.145895600Z [Test worker] EXEC_OBSERVER tx=- orderExecutor 에 관측 꾸밈 장치 설정(초기화 콜백 전)
+[G1DIAG] 외부 연결 감시 설치=false 시도(JVM 전체) []
+16:06:45.778 [Test worker] INFO  o.a.c.c.C.[Tomcat-2].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[G1DIAG] ---- 시간순 기록 1줄 (누락 0) ----
+[G1DIAG] #1 +0.000s 2026-11-13T07:06:45.145895600Z [Test worker] EXEC_OBSERVER tx=- orderExecutor 에 관측 꾸밈 장치 설정(초기화 콜백 전)
+[G1DIAG] 외부 연결 감시 설치=false 시도(JVM 전체) []
+16:06:45.897 [Test worker] INFO  o.a.c.c.C.[Tomcat-2].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[G1DIAG] ---- 시간순 기록 1줄 (누락 0) ----
+[G1DIAG] #1 +0.000s 2026-11-13T07:06:45.145895600Z [Test worker] EXEC_OBSERVER tx=- orderExecutor 에 관측 꾸밈 장치 설정(초기화 콜백 전)
+[G1DIAG] 외부 연결 감시 설치=false 시도(JVM 전체) []
+16:06:46.016 [Test worker] INFO  o.a.c.c.C.[Tomcat-2].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[G1DIAG] ---- 시간순 기록 1줄 (누락 0) ----
+[G1DIAG] #1 +0.000s 2026-11-13T07:06:45.145895600Z [Test worker] EXEC_OBSERVER tx=- orderExecutor 에 관측 꾸밈 장치 설정(초기화 콜백 전)
+[G1DIAG] 외부 연결 감시 설치=false 시도(JVM 전체) []
+16:06:46.140 [Test worker] INFO  o.a.c.c.C.[Tomcat-2].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[G1DIAG] ---- 시간순 기록 1줄 (누락 0) ----
+[G1DIAG] #1 +0.000s 2026-11-13T07:06:45.145895600Z [Test worker] EXEC_OBSERVER tx=- orderExecutor 에 관측 꾸밈 장치 설정(초기화 콜백 전)
+[G1DIAG] 외부 연결 감시 설치=false 시도(JVM 전체) []
+16:06:46.264 [Test worker] INFO  o.a.c.c.C.[Tomcat-2].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[G1DIAG] ---- 시간순 기록 1줄 (누락 0) ----
+[G1DIAG] #1 +0.000s 2026-11-13T07:06:45.145895600Z [Test worker] EXEC_OBSERVER tx=- orderExecutor 에 관측 꾸밈 장치 설정(초기화 콜백 전)
+[G1DIAG] 외부 연결 감시 설치=false 시도(JVM 전체) []
+16:06:46.390 [Test worker] INFO  o.a.c.c.C.[Tomcat-2].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[G1DIAG] ---- 시간순 기록 1줄 (누락 0) ----
+[G1DIAG] #1 +0.000s 2026-11-13T07:06:45.145895600Z [Test worker] EXEC_OBSERVER tx=- orderExecutor 에 관측 꾸밈 장치 설정(초기화 콜백 전)
+[G1DIAG] 외부 연결 감시 설치=false 시도(JVM 전체) []
+16:06:46.514 [Test worker] INFO  o.a.c.c.C.[Tomcat-2].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[G1DIAG] ---- 시간순 기록 1줄 (누락 0) ----
+[G1DIAG] #1 +0.000s 2026-11-13T07:06:45.145895600Z [Test worker] EXEC_OBSERVER tx=- orderExecutor 에 관측 꾸밈 장치 설정(초기화 콜백 전)
+[G1DIAG] 외부 연결 감시 설치=false 시도(JVM 전체) []
+16:06:46.633 [Test worker] INFO  o.a.c.c.C.[Tomcat-2].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[G1DIAG] ---- 시간순 기록 1줄 (누락 0) ----
+[G1DIAG] #1 +0.000s 2026-11-13T07:06:45.145895600Z [Test worker] EXEC_OBSERVER tx=- orderExecutor 에 관측 꾸밈 장치 설정(초기화 콜백 전)
+[G1DIAG] 외부 연결 감시 설치=false 시도(JVM 전체) []
+16:06:46.758 [Test worker] INFO  o.a.c.c.C.[Tomcat-2].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[G1DIAG] ---- 시간순 기록 1줄 (누락 0) ----
+[G1DIAG] #1 +0.000s 2026-11-13T07:06:45.145895600Z [Test worker] EXEC_OBSERVER tx=- orderExecutor 에 관측 꾸밈 장치 설정(초기화 콜백 전)
+[G1DIAG] 외부 연결 감시 설치=false 시도(JVM 전체) []
+16:06:46.879 [Test worker] INFO  o.a.c.c.C.[Tomcat-2].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[G1DIAG] ---- 시간순 기록 1줄 (누락 0) ----
+[G1DIAG] #1 +0.000s 2026-11-13T07:06:45.145895600Z [Test worker] EXEC_OBSERVER tx=- orderExecutor 에 관측 꾸밈 장치 설정(초기화 콜백 전)
+[G1DIAG] 외부 연결 감시 설치=false 시도(JVM 전체) []
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

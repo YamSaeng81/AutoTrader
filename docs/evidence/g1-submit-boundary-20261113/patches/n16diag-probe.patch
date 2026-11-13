@@ -1,0 +1,29 @@
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/N16InvalidPriceReproTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/N16InvalidPriceReproTest.java
+index 3471d1cc..0f03786e 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/N16InvalidPriceReproTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/N16InvalidPriceReproTest.java
+@@ -303,16 +303,24 @@ class N16InvalidPriceReproTest extends IntegrationTestBase {
+         assertThat(got).hasSize(1);
+         System.out.println("[N16 ③] tp 없는 ticker → 파서 체결가 " + got.get(0).getTradePrice() + " · 체결 시각 " + got.get(0).getTradeTimestamp());
+ 
++        RealtimeProtectionDispatcher dsp = ctxForProbe.getBean(RealtimeProtectionDispatcher.class);
++        System.out.println("[N16DIAG] 전 " + java.time.Instant.now() + " " + dsp.snapshot("LIVE"));
+         ReflectionTestUtils.invokeMethod(target("LIVE"), "onWsTick", got.get(0));
+         drain(marketDataExecutor);
+         drain(orderExecutor);
++        System.out.println("[N16DIAG] 옛대기 뒤 " + java.time.Instant.now() + " " + dsp.snapshot("LIVE") + " 매도 " + exchangeSells(f) + " 포지션 " + positionStatus(f));
+         System.out.println("[N16 ③] 처리 뒤 거래소 매도 " + exchangeSells(f) + " · 포지션 " + positionStatus(f)
+                 + " · 장부 " + markPriceBook.get(f.coin()));
+         assertThat(got.get(0).getTradePrice()).as("운영 파서: 없는 tp → 0").isEqualByComparingTo("0");
+         assertThat(exchangeSells(f)).as("체결가 없는 틱으로 보호 매도를 내지 않는다").isZero();
+         assertThat(positionStatus(f)).isEqualTo("OPEN");
+         assertThat(markPriceBook.get(f.coin())).as("장부는 이미 거절한다").isNull();
++        System.out.println("[N16DIAG] 단언 통과 " + java.time.Instant.now() + " " + dsp.snapshot("LIVE"));
++        com.cryptoautotrader.api.support.ExecutorBarrier.awaitPriorTasks(marketDataExecutor.getThreadPoolExecutor(), 20_000);
++        com.cryptoautotrader.api.support.ExecutorBarrier.awaitPriorTasks(orderExecutor.getThreadPoolExecutor(), 20_000);
++        System.out.println("[N16DIAG] 장벽 뒤 " + java.time.Instant.now() + " " + dsp.snapshot("LIVE") + " 매도 " + exchangeSells(f) + " 포지션 " + positionStatus(f));
+     }
++    @Autowired private org.springframework.context.ApplicationContext ctxForProbe;
+ 
+     /**
+      * ④ 미래 관측 시각 — 총괄 판정(4a4c225 검토): 장부가 정렬·최신성에 쓰는 시각은 {@code min(원래 관측 시각, 서버 수신 시각)}.

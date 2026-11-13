@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="N15 실제 PostgreSQL 잠금 대기 중 E — LIVE 계좌 잠금·DYNAMIC 세션 행 잠금, 차감·의도·슬롯·거래소 0 · 대조군 정상 진입" tests="6" skipped="0" failures="2" errors="0" timestamp="2026-11-13T06:53:36" hostname="DESKTOP-SF1KUQ5" time="32.638">
+  <properties/>
+  <testcase name="② DYNAMIC 세션 행(dynamic_session) refresh 실제 대기 중 E — '차감 직전' ENTRY_EXPIRED, 가용 10000·슬롯·의도·거래소 0" classname="com.cryptoautotrader.api.service.N15PgLockWaitExpiryTest" time="11.854">
+    <failure message="org.opentest4j.AssertionFailedError: [잠금을 쥔 동안 승인이 끝나지 않았다] &#13;&#10;Expecting value to be false but was true" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: [잠금을 쥔 동안 승인이 끝나지 않았다] 
+Expecting value to be false but was true
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base@17.0.12/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base@17.0.12/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)
+	at app//com.cryptoautotrader.api.service.N15PgLockWaitExpiryTest.runWithHeldLock(N15PgLockWaitExpiryTest.java:419)
+	at app//com.cryptoautotrader.api.service.N15PgLockWaitExpiryTest.dynamicSessionRowLockWaitCrossesExpiry(N15PgLockWaitExpiryTest.java:493)
+	at java.base@17.0.12/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="접수 EARLY" classname="com.cryptoautotrader.api.service.N15PgLockWaitExpiryTest" time="2.21"/>
+  <testcase name="접수 LATE" classname="com.cryptoautotrader.api.service.N15PgLockWaitExpiryTest" time="1.929"/>
+  <testcase name="④ 대조군 DYNAMIC 같은 세션 행 실제 대기, 시계 E−1ms 유지 → 정상 진입(차감 10000→2000·슬롯·매수 의도 1)" classname="com.cryptoautotrader.api.service.N15PgLockWaitExpiryTest" time="11.454">
+    <failure message="org.opentest4j.AssertionFailedError: [잠금을 쥔 동안 승인이 끝나지 않았다] &#13;&#10;Expecting value to be false but was true" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: [잠금을 쥔 동안 승인이 끝나지 않았다] 
+Expecting value to be false but was true
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base@17.0.12/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base@17.0.12/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)
+	at app//com.cryptoautotrader.api.service.N15PgLockWaitExpiryTest.runWithHeldLock(N15PgLockWaitExpiryTest.java:419)
+	at app//com.cryptoautotrader.api.service.N15PgLockWaitExpiryTest.controlDynamicSessionRowLockWaitEnters(N15PgLockWaitExpiryTest.java:512)
+	at java.base@17.0.12/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="접수 EARLY" classname="com.cryptoautotrader.api.service.N15PgLockWaitExpiryTest" time="2.597"/>
+  <testcase name="접수 LATE" classname="com.cryptoautotrader.api.service.N15PgLockWaitExpiryTest" time="2.573"/>
+  <system-out><![CDATA[15:53:23.000 [Test worker] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.cryptoautotrader.api.service.N15PgLockWaitExpiryTest]: N15PgLockWaitExpiryTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+15:53:23.233 [Test worker] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.N15PgLockWaitExpiryTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.5)
+
+15:53:23.636 [background-preinit] INFO  o.h.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.1.Final
+15:53:24.711 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Multiple Spring Data modules found, entering strict repository configuration mode
+15:53:24.712 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+15:53:24.895 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 179 ms. Found 39 JPA repository interfaces.
+15:53:24.912 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Multiple Spring Data modules found, entering strict repository configuration mode
+15:53:24.913 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+15:53:24.927 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.BacktestJobRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:53:24.927 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.BacktestMetricsRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:53:24.928 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.BacktestRunRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:53:24.928 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.BacktestTradeRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:53:24.928 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.CandleDataRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:53:24.928 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.DailyHealthSnapshotRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:53:24.928 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.DiscordChannelConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:53:24.929 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.DiscordSendLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:53:24.929 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.DynamicSellSettlementRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:53:24.929 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.DynamicSessionRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:53:24.929 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.ExecutionDriftLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:53:24.930 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.KillCriteriaJudgmentRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:53:24.930 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.LiveTradingSessionRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:53:24.930 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.LlmCallLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:53:24.930 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.LlmProviderConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:53:24.931 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.LlmTaskConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:53:24.932 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.MarketDataCacheRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:53:24.932 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.NewsItemCacheRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:53:24.932 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.NewsSourceConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:53:24.933 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.NightlySchedulerConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:53:24.933 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.NotionReportConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:53:24.933 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.NotionReportLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:53:24.933 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.OrderRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:53:24.934 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.OrderSettlementDiscrepancyRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:53:24.934 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.paper.PaperOrderRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:53:24.934 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.paper.PaperPositionRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:53:24.934 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.paper.VirtualBalanceRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:53:24.935 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.PositionCleanupRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:53:24.935 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.PositionRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:53:24.936 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.RegimeChangeLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:53:24.936 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.RiskConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:53:24.936 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.RulesetSnapshotRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:53:24.936 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.StrategyConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:53:24.936 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.StrategyLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:53:24.937 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.StrategyTimeframeEnabledRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:53:24.937 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.StrategyTypeEnabledRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:53:24.937 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.TelegramNotificationLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:53:24.937 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.TradeLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:53:24.937 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.WeightOptimizerSnapshotRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:53:24.937 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 18 ms. Found 0 Redis repository interfaces.
+15:53:26.655 [Test worker] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+15:53:26.966 [Test worker] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@587bf2e1
+15:53:26.970 [Test worker] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+15:53:27.156 [Test worker] INFO  o.f.c.i.license.VersionPrinter - Flyway Community Edition 9.22.3 by Redgate
+15:53:27.157 [Test worker] INFO  o.f.c.i.license.VersionPrinter - See release notes here: https://rd.gt/416ObMi
+15:53:27.157 [Test worker] INFO  o.f.c.i.license.VersionPrinter - 
+15:53:27.211 [Test worker] INFO  org.flywaydb.core.FlywayExecutor - Database: jdbc:postgresql://127.0.0.1:15437/g1_n15pg_19111 (PostgreSQL 15.13)
+15:53:27.300 [Test worker] INFO  o.f.c.i.s.JdbcTableSchemaHistory - Schema history table "public"."flyway_schema_history" does not exist yet
+15:53:27.312 [Test worker] INFO  o.f.core.internal.command.DbValidate - Successfully validated 95 migrations (execution time 00:00.062s)
+15:53:27.348 [Test worker] INFO  o.f.c.i.s.JdbcTableSchemaHistory - Creating Schema History table "public"."flyway_schema_history" ...
+15:53:27.417 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Current version of schema "public": << Empty Schema >>
+15:53:27.436 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "1 - create candle data"
+15:53:27.454 [Test worker] WARN  o.f.c.i.s.DefaultSqlScriptExecutor - DB: column type "character varying" used for "coin_pair" does not follow best practices (SQL State: 01000 - Error Code: 0)
+15:53:27.454 [Test worker] WARN  o.f.c.i.s.DefaultSqlScriptExecutor - DB: column type "character varying" used for "timeframe" does not follow best practices (SQL State: 01000 - Error Code: 0)
+15:53:27.455 [Test worker] INFO  o.f.c.i.s.DefaultSqlScriptExecutor - +--------------------------+
+| create_hypertable        |
++--------------------------+
+| (1,public,candle_data,t) |
++--------------------------+
+
+15:53:27.471 [Test worker] INFO  o.f.c.i.s.DefaultSqlScriptExecutor - +------------------------+
+| add_compression_policy |
++------------------------+
+| 1000                   |
++------------------------+
+
+15:53:27.499 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "2 - create backtest tables"
+15:53:27.568 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "3 - create strategy config"
+15:53:27.598 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "4 - create position order"
+15:53:27.647 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "5 - create risk config"
+15:53:27.667 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "6 - create log tables"
+15:53:27.705 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "7 - create strategy signal"
+15:53:27.734 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "8 - create paper trading schema"
+15:53:27.798 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "9 - enhance paper trading"
+15:53:27.816 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "10 - paper trading multi session"
+15:53:27.842 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "11 - add manual override to strategy config"
+15:53:27.857 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "12 - create live trading session"
+15:53:27.894 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "13 - create market data cache"
+15:53:27.917 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "14 - create strategy type enabled"
+15:53:27.937 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "15 - add telegram to paper trading"
+15:53:27.950 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "16 - create telegram notification log"
+15:53:27.980 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "17 - add session type to strategy log"
+15:53:28.001 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "18 - add pnl fee to virtual balance"
+15:53:28.014 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "19 - add invest ratio to live trading session"
+15:53:28.027 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "20 - add position fee to paper position"
+15:53:28.039 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "21 - add version to virtual balance"
+15:53:28.052 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "22 - add position fee to position"
+15:53:28.064 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "23 - add closing at to position"
+15:53:28.077 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "24 - add circuit breaker"
+15:53:28.090 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "25 - fix market regime varchar length"
+15:53:28.103 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "26 - add sl tp to positions"
+15:53:28.117 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "27 - add response json to order"
+15:53:28.128 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "28 - add executed funds to order"
+15:53:28.140 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "29 - add invested krw to position"
+15:53:28.153 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "30 - add backtest job"
+15:53:28.181 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "31 - add signal quality to strategy log"
+15:53:28.200 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "32 - add market regime to position"
+15:53:28.213 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "33 - create regime change log"
+15:53:28.245 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "34 - create llm config"
+15:53:28.280 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "35 - create news source config"
+15:53:28.323 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "36 - create notion report"
+15:53:28.360 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "37 - create discord config"
+15:53:28.395 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "38 - add wf result json"
+15:53:28.408 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "39 - add exit rule to risk config"
+15:53:28.426 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "40 - create llm call log"
+15:53:28.452 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "41 - create nightly scheduler config"
+15:53:28.477 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "42 - fix scheduler config column types"
+15:53:28.503 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "43 - add version to live trading session"
+15:53:28.516 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "44 - create execution drift log"
+15:53:28.540 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "45 - add capital utilization to risk config"
+15:53:28.555 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "46 - add session type to live trading session"
+15:53:28.572 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "47 - add confidence score to strategy log"
+15:53:28.584 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "48 - add portfolio drawdown to risk config"
+15:53:28.597 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "49 - create weight optimizer snapshot"
+15:53:28.618 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "50 - create dynamic session"
+15:53:28.647 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "51 - add session kind to position"
+15:53:28.664 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "52 - add session kind to order"
+15:53:28.682 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "53 - add profit factor expectancy to backtest metrics"
+15:53:28.694 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "54 - add signal price to order"
+15:53:28.708 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "55 - add circuit breaker to dynamic session"
+15:53:28.720 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "56 - add dynamic scan tuning to risk config"
+15:53:28.736 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "57 - add watchlist quality to risk config"
+15:53:28.751 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "58 - switch llm to claude"
+15:53:28.765 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "59 - set llm model sonnet"
+15:53:28.779 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "60 - expand news sources"
+15:53:28.792 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "61 - drop polymorphic session id fk"
+15:53:28.806 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "62 - add max hold hours"
+15:53:28.820 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "63 - default max hold hours off"
+15:53:28.832 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "64 - add max hold hours to live trading session"
+15:53:28.846 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "65 - create daily health snapshot"
+15:53:28.871 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "66 - align paper trading with live"
+15:53:28.888 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "67 - add trading mode to dynamic session"
+15:53:28.903 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "68 - default max hold hours on"
+15:53:28.922 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "69 - add circuit breaker trip count"
+15:53:28.939 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "70 - create kill criteria judgment"
+15:53:28.972 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "71 - add ruleset fingerprint"
+15:53:29.013 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "72 - create dynamic sell settlement"
+15:53:29.038 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "73 - add exit reason and analysis columns"
+15:53:29.075 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "74 - add session strategy params"
+15:53:29.093 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "75 - hold baseline index"
+15:53:29.109 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "76 - add timeframe to strategy log"
+15:53:29.126 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "77 - timestamptz for naive tables"
+15:53:29.268 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "78 - add exit rules version to backtest run"
+15:53:29.284 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "79 - add timeframe to weight optimizer snapshot"
+15:53:29.300 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "80 - create strategy timeframe enabled"
+15:53:29.322 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "81 - order reported vs applied settlement"
+15:53:29.341 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "82 - order settlement tracking and discrepancy"
+15:53:29.377 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "83 - order fill observation and pending"
+15:53:29.395 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "84 - order intent claim and unknown"
+15:53:29.415 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "85 - account capital lock and reservation"
+15:53:29.433 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "86 - failure code and intent owner"
+15:53:29.448 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "87 - cancel confirmation and stop cleanup"
+15:53:29.477 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "88 - seed default risk config"
+15:53:29.490 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "89 - pool loss limit baseline and snapshot"
+15:53:29.517 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "90 - position limit allocation peak breach"
+15:53:29.545 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "91 - order manual adjustment"
+15:53:29.567 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "92 - order fill price source"
+15:53:29.579 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "93 - exchange maintenance window"
+15:53:29.600 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "94 - sell quarantine release"
+15:53:29.624 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "96 - paper aligned runtime state"
+15:53:29.637 [Test worker] INFO  o.f.core.internal.command.DbMigrate - Successfully applied 95 migrations to schema "public", now at version v96 (execution time 00:01.186s)
+15:53:29.847 [Test worker] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+15:53:29.979 [Test worker] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 6.4.4.Final
+15:53:30.038 [Test worker] INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
+15:53:30.301 [Test worker] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+15:53:30.402 [Test worker] WARN  org.hibernate.orm.deprecation - HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+15:53:31.693 [Test worker] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+15:53:31.696 [Test worker] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+15:53:31.767 [Test worker] WARN  c.c.api.config.SingleInstanceGuard - ? 단일 인스턴스 강제가 꺼져 있다(trading.single-instance.enabled=false) ? 시험 전용 설정이다
+15:53:32.182 [Test worker] INFO  o.s.d.j.r.query.QueryEnhancerFactory - Hibernate is in classpath; If applicable, HQL parser will be used.
+[DrainGapGate] marketDataExecutor 교체 ? 꺼낸 뒤 500ms 머묾 · core 2 max 4 queue 100 거절 AbortPolicy
+15:53:35.381 [Test worker] WARN  c.c.api.service.DbResetService - DB_RESET_PASSWORD 미설정 ? DB 초기화 기능이 비활성화됩니다(모든 요청 거부).
+[DrainGapGate] orderExecutor 교체 ? 꺼낸 뒤 500ms 머묾 · core 2 max 4 queue 50 거절 AbortPolicy
+15:53:36.201 [Test worker] INFO  o.s.s.web.DefaultSecurityFilterChain - Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@63126aed, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@44b673bb, org.springframework.security.web.context.SecurityContextHolderFilter@6cff628e, org.springframework.security.web.header.HeaderWriterFilter@cf36a91, org.springframework.web.filter.CorsFilter@3a341d42, org.springframework.security.web.authentication.logout.LogoutFilter@75f3ae29, com.cryptoautotrader.api.config.ApiTokenAuthFilter@2fa1f38b, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@4e965b83, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@425aa16f, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@15995d47, org.springframework.security.web.session.SessionManagementFilter@30e69c61, org.springframework.security.web.access.ExceptionTranslationFilter@10acff2e, org.springframework.security.web.access.intercept.AuthorizationFilter@79f8cf69]
+15:53:37.637 [Test worker] WARN  c.c.a.service.WatchlistFilterService - [Watchlist] KRW 마켓 목록 없음
+15:53:37.638 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 공용 유니버스 비어 있음 ? 직전 목록 유지 (id=1, 1종목)
+15:53:37.711 [pool-3-thread-2] ERROR c.c.api.service.CandleFreshnessGuard - ? [캔들 최신성] BTC 급락 관문 H1 판정 불가 (DYNAMIC) ? 이 관문을 요구하는 신규 진입을 막는다: BTC 캔들 판정 불가(최신 완료 봉 없음 ? 마지막 완료 봉 2026-11-13T05:52:37.008540600Z, 필요 2026-11-13T06:00:00Z 이후(7분 늦음)) ? 급락 여부를 모른다
+[N15PG] LIVE KRW-CRO 접수 EARLY 2026-11-13T06:00:01Z
+15:53:49.827 [Test worker] WARN  c.c.api.service.CandleFreshnessGuard - [캔들 최신성] BTC 급락 관문 H1 판정 재개 (LIVE): 종전 2026-11-13T06:53:37.711982100Z BTC 캔들 판정 불가(최신 완료 봉 없음 ? 마지막 완료 봉 2026-11-13T05:52:37.008540600Z, 필요 2026-11-13T06:00:00Z 이후(7분 늦음)) ? 급락 여부를 모른다
+15:53:49.924 [pool-4-thread-2] WARN  c.c.a.s.CapitalReservationService - [공유 풀] 승인하지 않는다 (sessionId=1, 사유=ENTRY_EXPIRED): 승인 실행 만료(만료 2026-11-13T06:10:00Z, 잠금 뒤 판정 2026-11-13T06:10:00Z) ? 새 예약·매수 의도 없음 ? ? 거래소 거절을 기다리지 않는다
+15:53:49.926 [pool-4-thread-2] WARN  c.c.api.service.LiveTradingService - 매수 예약이 거절돼 롤백했다 (sessionId=1, KRW-CRO, 사유=ENTRY_EXPIRED): 승인 실행 만료(만료 2026-11-13T06:10:00Z, 잠금 뒤 판정 2026-11-13T06:10:00Z) ? 새 예약·매수 의도 없음
+[N15PG] LIVE KRW-CRO account_capital_lock 대기 DB=true 쥔 쪽 pid 732793 막힘=true [{pid=732795, wait_event_type=Lock, wait_event=transactionid, state=active, blockers={732793}, q=SELECT id FROM account_capital_lock WHERE id = 1 FOR UPDATE}] · 스레드 RUNNABLE reserveForBuy=true lockAccount=true · 시계 E 2026-11-13T06:10:00Z → [KRW-CRO=예약 거절(ENTRY_EXPIRED): 승인 실행 만료(만료 2026-11-13T06:10:00Z, 잠금 뒤 판정 2026-11-13T06:10:00Z) ? 새 예약·매수 의도 없음] · 매수 의도 0 · 열린 슬롯 0 · 가용 20000.00 · 거래소 0 · 신호 [false, 예약 거절(ENTRY_EXPIRED): 승인 실행 만료(만료 2026-11-13T06:10:00Z, 잠금 뒤 판정 2026-11-13T06:10:00Z) ? 새 예약·매수 의도 없음]
+[N15PG] LIVE KRW-CRO 접수 LATE 2026-11-13T06:04:59.999Z
+15:53:51.871 [pool-5-thread-2] WARN  c.c.a.s.CapitalReservationService - [공유 풀] 승인하지 않는다 (sessionId=2, 사유=ENTRY_EXPIRED): 승인 실행 만료(만료 2026-11-13T06:10:00Z, 잠금 뒤 판정 2026-11-13T06:10:00Z) ? 새 예약·매수 의도 없음 ? ? 거래소 거절을 기다리지 않는다
+15:53:51.872 [pool-5-thread-2] WARN  c.c.api.service.LiveTradingService - 매수 예약이 거절돼 롤백했다 (sessionId=2, KRW-CRO, 사유=ENTRY_EXPIRED): 승인 실행 만료(만료 2026-11-13T06:10:00Z, 잠금 뒤 판정 2026-11-13T06:10:00Z) ? 새 예약·매수 의도 없음
+[N15PG] LIVE KRW-CRO account_capital_lock 대기 DB=true 쥔 쪽 pid 732793 막힘=true [{pid=732795, wait_event_type=Lock, wait_event=transactionid, state=active, blockers={732793}, q=SELECT id FROM account_capital_lock WHERE id = 1 FOR UPDATE}] · 스레드 RUNNABLE reserveForBuy=true lockAccount=true · 시계 E 2026-11-13T06:10:00Z → [KRW-CRO=예약 거절(ENTRY_EXPIRED): 승인 실행 만료(만료 2026-11-13T06:10:00Z, 잠금 뒤 판정 2026-11-13T06:10:00Z) ? 새 예약·매수 의도 없음] · 매수 의도 0 · 열린 슬롯 0 · 가용 20000.00 · 거래소 0 · 신호 [false, 예약 거절(ENTRY_EXPIRED): 승인 실행 만료(만료 2026-11-13T06:10:00Z, 잠금 뒤 판정 2026-11-13T06:10:00Z) ? 새 예약·매수 의도 없음]
+15:53:53.317 [Test worker] WARN  c.c.a.service.WatchlistFilterService - [Watchlist] KRW 마켓 목록 없음
+15:53:53.317 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 공용 유니버스 비어 있음 ? 직전 목록 유지 (id=2, 1종목)
+15:53:53.345 [pool-6-thread-2] ERROR c.c.api.service.CandleFreshnessGuard - ? [캔들 최신성] BTC 급락 관문 H1 판정 불가 (DYNAMIC) ? 이 관문을 요구하는 신규 진입을 막는다: BTC 캔들 판정 불가(최신 완료 봉 없음 ? 마지막 완료 봉 2026-11-13T05:52:52.937297700Z, 필요 2026-11-13T06:00:00Z 이후(7분 늦음)) ? 급락 여부를 모른다
+[N15PG] LIVE KRW-CRO 접수 EARLY 2026-11-13T06:00:01Z
+15:54:05.282 [Test worker] WARN  c.c.api.service.CandleFreshnessGuard - [캔들 최신성] BTC 급락 관문 H1 판정 재개 (LIVE): 종전 2026-11-13T06:53:53.345460800Z BTC 캔들 판정 불가(최신 완료 봉 없음 ? 마지막 완료 봉 2026-11-13T05:52:52.937297700Z, 필요 2026-11-13T06:00:00Z 이후(7분 늦음)) ? 급락 여부를 모른다
+[N15PG] LIVE KRW-CRO account_capital_lock 대기 DB=true 쥔 쪽 pid 732793 막힘=true [{pid=732795, wait_event_type=Lock, wait_event=transactionid, state=active, blockers={732793}, q=SELECT id FROM account_capital_lock WHERE id = 1 FOR UPDATE}] · 스레드 RUNNABLE reserveForBuy=true lockAccount=true · 시계 E?1ms 유지 → [KRW-CRO=진입] · 매수 의도 1 · 열린 슬롯 1 · 가용 15000.00 · 거래소 0 · 신호 [true, null]
+15:54:05.930 [order-exec-2] ERROR o.s.a.i.SimpleAsyncUncaughtExceptionHandler - Unexpected exception occurred invoking async method: public void com.cryptoautotrader.api.service.OrderExecutionEngine.submitPreparedOrder(java.lang.Long,com.cryptoautotrader.api.dto.OrderRequest)
+java.lang.NullPointerException: Cannot invoke "com.cryptoautotrader.exchange.upbit.UpbitOrderClient$ExchangeResult.response()" because "exchangeResult" is null
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.recordSubmitOutcome(OrderExecutionEngine.java:1124)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.lambda$callExchangeAndRecord$11(OrderExecutionEngine.java:1039)
+	at org.springframework.transaction.support.TransactionTemplate.execute(TransactionTemplate.java:140)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.callExchangeAndRecord(OrderExecutionEngine.java:1038)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.submitPreparedOrder(OrderExecutionEngine.java:670)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at org.springframework.aop.interceptor.AsyncExecutionInterceptor.lambda$invoke$0(AsyncExecutionInterceptor.java:113)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+[N15PG] LIVE KRW-CRO 접수 LATE 2026-11-13T06:04:59.999Z
+[N15PG] LIVE KRW-CRO account_capital_lock 대기 DB=true 쥔 쪽 pid 732793 막힘=true [{pid=732795, wait_event_type=Lock, wait_event=transactionid, state=active, blockers={732793}, q=SELECT id FROM account_capital_lock WHERE id = 1 FOR UPDATE}] · 스레드 RUNNABLE reserveForBuy=true lockAccount=true · 시계 E?1ms 유지 → [KRW-CRO=진입] · 매수 의도 1 · 열린 슬롯 1 · 가용 15000.00 · 거래소 0 · 신호 [true, null]
+15:54:08.511 [order-exec-2] ERROR o.s.a.i.SimpleAsyncUncaughtExceptionHandler - Unexpected exception occurred invoking async method: public void com.cryptoautotrader.api.service.OrderExecutionEngine.submitPreparedOrder(java.lang.Long,com.cryptoautotrader.api.dto.OrderRequest)
+java.lang.NullPointerException: Cannot invoke "com.cryptoautotrader.exchange.upbit.UpbitOrderClient$ExchangeResult.response()" because "exchangeResult" is null
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.recordSubmitOutcome(OrderExecutionEngine.java:1124)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.lambda$callExchangeAndRecord$11(OrderExecutionEngine.java:1039)
+	at org.springframework.transaction.support.TransactionTemplate.execute(TransactionTemplate.java:140)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.callExchangeAndRecord(OrderExecutionEngine.java:1038)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.submitPreparedOrder(OrderExecutionEngine.java:670)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at org.springframework.aop.interceptor.AsyncExecutionInterceptor.lambda$invoke$0(AsyncExecutionInterceptor.java:113)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
