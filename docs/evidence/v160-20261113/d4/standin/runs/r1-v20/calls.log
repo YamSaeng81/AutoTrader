@@ -1,0 +1,67 @@
+1794360600	git	rev-parse HEAD 
+1794360600	git	status --porcelain --untracked-files=no 
+1794360600	git	rev-parse HEAD 
+1794360600	git	status --porcelain --untracked-files=no 
+1794360600	git	fetch origin 
+1794360600	git	cat-file -e 88f06345af31888c2c8669ebe8ad00ca02cfd6d8^{commit} 
+1794360600	git	merge-base --is-ancestor b5cd1d0d47ea68ffe6ff476b89cf9fca5bef1b88 88f06345af31888c2c8669ebe8ad00ca02cfd6d8 
+1794360600	git	diff --name-only b5cd1d0d47ea68ffe6ff476b89cf9fca5bef1b88 88f06345af31888c2c8669ebe8ad00ca02cfd6d8 
+1794360600	docker	compose -f docker-compose.prod.yml ps -q backend 
+1794360600	docker	inspect --format backend {{.Image}} {{.State.StartedAt}} cid-backend 
+1794360600	docker	compose -f docker-compose.prod.yml ps -q db 
+1794360600	docker	inspect --format db {{.Image}} {{.State.StartedAt}} cid-db 
+1794360600	docker	compose -f docker-compose.prod.yml ps -q redis 
+1794360600	docker	inspect --format redis {{.Image}} {{.State.StartedAt}} cid-redis 
+1794360600	docker	compose -f docker-compose.prod.yml ps -q db-backup 
+1794360600	docker	inspect --format db-backup {{.Image}} {{.State.StartedAt}} cid-db-backup 
+1794360600	docker	compose -f docker-compose.prod.yml ps -q frontend 
+1794360600	docker	inspect --format frontend {{.Image}} {{.State.StartedAt}} cid-frontend 
+1794360600	docker	compose -f docker-compose.prod.yml ps -q backend 
+1794360600	docker	inspect --format {{.Image}} cid-backend 
+1794360600	docker	image inspect --format {{.Id}} autotrader-backend:ea44900 
+1794360600	docker	image inspect --format {{.Id}} autotrader-backend:b1d7664 
+1794360600	docker	image inspect --format {{.Id}} autotrader-backend:6995c52 
+1794360600	docker	image inspect --format {{.Id}} autotrader-backend:fe01207 
+1794360600	docker	image inspect --format {{.Id}} autotrader-backend:1103f48 
+1794360600	docker	image inspect --format {{.Id}} autotrader-backend:7a94472 
+1794360600	docker	image inspect --format {{.Id}} autotrader-backend:ee509cf 
+1794360600	docker	image inspect --format {{.Id}} autotrader-backend:1899b49 
+1794360600	docker	image inspect --format {{.Id}} autotrader-backend:latest 
+1794360600	docker	compose -f docker-compose.prod.yml exec -T backend env 
+1794360600	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -At -c SELECT max(version::int) FROM flyway_schema_history WHERE success 
+1794360600	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -At -c SHOW TimeZone 
+1794360600	docker	compose -f docker-compose.prod.yml exec -T backend date +%Y-%m-%d %H:%M:%S %Z %z 
+1794360600	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -At -c SELECT (SELECT count(*) FROM live_trading_session WHERE session_type = 'REAL' AND status IN ('RUNNING','PAUSED','CREATED')) || '|' ||            (SELECT count(*) FROM dynamic_session WHERE
+1794360600	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -At -c SELECT coalesce(string_agg(id || ':' || status, ',' ORDER BY id), '-') FROM live_trading_session WHERE session_type = 'REAL' AND status IN ('RUNNING','PAUSED','CREATED') 
+1794360600	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -At -c SELECT session_type = 'REAL' AND strategy_type = 'DAILY_SMA20' AND coin_pair = 'KRW-BTC' AND timeframe = 'H1'   AND initial_capital = 20200 AND invest_ratio = 0.995 AND max_investment = 20
+1794360600	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -At -c SELECT available_krw = 20200 AND started_at IS NULL FROM live_trading_session WHERE id = 203 
+1794360600	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -At -c SELECT stage || '|' || to_char(started_at AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:MI:SS.US') || '|' || total_cap_krw FROM capital_stage_baseline 
+1794360600	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -At -F   -c SELECT 'real_open_positions', count(*) FROM position p LEFT JOIN live_trading_session l ON p.session_kind = 'LIVE' AND l.id = p.session_id LEFT JOIN dynamic_session d ON p.session_kin
+1794360600	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -At -F  |  -c    SELECT count(*) AS total,          count(*) FILTER (WHERE status = 'RUNNING' AND id NOT IN (576,577,578)) AS running_63,          count(*) FILTER (WHERE status = 'STOPPED' AND id
+1794360600	crontab	-l 
+1794360600	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -At -c WITH h AS (SELECT max(time) FILTER (WHERE time + interval '1 hour' <= now()) AS done, date_trunc('hour', now() - interval '2 minutes') - interval '1 hour' AS need FROM market_data_cache WH
+1794360600	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -At -c SELECT source_id || '|' || source_type || '|' || is_enabled || '|' || fetch_interval_min || '|' || coalesce(extract(epoch FROM last_fetched_at)::bigint::text, '-') FROM news_source_config 
+1794360600	git	show fa0691e647b61f6df4a85bdf796996f50470185e:scripts/ops/maint_checks.sql 
+1794360600	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -v maint_start=2026-11-11 10:30:00+09:00 -f - 
+1794360600	git	show fa0691e647b61f6df4a85bdf796996f50470185e:scripts/ops/maint_verify.py 
+1794360600	docker	compose -f docker-compose.prod.yml logs --no-color backend 
+1794360600	python3	- /d/tmp/v160d4/sim/runs/r1-v20/home/maint-v160/backend-before.log 
+1794360600	python3	- /d/tmp/v160d4/sim/runs/r1-v20/home/maint-v160/backend-before.log 
+1794360600	python3	- /d/tmp/v160d4/sim/runs/r1-v20/home/maint-v160/backend-before.log 
+1794360600	python3	- /d/tmp/v160d4/sim/runs/r1-v20/home/maint-v160/backend-before.log 
+1794360600	python3	- /d/tmp/v160d4/sim/runs/r1-v20/home/maint-v160/backend-before.log 
+1794360600	python3	- /d/tmp/v160d4/sim/runs/r1-v20/home/maint-v160/backend-before.log 
+1794360600	python3	scripts/prospective/start_66.py alerts --days 1 --no-mark 
+1794360600	git	rev-parse HEAD:scripts/prospective/start_66.py 
+1794360600	git	rev-parse HEAD:scripts/prospective/test_freshness_recheck_fail.py 
+1794360600	git	rev-parse 88f06345af31888c2c8669ebe8ad00ca02cfd6d8:scripts/prospective/test_freshness_recheck_fail.py 
+1794360600	git	rev-parse 88f06345af31888c2c8669ebe8ad00ca02cfd6d8:scripts/prospective/start_66.py 
+1794360600	pgrep	-af ^[^ ]*python[0-9.]* +([^ ]+ +)*[^ ]*start_66[.]py +freshness 
+1794360600	git	ls-tree --name-only 88f06345af31888c2c8669ebe8ad00ca02cfd6d8 web-api/src/main/resources/db/migration/ 
+1794360600	git	rev-parse 88f06345af31888c2c8669ebe8ad00ca02cfd6d8:web-api/src/main/resources/db/migration/V96__paper_aligned_runtime_state.sql 
+1794360600	docker	compose -f docker-compose.prod.yml ps -q frontend 
+1794360600	docker	inspect --format {{.Image}} cid-frontend 
+1794360600	docker	compose -f docker-compose.prod.yml ps -q frontend 
+1794360600	docker	inspect --format {{.Config.Image}} cid-frontend 
+1794360600	git	cat-file -e 6385e1d5f64eb09a95791ba253a30d2b21341082^{commit} 
+1794360600	git	show 6385e1d5f64eb09a95791ba253a30d2b21341082:docs/evidence/v159-20261113/d4-draft/preflight-real-loss-readonly.v2.sql 
