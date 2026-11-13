@@ -1,0 +1,16 @@
+#!/bin/bash
+# 가짜 python3 — 블록 안 heredoc(-) 과 보존 maint_verify.py 만 실제 Python 으로 돌린다. 경보 조회(start_66.py)는 고정 출력.
+. "$(dirname "$0")/_lib.sh"; calllog python3 "$@"
+[ -f "$SIM/env.sh" ] && . "$SIM/env.sh"
+PYREAL='/c/Users/SangJoon_Lee/AppData/Local/Microsoft/WindowsApps/PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0/python.exe'
+export PYTHONUTF8=1 PYTHONIOENCODING=utf-8
+case "$1" in
+  -) "$PYREAL" -I -X utf8 "$@" | tr -d '\r'; exit ${PIPESTATUS[0]} ;;
+  */maint_verify.py) "$PYREAL" -I -X utf8 "$@" | tr -d '\r'; exit ${PIPESTATUS[0]} ;;
+  scripts/prospective/start_66.py) cat "$SIM/fix/alerts.txt"; exit ${ALERTS_RC:-0} ;;
+  -c) case "$2" in   # D3: 블록 원문의 두 -c(문법 확인·관측 행 대조)만 실제 Python 으로 돌린다
+        "import ast,sys; ast.parse("*|*'keys = ["at", "green", "rechecked"'*) "$PYREAL" -I -X utf8 "$@" | tr -d '\r'; exit ${PIPESTATUS[0]} ;;
+        *) forbid python3-c "$@" ;;
+      esac ;;
+  *) forbid python3 "$@" ;;
+esac

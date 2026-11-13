@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="§15 calculateStopLevels — SL/TP 초기 계산" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-11-12T23:21:39" hostname="DESKTOP-SF1KUQ5" time="0.002">
+  <properties/>
+  <testcase name="커스텀 SL 비율 적용 — SL 3%, TP 9%" classname="com.cryptoautotrader.core.risk.ExitRuleCheckerTest$CalculateStopLevels" time="0.0"/>
+  <testcase name="기본 설정: SL=진입가-5%, TP=진입가+10%" classname="com.cryptoautotrader.core.risk.ExitRuleCheckerTest$CalculateStopLevels" time="0.0"/>
+  <testcase name="signal이 suggestedStopLoss/TakeProfit를 제공하면 그 값 사용" classname="com.cryptoautotrader.core.risk.ExitRuleCheckerTest$CalculateStopLevels" time="0.0"/>
+  <testcase name="ATR 활성화 — 손절폭 = ATR × 배수 (상하한 사이)" classname="com.cryptoautotrader.core.risk.ExitRuleCheckerTest$CalculateStopLevels" time="0.0"/>
+  <testcase name="신호가 suggestedStopLoss/TakeProfit를 제공하면 ATR 활성 상태에서도 신호값 우선" classname="com.cryptoautotrader.core.risk.ExitRuleCheckerTest$CalculateStopLevels" time="0.0"/>
+  <testcase name="ATR 비활성 설정이면 atr 인자를 넘겨도 고정 % 그대로 사용" classname="com.cryptoautotrader.core.risk.ExitRuleCheckerTest$CalculateStopLevels" time="0.001"/>
+  <testcase name="ATR 활성화 — 계산된 손절폭이 상한 초과면 상한으로 클램프" classname="com.cryptoautotrader.core.risk.ExitRuleCheckerTest$CalculateStopLevels" time="0.0"/>
+  <testcase name="ATR 활성화 — 계산된 손절폭이 하한 미만이면 하한으로 클램프" classname="com.cryptoautotrader.core.risk.ExitRuleCheckerTest$CalculateStopLevels" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

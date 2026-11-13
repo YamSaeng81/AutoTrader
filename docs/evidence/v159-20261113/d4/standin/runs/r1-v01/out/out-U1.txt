@@ -1,0 +1,73 @@
+[대역 시작] U1 · 가짜 시각 2026-11-11 10:35:00 KST · 실제 09:22:58
+freshness 회차 없음(pgrep 종료 1)
+2026-11-11 10:35:00 KST
+sha256:24be48951737e2981a9dd58d98ec9b594d12567767febed33c9fb2793d02c2ef
+a7ef759f86c6048b442b1fe37019ed2560fd87453fbea8991a67f49d8d28c79f */d/tmp/v159d4/sim/runs/r1-v01/home/maint-v159/app-old.jar
+0834382ab008e1b203b6f74718799dc183e63b2c3cf9d67b6c974b6c30c5e100 */d/tmp/v159d4/sim/runs/r1-v01/home/maint-v159/app-new.jar
+변경 BOOT-INF/classes/com/cryptoautotrader/api/controller/PaperTradingController.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/dto/PaperTradingStartRequest.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/dto/PerformanceSummaryResponse$PerformanceSummaryResponseBuilder.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/dto/PerformanceSummaryResponse$RegimeStat$RegimeStatBuilder.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/dto/PerformanceSummaryResponse$RegimeStat.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/dto/PerformanceSummaryResponse$SessionPerformance$SessionPerformanceBuilder.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/dto/PerformanceSummaryResponse$SessionPerformance.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/dto/PerformanceSummaryResponse.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/entity/paper/PaperPositionEntity$PaperPositionEntityBuilder.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/entity/paper/PaperPositionEntity.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/entity/paper/VirtualBalanceEntity$VirtualBalanceEntityBuilder.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/entity/paper/VirtualBalanceEntity.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/repository/OrderRepository.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/repository/paper/PaperPositionRepository.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/repository/paper/VirtualBalanceRepository.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/CandleFreshnessGuard.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$1.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$2.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$3.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$BlackSwanGateDecision.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$BuyCandidate.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$EmptyPositionOutcome.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/EntryPriorityRounds.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService$1.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService$EmptyPositionOutcome.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService$PriceSnapshot.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$1.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$2.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$3.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$4.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$5.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$CancelOutcome.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$ClosingSellIntent.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$IntentExpired.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$ReservationRejected.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$SubmitRejection.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/service/PaperExecutionMode.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/service/PaperMaxInvestment.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/PaperTradingService$1.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/service/PaperTradingService$2.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/service/PaperTradingService$AlignedEntryExpired.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/PaperTradingService$RiskMetrics.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/service/PaperTradingService$SessionValuation.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/PaperTradingService.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/service/RealtimeProtectLines$Collector.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/service/RealtimeProtectLines$Line.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/service/RealtimeProtectLines.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/service/RealtimeProtectionDispatcher$CoinLane.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/service/RealtimeProtectionDispatcher$Engine.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/service/RealtimeProtectionDispatcher$Snapshot.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/service/RealtimeProtectionDispatcher.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/RiskManagementService.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/TelegramNotificationService$Attempt.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/TelegramNotificationService$Outcome.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/TelegramNotificationService$Reply.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/TelegramNotificationService$SendMessageRequest.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/TelegramNotificationService$TradeEvent.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/TelegramNotificationService.class
+추가 BOOT-INF/classes/db/migration/V96__paper_aligned_runtime_state.sql
+(끝) 881 895
+== frontend(같은 릴리스) — 기존 이미지 보존 태그·새 이미지 빌드(재기동 없음)
+sha256:746d56ffd24c3505ea858309a84d0e74a15a3ff297467bd6e8aa264d5258865d
+✅ U1 통과 — ⏸ 운영자 확인 1회 뒤 U2(backend 만 재기동, frontend 는 U3 뒤 UF2)
+[대역 끝] rc=0 · 가짜 시각 10:35:00

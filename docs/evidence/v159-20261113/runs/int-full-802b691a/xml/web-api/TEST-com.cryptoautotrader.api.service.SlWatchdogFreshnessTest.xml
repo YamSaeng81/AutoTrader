@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="N02 보완 SL 감시기 — 낡은 REST 응답은 점검·매도·재개 문구 없음, 신선한 응답은 실제 점검 기록" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-11-13T00:39:54" hostname="DESKTOP-SF1KUQ5" time="0.271">
+  <properties/>
+  <testcase name="LIVE" classname="com.cryptoautotrader.api.service.SlWatchdogFreshnessTest" time="0.014"/>
+  <testcase name="DYNAMIC" classname="com.cryptoautotrader.api.service.SlWatchdogFreshnessTest" time="0.134"/>
+  <testcase name="LIVE" classname="com.cryptoautotrader.api.service.SlWatchdogFreshnessTest" time="0.059"/>
+  <testcase name="DYNAMIC" classname="com.cryptoautotrader.api.service.SlWatchdogFreshnessTest" time="0.061"/>
+  <system-out><![CDATA[09:39:54.319 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.SlWatchdogFreshnessTest
+09:39:54.329 [Test worker] WARN  c.c.api.service.LiveTradingService - [§9] SL 미점검 경고: sessionId=464 coin=KRW-WDGL1 마지막체크=2026-11-13T00:29:54.329233200Z (3분 초과)
+09:39:54.344 [Test worker] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+09:39:54.347 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검: sessionId=274 coin=KRW-WDGD2 마지막체크=2026-11-13T00:29:54.342397100Z (3분 초과, 연속 1회, WS구독=있음, REST강제갱신=STALE 체결 121초 전)
+09:39:54.348 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검: sessionId=274 coin=KRW-WDGD2 마지막체크=2026-11-13T00:29:54.342397100Z (3분 초과, 연속 2회, WS구독=있음, REST강제갱신=STALE 체결 121초 전)
+09:39:54.380 [ForkJoinPool.commonPool-worker-2] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 성공
+09:39:54.382 [ForkJoinPool.commonPool-worker-2] INFO  c.c.e.upbit.UpbitWebSocketClient - WebSocket 구독 메시지 전송: coins=[KRW-WDGD2]
+09:39:54.406 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검: sessionId=274 coin=KRW-WDGD2 마지막체크=2026-11-13T00:29:54.342397100Z (3분 초과, 연속 3회, WS구독=있음, REST강제갱신=STALE 체결 121초 전)
+09:39:54.407 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검: sessionId=274 coin=KRW-WDGD2 마지막체크=2026-11-13T00:29:54.342397100Z (3분 초과, 연속 4회, WS구독=있음, REST강제갱신=STALE 체결 121초 전)
+09:39:54.468 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검: sessionId=274 coin=KRW-WDGD2 마지막체크=2026-11-13T00:29:54.342397100Z (3분 초과, 연속 5회, WS구독=있음, REST강제갱신=STALE 체결 121초 전)
+09:39:54.475 [Test worker] WARN  c.c.api.service.LiveTradingService - [§9] SL 미점검 경고: sessionId=465 coin=KRW-WDGL3 마지막체크=2026-11-13T00:29:54.474560900Z (3분 초과)
+09:39:54.536 [Test worker] WARN  c.c.e.upbit.UpbitWebSocketClient - 이미 WebSocket에 연결되어 있음. 기존 연결 종료 후 재연결합니다.
+09:39:54.536 [Test worker] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+09:39:54.536 [Test worker] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+09:39:54.539 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검: sessionId=275 coin=KRW-WDGD4 마지막체크=2026-11-13T00:29:54.535216600Z (3분 초과, 연속 1회, WS구독=있음, REST강제갱신=PUBLISHED 체결 1초 전)
+09:39:54.544 [HttpClient-858-Worker-0] WARN  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 종료: code=1000, reason=정상 종료
+09:39:54.544 [HttpClient-858-Worker-0] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+09:39:54.544 [HttpClient-858-Worker-0] INFO  c.c.e.upbit.UpbitWebSocketClient - 1000ms 후 WebSocket 재연결 시도
+09:39:54.568 [ForkJoinPool.commonPool-worker-2] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 성공
+09:39:54.568 [ForkJoinPool.commonPool-worker-2] INFO  c.c.e.upbit.UpbitWebSocketClient - WebSocket 구독 메시지 전송: coins=[KRW-WDGD4]
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

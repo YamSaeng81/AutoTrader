@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.SkipCountProbeFailTest" tests="1" skipped="0" failures="1" errors="0" timestamp="2026-11-12T23:53:25" hostname="DESKTOP-SF1KUQ5" time="0.013">
+  <properties/>
+  <testcase name="failOnPurpose()" classname="com.cryptoautotrader.api.service.SkipCountProbeFailTest" time="0.013">
+    <failure message="java.lang.AssertionError: 의도한 실패 — 콘솔 집계 줄을 얻기 위한 진단" type="java.lang.AssertionError">java.lang.AssertionError: 의도한 실패 — 콘솔 집계 줄을 얻기 위한 진단
+	at com.cryptoautotrader.api.service.SkipCountProbeFailTest.failOnPurpose(SkipCountProbeFailTest.java:9)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

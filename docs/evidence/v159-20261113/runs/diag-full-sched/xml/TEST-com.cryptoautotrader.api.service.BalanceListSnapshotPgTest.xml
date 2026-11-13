@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="I 잔고·목록 RR — 실제 PG 경합: 조회 도중 정산이 커밋돼도 응답은 정산 전 스냅샷 하나, 커밋 뒤 조회는 정산 뒤 하나" tests="2" skipped="2" failures="0" errors="0" timestamp="2026-11-13T01:06:34" hostname="DESKTOP-SF1KUQ5" time="0.0">
+  <properties/>
+  <testcase name="잔고 — 세션을 읽은 뒤·대기 수 읽기 직전 정산 커밋" classname="com.cryptoautotrader.api.service.BalanceListSnapshotPgTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <testcase name="목록 — 세션 목록을 읽은 뒤·세션별 대기 수 묶음 질의 직전 정산 커밋" classname="com.cryptoautotrader.api.service.BalanceListSnapshotPgTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

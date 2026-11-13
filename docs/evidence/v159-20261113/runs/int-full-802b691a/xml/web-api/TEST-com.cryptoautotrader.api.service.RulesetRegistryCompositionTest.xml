@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.RulesetRegistryCompositionTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-11-13T00:38:15" hostname="DESKTOP-SF1KUQ5" time="0.039">
+  <properties/>
+  <testcase name="진입 게이트 값이 바뀌면 지문이 갈린다 — gate.* 가 해시에 실제로 반영된다" classname="com.cryptoautotrader.api.service.RulesetRegistryCompositionTest" time="0.008"/>
+  <testcase name="동적 세션 지문에 필수 키가 전부 들어간다 (워치리스트 필터 포함)" classname="com.cryptoautotrader.api.service.RulesetRegistryCompositionTest" time="0.004"/>
+  <testcase name="페이퍼·라이브 지문도 공통 키를 모두 갖는다" classname="com.cryptoautotrader.api.service.RulesetRegistryCompositionTest" time="0.004"/>
+  <testcase name="엔진이 다르면 지문이 갈린다 — 같은 파라미터라도 같은 규칙이 아니다" classname="com.cryptoautotrader.api.service.RulesetRegistryCompositionTest" time="0.005"/>
+  <testcase name="A/B: 같은 파라미터는 같은 지문 — 표기 차이로 팔이 쪼개지면 안 된다" classname="com.cryptoautotrader.api.service.RulesetRegistryCompositionTest" time="0.005"/>
+  <testcase name="A/B: 세션 전략 파라미터가 다르면 지문이 갈린다 — 감쇠값 실험의 전제 조건" classname="com.cryptoautotrader.api.service.RulesetRegistryCompositionTest" time="0.003"/>
+  <testcase name="전략 파라미터가 다르면 지문이 갈린다 — 같은 전략의 다른 튜닝을 구분한다" classname="com.cryptoautotrader.api.service.RulesetRegistryCompositionTest" time="0.004"/>
+  <testcase name="전략 파라미터의 수치 표기 차이는 지문을 가르지 않는다 (14 == 14.0)" classname="com.cryptoautotrader.api.service.RulesetRegistryCompositionTest" time="0.003"/>
+  <system-out><![CDATA[09:38:15.960 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.RulesetRegistryCompositionTest
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

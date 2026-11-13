@@ -1,0 +1,6 @@
+#!/bin/bash
+# V159D4: frontend 응답 확인 한 형태만 받는다(그 밖은 금지). 응답 코드는 FE_HTTP(기본 200).
+. "$(dirname "$0")/_lib.sh"; calllog curl "$@"
+[ -f "$SIM/env.sh" ] && . "$SIM/env.sh"
+[ "$*" = "-s -o /dev/null -w %{http_code} http://localhost:3000/" ] || forbid curl "$@"
+printf '%s' "${FE_HTTP:-200}"

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.ExitRuleCalculatorTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-11-13T00:37:26" hostname="DESKTOP-SF1KUQ5" time="0.0">
+  <properties/>
+  <testcase name="maxHoldHours가 null이면 비활성 — 절대 트리거되지 않는다" classname="com.cryptoautotrader.api.service.ExitRuleCalculatorTest" time="0.0"/>
+  <testcase name="보유시간이 한도를 정확히 채우면 트리거" classname="com.cryptoautotrader.api.service.ExitRuleCalculatorTest" time="0.0"/>
+  <testcase name="maxHoldHours가 0이면 비활성 (LIVE·DYNAMIC 공통 기본값)" classname="com.cryptoautotrader.api.service.ExitRuleCalculatorTest" time="0.0"/>
+  <testcase name="보유시간이 한도를 초과하면 트리거 — LIVE 세션 194 BTC 136시간 고착 재현 시나리오" classname="com.cryptoautotrader.api.service.ExitRuleCalculatorTest" time="0.0"/>
+  <testcase name="maxHoldHours가 음수여도 비활성 (방어적)" classname="com.cryptoautotrader.api.service.ExitRuleCalculatorTest" time="0.0"/>
+  <testcase name="openedAt이 null이면 비활성 — 포지션 개설 시각을 모르면 트리거하지 않는다" classname="com.cryptoautotrader.api.service.ExitRuleCalculatorTest" time="0.0"/>
+  <testcase name="보유시간이 한도 미만이면 통과(청산 아님)" classname="com.cryptoautotrader.api.service.ExitRuleCalculatorTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

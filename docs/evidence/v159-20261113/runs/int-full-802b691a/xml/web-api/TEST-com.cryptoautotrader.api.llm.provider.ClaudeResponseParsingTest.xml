@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.llm.provider.ClaudeResponseParsingTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-11-13T00:35:40" hostname="DESKTOP-SF1KUQ5" time="0.004">
+  <properties/>
+  <testcase name="평범한 단일 텍스트 응답은 그대로 읽는다 — 기존 동작을 깨지 않았다" classname="com.cryptoautotrader.api.llm.provider.ClaudeResponseParsingTest" time="0.001"/>
+  <testcase name="content 가 배열이 아니거나 없어도 터지지 않는다" classname="com.cryptoautotrader.api.llm.provider.ClaudeResponseParsingTest" time="0.001"/>
+  <testcase name="텍스트 블록이 하나도 없으면 빈 문자열 — 호출부가 오류로 처리한다" classname="com.cryptoautotrader.api.llm.provider.ClaudeResponseParsingTest" time="0.0"/>
+  <testcase name="max_tokens 로 잘린 응답도 있는 만큼은 살린다 — 통째로 버리지 않는다" classname="com.cryptoautotrader.api.llm.provider.ClaudeResponseParsingTest" time="0.0"/>
+  <testcase name="&#x1f534; thinking 블록이 앞에 와도 본문을 읽는다 — 이게 24/27 건을 날린 원인" classname="com.cryptoautotrader.api.llm.provider.ClaudeResponseParsingTest" time="0.0"/>
+  <testcase name="tool_use 등 텍스트가 아닌 블록은 건너뛴다" classname="com.cryptoautotrader.api.llm.provider.ClaudeResponseParsingTest" time="0.0"/>
+  <testcase name="텍스트가 여러 블록으로 쪼개져 와도 순서대로 이어 붙인다" classname="com.cryptoautotrader.api.llm.provider.ClaudeResponseParsingTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

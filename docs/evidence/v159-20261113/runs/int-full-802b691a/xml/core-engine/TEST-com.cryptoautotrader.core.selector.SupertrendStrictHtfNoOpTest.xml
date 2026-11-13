@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="strictHtf 무효 증명 — HTF 확인자가 Supertrend 인 경우" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-13T00:13:38" hostname="DESKTOP-SF1KUQ5" time="0.097">
+  <properties/>
+  <testcase name="Supertrend 는 데이터가 충분하면 HOLD 를 내지 않는다 — strict 가 막을 대상이 없다" classname="com.cryptoautotrader.core.selector.SupertrendStrictHtfNoOpTest" time="0.022"/>
+  <testcase name="최소 캔들 수 계약상 HTF 데이터 부족 분기도 도달 불가" classname="com.cryptoautotrader.core.selector.SupertrendStrictHtfNoOpTest" time="0.001"/>
+  <testcase name="strictHtf=true 와 false 가 완전히 같은 신호를 낸다 (300 시나리오 × BUY/SELL)" classname="com.cryptoautotrader.core.selector.SupertrendStrictHtfNoOpTest" time="0.073"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

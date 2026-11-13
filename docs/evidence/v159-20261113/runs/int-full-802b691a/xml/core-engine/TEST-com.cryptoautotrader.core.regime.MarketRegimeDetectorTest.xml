@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="MarketRegimeDetector — 시장 상태 감지" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-11-13T00:13:34" hostname="DESKTOP-SF1KUQ5" time="0.009">
+  <properties/>
+  <testcase name="TRANSITIONAL: 적합/비적합 전략이 모두 없음 (MarketRegimeFilter 검증)" classname="com.cryptoautotrader.core.regime.MarketRegimeDetectorTest" time="0.002"/>
+  <testcase name="resetState() 후 previousRegime이 RANGE로 초기화" classname="com.cryptoautotrader.core.regime.MarketRegimeDetectorTest" time="0.002"/>
+  <testcase name="Hysteresis: TREND가 3회 연속 감지되면 전환 확정" classname="com.cryptoautotrader.core.regime.MarketRegimeDetectorTest" time="0.001"/>
+  <testcase name="ATR 급등(±5% 변동성 구간) → detectRaw는 VOLATILITY 가능" classname="com.cryptoautotrader.core.regime.MarketRegimeDetectorTest" time="0.001"/>
+  <testcase name="데이터 부족(&lt; MIN_CANDLE_COUNT)이면 기본값 RANGE 반환" classname="com.cryptoautotrader.core.regime.MarketRegimeDetectorTest" time="0.0"/>
+  <testcase name="Hysteresis: 새 Regime이 3회 미만 연속이면 전환 안 함" classname="com.cryptoautotrader.core.regime.MarketRegimeDetectorTest" time="0.001"/>
+  <testcase name="강한 상승 추세(매 캔들 +1%) → 3회 연속 호출 후 TREND" classname="com.cryptoautotrader.core.regime.MarketRegimeDetectorTest" time="0.001"/>
+  <testcase name="횡보 데이터에서 RANGE 또는 VOLATILITY" classname="com.cryptoautotrader.core.regime.MarketRegimeDetectorTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

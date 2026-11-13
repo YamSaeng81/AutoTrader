@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="서킷 브레이커 순서 — 비활성·MDD 는 CLOSED 조회 0, 연속 손실 경로는 종전 결과" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-11-13T00:38:15" hostname="DESKTOP-SF1KUQ5" time="0.002">
+  <properties/>
+  <testcase name="정상 연속 손실 경로 — 조회 1회, 5연속 손실이면 발동, 이익이 끼면 끊긴다" classname="com.cryptoautotrader.api.service.RiskCircuitBreakerOrderTest" time="0.001"/>
+  <testcase name="비활성 — 조회 없이 통과 / MDD 초과 — 조회 없이 발동 (조회가 예외여도)" classname="com.cryptoautotrader.api.service.RiskCircuitBreakerOrderTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

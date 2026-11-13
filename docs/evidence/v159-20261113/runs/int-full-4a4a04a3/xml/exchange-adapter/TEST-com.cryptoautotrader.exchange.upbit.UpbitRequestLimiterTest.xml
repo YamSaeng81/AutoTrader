@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.exchange.upbit.UpbitRequestLimiterTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-11-12T23:21:45" hostname="DESKTOP-SF1KUQ5" time="35.729">
+  <properties/>
+  <testcase name="서로 다른 인스턴스도 같은 제한기를 쓴다 — 두 인스턴스의 연속 요청이 서버에 간격을 두고 닿는다(통과 뒤 전송 지연만큼 흔들림)" classname="com.cryptoautotrader.exchange.upbit.UpbitRequestLimiterTest" time="0.151"/>
+  <testcase name="&#x1f534; 잠금을 오래 기다린 요청도 '지금' 기준으로 통과한다 — 곧바로 뒤따르는 요청과 간격을 지킨다(3차 보완: 시각을 잠금 안에서 읽음)" classname="com.cryptoautotrader.exchange.upbit.UpbitRequestLimiterTest" time="0.746"/>
+  <testcase name="통과 시각은 원자적으로 간격을 지킨다 — 12스레드 동시 통과에서도 서로 125ms 이상" classname="com.cryptoautotrader.exchange.upbit.UpbitRequestLimiterTest" time="5.906"/>
+  <testcase name="&#x1f534; 늦게 깨어나는 제한기로 같은 HTTP 경로를 돌려도 서버가 받은 1초 창은 10회 이하(지연은 요청을 흩을 뿐 몰리게 하지 않는다)" classname="com.cryptoautotrader.exchange.upbit.UpbitRequestLimiterTest" time="10.063"/>
+  <testcase name="&#x1f534; 늦게 깨어나도(GC·스케줄링 지연 흉내 — 매번 100~400ms 더 잔다) 몰려 통과하지 않는다 — 통과 시점에 다시 확인" classname="com.cryptoautotrader.exchange.upbit.UpbitRequestLimiterTest" time="5.805"/>
+  <testcase name="&#x1f534; 모의 HTTP 서버가 받은 시각 — 4인스턴스×3스레드(96건) + 감시 1초 간격이 겹쳐도 어느 1초 창에도 10회 이하(이 실행 조건)" classname="com.cryptoautotrader.exchange.upbit.UpbitRequestLimiterTest" time="13.057"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

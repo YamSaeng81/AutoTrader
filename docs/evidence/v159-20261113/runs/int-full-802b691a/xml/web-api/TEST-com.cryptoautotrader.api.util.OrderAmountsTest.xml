@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.util.OrderAmountsTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-11-13T00:40:27" hostname="DESKTOP-SF1KUQ5" time="0.001">
+  <properties/>
+  <testcase name="가격이 없으면 KRW 금액은 계산 불가 — 0이 아니라 null" classname="com.cryptoautotrader.api.util.OrderAmountsTest" time="0.0"/>
+  <testcase name="시장가 매수 미체결: 코인 수량은 알 수 없으므로 null (0이 아니다)" classname="com.cryptoautotrader.api.util.OrderAmountsTest" time="0.0"/>
+  <testcase name="시장가 매도: quantity 가 그대로 코인 수량이고, 금액은 price × quantity" classname="com.cryptoautotrader.api.util.OrderAmountsTest" time="0.001"/>
+  <testcase name="시장가 매수: quantity 는 KRW — 코인 수량은 filledQuantity 에서 가져온다" classname="com.cryptoautotrader.api.util.OrderAmountsTest" time="0.0"/>
+  <testcase name="시장가 매수: executedFunds 가 있으면 그쪽이 실제 사용 KRW다 (부분 체결)" classname="com.cryptoautotrader.api.util.OrderAmountsTest" time="0.0"/>
+  <testcase name="지정가 매수: price 타입이 아니므로 quantity 는 코인 수량이다" classname="com.cryptoautotrader.api.util.OrderAmountsTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,8 @@
+core-engine tests 298 fail 0 err 0 skip 7 pass 291
+exchange-adapter tests 11 fail 0 err 0 skip 0 pass 11
+strategy-lib tests 113 fail 0 err 0 skip 0 pass 113
+web-api tests 1354 fail 1 err 0 skip 71 pass 1282
+FAIL com.cryptoautotrader.api.service.SchedulerProfileCleanupTest # LIVE
+    org.opentest4j.AssertionFailedError: [scheduler 프로필에서 @Scheduled 정리 작업이 60초 안에 대기 행을 가져가야 한다] 
+Expecting value to be true but was false
+1344 tests completed, 1 failed, 61 skipped

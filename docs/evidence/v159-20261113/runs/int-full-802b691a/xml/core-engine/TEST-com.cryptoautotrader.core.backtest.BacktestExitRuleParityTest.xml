@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.core.backtest.BacktestExitRuleParityTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-11-13T00:13:33" hostname="DESKTOP-SF1KUQ5" time="0.042">
+  <properties/>
+  <testcase name="가드: 백테스트가 공용 공식을 호출한다 — 자체 공식으로 되돌아가면 깨진다" classname="com.cryptoautotrader.core.backtest.BacktestExitRuleParityTest" time="0.009"/>
+  <testcase name="maxHoldHours 가 없으면 종전대로 청산되지 않는다 — 09-08 이전 동작 재현" classname="com.cryptoautotrader.core.backtest.BacktestExitRuleParityTest" time="0.012"/>
+  <testcase name="time stop 이 저변동 포지션을 청산한다 — 운영 청산의 47%를 차지하는 경로" classname="com.cryptoautotrader.core.backtest.BacktestExitRuleParityTest" time="0.011"/>
+  <testcase name="보유시간이 기준에 못 미치면 청산하지 않는다 — 무조건 파는 게 아니다" classname="com.cryptoautotrader.core.backtest.BacktestExitRuleParityTest" time="0.001"/>
+  <testcase name="TP 는 8% 를 넘지 않는다 — 백테스트가 실전이 안 쓰는 TP 10% 를 노리면 안 된다" classname="com.cryptoautotrader.core.backtest.BacktestExitRuleParityTest" time="0.003"/>
+  <testcase name="가드: 규칙을 바꾸면 BACKTEST_RULESET_VERSION 을 올려야 한다" classname="com.cryptoautotrader.core.backtest.BacktestExitRuleParityTest" time="0.002"/>
+  <testcase name="SL 은 ATR 을 반영한다 — 고정 5% 로 떨어지지 않는다" classname="com.cryptoautotrader.core.backtest.BacktestExitRuleParityTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

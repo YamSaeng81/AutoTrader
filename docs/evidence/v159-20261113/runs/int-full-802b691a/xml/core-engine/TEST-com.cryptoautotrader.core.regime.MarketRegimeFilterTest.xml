@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="MarketRegimeFilter — 시장 상태별 전략 적합성 매핑" tests="14" skipped="0" failures="0" errors="0" timestamp="2026-11-13T00:13:34" hostname="DESKTOP-SF1KUQ5" time="0.004">
+  <properties/>
+  <testcase name="TREND: 추세 추종 전략은 비활성화 대상 아님" classname="com.cryptoautotrader.core.regime.MarketRegimeFilterTest" time="0.0"/>
+  <testcase name="STOCHASTIC_RSI: RANGE에서 적합" classname="com.cryptoautotrader.core.regime.MarketRegimeFilterTest" time="0.0"/>
+  <testcase name="RANGE: VWAP, BOLLINGER, GRID, RSI, ORDERBOOK_IMBALANCE 적합" classname="com.cryptoautotrader.core.regime.MarketRegimeFilterTest" time="0.001"/>
+  <testcase name="RANGE: EMA_CROSS, MACD, SUPERTREND, ATR_BREAKOUT 비활성화 대상" classname="com.cryptoautotrader.core.regime.MarketRegimeFilterTest" time="0.0"/>
+  <testcase name="getUnsuitableStrategies — RANGE 반환 집합 크기 확인" classname="com.cryptoautotrader.core.regime.MarketRegimeFilterTest" time="0.0"/>
+  <testcase name="알 수 없는 전략명은 적합하지도 부적합하지도 않음" classname="com.cryptoautotrader.core.regime.MarketRegimeFilterTest" time="0.0"/>
+  <testcase name="getSuitableStrategies — TREND 반환 집합 크기 확인" classname="com.cryptoautotrader.core.regime.MarketRegimeFilterTest" time="0.0"/>
+  <testcase name="STOCHASTIC_RSI: TREND에서는 적합하지도 비적합하지도 않음 (중립)" classname="com.cryptoautotrader.core.regime.MarketRegimeFilterTest" time="0.0"/>
+  <testcase name="STOCHASTIC_RSI: VOLATILITY에서 적합" classname="com.cryptoautotrader.core.regime.MarketRegimeFilterTest" time="0.0"/>
+  <testcase name="TREND: GRID, VWAP, BOLLINGER 비활성화 대상" classname="com.cryptoautotrader.core.regime.MarketRegimeFilterTest" time="0.001"/>
+  <testcase name="TREND: EMA_CROSS, MACD, SUPERTREND, ATR_BREAKOUT 적합" classname="com.cryptoautotrader.core.regime.MarketRegimeFilterTest" time="0.0"/>
+  <testcase name="VOLATILITY: GRID, SUPERTREND 비활성화 대상" classname="com.cryptoautotrader.core.regime.MarketRegimeFilterTest" time="0.0"/>
+  <testcase name="VOLATILITY: ATR_BREAKOUT, RSI, ORDERBOOK_IMBALANCE 적합" classname="com.cryptoautotrader.core.regime.MarketRegimeFilterTest" time="0.001"/>
+  <testcase name="VOLATILITY: 적합 전략은 비활성화 대상 아님" classname="com.cryptoautotrader.core.regime.MarketRegimeFilterTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

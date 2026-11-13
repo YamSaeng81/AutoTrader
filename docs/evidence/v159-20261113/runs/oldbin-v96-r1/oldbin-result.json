@@ -1,0 +1,144 @@
+{
+ "meta": {
+  "old_jar": "D:/tmp/o1o3/jars/b5cd1d0.jar",
+  "old_sha": "a7ef759f86c6048b442b1fe37019ed2560fd87453fbea8991a67f49d8d28c79f",
+  "new_jar": "D:/tmp/v159/jar/4a4a04a3.jar",
+  "new_sha": "0834382ab008e1b203b6f74718799dc183e63b2c3cf9d67b6c974b6c30c5e100",
+  "db94": "v159_ob_v94_085409",
+  "db96": "v159_ob_v96_085409",
+  "flyway_v94": "1:true:242912697,2:true:-2056573116,3:true:1739641702,4:true:2070989806,5:true:-877014413,6:true:-23593746,7:true:-881840206,8:true:-377584960,9:true:1096119050,10:true:806297197,11:true:-1041471487,12:true:2025003329,13:true:-1891219635,14:true:543613442,15:true:301508240,16:true:-635172290,17:true:2114492075,18:true:-794014464,19:true:-1847578469,20:true:2126943853,21:true:-1742758552,22:true:383142200,23:true:-2012154074,24:true:-1814685881,25:true:151254085,26:true:-2106472897,27:true:1378209283,28:true:1545042016,29:true:1840231031,30:true:277538192,31:true:174018588,32:true:355976823,33:true:-1118348133,34:true:87727421,35:true:-453390047,36:true:-1329475983,37:true:-1481032843,38:true:-796943867,39:true:799729156,40:true:400120760,41:true:1590443648,42:true:1994349617,43:true:-1624301486,44:true:-2083947299,45:true:902718201,46:true:-534205363,47:true:-2147220381,48:true:-1209028024,49:true:1621328682,50:true:-462942731,51:true:432641467,52:true:2034484101,53:true:-1589505034,54:true:-1651986126,55:true:1816838473,56:true:753663788,57:true:2092888843,58:true:-1050168288,59:true:-277104456,60:true:832133112,61:true:406677590,62:true:86855092,63:true:646962375,64:true:1327655204,65:true:674315730,66:true:-552367355,67:true:-1772497700,68:true:-975045633,69:true:-820397077,70:true:664364981,71:true:-1834064094,72:true:875692595,73:true:-1240863061,74:true:-1390749572,75:true:-593975769,76:true:390127696,77:true:1834850128,78:true:993428243,79:true:1465549387,80:true:277056472,81:true:373486200,82:true:1526529611,83:true:-78306150,84:true:-1827964737,85:true:465009261,86:true:-1453456099,87:true:-878571903,88:true:-2103828665,89:true:683563188,90:true:-519189914,91:true:-852017115,92:true:1764489270,93:true:-630156954,94:true:-785319049",
+  "flyway_v96": "1:true:242912697,2:true:-2056573116,3:true:1739641702,4:true:2070989806,5:true:-877014413,6:true:-23593746,7:true:-881840206,8:true:-377584960,9:true:1096119050,10:true:806297197,11:true:-1041471487,12:true:2025003329,13:true:-1891219635,14:true:543613442,15:true:301508240,16:true:-635172290,17:true:2114492075,18:true:-794014464,19:true:-1847578469,20:true:2126943853,21:true:-1742758552,22:true:383142200,23:true:-2012154074,24:true:-1814685881,25:true:151254085,26:true:-2106472897,27:true:1378209283,28:true:1545042016,29:true:1840231031,30:true:277538192,31:true:174018588,32:true:355976823,33:true:-1118348133,34:true:87727421,35:true:-453390047,36:true:-1329475983,37:true:-1481032843,38:true:-796943867,39:true:799729156,40:true:400120760,41:true:1590443648,42:true:1994349617,43:true:-1624301486,44:true:-2083947299,45:true:902718201,46:true:-534205363,47:true:-2147220381,48:true:-1209028024,49:true:1621328682,50:true:-462942731,51:true:432641467,52:true:2034484101,53:true:-1589505034,54:true:-1651986126,55:true:1816838473,56:true:753663788,57:true:2092888843,58:true:-1050168288,59:true:-277104456,60:true:832133112,61:true:406677590,62:true:86855092,63:true:646962375,64:true:1327655204,65:true:674315730,66:true:-552367355,67:true:-1772497700,68:true:-975045633,69:true:-820397077,70:true:664364981,71:true:-1834064094,72:true:875692595,73:true:-1240863061,74:true:-1390749572,75:true:-593975769,76:true:390127696,77:true:1834850128,78:true:993428243,79:true:1465549387,80:true:277056472,81:true:373486200,82:true:1526529611,83:true:-78306150,84:true:-1827964737,85:true:465009261,86:true:-1453456099,87:true:-878571903,88:true:-2103828665,89:true:683563188,90:true:-519189914,91:true:-852017115,92:true:1764489270,93:true:-630156954,94:true:-785319049,96:true:-424836241",
+  "reads": {
+   "/api/v1/paper-trading/sessions": [
+    200,
+    "{\"success\": true, \"data\": [{\"strategyName\": \"DAILY_SMA20\", \"coinPair\": \"KRW-BTC\", \"startedAt\": \"2026-11-12T23:55:10.705233Z\", \"totalReturnPct\": 0.0, \"totalAssetKrw\": 500000.0, \"timeframe\": \"D1\", \"availableKrw\": 500000.0, \"stoppedAt\": null, \"totalFee\": 0.0, \"initialCapital\": 500000.0, \"realizedPnl\": "
+   ],
+   "/api/v1/paper-trading/sessions/2": [
+    200,
+    "{\"success\": true, \"data\": {\"strategyName\": \"DAILY_SMA20\", \"positionPnlPct\": 0, \"coinPair\": \"KRW-BTC\", \"positionValueKrw\": 0.0, \"startedAt\": null, \"totalReturnPct\": 0.0, \"totalAssetKrw\": 1000000.0, \"availableKrw\": 1000000.0, \"timeframe\": \"D1\", \"stoppedAt\": null, \"totalFee\": 0.0, \"initialCapital\": 100"
+   ],
+   "/api/v1/paper-trading/sessions/2/positions": [
+    200,
+    "{\"success\": true, \"data\": []}"
+   ],
+   "/api/v1/paper-trading/sessions/1": [
+    200,
+    "{\"success\": true, \"data\": {\"strategyName\": \"\", \"positionPnlPct\": 0, \"coinPair\": \"\", \"positionValueKrw\": 0.0, \"startedAt\": null, \"totalReturnPct\": 0.0, \"totalAssetKrw\": 10000000.0, \"availableKrw\": 10000000.0, \"timeframe\": \"\", \"stoppedAt\": null, \"totalFee\": 0.0, \"initialCapital\": 10000000.0, \"unrealiz"
+   ]
+  },
+  "flyway_log_lines_old_on_v96": [
+   "08:55:22.351 [main] INFO  o.f.c.i.license.VersionPrinter - Flyway Community Edition 9.22.3 by Redgate",
+   "08:55:22.373 [main] INFO  org.flywaydb.core.FlywayExecutor - Database: jdbc:postgresql://localhost:15437/v159_ob_v96_085409 (PostgreSQL 15.13)",
+   "08:55:22.461 [main] INFO  o.f.core.internal.command.DbValidate - Successfully validated 95 migrations (execution time 00:00.061s)",
+   "08:55:22.485 [main] INFO  o.f.core.internal.command.DbMigrate - Current version of schema \"public\": 96",
+   "08:55:22.486 [main] WARN  o.f.core.internal.command.DbMigrate - Schema \"public\" has a version (96) that is newer than the latest available migration (94) !",
+   "08:55:22.490 [main] INFO  o.f.core.internal.command.DbMigrate - Schema \"public\" is up to date. No migration necessary."
+  ],
+  "error_lines_old_on_v96": [
+   "08:55:30.404 [main] ERROR c.c.api.service.CapitalPoolLimits - 🔴 공유 풀 한도가 사전 등록과 맞지 않는다 — 실자금 진입·배정을 모두 거절한다: 한도 설정 누락 (단계= 총상한=null 포지션당=null 동시보유=null)",
+   "08:55:34.639 [scheduler-8] ERROR c.c.e.upbit.UpbitCandleCollector - 캔들 수집 실패: null",
+   "08:55:34.639 [scheduler-1] ERROR c.c.exchange.upbit.UpbitOrderClient - 계좌 조회 실패: null",
+   "08:55:34.639 [main] ERROR c.c.exchange.upbit.UpbitOrderClient - 계좌 조회 실패: null",
+   "08:55:34.643 [scheduler-8] ERROR c.c.a.service.MarketDataSyncService - 시장 데이터 동기화 실패: KRW-BTC D1 - 캔들 데이터 수집 실패",
+   "08:56:34.669 [scheduler-3] ERROR c.c.e.upbit.UpbitCandleCollector - 캔들 수집 실패: null",
+   "08:56:34.669 [scheduler-3] ERROR c.c.a.service.MarketDataSyncService - 시장 데이터 동기화 실패: KRW-BTC D1 - 캔들 데이터 수집 실패"
+  ],
+  "newcols": [
+   "2=2026-11-13 00:00:00+00 / 1=null,2=1000123.45,3=null,4=777.77",
+   "2=2026-11-13 00:00:00+00 / 1=null,2=1000123.45,3=null,4=777.77"
+  ],
+  "v96_columns": "position.exit_decided_at:timestamp with time zone:YES:none virtual_balance.mdd_peak_krw:numeric:YES:none"
+ },
+ "results": [
+  {
+   "name": "①  보존 구판 jar 실제 기동·Flyway V94",
+   "ok": true,
+   "detail": "115,92:true:1764489270,93:true:-630156954,94:true:-785319049"
+  },
+  {
+   "name": "①  V94 에 새 열 없음(exit_decided_at·mdd_peak_krw)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "②  대표 행 — PAPER 세션 id 1(키 없음)·2(LIVE_ALIGNED), 포지션은 세션 2",
+   "ok": false,
+   "detail": "1,2,3/2"
+  },
+  {
+   "name": "③  V94 복제본 생성(원본 DB 그대로)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "④  후보 jar 실제 기동·Flyway 가 V96 하나만 적용(V95 없음)",
+   "ok": true,
+   "detail": ",96:true:-424836241"
+  },
+  {
+   "name": "④  V96 적용·후보 기동 뒤 기존 행의 V94 열 불변",
+   "ok": true,
+   "detail": "{}"
+  },
+  {
+   "name": "④  두 열 NULL 허용·기본값 없음, 기존 행 NULL",
+   "ok": true,
+   "detail": "position.exit_decided_at:timestamp with time zone:YES:none virtual_balance.mdd_peak_krw:numeric:YES:none"
+  },
+  {
+   "name": "⑤  구판이 정지할 종전 PAPER RUNNING 행 id 3",
+   "ok": false,
+   "detail": ""
+  },
+  {
+   "name": "⑥  보존 구판 jar 가 V96 복제본에서 실제 기동",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "⑥  읽기 — 목록·LIVE_ALIGNED 세션 상세·포지션·종전 세션 상세 GET 200",
+   "ok": true,
+   "detail": "{\"/api/v1/paper-trading/sessions\": [200, \"{\\\"success\\\": true, \\\"data\\\": [{\\\"strategyName\\\": \\\"DAILY_SMA20\\\", \\\"coinPair\\\": \\\"KRW-BTC\\\", \\\"startedAt\\\": \\\"2026-11-12T23:55:10.705233Z\\\", \\\"totalReturnPct\\\": 0.0, \\\"totalAssetKrw\\\": 500000.0, \\\"timeframe\\\": \\\"D1\\\", \\\"availableKrw\\\": 500000.0, \\\"stoppedAt\\\": null, \\\"totalFee\\\": 0.0, \\\"initialCapital\\\": 500000.0, \\\"realizedPnl\\\": \"], \"/api/v1/paper-trading/sessions/2\": [200, \"{\\\"success\\\": true, \\\"data\\\": {\\\"strategyName\\\": \\\"DAILY_SMA20\\\", \\\"positionPnlPct\\\": 0, \\\"coinPair\\\": \\\"KRW-BTC\\\", \\\"positionValueKrw\\\": 0.0, \\\"startedAt\\\": null, \\\"totalReturnPct\\\": 0.0, \\\"totalAssetKrw\\\": 1000000.0, \\\"availableKrw\\\": 1000000.0, \\\"timeframe\\\": \\\"D1\\\", \\\"stoppedAt\\\": null, \\\"totalFee\\\": 0.0, \\\"initialCapital\\\": 100\"], \"/api/v1/paper-trading/sessions/2/positions\": [200, \"{\\\"success\\\": true, \\\"data\\\": []}\"], \"/api/v1/paper-trading/sessions/1\": [200, \"{\\\"suc"
+  },
+  {
+   "name": "⑥  쓰기 — 구판 API 정지(POST) 200 · 그 행 STOPPED",
+   "ok": true,
+   "detail": "(200, '{\"success\": false, \"error\": {\"code\": \"INVALID_REQUEST\", \"message\": \"모의투자가 실행 중이 아닙니다.\"}}')"
+  },
+  {
+   "name": "⑥  60초 생존",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "⑥  Flyway 이력 불변(96 그대로·95 없음·행 추가 없음) — validate 통과",
+   "ok": true,
+   "detail": "7115,92:true:1764489270,93:true:-630156954,94:true:-785319049,96:true:-424836241"
+  },
+  {
+   "name": "⑥  스키마·마이그레이션 관련 ERROR 0",
+   "ok": true,
+   "detail": "ERROR 7줄, 스키마 관련 0줄: "
+  },
+  {
+   "name": "⑥  새 열 값 보존(구판이 같은 표 행을 UPDATE 한 뒤에도)",
+   "ok": true,
+   "detail": "2=2026-11-13 00:00:00+00 / 1=null,2=1000123.45,3=null,4=777.77 → 2=2026-11-13 00:00:00+00 / 1=null,2=1000123.45,3=null,4=777.77"
+  },
+  {
+   "name": "⑥  구판 기동 중 V94 열 변경은 정지한 PAPER 행(virtual_balance id 3)이 있는 표뿐",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "name": "⑥  정지 대상이 아닌 PAPER 세션 행(1·2) V94 열은 V94 원본과 같다",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "⑦  후보 재기동·추가 마이그레이션 없음",
+   "ok": true,
+   "detail": ""
+  }
+ ]
+}

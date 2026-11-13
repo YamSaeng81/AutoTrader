@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.CandleRefreshReportRetryTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-13T00:08:30" hostname="DESKTOP-SF1KUQ5" time="0.164">
+  <properties/>
+  <testcase name="보고가 계속 실패하면 기존 횟수(3)·대기(2초·5초)에서 멈추고 이력에 최종 실패 한 줄" classname="com.cryptoautotrader.api.service.CandleRefreshReportRetryTest" time="0.135"/>
+  <testcase name="&#x1f534; 보고 첫 전송이 응답 없이 끊기면 다시 보내 전달된다 — 운영 30일 중 17일 미확인이던 그 보고" classname="com.cryptoautotrader.api.service.CandleRefreshReportRetryTest" time="0.019"/>
+  <testcase name="대조 — 다른 CUSTOM 은 재시도 대상이 아니다: 같은 실패에 1회로 끝, 유형도 CUSTOM 그대로" classname="com.cryptoautotrader.api.service.CandleRefreshReportRetryTest" time="0.009"/>
+  <system-out><![CDATA[09:08:30.889 [Test worker] WARN  c.c.a.s.CandleDataFreshnessScheduler - [CandleFreshness] ?? 캔들 수집 불가 1건 ? 평가는 하는데 캔들 이력이 아예 없습니다.
+KRW-BTC H1 (이력 없음)
+
+백테스트·WF 가 이 코인을 검증할 수 없습니다. 수동 백필이 필요합니다:
+bash scripts/backfill_candle_data.sh
+09:08:30.899 [Test worker] ERROR c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 중 오류(응답 미수신): HTTP/1.1 header parser received no bytes
+09:08:30.899 [Test worker] WARN  c.c.a.s.TelegramNotificationService - [Telegram] CANDLE_REFRESH_REPORT 전송 실패(NO_RESPONSE) ? 2000ms 후 재시도 (1/3)
+09:08:30.900 [Test worker] ERROR c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 중 오류(응답 미수신): HTTP/1.1 header parser received no bytes
+09:08:30.900 [Test worker] WARN  c.c.a.s.TelegramNotificationService - [Telegram] CANDLE_REFRESH_REPORT 전송 실패(NO_RESPONSE) ? 5000ms 후 재시도 (2/3)
+09:08:30.903 [Test worker] ERROR c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 중 오류(응답 미수신): HTTP/1.1 header parser received no bytes
+09:08:30.903 [Test worker] ERROR c.c.a.s.TelegramNotificationService - [Telegram] ? CANDLE_REFRESH_REPORT 알림 3회 시도 ? 최종 실패: 전송 성공 확인 실패 ? 중복 도착 가능(이력 success=false): ?? 캔들 수집 불가 1건 ? 평가는 하는데 캔들 이력이 아예 없습니다.
+KRW-BTC H1 (이력 없음)
+
+백테스트·WF 가 이 코인을 검증할 수 없습니다. 수동 백필이 필요합니다:
+bash scripts/
+09:08:30.915 [Test worker] WARN  c.c.a.s.CandleDataFreshnessScheduler - [CandleFreshness] ?? 캔들 수집 불가 1건 ? 평가는 하는데 캔들 이력이 아예 없습니다.
+KRW-BTC H1 (이력 없음)
+
+백테스트·WF 가 이 코인을 검증할 수 없습니다. 수동 백필이 필요합니다:
+bash scripts/backfill_candle_data.sh
+09:08:30.920 [Test worker] ERROR c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 중 오류(응답 미수신): HTTP/1.1 header parser received no bytes
+09:08:30.920 [Test worker] WARN  c.c.a.s.TelegramNotificationService - [Telegram] CANDLE_REFRESH_REPORT 전송 실패(NO_RESPONSE) ? 2000ms 후 재시도 (1/3)
+09:08:30.930 [Test worker] ERROR c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 중 오류(응답 미수신): HTTP/1.1 header parser received no bytes
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

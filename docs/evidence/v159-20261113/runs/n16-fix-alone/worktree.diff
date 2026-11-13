@@ -1,0 +1,63 @@
+diff --git a/crypto-trader-frontend/.dockerignore b/crypto-trader-frontend/.dockerignore
+index b561e25f..81d4ca13 100644
+--- a/crypto-trader-frontend/.dockerignore
++++ b/crypto-trader-frontend/.dockerignore
+@@ -7,3 +7,4 @@ e2e
+ *.spec.ts
+ .env.local
+ .env*.local
++playwright.paper-render.config.ts
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/N16InvalidPriceReproTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/N16InvalidPriceReproTest.java
+index 1213e778..3471d1cc 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/N16InvalidPriceReproTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/N16InvalidPriceReproTest.java
+@@ -191,6 +191,26 @@ class N16InvalidPriceReproTest extends IntegrationTestBase {
+         ((Map<String, Long>) ReflectionTestUtils.getField(target(f.kind()), field)).remove(f.coin());
+     }
+ 
++    /**
++     * 보호 매도가 있어야 하는 단언 전용 (v1.159, 2026-11-13). 매도 의도는 커밋 뒤 orderExecutor 작업이 거래소에 낸다. {@link #drain} 의
++     * 판정(대기열 비어 있음·활성 0·작업 수=완료 수)은 작업자가 막 꺼낸 작업을 잠그기 전에 참이 될 수 있어(4a4a04a3 전체 회귀에서 재현:
++     * drain 직후 active=1·INTENT_READY, 21ms 뒤 SUBMITTED), 거래소 호출을 최대 15초 기다린 뒤 실행기를 다시 비우고 그 수를 돌려준다.
++     * 기다려도 오지 않으면 그때의 수(0)를 돌려줘 단언이 실패한다. 0회 단언에는 쓰지 않는다.
++     */
++    private int awaitSells(Fx f, int expected) {
++        long deadline = System.currentTimeMillis() + 15_000;
++        while (exchangeSells(f) < expected && System.currentTimeMillis() < deadline) {
++            try {
++                Thread.sleep(20);
++            } catch (InterruptedException e) {
++                Thread.currentThread().interrupt();
++                break;
++            }
++        }
++        drain(orderExecutor);
++        return exchangeSells(f);
++    }
++
+     private int exchangeSells(Fx f) {
+         return (int) Mockito.mockingDetails(upbitOrderClient).getInvocations().stream()
+                 .filter(i -> "createOrder".equals(i.getMethod().getName()) && f.coin().equals(i.getArgument(0)))
+@@ -241,7 +261,7 @@ class N16InvalidPriceReproTest extends IntegrationTestBase {
+ 
+         clearThrottle(f);
+         send(f, new BigDecimal("280"), Instant.now());
+-        assertThat(exchangeSells(f)).as("신선한 정상 가격의 보호 매도 1회").isEqualTo(1);
++        assertThat(awaitSells(f, 1)).as("신선한 정상 가격의 보호 매도 1회").isEqualTo(1);
+         assertThat(positionStatus(f)).isEqualTo("CLOSING");
+     }
+ 
+@@ -258,10 +278,11 @@ class N16InvalidPriceReproTest extends IntegrationTestBase {
+         Instant afterNull = lastSlCheck(f);
+         clearThrottle(f);
+         send(f, new BigDecimal("280"), Instant.now());
+-        System.out.println("[N16 ②] " + kind + " null 뒤 점검 시각 " + afterNull + " · 다음 280 → 거래소 매도 " + exchangeSells(f)
++        int sells = awaitSells(f, 1);
++        System.out.println("[N16 ②] " + kind + " null 뒤 점검 시각 " + afterNull + " · 다음 280 → 거래소 매도 " + sells
+                 + " · 포지션 " + positionStatus(f));
+         assertThat(afterNull).as("null 로 보호 점검 시각을 남기지 않는다").isNull();
+-        assertThat(exchangeSells(f)).as("null 다음 신선한 정상 가격의 보호 매도 1회").isEqualTo(1);
++        assertThat(sells).as("null 다음 신선한 정상 가격의 보호 매도 1회").isEqualTo(1);
+     }
+ 
+     /**

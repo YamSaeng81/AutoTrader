@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="요청액 폴백의 전달 범위 — 평균단가·손절·익절·실현손익" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-11-13T00:10:07" hostname="DESKTOP-SF1KUQ5" time="0.014">
+  <properties/>
+  <testcase name="평균단가 300, 수수료는 거래소 보고값 1.47" classname="com.cryptoautotrader.api.service.RequestedFundsFallbackImpactTest" time="0.008"/>
+  <testcase name="수정 후 — 평균단가 300, 손익률 0%, 손절 폴백이 올바른 평균단가로 판단한다" classname="com.cryptoautotrader.api.service.RequestedFundsFallbackImpactTest" time="0.005"/>
+  <system-out><![CDATA[09:10:07.014 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.RequestedFundsFallbackImpactTest
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

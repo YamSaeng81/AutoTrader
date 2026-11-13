@@ -1,0 +1,5 @@
+web-api tests 10 fail 1 err 0 skip 0 pass 9
+FAIL com.cryptoautotrader.api.service.RealLossPreflightSqlParityPgTest # DYNAMIC REAL 손실이 있는데 RUNNING DYNAMIC REAL 자본 0 → 판정 불가(거절)
+    org.opentest4j.AssertionFailedError: [DYNAMIC 손실·자본0 DYNAMIC REAL 1d 판정] 
+expected: "판정 불가(DYNAMIC REAL 손실 있음·자본 0)"
+ but was: "허용"

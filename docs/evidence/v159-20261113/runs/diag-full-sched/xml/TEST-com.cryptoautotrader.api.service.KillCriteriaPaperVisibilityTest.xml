@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.KillCriteriaPaperVisibilityTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-11-13T01:07:41" hostname="DESKTOP-SF1KUQ5" time="0.061">
+  <properties/>
+  <testcase name="같은 전략이라도 타임프레임이 다르면 별개로 판정된다" classname="com.cryptoautotrader.api.service.KillCriteriaPaperVisibilityTest" time="0.018"/>
+  <testcase name="규칙이 바뀌면 표본이 분할된다 — 폐기가 아니라 재출발" classname="com.cryptoautotrader.api.service.KillCriteriaPaperVisibilityTest" time="0.008"/>
+  <testcase name="모의투자 세션이 판정 목록에 나타난다 — 스키마가 달라도 빠지지 않는다" classname="com.cryptoautotrader.api.service.KillCriteriaPaperVisibilityTest" time="0.005"/>
+  <testcase name="자본 보호는 페이퍼에도 세션 단위로 걸린다 — 거래 0건이어도 −15%면 폐기" classname="com.cryptoautotrader.api.service.KillCriteriaPaperVisibilityTest" time="0.005"/>
+  <testcase name="MAX_DRAWDOWN 은 페이퍼에서 생략된다 — virtual_balance 에 고점 컬럼이 없다" classname="com.cryptoautotrader.api.service.KillCriteriaPaperVisibilityTest" time="0.005"/>
+  <testcase name="규칙 지문이 없는 거래는 표본에서 제외된다 — V71 이전 데이터" classname="com.cryptoautotrader.api.service.KillCriteriaPaperVisibilityTest" time="0.007"/>
+  <testcase name="엣지 판정은 코인을 가로질러 합산한다 — 세션당 4거래 × 5세션 = 20으로 발동" classname="com.cryptoautotrader.api.service.KillCriteriaPaperVisibilityTest" time="0.012"/>
+  <system-out><![CDATA[10:07:41.843 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.KillCriteriaPaperVisibilityTest
+10:07:41.845 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+10:07:41.863 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+10:07:41.871 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+10:07:41.876 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+10:07:41.882 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+10:07:41.887 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+10:07:41.893 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,7 @@
+BEGIN
+GATE|v96=1|created=0|running=0|odd_session=0|open=0|closing=0|odd_position=0|stopped_with_open=0|unresolved_orders=0|acct_pending=1|applied_missing=0|reported_ne_applied=0|cleanup=0|discrepancy=0|real_closing=0|real_running=0|real_held=0|qty_mismatch=0|balance_mismatch=0
+DECIDED|closing_without_decided_at=0
+ROLLBACK
+VERDICT HOLD_PENDING (새모드CLOSING=0 미종결주문=0 회계반영대기=1 정리대기=0 미해결불일치=0 실계좌CLOSING=0 — 구판 복구 보류, 현재 바이너리로 정지·유효 가격 대기·정산/정리 계속, 보고)
+exit=2
+fingerprint before=cc6dfaf6019eb0a8c94e45093e938157 after=cc6dfaf6019eb0a8c94e45093e938157

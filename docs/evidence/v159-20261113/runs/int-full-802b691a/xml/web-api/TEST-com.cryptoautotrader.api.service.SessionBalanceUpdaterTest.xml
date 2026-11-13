@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.SessionBalanceUpdaterTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-11-13T00:39:42" hostname="DESKTOP-SF1KUQ5" time="0.152">
+  <properties/>
+  <testcase name="단일 스레드 mutation: version 증가 + 값 반영" classname="com.cryptoautotrader.api.service.SessionBalanceUpdaterTest" time="0.005"/>
+  <testcase name="동시 increment 10회 → 모든 증분이 보존된다 (last-write-wins 없음)" classname="com.cryptoautotrader.api.service.SessionBalanceUpdaterTest" time="0.147"/>
+  <system-out><![CDATA[09:39:42.518 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.SessionBalanceUpdaterTest
+09:39:42.520 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+09:39:42.525 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+09:39:42.530 [HttpClient-747-Worker-2] WARN  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 종료: code=1006, reason=
+09:39:42.530 [HttpClient-747-Worker-2] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+09:39:42.530 [HttpClient-747-Worker-2] INFO  c.c.e.upbit.UpbitWebSocketClient - 종료 요청됨. 재연결 스킵.
+09:39:42.532 [pool-34-thread-1] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=433 attempt=1 backoff=9ms
+09:39:42.532 [pool-34-thread-4] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=433 attempt=1 backoff=10ms
+09:39:42.532 [pool-34-thread-3] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=433 attempt=1 backoff=5ms
+09:39:42.532 [pool-34-thread-5] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=433 attempt=1 backoff=7ms
+09:39:42.532 [pool-34-thread-2] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=433 attempt=1 backoff=8ms
+09:39:42.545 [pool-34-thread-5] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=433 attempt=2 backoff=13ms
+09:39:42.545 [pool-34-thread-2] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=433 attempt=2 backoff=20ms
+09:39:42.545 [pool-34-thread-4] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=433 attempt=2 backoff=12ms
+09:39:42.545 [pool-34-thread-1] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=433 attempt=2 backoff=11ms
+09:39:42.561 [pool-34-thread-5] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=433 attempt=3 backoff=36ms
+09:39:42.561 [pool-34-thread-1] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=433 attempt=3 backoff=31ms
+09:39:42.609 [pool-34-thread-1] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=433 attempt=4 backoff=59ms
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

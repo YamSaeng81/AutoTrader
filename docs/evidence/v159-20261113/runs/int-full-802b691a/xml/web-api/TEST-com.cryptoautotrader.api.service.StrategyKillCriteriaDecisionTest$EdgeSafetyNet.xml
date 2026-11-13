@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="B. 엣지 판정은 코인을 가로질러 합산한 그룹에서만 본다" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-11-13T00:40:12" hostname="DESKTOP-SF1KUQ5" time="0.001">
+  <properties/>
+  <testcase name="시장이 더 나쁘면 절대 손실이어도 살린다" classname="com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest$EdgeSafetyNet" time="0.0"/>
+  <testcase name="세션은 적어도 코인을 합쳐 표본이 차면 판정한다 — 그룹 집계의 목적" classname="com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest$EdgeSafetyNet" time="0.0"/>
+  <testcase name="NEGATIVE_EV: n≥20 이고 누적 실현손익 ≤ 0 이면 폐기" classname="com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest$EdgeSafetyNet" time="0.001"/>
+  <testcase name="벤치마크를 못 구하면(캔들 부족) 알파 판정을 생략한다" classname="com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest$EdgeSafetyNet" time="0.0"/>
+  <testcase name="표본 미달(n=19)이면 손실이 나도 판정하지 않는다" classname="com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest$EdgeSafetyNet" time="0.0"/>
+  <testcase name="수익률은 자본 가중 — 세션 크기가 달라도 큰 세션이 결과를 지배하지 않는다" classname="com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest$EdgeSafetyNet" time="0.0"/>
+  <testcase name="승률이 낮아도 기대값이 양수면 살린다 — 승률 단독 폐기 기준은 없다" classname="com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest$EdgeSafetyNet" time="0.0"/>
+  <testcase name="NEGATIVE_ALPHA: 절대 수익이 나도 시장에 뒤지면 폐기" classname="com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest$EdgeSafetyNet" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

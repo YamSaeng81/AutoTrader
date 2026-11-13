@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.CandleDataFreshnessSchedulerTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-11-13T01:06:57" hostname="DESKTOP-SF1KUQ5" time="0.242">
+  <properties/>
+  <testcase name="요청 상한에 걸려도 '이력 없음' 은 전부 감지해 알린다 — 2026-09-20 실측 결함" classname="com.cryptoautotrader.api.service.CandleDataFreshnessSchedulerTest" time="0.233"/>
+  <testcase name="최신이면 아무 요청도 하지 않는다 — 매일 1일짜리 꼬리 요청이 반복되면 안 된다" classname="com.cryptoautotrader.api.service.CandleDataFreshnessSchedulerTest" time="0.001"/>
+  <testcase name="19일 밀린 갭도 포기하지 않고 잘라서 전부 요청한다 — 종전에는 건너뛰었다" classname="com.cryptoautotrader.api.service.CandleDataFreshnessSchedulerTest" time="0.002"/>
+  <testcase name="상한이 있을 때 가장 많이 밀린 조합부터 채운다 — 뒤쪽이 굶으면 안 된다" classname="com.cryptoautotrader.api.service.CandleDataFreshnessSchedulerTest" time="0.002"/>
+  <testcase name="캔들 이력이 아예 없으면 텔레그램으로 알린다 — 로그만 남기면 아무도 안 본다" classname="com.cryptoautotrader.api.service.CandleDataFreshnessSchedulerTest" time="0.001"/>
+  <testcase name="감시 기록 조회가 실패해도 설정 목록으로는 계속 돈다" classname="com.cryptoautotrader.api.service.CandleDataFreshnessSchedulerTest" time="0.001"/>
+  <testcase name="설정에 없어도 최근 감시한 코인은 갱신 대상에 들어간다" classname="com.cryptoautotrader.api.service.CandleDataFreshnessSchedulerTest" time="0.001"/>
+  <system-out><![CDATA[10:06:57.825 [Test worker] WARN  c.c.a.s.CandleDataFreshnessScheduler - [CandleFreshness] ?? 캔들 수집 불가 62건 ? 평가는 하는데 캔들 이력이 아예 없습니다.
+KRW-BTC H1 (이력 없음), KRW-BTC M15 (이력 없음), KRW-C0 M15 (이력 없음), KRW-C1 M15 (이력 없음), KRW-C2 M15 (이력 없음), KRW-C3 M15 (이력 없음), KRW-C4 M15 (이력 없음), KRW-C5 M15 (이력 없음), KRW-C6 M15 (이력 없음), KRW-C7 M15 (이력 없음), KRW-C8 M15 (이력 없음), KRW-C9 M15 (이력 없음), KRW-C10 M15 (이력 없음), KRW-C11 M15 (이력 없음), KRW-C12 M15 (이력 없음), KRW-C13 M15 (이력 없음), KRW-C14 M15 (이력 없음), KRW-C15 M15 (이력 없음), KRW-C16 M15 (이력 없음), KRW-C17 M15 (이력 없음), KRW-C18 M15 (이력 없음), KRW-C19 M15 (이력 없음), KRW-C20 M15 (이력 없음), KRW-C21 M15 (이력 없음), KRW-C22 M15 (이력 없음), KRW-C23 M15 (이력 없음), KRW-C24 M15 (이력 없음), KRW-C25 M15 (이력 없음), KRW-C26 M15 (이력 없음), KRW-C27 M15 (이력 없음), KRW-C28 M15 (이력 없음), KRW-C29 M15 (이력 없음), KRW-C30 M15 (이력 없음), KRW-C31 M15 (이력 없음), KRW-C32 M15 (이력 없음), KRW-C33 M15 (이력 없음), KRW-C34 M15 (이력 없음), KRW-C35 M15 (이력 없음), KRW-C36 M15 (이력 없음), KRW-C37 M15 (이력 없음), KRW-C38 M15 (이력 없음), KRW-C39 M15 (이력 없음), KRW-C40 M15 (이력 없음), KRW-C41 M15 (이력 없음), KRW-C42 M15 (이력 없음), KRW-C43 M15 (이력 없음), KRW-C44 M15 (이력 없음), KRW-C45 M15 (이력 없음), KRW-C46 M15 (이력 없음), KRW-C47 M15 (이력 없음), KRW-C48 M15 (이력 없음), KRW-C49 M15 (이력 없음), KRW-C50 M15 (이력 없음), KRW-C51 M15 (이력 없음), KRW-C52 M15 (이력 없음), KRW-C53 M15 (이력 없음), KRW-C54 M15 (이력 없음), KRW-C55 M15 (이력 없음), KRW-C56 M15 (이력 없음), KRW-C57 M15 (이력 없음), KRW-C58 M15 (이력 없음), KRW-C59 M15 (이력 없음)
+
+백테스트·WF 가 이 코인을 검증할 수 없습니다. 수동 백필이 필요합니다:
+bash scripts/backfill_candle_data.sh
+10:06:57.831 [Test worker] WARN  c.c.a.s.CandleDataFreshnessScheduler - [CandleFreshness] ?? 캔들 수집 불가 1건 ? 평가는 하는데 캔들 이력이 아예 없습니다.
+KRW-BTC H1 (이력 없음)
+
+백테스트·WF 가 이 코인을 검증할 수 없습니다. 수동 백필이 필요합니다:
+bash scripts/backfill_candle_data.sh
+10:06:57.833 [Test worker] WARN  c.c.a.s.CandleDataFreshnessScheduler - [CandleFreshness] ?? 캔들 수집 불가 1건 ? 평가는 하는데 캔들 이력이 아예 없습니다.
+KRW-KAITO H1 (이력 없음)
+
+백테스트·WF 가 이 코인을 검증할 수 없습니다. 수동 백필이 필요합니다:
+bash scripts/backfill_candle_data.sh
+10:06:57.834 [Test worker] WARN  c.c.a.s.CandleDataFreshnessScheduler - [CandleFreshness] 감시 기록 조회 실패 ? 설정 목록만 사용한다
+java.lang.RuntimeException: DB 장애
+	at com.cryptoautotrader.api.service.CandleDataFreshnessScheduler.resolveTargetCoins(CandleDataFreshnessScheduler.java:226)
+	at com.cryptoautotrader.api.service.CandleDataFreshnessScheduler.refreshNow(CandleDataFreshnessScheduler.java:128)
+	at com.cryptoautotrader.api.service.CandleDataFreshnessSchedulerTest.감시기록_조회_실패해도_멈추지_않는다(CandleDataFreshnessSchedulerTest.java:236)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:728)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:156)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:147)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:86)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:103)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:93)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:92)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:86)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$7(TestMethodTestDescriptor.java:218)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:214)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:139)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:69)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:151)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:155)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:155)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:198)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:169)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:93)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:58)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:141)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:57)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestClassProcessor$CollectAllTestClassesExecutor.processAllTestClasses(JUnitPlatformTestClassProcessor.java:119)
+	at org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestClassProcessor$CollectAllTestClassesExecutor.access$000(JUnitPlatformTestClassProcessor.java:94)
+	at org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestClassProcessor.stop(JUnitPlatformTestClassProcessor.java:89)
+	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.stop(SuiteTestClassProcessor.java:62)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:36)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.internal.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:33)
+	at org.gradle.internal.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:94)
+	at jdk.proxy1/jdk.proxy1.$Proxy2.stop(Unknown Source)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker$3.run(TestWorker.java:193)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.executeAndMaintainThreadName(TestWorker.java:129)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.execute(TestWorker.java:100)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.execute(TestWorker.java:60)
+	at org.gradle.process.internal.worker.child.ActionExecutionWorker.execute(ActionExecutionWorker.java:56)
+	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:113)
+	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:65)
+	at worker.org.gradle.process.internal.worker.GradleWorkerMain.run(GradleWorkerMain.java:69)
+	at worker.org.gradle.process.internal.worker.GradleWorkerMain.main(GradleWorkerMain.java:74)
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

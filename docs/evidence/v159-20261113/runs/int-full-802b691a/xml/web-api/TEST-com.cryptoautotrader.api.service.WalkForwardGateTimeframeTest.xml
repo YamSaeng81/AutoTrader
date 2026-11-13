@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.WalkForwardGateTimeframeTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-11-13T00:40:20" hostname="DESKTOP-SF1KUQ5" time="0.133">
+  <properties/>
+  <testcase name="해당 타임프레임 실행 이력이 없으면 차단 — 증명되지 않았으므로" classname="com.cryptoautotrader.api.service.WalkForwardGateTimeframeTest" time="0.129"/>
+  <testcase name="INSUFFICIENT_DATA 는 검증 이력 없음과 같게 차단한다 — 과적합과 다른 상태다" classname="com.cryptoautotrader.api.service.WalkForwardGateTimeframeTest" time="0.0"/>
+  <testcase name="타임프레임 null — 종전대로 타임프레임 무관 판정 (하위 호환)" classname="com.cryptoautotrader.api.service.WalkForwardGateTimeframeTest" time="0.001"/>
+  <testcase name="전략 단위 판정 — 같은 코인의 H1/M15 가 서로를 덮어쓰지 않는다 (핵심 회귀)" classname="com.cryptoautotrader.api.service.WalkForwardGateTimeframeTest" time="0.0"/>
+  <testcase name="버전 미상(NULL)도 거부한다 — 09-08 이전 350건이 전부 여기 해당한다" classname="com.cryptoautotrader.api.service.WalkForwardGateTimeframeTest" time="0.0"/>
+  <testcase name="전략×코인×TF — M15 판정이 H1 결과에 오염되지 않는다" classname="com.cryptoautotrader.api.service.WalkForwardGateTimeframeTest" time="0.001"/>
+  <testcase name="전략 단위 + 타임프레임 지정 — 그 타임프레임 실행만 본다" classname="com.cryptoautotrader.api.service.WalkForwardGateTimeframeTest" time="0.001"/>
+  <testcase name="구버전 규칙으로 돈 실행은 근거로 인정하지 않는다 — 성적이 아무리 좋아도" classname="com.cryptoautotrader.api.service.WalkForwardGateTimeframeTest" time="0.0"/>
+  <testcase name="전략 단위 판정도 구버전을 걸러낸다 — 한쪽만 고치면 DYNAMIC 경로로 샌다" classname="com.cryptoautotrader.api.service.WalkForwardGateTimeframeTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

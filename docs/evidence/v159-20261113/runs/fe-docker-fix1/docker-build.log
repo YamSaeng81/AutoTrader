@@ -1,0 +1,128 @@
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 636B done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/node:20-alpine
+#2 DONE 0.8s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 177B done
+#3 DONE 0.0s
+
+#4 [builder 1/6] FROM docker.io/library/node:20-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293
+#4 resolve docker.io/library/node:20-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293 0.0s done
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 1.58MB 0.1s done
+#5 DONE 0.1s
+
+#6 [builder 2/6] WORKDIR /app
+#6 CACHED
+
+#7 [builder 3/6] COPY package.json package-lock.json* ./
+#7 CACHED
+
+#8 [builder 4/6] RUN npm ci
+#8 CACHED
+
+#9 [builder 5/6] COPY . .
+#9 DONE 0.1s
+
+#10 [builder 6/6] RUN rm -f playwright.config.ts && npm run build
+#10 0.327 
+#10 0.327 > crypto-trader-frontend@0.1.0 build
+#10 0.327 > next build
+#10 0.327 
+#10 0.915 Attention: Next.js now collects completely anonymous telemetry regarding usage.
+#10 0.915 This information is used to shape Next.js' roadmap and prioritize features.
+#10 0.915 You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+#10 0.915 https://nextjs.org/telemetry
+#10 0.915 
+#10 0.926 ▲ Next.js 16.1.6 (Turbopack)
+#10 0.926 
+#10 0.997   Creating an optimized production build ...
+#10 6.218 ✓ Compiled successfully in 4.9s
+#10 6.242   Running TypeScript ...
+#10 11.36   Collecting page data using 15 workers ...
+#10 11.98   Generating static pages using 15 workers (0/35) ...
+#10 12.25   Generating static pages using 15 workers (8/35) 
+#10 12.28   Generating static pages using 15 workers (17/35) 
+#10 12.40   Generating static pages using 15 workers (26/35) 
+#10 12.42 ✓ Generating static pages using 15 workers (35/35) in 438.9ms
+#10 12.43   Finalizing page optimization ...
+#10 12.62 
+#10 12.62 Route (app)
+#10 12.62 ┌ ○ /
+#10 12.62 ├ ○ /_not-found
+#10 12.62 ├ ○ /account
+#10 12.62 ├ ○ /admin/discord
+#10 12.62 ├ ○ /admin/health-check
+#10 12.62 ├ ○ /admin/llm-config
+#10 12.62 ├ ○ /admin/news-sources
+#10 12.62 ├ ○ /admin/reports
+#10 12.62 ├ ƒ /api/auth/login
+#10 12.62 ├ ƒ /api/auth/logout
+#10 12.62 ├ ƒ /api/proxy/[...path]
+#10 12.62 ├ ○ /backtest
+#10 12.62 ├ ƒ /backtest/[id]
+#10 12.62 ├ ○ /backtest/compare
+#10 12.62 ├ ○ /backtest/new
+#10 12.62 ├ ○ /backtest/scheduler
+#10 12.62 ├ ○ /backtest/walk-forward
+#10 12.62 ├ ○ /data
+#10 12.62 ├ ○ /login
+#10 12.62 ├ ○ /logs
+#10 12.62 ├ ○ /logs/llm
+#10 12.62 ├ ○ /logs/signal-quality
+#10 12.62 ├ ○ /paper-trading
+#10 12.62 ├ ƒ /paper-trading/[sessionId]
+#10 12.62 ├ ○ /paper-trading/history
+#10 12.62 ├ ○ /performance
+#10 12.62 ├ ○ /settings/db-reset
+#10 12.62 ├ ○ /settings/server-logs
+#10 12.62 ├ ○ /settings/telegram
+#10 12.62 ├ ○ /settings/upbit-logs
+#10 12.62 ├ ○ /settings/upbit-status
+#10 12.62 ├ ○ /strategies
+#10 12.62 ├ ○ /trading
+#10 12.62 ├ ƒ /trading/[sessionId]
+#10 12.62 ├ ○ /trading/dynamic
+#10 12.62 ├ ƒ /trading/dynamic/[id]
+#10 12.62 ├ ○ /trading/history
+#10 12.62 └ ○ /trading/risk
+#10 12.62 
+#10 12.62 
+#10 12.62 ƒ Proxy (Middleware)
+#10 12.62 
+#10 12.62 ○  (Static)   prerendered as static content
+#10 12.62 ƒ  (Dynamic)  server-rendered on demand
+#10 12.62 
+#10 DONE 12.8s
+
+#6 [builder 2/6] WORKDIR /app
+#6 CACHED
+
+#11 [stage-1 3/5] COPY --from=builder /app/.next/standalone ./
+#11 DONE 0.3s
+
+#12 [stage-1 4/5] COPY --from=builder /app/.next/static ./.next/static
+#12 DONE 0.1s
+
+#13 [stage-1 5/5] COPY --from=builder /app/public ./public
+#13 DONE 0.0s
+
+#14 exporting to image
+#14 exporting layers
+#14 exporting layers 1.6s done
+#14 exporting manifest sha256:ede07e29a9f1c0dd0c02dd36282c69cc5171c1d25960d3f4b3f8ca4c88af34f9 0.0s done
+#14 exporting config sha256:e43a721b6979cb204b06fb4eddafe2f42c4cfb62b6435d14c1e4e96804d7d2bb 0.0s done
+#14 exporting attestation manifest sha256:15dd9976b6ec9fa3d6b7b770c505dcfd0bdf127a9fd80c3097054d662fd8cced 0.0s done
+#14 exporting manifest list sha256:1fc7bfcea5dbce485e76633a125a30add03642087e7a929c52d38f886a46a41e
+#14 exporting manifest list sha256:1fc7bfcea5dbce485e76633a125a30add03642087e7a929c52d38f886a46a41e 0.0s done
+#14 naming to docker.io/library/v159-fe-check:fix1 done
+#14 unpacking to docker.io/library/v159-fe-check:fix1
+#14 unpacking to docker.io/library/v159-fe-check:fix1 0.7s done
+#14 DONE 2.4s

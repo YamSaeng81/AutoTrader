@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="BlockedReasonNormalizer — 차단 사유 그룹핑 키 정규화 (2026-07-20)" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-11-13T00:35:44" hostname="DESKTOP-SF1KUQ5" time="0.005">
+  <properties/>
+  <testcase name="정규화 후 빈 문자열이 되면 원본 trim 값을 반환 (안전망)" classname="com.cryptoautotrader.api.report.BlockedReasonNormalizerTest" time="0.002"/>
+  <testcase name="EMA200 레짐 필터 — 괄호 제거 후 괄호 뒤 텍스트('이하')는 보존" classname="com.cryptoautotrader.api.report.BlockedReasonNormalizerTest" time="0.001"/>
+  <testcase name="이미 포지션 보유 중 — 보유시간·pnl 다른 두 건이 동일 키로 정규화" classname="com.cryptoautotrader.api.report.BlockedReasonNormalizerTest" time="0.0"/>
+  <testcase name="BLACK_SWAN_GUARD 거래량 급증 사유는 급락 사유와 다른 키로 구분" classname="com.cryptoautotrader.api.report.BlockedReasonNormalizerTest" time="0.001"/>
+  <testcase name="콜론 포함 사유는 콜론 앞부분만 사용 (기존 동작 유지)" classname="com.cryptoautotrader.api.report.BlockedReasonNormalizerTest" time="0.0"/>
+  <testcase name="BLACK_SWAN_GUARD 급락 사유 — 수치 다른 두 건이 동일 키로 정규화" classname="com.cryptoautotrader.api.report.BlockedReasonNormalizerTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

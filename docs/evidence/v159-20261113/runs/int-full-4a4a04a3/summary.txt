@@ -1,0 +1,12 @@
+core-engine tests 298 fail 0 err 0 skip 7 pass 291
+exchange-adapter tests 11 fail 0 err 0 skip 0 pass 11
+strategy-lib tests 113 fail 0 err 0 skip 0 pass 113
+web-api tests 1354 fail 2 err 0 skip 71 pass 1281
+FAIL com.cryptoautotrader.api.service.N16InvalidPriceReproTest # LIVE
+    org.opentest4j.AssertionFailedError: [null 다음 신선한 정상 가격의 보호 매도 1회] 
+expected: 1
+ but was: 0
+FAIL com.cryptoautotrader.api.service.N16InvalidPriceReproTest # DYNAMIC
+    org.opentest4j.AssertionFailedError: [null 다음 신선한 정상 가격의 보호 매도 1회] 
+expected: 1
+ but was: 0

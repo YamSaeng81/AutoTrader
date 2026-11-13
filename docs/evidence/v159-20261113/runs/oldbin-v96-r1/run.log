@@ -1,0 +1,26 @@
+08:54:09 jar D:/tmp/o1o3/jars/b5cd1d0.jar a7ef759f86c6048b442b1fe37019ed2560fd87453fbea8991a67f49d8d28c79f
+08:54:09 jar D:/tmp/v159/jar/4a4a04a3.jar 0834382ab008e1b203b6f74718799dc183e63b2c3cf9d67b6c974b6c30c5e100
+08:54:34 1-old-on-empty: 기동 (24s) pid=34000
+08:54:35 PASS ①  보존 구판 jar 실제 기동·Flyway V94  115,92:true:1764489270,93:true:-630156954,94:true:-785319049
+08:54:40 PASS ①  V94 에 새 열 없음(exit_decided_at·mdd_peak_krw)
+08:54:40 FAIL ②  대표 행 — PAPER 세션 id 1(키 없음)·2(LIVE_ALIGNED), 포지션은 세션 2  1,2,3/2
+08:54:41 V94 표 해시 {"live_trading_session": "57a73ba716bf846ce6532d7c7fc4cfce|1", "dynamic_session": "1843068ab60ec0cf6820340483967f3c|1", "position": "e54ed95d575c4c7a5417edaf198aa963|1", "\"order\"": "91af240af1f6e5db58375b7fd88c5951|1", "risk_config": "34f810997b1b1f620dabb9b8426c1412|1", "paper_trading.virtual_balance": "d2f1c15041023e07cacb4f7ab5af9658|3", "paper_trading.position": "75e106972fb8bb4ef27524d7444919a7|1", "paper_trading.\"order\"": "d41d8cd98f00b204e9800998ecf8427e|0"}
+08:54:43 PASS ③  V94 복제본 생성(원본 DB 그대로)
+08:55:04 4-new-on-v94clone: 기동 (21s) pid=21876
+08:55:05 PASS ④  후보 jar 실제 기동·Flyway 가 V96 하나만 적용(V95 없음)  ,96:true:-424836241
+08:55:09 PASS ④  V96 적용·후보 기동 뒤 기존 행의 V94 열 불변
+08:55:10 PASS ④  두 열 NULL 허용·기본값 없음, 기존 행 NULL  position.exit_decided_at:timestamp with time zone:YES:none virtual_balance.mdd_peak_krw:numeric:YES:none
+08:55:10 FAIL ⑤  구판이 정지할 종전 PAPER RUNNING 행 id 3
+08:55:35 6-old-on-v96: 기동 (22s) pid=2812
+08:55:35 PASS ⑥  보존 구판 jar 가 V96 복제본에서 실제 기동
+08:55:36 PASS ⑥  읽기 — 목록·LIVE_ALIGNED 세션 상세·포지션·종전 세션 상세 GET 200  {"/api/v1/paper-trading/sessions": [200, "{\"success\": true, \"data\": [{\"strategyName\": \"DAILY_SMA20\", \"coinPair\": \"KRW-BTC\", \"startedAt\": \"2026-11-12T23:55:10.705233Z\", \"totalReturnPct\": 0.0, \"totalAssetKrw\": 500000.0, \"timeframe\": \"D1\", \"availableKrw\": 500000.0, \"stoppedAt\": null, \"totalFee\": 0.0, \"initialCapital\": 500000.0, \"realizedPnl\": "], "/api/v1/paper-trading/sessions/2": [200, "{\"success\": true, \"data\": {\"strategyName\": \"DAILY_SMA20\", \"positionPnlPct\": 0, \"coinPair\": \"KRW-BTC\", \"positionValueKrw\": 0.0, \"startedAt\": null, \"totalReturnPct\": 0.0, \"totalAssetKrw\": 1000000.0, \"availableKrw\": 1000000.0, \"timeframe\": \"D1\", \"stoppedAt\": null, \"totalFee\": 0.0, \"initialCapital\": 100"], "/api/v1/paper-trading/sessions/2/positions": [200, "{\"success\": true, \"data\": []}"], "/api/v1/paper-trading/sessions/1": [200, "{\"suc
+08:55:36 PASS ⑥  쓰기 — 구판 API 정지(POST) 200 · 그 행 STOPPED  (200, '{"success": false, "error": {"code": "INVALID_REQUEST", "message": "모의투자가 실행 중이 아닙니다."}}')
+08:56:39 PASS ⑥  60초 생존
+08:56:39 PASS ⑥  Flyway 이력 불변(96 그대로·95 없음·행 추가 없음) — validate 통과  7115,92:true:1764489270,93:true:-630156954,94:true:-785319049,96:true:-424836241
+08:56:39 PASS ⑥  스키마·마이그레이션 관련 ERROR 0  ERROR 7줄, 스키마 관련 0줄: 
+08:56:40 PASS ⑥  새 열 값 보존(구판이 같은 표 행을 UPDATE 한 뒤에도)  2=2026-11-13 00:00:00+00 / 1=null,2=1000123.45,3=null,4=777.77 → 2=2026-11-13 00:00:00+00 / 1=null,2=1000123.45,3=null,4=777.77
+08:56:41 PASS ⑥  구판 기동 중 V94 열 변경은 정지한 PAPER 행(virtual_balance id 3)이 있는 표뿐
+08:56:41 PASS ⑥  정지 대상이 아닌 PAPER 세션 행(1·2) V94 열은 V94 원본과 같다
+08:56:57 7-new-again: 기동 (16s) pid=38044
+08:56:57 PASS ⑦  후보 재기동·추가 마이그레이션 없음
+08:57:00 결과 16/18

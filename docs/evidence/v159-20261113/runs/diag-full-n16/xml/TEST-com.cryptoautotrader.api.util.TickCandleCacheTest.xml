@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.util.TickCandleCacheTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-11-13T00:11:27" hostname="DESKTOP-SF1KUQ5" time="0.008">
+  <properties/>
+  <testcase name="스코프 밖에서는 매번 조회한다 — 웹소켓 콜백 등 틱이 아닌 경로" classname="com.cryptoautotrader.api.util.TickCandleCacheTest" time="0.0"/>
+  <testcase name="한 틱 안에서 같은 (코인,타임프레임) 은 한 번만 조회한다" classname="com.cryptoautotrader.api.util.TickCandleCacheTest" time="0.0"/>
+  <testcase name="틱이 끝나면 캐시가 사라진다 — 다음 틱이 옛 캔들을 보면 안 된다 (핵심 회귀)" classname="com.cryptoautotrader.api.util.TickCandleCacheTest" time="0.001"/>
+  <testcase name="스코프는 스레드마다 독립이다 — 엔진 셋이 각자 스케줄러에서 돈다" classname="com.cryptoautotrader.api.util.TickCandleCacheTest" time="0.001"/>
+  <testcase name="가드: 세 엔진이 모두 이 캐시를 쓴다 — 한 곳만 빠지면 그 엔진만 낭비한다" classname="com.cryptoautotrader.api.util.TickCandleCacheTest" time="0.005"/>
+  <testcase name="코인이나 타임프레임이 다르면 각각 조회한다" classname="com.cryptoautotrader.api.util.TickCandleCacheTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

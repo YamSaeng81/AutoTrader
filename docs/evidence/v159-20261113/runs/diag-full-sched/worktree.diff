@@ -1,0 +1,14 @@
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/SchedulerProfileCleanupTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/SchedulerProfileCleanupTest.java
+index 00ab3a5d..43d3c086 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/SchedulerProfileCleanupTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/SchedulerProfileCleanupTest.java
+@@ -144,6 +144,9 @@ class SchedulerProfileCleanupTest extends IntegrationTestBase {
+ 
+         boolean picked = await(() -> orderRepository.findByPositionIdOrderByCreatedAtDesc(pos.getId()).stream()
+                 .anyMatch(o -> "SELL".equalsIgnoreCase(o.getSide()) && o.getExchangeOrderId() != null), 60_000);
++        System.out.println("SCHEDDIAG " + kind + " picked=" + picked + " 주문 " + orderRepository.findByPositionIdOrderByCreatedAtDesc(pos.getId()).stream()
++                .map(o -> o.getId() + ":" + o.getSide() + ":" + o.getState() + ":ex=" + o.getExchangeOrderId() + ":fail=" + o.getFailureCode() + ":created=" + o.getCreatedAt()).toList()
++                + " createOrder 호출 " + org.mockito.Mockito.mockingDetails(upbitOrderClient).getInvocations().stream().filter(i -> "createOrder".equals(i.getMethod().getName())).count());
+         PositionCleanupEntity c = cleanupRepository.findById(pos.getId()).orElseThrow();
+         System.out.println("[스케줄러 " + kind + "] 가져감=" + picked + " 시도=" + c.getAttempts()
+                 + " 메모=" + c.getLastNote() + " 마지막시도=" + c.getLastAttemptAt()

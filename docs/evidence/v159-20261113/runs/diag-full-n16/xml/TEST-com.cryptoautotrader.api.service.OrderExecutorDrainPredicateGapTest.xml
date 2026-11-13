@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="orderExecutor 대기 조건 공백 — 놀고 있는 작업자 경로에서 비워짐 ≠ 완료" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-13T00:09:39" hostname="DESKTOP-SF1KUQ5" time="0.014">
+  <properties/>
+  <testcase name="② 작업자가 없어 새 작업자가 첫 작업으로 받으면 — 옛 조건은 거짓이다(단독 실행이 통과한 이유)" classname="com.cryptoautotrader.api.service.OrderExecutorDrainPredicateGapTest" time="0.004"/>
+  <testcase name="③ 같은 창에서 submit() 의 Future 는 완료가 아니다 — 보완한 대기는 이 신호를 기다린다" classname="com.cryptoautotrader.api.service.OrderExecutorDrainPredicateGapTest" time="0.009"/>
+  <testcase name="① 놀고 있는 작업자가 꺼낸 뒤·실행 전 — 옛 조건은 비워짐이라 답하지만 작업은 실행 전이다" classname="com.cryptoautotrader.api.service.OrderExecutorDrainPredicateGapTest" time="0.001"/>
+  <system-out><![CDATA[[② 새 작업자·실행 전] drained=false executed=false queue=0 active=1 tasks=1 completed=0
+[③ 꺼낸 뒤·실행 전] oldPredicate=true future.isDone=false executed=false
+[① 꺼낸 뒤·실행 전] drained=true executed=false queue=0 active=0 tasks=0 completed=0
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

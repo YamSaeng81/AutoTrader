@@ -1,0 +1,13 @@
+[대역 시작] U2 · 가짜 시각 2026-11-11 10:35:00 KST · 실제 09:41:21
+2026-11-11 10:35:00 KST
+== 여기부터 재기동 — 새 backend 기동 때 Flyway 가 V96 하나를 적용한다. 이 뒤의 멈춤은 '되돌림 필요'(V96 은 되돌리지 않는다)
+ Container autotrader-backend-1  Started (대역)
+backend sha256:24be48951737e2981a9dd58d98ec9b594d12567767febed33c9fb2793d02c2ef 2026-11-11T01:35:00.000000000Z
+db sha256:fce5a92e223bbe4f388eace91e9235c8d37188428357e424abae034764c3f1f5 2026-11-01T00:00:00.000000000Z
+redis sha256:2d8d63ee1913976861b3386c894e5d030141a8d476abcae2d1fa95d4e53bdefe 2026-11-01T00:00:00.000000000Z
+db-backup sha256:a359f37b5c479e7f47413e692cebf5dd3bc703b4ce18be3c0e615bf24a0cf35a 2026-11-01T00:00:00.000000000Z
+frontend sha256:b8cbc478a72ec05079412c1dfc13a7af641d2ab57126d6412a526ccc819d2f18 2026-11-01T00:00:00.000000000Z
+802b691a6606821d6db838bf5aca0f4cf468205a
+(끝)
+✅ U2 통과 — 5~10분 뒤 U3(frontend 는 아직 구판 — 새 모의 세션을 만들지 않는다)
+[대역 끝] rc=0 · 가짜 시각 10:35:15

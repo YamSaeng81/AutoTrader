@@ -1,0 +1,48 @@
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/N16InvalidPriceReproTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/N16InvalidPriceReproTest.java
+index 1213e778..1d8f7a0f 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/N16InvalidPriceReproTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/N16InvalidPriceReproTest.java
+@@ -191,6 +191,27 @@ class N16InvalidPriceReproTest extends IntegrationTestBase {
+         ((Map<String, Long>) ReflectionTestUtils.getField(target(f.kind()), field)).remove(f.coin());
+     }
+ 
++    private void diag(String tag, Fx f) {   // v1.159 진단 사본 전용(커밋하지 않음)
++        int now = exchangeSells(f);
++        boolean sync = org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive();
++        boolean tx = org.springframework.transaction.support.TransactionSynchronizationManager.isActualTransactionActive();
++        var p = orderExecutor.getThreadPoolExecutor();
++        String st = "q=" + p.getQueue().size() + " active=" + p.getActiveCount() + " task=" + p.getTaskCount()
++                + " done=" + p.getCompletedTaskCount() + " pool=" + p.getPoolSize();
++        String orders0 = orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc(f.kind(), f.sessionId()).stream()
++                .map(o -> o.getSide() + ":" + o.getState()).toList().toString();
++        long t0 = System.nanoTime();
++        int later = now;
++        while (later < 1 && System.nanoTime() - t0 < 5_000_000_000L) {
++            try { Thread.sleep(10); } catch (InterruptedException e) { Thread.currentThread().interrupt(); break; }
++            later = exchangeSells(f);
++        }
++        String orders1 = orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc(f.kind(), f.sessionId()).stream()
++                .map(o -> o.getSide() + ":" + o.getState()).toList().toString();
++        System.out.println("N16DIAG " + tag + " " + f.kind() + " " + f.coin() + " 즉시 " + now + " sync=" + sync + " tx=" + tx + " " + st
++                + " 주문 " + orders0 + " → 5초 안 " + later + " (" + (System.nanoTime() - t0) / 1_000_000 + "ms) 주문 " + orders1);
++    }
++
+     private int exchangeSells(Fx f) {
+         return (int) Mockito.mockingDetails(upbitOrderClient).getInvocations().stream()
+                 .filter(i -> "createOrder".equals(i.getMethod().getName()) && f.coin().equals(i.getArgument(0)))
+@@ -241,6 +262,7 @@ class N16InvalidPriceReproTest extends IntegrationTestBase {
+ 
+         clearThrottle(f);
+         send(f, new BigDecimal("280"), Instant.now());
++        diag("①", f);
+         assertThat(exchangeSells(f)).as("신선한 정상 가격의 보호 매도 1회").isEqualTo(1);
+         assertThat(positionStatus(f)).isEqualTo("CLOSING");
+     }
+@@ -258,6 +280,7 @@ class N16InvalidPriceReproTest extends IntegrationTestBase {
+         Instant afterNull = lastSlCheck(f);
+         clearThrottle(f);
+         send(f, new BigDecimal("280"), Instant.now());
++        diag("②", f);
+         System.out.println("[N16 ②] " + kind + " null 뒤 점검 시각 " + afterNull + " · 다음 280 → 거래소 매도 " + exchangeSells(f)
+                 + " · 포지션 " + positionStatus(f));
+         assertThat(afterNull).as("null 로 보호 점검 시각을 남기지 않는다").isNull();

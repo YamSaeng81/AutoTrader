@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.TelegramMarkdownFallbackTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-11-13T00:40:14" hostname="DESKTOP-SF1KUQ5" time="0.371">
+  <properties/>
+  <testcase name="MarkdownV2 가 통하면 그대로 끝 — 서식을 유지한다" classname="com.cryptoautotrader.api.service.TelegramMarkdownFallbackTest" time="0.011"/>
+  <testcase name="폴백 본문에는 parse_mode 가 아예 없다 — null 서식을 지정하는 게 아니다" classname="com.cryptoautotrader.api.service.TelegramMarkdownFallbackTest" time="0.011"/>
+  <testcase name="&#x1f534; 400 으로 거부되면 서식 없이 다시 보낸다 — 내용을 잃지 않는다" classname="com.cryptoautotrader.api.service.TelegramMarkdownFallbackTest" time="0.01"/>
+  <testcase name="연결 자체가 안 되는 경우도 실패로 보고한다" classname="com.cryptoautotrader.api.service.TelegramMarkdownFallbackTest" time="0.012"/>
+  <testcase name="폴백까지 실패하면 실패로 보고한다 — 성공했다고 말하지 않는다" classname="com.cryptoautotrader.api.service.TelegramMarkdownFallbackTest" time="0.011"/>
+  <testcase name="&#x1f534; 응답을 못 받으면 재전송하지 않는다 — 이미 도착했을 수 있어 중복이 된다" classname="com.cryptoautotrader.api.service.TelegramMarkdownFallbackTest" time="0.315"/>
+  <system-out><![CDATA[09:40:14.390 [Test worker] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 400 / {"ok":true}
+09:40:14.390 [Test worker] WARN  c.c.a.s.TelegramNotificationService - [Telegram] MarkdownV2 거부(HTTP 400) ? 서식 없이 재전송한다
+09:40:14.398 [Test worker] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 400 / {"ok":true}
+09:40:14.399 [Test worker] WARN  c.c.a.s.TelegramNotificationService - [Telegram] MarkdownV2 거부(HTTP 400) ? 서식 없이 재전송한다
+09:40:14.415 [Test worker] ERROR c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 중 오류(응답 미수신): null
+09:40:14.423 [Test worker] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 400 / {"ok":true}
+09:40:14.423 [Test worker] WARN  c.c.a.s.TelegramNotificationService - [Telegram] MarkdownV2 거부(HTTP 400) ? 서식 없이 재전송한다
+09:40:14.424 [Test worker] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 500 / {"ok":true}
+09:40:14.675 [HttpClient-799-Worker-2] WARN  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 종료: code=1006, reason=
+09:40:14.676 [HttpClient-799-Worker-2] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+09:40:14.676 [HttpClient-799-Worker-2] INFO  c.c.e.upbit.UpbitWebSocketClient - 종료 요청됨. 재연결 스킵.
+09:40:14.740 [Test worker] ERROR c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 중 오류(응답 미수신): request timed out
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

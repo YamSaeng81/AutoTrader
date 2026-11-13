@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="§3 checkCandleExitWithPath — OHLC 경로 재구성 + Monte Carlo" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-11-13T00:13:34" hostname="DESKTOP-SF1KUQ5" time="0.005">
+  <properties/>
+  <testcase name="갭 다운 — Open이 SL보다 낮으면 Open가로 체결" classname="com.cryptoautotrader.core.risk.ExitRuleCheckerTest$CheckCandleExitWithPath" time="0.0"/>
+  <testcase name="양방향 터치: Open이 High에 가깝다 → TP 우선 (경로재구성)" classname="com.cryptoautotrader.core.risk.ExitRuleCheckerTest$CheckCandleExitWithPath" time="0.0"/>
+  <testcase name="갭 업 — Open이 TP보다 높으면 Open가로 체결" classname="com.cryptoautotrader.core.risk.ExitRuleCheckerTest$CheckCandleExitWithPath" time="0.0"/>
+  <testcase name="SL만 터치 — STOP_LOSS, ambiguous=false" classname="com.cryptoautotrader.core.risk.ExitRuleCheckerTest$CheckCandleExitWithPath" time="0.0"/>
+  <testcase name="TP만 터치 — TAKE_PROFIT" classname="com.cryptoautotrader.core.risk.ExitRuleCheckerTest$CheckCandleExitWithPath" time="0.001"/>
+  <testcase name="양방향 터치: 거리 동일, Close &gt; Open → TP 우선 (Close 방향 결정)" classname="com.cryptoautotrader.core.risk.ExitRuleCheckerTest$CheckCandleExitWithPath" time="0.0"/>
+  <testcase name="양방향 터치: 거리 동일, Close &lt; Open → SL 우선 (Close 방향 결정)" classname="com.cryptoautotrader.core.risk.ExitRuleCheckerTest$CheckCandleExitWithPath" time="0.001"/>
+  <testcase name="둘 다 미터치 — NONE" classname="com.cryptoautotrader.core.risk.ExitRuleCheckerTest$CheckCandleExitWithPath" time="0.0"/>
+  <testcase name="Monte Carlo 경로: Doji (open=close) + 동일 거리 — SL 또는 TP 결정됨 (확률)" classname="com.cryptoautotrader.core.risk.ExitRuleCheckerTest$CheckCandleExitWithPath" time="0.001"/>
+  <testcase name="양방향 터치: Open이 Low에 가깝다 → SL 우선 (경로재구성)" classname="com.cryptoautotrader.core.risk.ExitRuleCheckerTest$CheckCandleExitWithPath" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

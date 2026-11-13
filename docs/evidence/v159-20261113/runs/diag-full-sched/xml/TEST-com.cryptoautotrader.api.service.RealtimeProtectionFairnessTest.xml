@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="v1.155 §2 F 전달 경계 — 유계 묶음·재접수 공정성 (단위)" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-11-13T01:08:15" hostname="DESKTOP-SF1KUQ5" time="0.143">
+  <properties/>
+  <testcase name="① FIFO 대역 실행기 — A 처리 중 A 를 계속 넣어도(250건) 이미 접수된 B 는 A 의 두 번째 차례 전에 처리, A 순서·중복 없음, 거절/초과 0" classname="com.cryptoautotrader.api.service.RealtimeProtectionFairnessTest" time="0.131"/>
+  <testcase name="③ 묶음 상한 — 한 작업이 처리하는 수는 시작 때 대기 수(≤ 대기열 상한 100) 이하, 나머지는 같은 순서로 다음 작업" classname="com.cryptoautotrader.api.service.RealtimeProtectionFairnessTest" time="0.004"/>
+  <testcase name="④ 종료 접수 거절과 새 인스턴스 — 거절 수·고정 사유·대기 유지, 새 인스턴스(재기동 대역)는 앞 대기를 재생하지 않는다(메모리 한계)" classname="com.cryptoautotrader.api.service.RealtimeProtectionFairnessTest" time="0.001"/>
+  <testcase name="② 실제 스레드 풀(2/4/100·AbortPolicy) 작업자 전부 사용 — 느린 C 가 한 작업자를, 계속 들어오는 A 가 다른 작업자를 쓰는 동안 이미 접수된 B 와 다른 실행기 작업이 진행" classname="com.cryptoautotrader.api.service.RealtimeProtectionFairnessTest" time="0.007"/>
+  <system-out><![CDATA[[F155] ① FIFO: LIVE 호출 251 · B 위치 1 · A 250 · 단계 501 | Snapshot[engine=LIVE, rejected=0, overflow=0, pendingCoins=0, pendingEvents=0, processed=251, failures=0, lastRejectReason=null, lastOverflowReason=null] | Snapshot[engine=DYNAMIC, rejected=0, overflow=0, pendingCoins=0, pendingEvents=0, processed=251, failures=0, lastRejectReason=null, lastOverflowReason=null]
+10:08:15.785 [Test worker] WARN  c.c.a.s.RealtimeProtectionDispatcher - [실시간 보호] DYNAMIC 코인별 보호 대기열 초과 ? 새 시세 버림 (coin=KRW-A, 누적 초과 1)
+[F155] ③ 묶음: 작업별 처리 [100, 50] · 전체 150 | Snapshot[engine=LIVE, rejected=0, overflow=0, pendingCoins=0, pendingEvents=0, processed=150, failures=0, lastRejectReason=null, lastOverflowReason=null]
+10:08:15.789 [Test worker] WARN  c.c.a.s.RealtimeProtectionDispatcher - [실시간 보호] LIVE 실행기 포화 ? 보호 점검 접수 거절, 코인별 최신 시세 대기 유지 (coin=KRW-R, 대기 1, 누적 거절 1)
+10:08:15.789 [Test worker] WARN  c.c.a.s.RealtimeProtectionDispatcher - [실시간 보호] DYNAMIC 실행기 포화 ? 보호 점검 접수 거절, 코인별 최신 시세 대기 유지 (coin=KRW-R, 대기 1, 누적 거절 1)
+[F155] ④ 종료/새 인스턴스: 앞 Snapshot[engine=LIVE, rejected=3, overflow=0, pendingCoins=1, pendingEvents=2, processed=0, failures=0, lastRejectReason=실행기 포화 ? 보호 점검 접수 거절, 코인별 최신 시세 대기 유지, lastOverflowReason=null] | 새 Snapshot[engine=LIVE, rejected=0, overflow=0, pendingCoins=0, pendingEvents=0, processed=0, failures=0, lastRejectReason=null, lastOverflowReason=null] · 새 작업 0
+[F155] ② 실제 풀: B 처리 true(그때 A 14건) · 다른 작업 true(그때 A 51건) · A 전체 52 · 작업자 최대 2 | Snapshot[engine=LIVE, rejected=0, overflow=0, pendingCoins=0, pendingEvents=0, processed=54, failures=0, lastRejectReason=null, lastOverflowReason=null]
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="MultiTimeframeFilter — HTF/LTF 신호 조합" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-11-12T23:21:42" hostname="DESKTOP-SF1KUQ5" time="0.004">
+  <properties/>
+  <testcase name="HTF SELL + LTF BUY → HOLD (역추세 억제)" classname="com.cryptoautotrader.core.selector.MultiTimeframeFilterTest" time="0.001"/>
+  <testcase name="CandleDownsampler — factor=1이면 원본 그대로 반환" classname="com.cryptoautotrader.core.selector.MultiTimeframeFilterTest" time="0.0"/>
+  <testcase name="CandleDownsampler — 불완전한 마지막 그룹도 포함" classname="com.cryptoautotrader.core.selector.MultiTimeframeFilterTest" time="0.0"/>
+  <testcase name="TimeframePreset — EMA_CROSS 5m 파라미터 확인" classname="com.cryptoautotrader.core.selector.MultiTimeframeFilterTest" time="0.001"/>
+  <testcase name="HTF HOLD → LTF 신호 그대로 통과" classname="com.cryptoautotrader.core.selector.MultiTimeframeFilterTest" time="0.0"/>
+  <testcase name="TimeframePreset — SUPERTREND 1h 파라미터 확인" classname="com.cryptoautotrader.core.selector.MultiTimeframeFilterTest" time="0.0"/>
+  <testcase name="CandleDownsampler — HTF 캔들 OHLCV 집계 검증" classname="com.cryptoautotrader.core.selector.MultiTimeframeFilterTest" time="0.0"/>
+  <testcase name="CandleDownsampler — factor=3이면 3개씩 묶어 HTF 캔들 생성" classname="com.cryptoautotrader.core.selector.MultiTimeframeFilterTest" time="0.0"/>
+  <testcase name="HTF SELL + LTF SELL → SELL 통과" classname="com.cryptoautotrader.core.selector.MultiTimeframeFilterTest" time="0.0"/>
+  <testcase name="HTF BUY + LTF SELL → HOLD (역추세 억제)" classname="com.cryptoautotrader.core.selector.MultiTimeframeFilterTest" time="0.001"/>
+  <testcase name="HTF 데이터 부족 → LTF 신호 그대로 통과" classname="com.cryptoautotrader.core.selector.MultiTimeframeFilterTest" time="0.0"/>
+  <testcase name="TimeframePreset — 알 수 없는 전략명 → 빈 맵" classname="com.cryptoautotrader.core.selector.MultiTimeframeFilterTest" time="0.0"/>
+  <testcase name="HTF BUY + LTF BUY → BUY 통과" classname="com.cryptoautotrader.core.selector.MultiTimeframeFilterTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

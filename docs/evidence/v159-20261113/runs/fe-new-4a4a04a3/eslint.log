@@ -1,0 +1,56 @@
+
+D:\tmp\int158\crypto-trader-frontend\src\app\admin\discord\page.tsx
+    7:60  warning  'Play' is defined but never used                                       @typescript-eslint/no-unused-vars
+  125:13  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+
+D:\tmp\int158\crypto-trader-frontend\src\app\admin\news-sources\page.tsx
+  8:34  warning  'ChevronDown' is defined but never used  @typescript-eslint/no-unused-vars
+  8:47  warning  'ChevronUp' is defined but never used    @typescript-eslint/no-unused-vars
+
+D:\tmp\int158\crypto-trader-frontend\src\app\api\proxy\[...path]\route.ts
+  61:15  warning  'isConnRefused' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\tmp\int158\crypto-trader-frontend\src\app\backtest\page.tsx
+  51:8  warning  React Hook useMemo has a missing dependency: 'filterRunId'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+D:\tmp\int158\crypto-trader-frontend\src\app\backtest\walk-forward\page.tsx
+  90:8  warning  React Hook useMemo has a missing dependency: 'filterRunId'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+D:\tmp\int158\crypto-trader-frontend\src\app\data\page.tsx
+  30:10  warning  'coinLabel' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\tmp\int158\crypto-trader-frontend\src\app\logs\page.tsx
+  139:13  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+
+D:\tmp\int158\crypto-trader-frontend\src\app\page.tsx
+  221:19  warning  'paperPerfRaw' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\tmp\int158\crypto-trader-frontend\src\app\paper-trading\[sessionId]\page.tsx
+  76:13  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+
+D:\tmp\int158\crypto-trader-frontend\src\app\paper-trading\history\page.tsx
+  11:52  warning  'positionStatusLabel' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\tmp\int158\crypto-trader-frontend\src\app\paper-trading\page.tsx
+  11:52  warning  'positionStatusLabel' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\tmp\int158\crypto-trader-frontend\src\app\settings\server-logs\page.tsx
+  60:11  warning  The 'entries' logical expression could make the dependencies of useEffect Hook (at line 70) change on every render. To fix this, wrap the initialization of 'entries' in its own useMemo() Hook  react-hooks/exhaustive-deps
+
+D:\tmp\int158\crypto-trader-frontend\src\app\settings\upbit-logs\page.tsx
+   13:27  warning  'startOfDay' is defined but never used                                 @typescript-eslint/no-unused-vars
+  120:13  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  145:13  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+
+D:\tmp\int158\crypto-trader-frontend\src\app\settings\upbit-status\page.tsx
+  163:11  warning  'labelCls' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\tmp\int158\crypto-trader-frontend\src\app\trading\[sessionId]\page.tsx
+   64:7  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  164:9  warning  'router' is assigned a value but never used                            @typescript-eslint/no-unused-vars
+
+D:\tmp\int158\crypto-trader-frontend\src\lib\api.ts
+  28:12  warning  '_page' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+✖ 21 problems (0 errors, 21 warnings)
+

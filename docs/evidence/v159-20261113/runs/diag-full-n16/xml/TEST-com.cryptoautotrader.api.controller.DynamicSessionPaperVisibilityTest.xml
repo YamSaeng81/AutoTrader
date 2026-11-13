@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.controller.DynamicSessionPaperVisibilityTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-11-13T00:07:30" hostname="DESKTOP-SF1KUQ5" time="0.571">
+  <properties/>
+  <testcase name="거래가 없으면 빈 값을 낸다 — 없는 것을 만들어내지 않는다" classname="com.cryptoautotrader.api.controller.DynamicSessionPaperVisibilityTest" time="0.26"/>
+  <testcase name="이력에 매수/매도 사유와 청산 사유가 함께 실린다" classname="com.cryptoautotrader.api.controller.DynamicSessionPaperVisibilityTest" time="0.05"/>
+  <testcase name="실전 세션도 그대로 보인다 — 페이퍼를 고치느라 실전을 깨뜨리지 않았다" classname="com.cryptoautotrader.api.controller.DynamicSessionPaperVisibilityTest" time="0.044"/>
+  <testcase name="&#x1f534; 모의 세션의 보유 코인 이력이 보인다 — 하드코딩된 'DYNAMIC' 이면 0건이 된다" classname="com.cryptoautotrader.api.controller.DynamicSessionPaperVisibilityTest" time="0.027"/>
+  <testcase name="같은 id 의 REAL/PAPER 포지션이 섞이지 않는다 — kind 로 갈라야 하는 이유" classname="com.cryptoautotrader.api.controller.DynamicSessionPaperVisibilityTest" time="0.057"/>
+  <testcase name="&#x1f534; 모의 세션의 손익 분해가 실제 값을 낸다 — 하드코딩이면 전부 0" classname="com.cryptoautotrader.api.controller.DynamicSessionPaperVisibilityTest" time="0.026"/>
+  <testcase name="수수료를 매수·매도로 나눠 싣고, 실현손익은 이미 그 둘을 뺀 값임을 표시한다" classname="com.cryptoautotrader.api.controller.DynamicSessionPaperVisibilityTest" time="0.024"/>
+  <testcase name="손익 분해가 수수료 합계와 청산 사유 분포를 함께 낸다" classname="com.cryptoautotrader.api.controller.DynamicSessionPaperVisibilityTest" time="0.077"/>
+  <system-out><![CDATA[09:07:30.777 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.controller.DynamicSessionPaperVisibilityTest
+09:07:30.788 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+09:07:31.048 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+09:07:31.099 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+09:07:31.144 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+09:07:31.171 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+09:07:31.229 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+09:07:31.256 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+09:07:31.281 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

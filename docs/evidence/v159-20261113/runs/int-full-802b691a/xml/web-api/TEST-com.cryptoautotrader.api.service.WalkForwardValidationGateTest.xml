@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.WalkForwardValidationGateTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-11-13T00:40:21" hostname="DESKTOP-SF1KUQ5" time="0.0">
+  <properties/>
+  <testcase name="표본 경계값 — 정확히 최소 기준이면 통과, 하나 모자라면 차단" classname="com.cryptoautotrader.api.service.WalkForwardValidationGateTest" time="0.0"/>
+  <testcase name="verdict=CAUTION 도 통과 가능 — OVERFITTING만 하드 차단" classname="com.cryptoautotrader.api.service.WalkForwardValidationGateTest" time="0.0"/>
+  <testcase name="OOS 거래 표본이 최소 기준 미만이면 차단" classname="com.cryptoautotrader.api.service.WalkForwardValidationGateTest" time="0.0"/>
+  <testcase name="verdict=HOLD_OUT_FAILED 이면 튜닝 OOS 성적이 좋아도 차단" classname="com.cryptoautotrader.api.service.WalkForwardValidationGateTest" time="0.0"/>
+  <testcase name="OOS 기대값이 0 이하면 차단 (verdict·표본이 정상이어도)" classname="com.cryptoautotrader.api.service.WalkForwardValidationGateTest" time="0.0"/>
+  <testcase name="verdict=OVERFITTING 이면 기대값이 양수여도 차단" classname="com.cryptoautotrader.api.service.WalkForwardValidationGateTest" time="0.0"/>
+  <testcase name="실행 이력이 없으면 차단 — 아직 증명되지 않은 전략" classname="com.cryptoautotrader.api.service.WalkForwardValidationGateTest" time="0.0"/>
+  <testcase name="verdict=ACCEPTABLE + 기대값 양수 + 표본 충분 → 통과" classname="com.cryptoautotrader.api.service.WalkForwardValidationGateTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

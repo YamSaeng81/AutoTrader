@@ -1,0 +1,26 @@
+$ chain_driver create --port 11446 --code-sha 4a4a04a304fe22555fbeacd904175a84598af015 → rc=0
+{"done": "8개 OK · API 대조 성공(DB 확인 전 초안)", "t0": "2026-11-13T00:00:00+00:00"}
+{"stage": "create", "rc": 0, "real_now": "2026-11-12T23:54:44.518281+00:00", "clock_shift_s": 0.0}
+
+첫 평가 지문=[{session_id=2, n=1, h=141c4dfd6822}, {session_id=3, n=1, h=282d280b8014}, {session_id=4, n=1, h=141c4dfd6822}, {session_id=5, n=1, h=282d280b8014}, {session_id=6, n=1, h=141c4dfd6822}, {session_id=7, n=1, h=282d280b8014}, {session_id=8, n=1, h=141c4dfd6822}, {session_id=9, n=1, h=282d280b8014}]
+
+$ chain_driver check --tag ok → rc=0
+{"stage": "check", "tag": "ok", "psql_db": "p159_ab4_seed_other_17549", "psql_rc": 0, "complete_rc": 0, "complete_out": "{\"done\": \"완성본 작성\", \"sessions\": 8, \"db_output_sha256\": \"72b4472eacd04b98b6f40b75b3da26ba9fd2fc57883e359791c763535e6c840d\", \"draft_sha256\": \"cdda41797bfefa16995f593e3c9bdbc3a1339c62ae5375f2d977d9d972d73063\"}"}
+
+$ chain_driver check --tag neg_one_row_1us → rc=3
+{"stage": "check", "tag": "neg_one_row_1us", "psql_db": "p159_ab4_seed_other_17549", "psql_rc": 0, "complete_rc": 3, "complete_out": "{\"rejected\": \"DB started_at 이 저장 후 API 시작 시각과 다르다(다른 DB·다른 생성 회차의 같은 ID 일 수 있다): P3B\"}"}
+
+$ chain_driver check --tag neg_fp_missing → rc=3
+{"stage": "check", "tag": "neg_fp_missing", "psql_db": "p159_ab4_seed_other_17549", "psql_rc": 0, "complete_rc": 3, "complete_out": "{\"rejected\": \"P2A: 규칙 지문이 없거나 복수이거나 형식이 다르다\"}"}
+
+$ chain_driver check --tag neg_fp_multiple → rc=3
+{"stage": "check", "tag": "neg_fp_multiple", "psql_db": "p159_ab4_seed_other_17549", "psql_rc": 0, "complete_rc": 3, "complete_out": "{\"rejected\": \"P2A: 규칙 지문이 없거나 복수이거나 형식이 다르다\"}"}
+
+$ chain_driver check --tag neg_trade_before_t0 → rc=3
+{"stage": "check", "tag": "neg_trade_before_t0", "psql_db": "p159_ab4_seed_other_17549", "psql_rc": 0, "complete_rc": 3, "complete_out": "{\"rejected\": \"T0 이전 주문·포지션이 있다 — 동시 시작이 성립하지 않는다\"}"}
+
+$ chain_driver check --tag neg_stored_ratio → rc=3
+{"stage": "check", "tag": "neg_stored_ratio", "psql_db": "p159_ab4_seed_other_17549", "psql_rc": 0, "complete_rc": 3, "complete_out": "{\"rejected\": \"P2A: DB 저장값 불일치 — 투자 비율\"}"}
+
+$ chain_driver extract --tag ok → rc=0
+{"stage": "extract", "tag": "ok", "arms": "{\"done\": \"arms.csv 작성\", \"tool\": \"ab_arms.py (ab-create-v4-20261111)\", \"complete_sha256\": \"f5ff4da8f1fcc9e07a0ca86290208b68e792c8f2ca9e0669845476cf05b4883f\", \"protocol_sha256\": \"8d787fe9d8c6d6bec00a588e38c6d638a97be9faf3709875b1670d71eae5d3db\", \"db_output_sha256\": \"72b4472eacd04b98b6f40b75b3da26ba9fd2fc57883e359791c763535e6c840d\", \"arms_csv_sha256\": \"f063a13ca748468e04e438be63ebb19ef4a7cc7d087e36d88eae68669cbf2c9b\", \"rows\": 8, \"t0\": \"2026-11-13T00:00:00+00:00\", \"end\": \"2026-12-25T00:00:00+00:00\", \"code_sha\": \"4a4a04a304fe22555fbeacd904175a84598af015\"}", "rows": 3, "statuses": ["CLOSED", "CLOSING", "OPEN"], "primary": "-0.000475", "primary_status": "계산됨(탐색 결과 — 승격 판단 아님)"}

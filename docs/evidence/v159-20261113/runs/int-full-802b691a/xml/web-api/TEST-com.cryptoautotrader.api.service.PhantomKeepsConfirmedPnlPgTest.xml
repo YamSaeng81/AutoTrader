@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="v1.157 §125-7 phantom 추정 청산 — 부분 매도 확정 손익 보존 (로컬 PostgreSQL)" tests="4" skipped="4" failures="0" errors="0" timestamp="2026-11-13T00:37:53" hostname="DESKTOP-SF1KUQ5" time="0.0">
+  <properties/>
+  <testcase name="① 손실 첫 다리(−1,000.50) 뒤 남은 반이 phantom 확정 — 최종 실현손익 = 확정분 + 추정분, 잔액·수수료·주문 원천 손실은 그대로" classname="com.cryptoautotrader.api.service.PhantomKeepsConfirmedPnlPgTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <testcase name="③ 롤백 — phantom 확정 트랜잭션이 롤백되면 포지션 OPEN·확정분만·잔액 그대로, 다음 확정에서 한 번만 반영" classname="com.cryptoautotrader.api.service.PhantomKeepsConfirmedPnlPgTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <testcase name="② 반복·재기동 — 확정 뒤 phantom 주기 3회 더·기동 복구 본체를 불러도 실현손익·잔액이 다시 더해지지 않는다" classname="com.cryptoautotrader.api.service.PhantomKeepsConfirmedPnlPgTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <testcase name="④ 대조 — 부분 매도 없이 전량 phantom: 실현손익 = 추정분(종전과 같다)" classname="com.cryptoautotrader.api.service.PhantomKeepsConfirmedPnlPgTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

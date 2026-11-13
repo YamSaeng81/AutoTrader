@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="v1.157 §125-6 전역 REAL 확정 손실 — DYNAMIC REAL 손실 실패 재현·판정 변화 (로컬 PostgreSQL)" tests="3" skipped="3" failures="0" errors="0" timestamp="2026-11-13T00:38:03" hostname="DESKTOP-SF1KUQ5" time="0.0">
+  <properties/>
+  <testcase name="① 실패 재현 — LIVE 10만·DYNAMIC REAL 10만 RUNNING, DYNAMIC REAL 확정 손실 2건(−4,002 = 초안 분모 20만의 2.0%) &gt; 일일 1.5% 인데 checkRisk 승인" classname="com.cryptoautotrader.api.service.RealLossGlobalPgTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <testcase name="② 판정 변화 관측 — LIVE 손실 −2,001 만: 현재 분모 10만(2.00% 거절), 초안 분모 20만이면 1.00%(승인) — 초안이 LIVE 판정을 완화하는 경우" classname="com.cryptoautotrader.api.service.RealLossGlobalPgTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <testcase name="③ 대조 — DYN_PAPER 손실은 현재·초안 모두 합산하지 않는다" classname="com.cryptoautotrader.api.service.RealLossGlobalPgTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

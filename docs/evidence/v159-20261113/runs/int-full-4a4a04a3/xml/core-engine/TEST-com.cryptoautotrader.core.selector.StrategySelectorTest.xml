@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="StrategySelector — Regime별 전략 그룹 선택" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-11-12T23:21:42" hostname="DESKTOP-SF1KUQ5" time="0.002">
+  <properties/>
+  <testcase name="TRANSITIONAL(prev=RANGE): RANGE 전략 × 0.5 가중치 축소" classname="com.cryptoautotrader.core.selector.StrategySelectorTest" time="0.001"/>
+  <testcase name="TRANSITIONAL(prev=TREND): TREND 전략 × 0.5 가중치 축소" classname="com.cryptoautotrader.core.selector.StrategySelectorTest" time="0.0"/>
+  <testcase name="RANGE: COMPOSITE_MOMENTUM(0.60) + COMPOSITE_BREAKOUT(0.40)" classname="com.cryptoautotrader.core.selector.StrategySelectorTest" time="0.001"/>
+  <testcase name="VOLATILITY: COMPOSITE_BREAKOUT(0.70) + COMPOSITE_MOMENTUM(0.30)" classname="com.cryptoautotrader.core.selector.StrategySelectorTest" time="0.0"/>
+  <testcase name="TREND: COMPOSITE_BREAKOUT(0.65) + COMPOSITE_MOMENTUM(0.35)" classname="com.cryptoautotrader.core.selector.StrategySelectorTest" time="0.0"/>
+  <testcase name="WeightedStrategy.withReducedWeight() — 체인 호출" classname="com.cryptoautotrader.core.selector.StrategySelectorTest" time="0.0"/>
+  <testcase name="TRANSITIONAL(prev=TRANSITIONAL): 무한 재귀 방지 — RANGE 폴백" classname="com.cryptoautotrader.core.selector.StrategySelectorTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

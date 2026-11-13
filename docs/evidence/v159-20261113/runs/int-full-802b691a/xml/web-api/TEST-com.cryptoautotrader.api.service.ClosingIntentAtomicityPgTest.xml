@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="v1.158 결정 3 — CLOSING 과 매도 의도 원자성 (로컬 PostgreSQL)" tests="5" skipped="5" failures="0" errors="0" timestamp="2026-11-13T00:36:43" hostname="DESKTOP-SF1KUQ5" time="0.0">
+  <properties/>
+  <testcase name="① LIVE 정리 작업: 의도 생성 전 청산 확인이 와도 CLOSING·의도 유지 → 매도1·입금1" classname="com.cryptoautotrader.api.service.ClosingIntentAtomicityPgTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <testcase name="⑤ 응답 불명: CLOSING 유지·재매도 0" classname="com.cryptoautotrader.api.service.ClosingIntentAtomicityPgTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <testcase name="③ DYNAMIC REAL 매도: 의도 생성 전 청산 확인이 와도 CLOSING·의도 유지 → 매도1" classname="com.cryptoautotrader.api.service.ClosingIntentAtomicityPgTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <testcase name="④ 실행기 거절: 의도 철회(외부 호출 0) → 청산 확인이 근거(철회 FAILED)로 OPEN 복귀" classname="com.cryptoautotrader.api.service.ClosingIntentAtomicityPgTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <testcase name="② LIVE 실시간 손절: 의도 생성 전 청산 확인이 와도 CLOSING·의도 유지 → 매도1·입금1" classname="com.cryptoautotrader.api.service.ClosingIntentAtomicityPgTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

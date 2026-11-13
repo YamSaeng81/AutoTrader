@@ -1,0 +1,59 @@
+▲ Next.js 16.1.6 (Turbopack)
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 6.2s
+  Running TypeScript ...
+  Collecting page data using 15 workers ...
+  Generating static pages using 15 workers (0/35) ...
+  Generating static pages using 15 workers (8/35) 
+  Generating static pages using 15 workers (17/35) 
+  Generating static pages using 15 workers (26/35) 
+✓ Generating static pages using 15 workers (35/35) in 633.6ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /account
+├ ○ /admin/discord
+├ ○ /admin/health-check
+├ ○ /admin/llm-config
+├ ○ /admin/news-sources
+├ ○ /admin/reports
+├ ƒ /api/auth/login
+├ ƒ /api/auth/logout
+├ ƒ /api/proxy/[...path]
+├ ○ /backtest
+├ ƒ /backtest/[id]
+├ ○ /backtest/compare
+├ ○ /backtest/new
+├ ○ /backtest/scheduler
+├ ○ /backtest/walk-forward
+├ ○ /data
+├ ○ /login
+├ ○ /logs
+├ ○ /logs/llm
+├ ○ /logs/signal-quality
+├ ○ /paper-trading
+├ ƒ /paper-trading/[sessionId]
+├ ○ /paper-trading/history
+├ ○ /performance
+├ ○ /settings/db-reset
+├ ○ /settings/server-logs
+├ ○ /settings/telegram
+├ ○ /settings/upbit-logs
+├ ○ /settings/upbit-status
+├ ○ /strategies
+├ ○ /trading
+├ ƒ /trading/[sessionId]
+├ ○ /trading/dynamic
+├ ƒ /trading/dynamic/[id]
+├ ○ /trading/history
+└ ○ /trading/risk
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
