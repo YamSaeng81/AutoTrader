@@ -1,0 +1,215 @@
+식별자 취소·취소 확인·늦은 체결 정리	74	실패2	오류0	건너뜀0
+claim 규칙과 응답 불명 추적 (V84)	7	실패3	오류0	건너뜀0
+DAILY_SMA20 LIVE 주문 경로 — 마감 봉 진입·EMA200 차단·시간 청산·SELL 차단·재진입·매수금	24	실패14	오류0	건너뜀0
+거래소 DOWN → 복구 자동 재시작	5	실패3	오류0	건너뜀0
+V84 보완 — 선커밋 증명·claim·철회 경합·종단 간 정확히 한 번	4	실패2	오류0	건너뜀0
+정지가 완료된 뒤에는 신규 매수가 제출되지 않는다 (선행 조건 5)	1	실패0	오류0	건너뜀0
+N01 거래소 DOWN → UP — 제한시험(SMA20)은 재개하지 않고 최초 started_at 을 보존한다	4	실패2	오류0	건너뜀0
+LIVE 비상 정지 — 동시 쓰기 중에도 정지·청산이 끝난다 (선행 조건 5-b)	3	실패3	오류0	건너뜀0
+동시 쓰기 중에도 실전매매 정지는 성공하고 매도는 한 번만 나간다 (선행 조건 5)	3	실패2	오류0	건너뜀0
+N15 실제 PostgreSQL 잠금 대기 중 E — LIVE 계좌 잠금·DYNAMIC 세션 행 잠금, 차감·의도·슬롯·거래소 0 · 대조군 정상 진입	4	실패0	오류0	건너뜀4
+N16 재현 — 비정상 가격·관측 시각	13	실패0	오류0	건너뜀0
+N17 SL 감시기 REST 강제 갱신 — 0·음수는 INVALID_PRICE·발행 0·가격 이상 문구, 정상 값 뒤 회복	24	실패2	오류0	건너뜀0
+N19 REST 전역 폴백 — 0·음수·형식 이상 항목만 건너뛰고 앞뒤 정상 코인은 발행·보호 매도 유지, 내부 예외는 숨기지 않음	23	실패1	오류0	건너뜀0
+O1·O3 로그 출력 계약 — 강제 갱신 WARN/ERROR 원문 없음·수준/건수/결과 유지, 실시간 손절 문구 중립(REST·WS 모두)	17	실패0	오류0	건너뜀0
+N02 보완 SL 감시기 — 낡은 REST 응답은 점검·매도·재개 문구 없음, 신선한 응답은 실제 점검 기록	4	실패2	오류0	건너뜀0
+N02 낡은 실시간 시세 — 관측 시각이 유효기간을 넘은 가격은 보호 매도를 내지 않는다	2	실패2	오류0	건너뜀0
+#5 정지 ∥ 진행 중 청산 — 매도 1회, 정지 후에도 포지션 추적 유지	7	실패2	오류0	건너뜀0
+거래소가 접수했는데 응답이 없을 때 (선행 조건 5)	3	실패2	오류0	건너뜀0
+합계	222	실패42	오류0	건너뜀4
+FAIL 식별자 취소·취소 확인·늦은 체결 정리 :: LIVE EXCHANGE_REJECTED :: org.mockito.exceptions.verification.TooFewActualInvocations: 
+upbitOrderClient bean.createOrder(
+    "KRW-DOGE",
+    "ask",
+    <any>,
+    <any>,
+    <any>,
+    <any>
+);
+Wanted 2 times:
+-> at com.cryptoautotrader.exchange.upbit.UpbitOrderClient.createOrder(UpbitOrderClient.java:110)
+But was 1 time:
+
+FAIL 식별자 취소·취소 확인·늦은 체결 정리 :: DYNAMIC EXCHANGE_REJECTED :: org.mockito.exceptions.verification.TooFewActualInvocations: 
+upbitOrderClient bean.createOrder(
+    "KRW-DOGE",
+    "ask",
+    <any>,
+    <any>,
+    <any>,
+    <any>
+);
+Wanted 2 times:
+-> at com.cryptoautotrader.exchange.upbit.UpbitOrderClient.createOrder(UpbitOrderClient.java:110)
+But was 1 time:
+
+FAIL claim 규칙과 응답 불명 추적 (V84) :: 시험 1·2 — 응답을 잃으면 UNKNOWN 으로 남고 식별자로 추적 가능하며 자금·슬롯이 유지된다 :: java.lang.AssertionError: [주문은 **정확히 한 행**이어야 한다] 
+Expected size: 1 but was: 0 in:
+[]
+FAIL claim 규칙과 응답 불명 추적 (V84) :: 시험 3 — 조회가 반복 실패해도 새 식별자로 재주문하지 않고 상태를 유지한다 :: java.lang.AssertionError: [주문은 **정확히 한 행**이어야 한다] 
+Expected size: 1 but was: 0 in:
+[]
+FAIL claim 규칙과 응답 불명 추적 (V84) :: 불명 주문이 남은 세션은 정지해도 정리 완료가 아니고 신규 매수가 막힌다 :: java.lang.AssertionError: [주문은 **정확히 한 행**이어야 한다] 
+Expected size: 1 but was: 0 in:
+[]
+FAIL DAILY_SMA20 LIVE 주문 경로 — 마감 봉 진입·EMA200 차단·시간 청산·SELL 차단·재진입·매수금 :: maxHoldHours=0 — 익절은 그대로 작동한다(보유 72시간, 저장된 익절가 도달) :: org.opentest4j.AssertionFailedError: [SELL 접수 기록] 
+expected: "SUBMITTED"
+ but was: "INTENT_READY"
+FAIL DAILY_SMA20 LIVE 주문 경로 — 마감 봉 진입·EMA200 차단·시간 청산·SELL 차단·재진입·매수금 :: 보유 24시간 경과 → 시간 청산 매도, 같은 회차의 BUY 신호로 다시 사지 않는다 :: org.opentest4j.AssertionFailedError: [SELL 접수 기록] 
+expected: "SUBMITTED"
+ but was: "INTENT_READY"
+FAIL DAILY_SMA20 LIVE 주문 경로 — 마감 봉 진입·EMA200 차단·시간 청산·SELL 차단·재진입·매수금 :: 이전 포지션이 청산된 세션은 다음 마감 봉의 BUY 로 다시 들어간다(재진입) :: org.opentest4j.AssertionFailedError: [BUY 접수 기록] 
+expected: "SUBMITTED"
+ but was: "INTENT_READY"
+FAIL DAILY_SMA20 LIVE 주문 경로 — 마감 봉 진입·EMA200 차단·시간 청산·SELL 차단·재진입·매수금 :: 일봉 마감 봉 + 종가 > SMA20 + 관문 통과 → 매수 1건, 금액 = min(20,200 × 0.995, 20,000) = 20,000 :: org.opentest4j.AssertionFailedError: [BUY 접수 기록] 
+expected: "SUBMITTED"
+ but was: "INTENT_READY"
+FAIL DAILY_SMA20 LIVE 주문 경로 — 마감 봉 진입·EMA200 차단·시간 청산·SELL 차단·재진입·매수금 :: 통합 ③ 같은 응답 반복·수수료 정정 — 반복은 변화 없음, 수수료 9.00→9.99 는 차액 0.99 만 한 번 :: org.opentest4j.AssertionFailedError: [BUY 접수 기록] 
+expected: "SUBMITTED"
+ but was: "INTENT_READY"
+FAIL DAILY_SMA20 LIVE 주문 경로 — 마감 봉 진입·EMA200 차단·시간 청산·SELL 차단·재진입·매수금 :: 마감 종가 ≤ SMA20, 손실 −2% → 전략 SELL 체결(손실 탈출 −0.30% 아래) :: org.opentest4j.AssertionFailedError: [SELL 접수 기록] 
+expected: "SUBMITTED"
+ but was: "INTENT_READY"
+FAIL DAILY_SMA20 LIVE 주문 경로 — 마감 봉 진입·EMA200 차단·시간 청산·SELL 차단·재진입·매수금 :: maxHoldHours=0 — 마감 종가 ≤ SMA20 이면 전략 SELL 이 그대로 나간다(보유 72시간, −2%) :: org.opentest4j.AssertionFailedError: [SELL 접수 기록] 
+expected: "SUBMITTED"
+ but was: "INTENT_READY"
+FAIL DAILY_SMA20 LIVE 주문 경로 — 마감 봉 진입·EMA200 차단·시간 청산·SELL 차단·재진입·매수금 :: 통합 ⑥ 매수 체결 → 세션 정지 → 청산 매도 체결 — STOPPED·활성 주문 0·정리 대기 0·보유량 0 일치 :: org.opentest4j.AssertionFailedError: [BUY 접수 기록] 
+expected: "SUBMITTED"
+ but was: "INTENT_READY"
+FAIL DAILY_SMA20 LIVE 주문 경로 — 마감 봉 진입·EMA200 차단·시간 청산·SELL 차단·재진입·매수금 :: 통합 ② 부분 체결 뒤 잔량 취소 — 0.0008 BTC·10,000·수수료 5 반영, 미사용 9,995 복원(고아 정리 반복에도 한 번) :: org.opentest4j.AssertionFailedError: [BUY 접수 기록] 
+expected: "SUBMITTED"
+ but was: "INTENT_READY"
+FAIL DAILY_SMA20 LIVE 주문 경로 — 마감 봉 진입·EMA200 차단·시간 청산·SELL 차단·재진입·매수금 :: 통합 ① 전량 체결 — 체결대금 19,980·수수료 9.99·BTC 0.0016, 미사용 10.01 복원 → 잔액 210.01 :: org.opentest4j.AssertionFailedError: [BUY 접수 기록] 
+expected: "SUBMITTED"
+ but was: "INTENT_READY"
+FAIL DAILY_SMA20 LIVE 주문 경로 — 마감 봉 진입·EMA200 차단·시간 청산·SELL 차단·재진입·매수금 :: maxHoldHours=0 — 손절은 그대로 작동한다(보유 72시간, −10%) :: org.opentest4j.AssertionFailedError: [SELL 접수 기록] 
+expected: "SUBMITTED"
+ but was: "INTENT_READY"
+FAIL DAILY_SMA20 LIVE 주문 경로 — 마감 봉 진입·EMA200 차단·시간 청산·SELL 차단·재진입·매수금 :: 통합 ④ 체결대금만 정정 — 수량 0.0016 그대로, 19,980→19,990 이면 평균단가·투입금·잔액이 함께 바뀌고 반복은 변화 없음 :: org.opentest4j.AssertionFailedError: [BUY 접수 기록] 
+expected: "SUBMITTED"
+ but was: "INTENT_READY"
+FAIL DAILY_SMA20 LIVE 주문 경로 — 마감 봉 진입·EMA200 차단·시간 청산·SELL 차단·재진입·매수금 :: 이익으로 잔액 25,000 — 1회 상한이 있으면 20,000 매수, 없으면 24,875 로 포지션당 한도에 걸려 매수 없음 :: org.opentest4j.AssertionFailedError: [BUY 접수 기록] 
+expected: "SUBMITTED"
+ but was: "INTENT_READY"
+FAIL DAILY_SMA20 LIVE 주문 경로 — 마감 봉 진입·EMA200 차단·시간 청산·SELL 차단·재진입·매수금 :: 통합 ⑤ 매수 체결 → 손절 → 매도 체결 — 포지션 CLOSED, 잔액 210.01 + 18,880 − 9.44, 보유량 0 일치, 반복 응답은 한 번만 :: org.opentest4j.AssertionFailedError: [BUY 접수 기록] 
+expected: "SUBMITTED"
+ but was: "INTENT_READY"
+FAIL 거래소 DOWN → 복구 자동 재시작 :: ① 등록된 정상 세션 — DOWN 에 비상 정지, 복구에 RUNNING :: org.opentest4j.AssertionFailedError: [🔴 운영 2026-10-19: 자기 호출로 트랜잭션 없이 시작해 거절됐다] 
+expected: "RUNNING"
+ but was: "EMERGENCY_STOPPED"
+FAIL 거래소 DOWN → 복구 자동 재시작 :: ⑤ 실제 경로 — HTTP 실패 3회 → DOWN(비상 정지) → 느린 응답 DEGRADED(재시작 안 함) → 빠른 응답 UP → 재시작 :: org.opentest4j.AssertionFailedError: [🔴 종전에는 DEGRADED 를 거치면 복구 이벤트가 나지 않아 재시작되지 않았다] 
+expected: "RUNNING"
+ but was: "EMERGENCY_STOPPED"
+FAIL 거래소 DOWN → 복구 자동 재시작 :: ④ 보유 중 DOWN — 비상 정지가 커밋되고 청산 매도는 정확히 1회 :: Wanted but not invoked:
+upbitOrderClient bean.createOrder(
+    "KRW-XRP",
+    "ask",
+    <any>,
+    <any>,
+    <any>,
+    <any>
+);
+-> at com.cryptoautotrader.exchange.upbit.UpbitOrderClient.createOrder(UpbitOrderClient.java:110)
+Actually, there were zero interactions with this mock.
+
+FAIL V84 보완 — 선커밋 증명·claim·철회 경합·종단 간 정확히 한 번 :: ③ 응답 유실 → 식별자 조회 → 체결 확인 → 반영 → 재조회에서 중복 반영이 없다 :: java.lang.AssertionError: [주문은 정확히 한 행이어야 한다] 
+Expected size: 1 but was: 0 in:
+[]
+FAIL V84 보완 — 선커밋 증명·claim·철회 경합·종단 간 정확히 한 번 :: ① 외부 호출 시점에 의도·식별자·예약이 이미 커밋돼 있다 (별도 연결 조회) :: java.lang.AssertionError: [주문은 정확히 한 행이어야 한다] 
+Expected size: 1 but was: 0 in:
+[]
+FAIL N01 거래소 DOWN → UP — 제한시험(SMA20)은 재개하지 않고 최초 started_at 을 보존한다 :: 보유 중 DOWN → UP → 반복 UP → DOWN·UP — 비상정지 유지, 최초 started_at·종료 시각 보존, 추가 매수 0, 청산 매도 1회 :: org.opentest4j.AssertionFailedError: [DOWN 비상 청산 매도 1회] 
+expected: 1
+ but was: 0
+FAIL N01 거래소 DOWN → UP — 제한시험(SMA20)은 재개하지 않고 최초 started_at 을 보존한다 :: 수동 시작 — 보유 중 DOWN 비상정지(매도 접수·대기) 뒤 수동 시작 거절·불변, CREATED 이지만 started_at 이 있으면 거절 :: org.opentest4j.AssertionFailedError: [청산 매도는 DOWN 의 1회뿐] 
+expected: 1
+ but was: 0
+FAIL LIVE 비상 정지 — 동시 쓰기 중에도 정지·청산이 끝난다 (선행 조건 5-b) :: 비상 정지(단건) — 청산 중 같은 세션 행에 쓰기가 들어와도 EMERGENCY_STOPPED·매도 1회·체결 후 CLOSED :: Wanted but not invoked:
+upbitOrderClient bean.createOrder(
+    "KRW-DOGE",
+    "ask",
+    <any>,
+    <any>,
+    <any>,
+    <any>
+);
+-> at com.cryptoautotrader.exchange.upbit.UpbitOrderClient.createOrder(UpbitOrderClient.java:110)
+
+However, there was exactly 1 interaction with this mock:
+upbitOrderCl
+FAIL LIVE 비상 정지 — 동시 쓰기 중에도 정지·청산이 끝난다 (선행 조건 5-b) :: 서킷 브레이커 발동 — 판정과 기록 사이에 같은 세션 행에 쓰기가 들어와도 발동 기록·EMERGENCY_STOPPED·매도 1회·체결 후 CLOSED :: Wanted but not invoked:
+upbitOrderClient bean.createOrder(
+    "KRW-DOGE",
+    "ask",
+    <any>,
+    <any>,
+    <any>,
+    <any>
+);
+-> at com.cryptoautotrader.exchange.upbit.UpbitOrderClient.createOrder(UpbitOrderClient.java:110)
+Actually, there were zero interactions with this mock.
+
+FAIL LIVE 비상 정지 — 동시 쓰기 중에도 정지·청산이 끝난다 (선행 조건 5-b) :: 전체 비상 정지 — 청산 중 같은 세션 행에 쓰기가 들어와도 EMERGENCY_STOPPED·매도 1회·체결 후 CLOSED :: Wanted but not invoked:
+upbitOrderClient bean.createOrder(
+    "KRW-DOGE",
+    "ask",
+    <any>,
+    <any>,
+    <any>,
+    <any>
+);
+-> at com.cryptoautotrader.exchange.upbit.UpbitOrderClient.createOrder(UpbitOrderClient.java:110)
+Actually, there were zero interactions with this mock.
+
+FAIL 동시 쓰기 중에도 실전매매 정지는 성공하고 매도는 한 번만 나간다 (선행 조건 5) :: 🔴 미해결 — 거래소에 접수된 매도는 정확히 1건이어야 한다 :: java.lang.AssertionError: [거래소 호출 0회 / 세션 89 의 전체 주문 행: | {id=149 side=SELL state=INTENT_READY exchId=null posId=116 qty=26.00000000 filledQty=0E-8 created=2026-11-13T05:47:22.129150Z submitted=null reason=세션 정지 -- 포지션 청산}  TRADE_LOG: | {logId=1 orderId=4 ev=STATE_CHANGE null->INTENT_READY} | {logId
+FAIL 동시 쓰기 중에도 실전매매 정지는 성공하고 매도는 한 번만 나간다 (선행 조건 5) :: 상태 전환 중 같은 행에 쓰기가 들어와도 정지되고, 매도 제출은 최대 1회다 :: Wanted but not invoked:
+upbitOrderClient bean.createOrder(
+    "KRW-DOGE",
+    "ask",
+    <any>,
+    <any>,
+    <any>,
+    <any>
+);
+-> at com.cryptoautotrader.exchange.upbit.UpbitOrderClient.createOrder(UpbitOrderClient.java:110)
+Actually, there were zero interactions with this mock.
+
+FAIL N17 SL 감시기 REST 강제 갱신 — 0·음수는 INVALID_PRICE·발행 0·가격 이상 문구, 정상 값 뒤 회복 :: LIVE :: java.lang.AssertionError: [정상 값은 처리기가 실제 점검 시각을 남긴다] 
+Expecting actual:
+  2026-11-13T05:37:29.766531600Z
+to be strictly after:
+  2026-11-13T05:37:29.766531600Z
+
+FAIL N17 SL 감시기 REST 강제 갱신 — 0·음수는 INVALID_PRICE·발행 0·가격 이상 문구, 정상 값 뒤 회복 :: DYNAMIC :: java.lang.AssertionError: [정상 값은 처리기가 실제 점검 시각을 남긴다] 
+Expecting actual:
+  2026-11-13T05:37:30.238432Z
+to be strictly after:
+  2026-11-13T05:37:30.238432Z
+
+FAIL N19 REST 전역 폴백 — 0·음수·형식 이상 항목만 건너뛰고 앞뒤 정상 코인은 발행·보호 매도 유지, 내부 예외는 숨기지 않음 :: ④ 혼합 응답(LIVE 정상 280 · 형식 이상 · DYNAMIC 정상 280 · LIVE 0) → 정상 둘 보호 매도 1회씩·점검 기록, 0 코인은 매도·점검·장부 0 → 다음 주기 280 이면 매도 1회 :: org.opentest4j.AssertionFailedError: [LIVE 정상 280 < 손절가 285 → 보호 매도 1회] 
+expected: 1
+ but was: 0
+FAIL N02 보완 SL 감시기 — 낡은 REST 응답은 점검·매도·재개 문구 없음, 신선한 응답은 실제 점검 기록 :: LIVE :: java.lang.AssertionError: [실제 점검 기록 — 처리기가 남긴 시각] 
+Expecting actual:
+  2026-11-13T05:37:58.615514800Z
+to be strictly after:
+  2026-11-13T05:37:58.615514800Z
+
+FAIL N02 보완 SL 감시기 — 낡은 REST 응답은 점검·매도·재개 문구 없음, 신선한 응답은 실제 점검 기록 :: DYNAMIC :: java.lang.AssertionError: [실제 점검 기록 — 처리기가 남긴 시각] 
+Expecting actual:
+  2026-11-13T05:37:59.116252800Z
+to be strictly after:
+  2026-11-13T05:37:59.116252800Z
+
+FAIL N02 낡은 실시간 시세 — 관측 시각이 유효기간을 넘은 가격은 보호 매도를 내지 않는다 :: LIVE :: org.opentest4j.AssertionFailedError: [같은 가격의 신선한 이벤트는 보호 매도 1회] 
+expected: 1
+ but was: 0
+FAIL N02 낡은 실시간 시세 — 관측 시각이 유효기간을 넘은 가격은 보호 매도를 내지 않는다 :: DYNAMIC :: org.opentest4j.AssertionFailedError: [같은 가격의 신선한 이벤트는 보호 매도 1회] 
+expected: 1
+ but was: 0
+FAIL #5 정지 ∥ 진행 중 청산 — 매도 1회, 정지 후에도 포지션 추적 유지 :: LIVE :: java.lang.AssertionError: 매도 2건이 접수 상태가 되지 않았다: [INTENT_READY/null, FAILED/uuid-svr-1-159363381430500]
+FAIL #5 정지 ∥ 진행 중 청산 — 매도 1회, 정지 후에도 포지션 추적 유지 :: DYNAMIC :: java.lang.AssertionError: 매도 2건이 접수 상태가 되지 않았다: [INTENT_READY/null, FAILED/uuid-svr-1-159384512061500]
+FAIL 거래소가 접수했는데 응답이 없을 때 (선행 조건 5) :: 현재 동작을 측정한다 — 중복 제출·추적 단서·세션 행 UPDATE 경로 :: java.lang.AssertionError: [거래소 접수는 1회여야 한다 — 응답 불명 상태에서 재제출하면 같은 주문이 두 번 들어간다] 
+Expected size: 1 but was: 0 in:
+[]
+FAIL 거래소가 접수했는데 응답이 없을 때 (선행 조건 5) :: 접수 가능성이 있는 주문은 종결하지 않고 추적 단서를 남긴다 :: java.lang.ArrayIndexOutOfBoundsException: Index 0 out of bounds for length 0

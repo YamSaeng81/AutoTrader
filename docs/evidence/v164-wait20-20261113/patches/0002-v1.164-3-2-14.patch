@@ -1,0 +1,453 @@
+From 7d1d00aef6f76b5059e0d28dbd8d1d879223e6d1 Mon Sep 17 00:00:00 2001
+From: YamSaeng81 <manicstr81@gmail.com>
+Date: Fri, 13 Nov 2026 15:15:36 +0900
+Subject: [PATCH 2/2] =?UTF-8?q?=EC=99=84=EB=A3=8C=20=EB=8C=80=EA=B8=B0=20?=
+ =?UTF-8?q?=EC=A1=B0=EA=B1=B4=20=EA=B2=BD=EC=9F=81=20=EB=B3=B4=EC=99=84(?=
+ =?UTF-8?q?=EC=8B=9C=ED=97=98=EB=A7=8C,=20=EC=B4=9D=EA=B4=84=20v1.164=20?=
+ =?UTF-8?q?=C2=A73-2)=20=E2=80=94=20=EA=B2=8C=EC=9D=B4=ED=8A=B8=EB=A1=9C?=
+ =?UTF-8?q?=20=EC=9E=AC=ED=98=84=EB=90=9C=2014=ED=81=B4=EB=9E=98=EC=8A=A4?=
+ =?UTF-8?q?=EC=9D=98=20=EC=98=9B=20=EB=8C=80=EA=B8=B0=EB=A5=BC=20=EC=8B=A4?=
+ =?UTF-8?q?=ED=96=89=EA=B8=B0=20=EC=9E=A5=EB=B2=BD=EC=9C=BC=EB=A1=9C?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- 88f06345 옛 조건(대기열 비었음·active 0·taskCount==completed) 사용 18클래스를 DrainGapGate 500ms 로 실행: 222 중 실패 42(14클래스),
+  모두 작업 결과를 작업 전에 읽은 실패(주문 0행·INTENT_READY·매도 0·점검 시각 그대로)
+- 14클래스의 대기 함수 본문만 ExecutorBarrier.awaitPriorTasks(같은 실행기, 종전 시간 한도)로 교체. 기대값·단언·호출 위치 그대로
+- StopVersusInFlightExitRaceTest (다) 정지 목 응답 안 시세 대기 1곳은 종전 조건 유지 — 거기서는 대기 방식과 무관하게 실행기 시작이
+  50ms 늦어도 두 번째 WS 보호 매도 의도가 INTENT_READY 로 남는 미확인 관측이 있다(종전 코드+게이트50 에서도 같음)
+- 미변경: LateOrderSubmissionAfterStop(음성 단언, 게이트에서도 통과)·N16(02d14061)·O1O3(84fb03d6)·N15Pg(PG 전용, 정리 전용)
+- 결과: 게이트 없음 222 중 실패 0·건너뜀 4, 게이트 500 실패 3(SlWatchdog 문구 지연 부산물 1·(다) 2), 게이트 50 실패 2((다))
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ .../CancelConfirmAndLateFillCleanupTest.java  | 19 +++----------
+ .../service/ClaimAndUnknownTrackingTest.java  | 17 +++---------
+ .../service/DailySma20LiveOrderPathTest.java  | 17 +++---------
+ .../service/ExchangeRecoveryRestartTest.java  | 17 +++---------
+ .../IntentPrecommitAndOnceOnlyTest.java       | 17 +++---------
+ .../LimitedTestExchangeRecoveryTest.java      | 17 +++---------
+ ...EmergencyStopUnderConcurrentWriteTest.java | 17 +++---------
+ .../LiveStopUnderConcurrentWriteTest.java     | 27 +++----------------
+ .../api/service/N17RestInvalidPriceTest.java  | 17 +++---------
+ .../N19RestFallbackItemDefenseTest.java       | 17 +++---------
+ .../api/service/SlWatchdogFreshnessTest.java  | 17 +++---------
+ .../api/service/StaleRealtimeExitTest.java    | 17 +++---------
+ .../StopVersusInFlightExitRaceTest.java       | 16 ++++++++++-
+ .../service/SubmitResponseUnknownTest.java    | 17 +++---------
+ 14 files changed, 67 insertions(+), 182 deletions(-)
+
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/CancelConfirmAndLateFillCleanupTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/CancelConfirmAndLateFillCleanupTest.java
+index 1c844c4d..898a904f 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/CancelConfirmAndLateFillCleanupTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/CancelConfirmAndLateFillCleanupTest.java
+@@ -264,21 +264,10 @@ class CancelConfirmAndLateFillCleanupTest extends IntegrationTestBase {
+     }
+ 
+     private void awaitDrained() {
+-        var pool = orderExecutor.getThreadPoolExecutor();
+-        long deadline = System.currentTimeMillis() + 20_000;
+-        while (System.currentTimeMillis() < deadline) {
+-            // 🔴 큐가 비고 실행 중 0 인 순간은 작업이 큐에서 실행으로 넘어가는 사이에도 생긴다(D5 간헐 실패, 2026-10-14) —
+-            //    제출된 작업 수와 완료된 작업 수가 같아질 때까지 기다린다.
+-            if (pool.getQueue().isEmpty() && pool.getActiveCount() == 0
+-                    && pool.getTaskCount() == pool.getCompletedTaskCount()) return;
+-            try {
+-                Thread.sleep(50);
+-            } catch (InterruptedException e) {
+-                Thread.currentThread().interrupt();
+-                return;
+-            }
+-        }
+-        throw new AssertionError("orderExecutor 가 비워지지 않았다");
++        // 🔴 (총괄 v1.164 §3-2, 2026-11-13, 시험만) 옛 조건(대기열 비었음·active 0·taskCount == completed)은 놀고 있던 작업자가
++        //    작업을 꺼낸 뒤 실행 표시 전에도 참이다 — DrainGapGate(꺼낸 뒤 머묾)로 이 클래스의 단언이 작업 전에 읽히는 것을 고정 재현했다.
++        //    이 호출 전에 넣은 작업이 모두 끝났음을 실행기 장벽(확정 신호)으로 기다린다. 시간 초과는 실패다. 기대값·단언은 그대로다.
++        com.cryptoautotrader.api.support.ExecutorBarrier.awaitPriorTasks(orderExecutor.getThreadPoolExecutor(), 20_000);
+     }
+ 
+     // ── A. 취소 확인과 체결량 확인 ─────────────────────────────────────────
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/ClaimAndUnknownTrackingTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/ClaimAndUnknownTrackingTest.java
+index 574aa787..f440740b 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/ClaimAndUnknownTrackingTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/ClaimAndUnknownTrackingTest.java
+@@ -119,19 +119,10 @@ class ClaimAndUnknownTrackingTest extends IntegrationTestBase {
+             "PARTIAL_FILLED", "FILLED", "CANCELLED", "FAILED");
+ 
+     private void awaitDrained() {
+-        var pool = orderExecutor.getThreadPoolExecutor();
+-        long deadline = System.currentTimeMillis() + 15_000;
+-        while (System.currentTimeMillis() < deadline) {
+-            if (pool.getQueue().isEmpty() && pool.getActiveCount() == 0
+-                    && pool.getTaskCount() == pool.getCompletedTaskCount()) return;
+-            try {
+-                Thread.sleep(50);
+-            } catch (InterruptedException ie) {
+-                Thread.currentThread().interrupt();
+-                return;
+-            }
+-        }
+-        throw new AssertionError("orderExecutor 가 비워지지 않았다 — 작업 스레드가 반환되지 않았다");
++        // 🔴 (총괄 v1.164 §3-2, 2026-11-13, 시험만) 옛 조건(대기열 비었음·active 0·taskCount == completed)은 놀고 있던 작업자가
++        //    작업을 꺼낸 뒤 실행 표시 전에도 참이다 — DrainGapGate(꺼낸 뒤 머묾)로 이 클래스의 단언이 작업 전에 읽히는 것을 고정 재현했다.
++        //    이 호출 전에 넣은 작업이 모두 끝났음을 실행기 장벽(확정 신호)으로 기다린다. 시간 초과는 실패다. 기대값·단언은 그대로다.
++        com.cryptoautotrader.api.support.ExecutorBarrier.awaitPriorTasks(orderExecutor.getThreadPoolExecutor(), 15_000);
+     }
+ 
+     private record Fixture(Long sessionId, Long positionId, OrderRequest request) { }
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/DailySma20LiveOrderPathTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/DailySma20LiveOrderPathTest.java
+index 10540cb5..eca711ab 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/DailySma20LiveOrderPathTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/DailySma20LiveOrderPathTest.java
+@@ -160,19 +160,10 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
+     }
+ 
+     private void awaitDrained() {
+-        var pool = orderExecutor.getThreadPoolExecutor();
+-        long deadline = System.currentTimeMillis() + 15_000;
+-        while (System.currentTimeMillis() < deadline) {
+-            if (pool.getQueue().isEmpty() && pool.getActiveCount() == 0
+-                    && pool.getTaskCount() == pool.getCompletedTaskCount()) return;
+-            try {
+-                Thread.sleep(50);
+-            } catch (InterruptedException ie) {
+-                Thread.currentThread().interrupt();
+-                return;
+-            }
+-        }
+-        throw new AssertionError("orderExecutor 가 비워지지 않았다 — 작업 스레드가 반환되지 않았다");
++        // 🔴 (총괄 v1.164 §3-2, 2026-11-13, 시험만) 옛 조건(대기열 비었음·active 0·taskCount == completed)은 놀고 있던 작업자가
++        //    작업을 꺼낸 뒤 실행 표시 전에도 참이다 — DrainGapGate(꺼낸 뒤 머묾)로 이 클래스의 단언이 작업 전에 읽히는 것을 고정 재현했다.
++        //    이 호출 전에 넣은 작업이 모두 끝났음을 실행기 장벽(확정 신호)으로 기다린다. 시간 초과는 실패다. 기대값·단언은 그대로다.
++        com.cryptoautotrader.api.support.ExecutorBarrier.awaitPriorTasks(orderExecutor.getThreadPoolExecutor(), 15_000);
+     }
+ 
+     private static void useCloseHour(int hourUtc) {
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/ExchangeRecoveryRestartTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/ExchangeRecoveryRestartTest.java
+index a91c5153..203963ad 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/ExchangeRecoveryRestartTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/ExchangeRecoveryRestartTest.java
+@@ -106,19 +106,10 @@ class ExchangeRecoveryRestartTest extends IntegrationTestBase {
+     }
+ 
+     private static void awaitDrained(ThreadPoolTaskExecutor ex) {
+-        var pool = ex.getThreadPoolExecutor();
+-        long deadline = System.currentTimeMillis() + 20_000;
+-        while (System.currentTimeMillis() < deadline) {
+-            if (pool.getQueue().isEmpty() && pool.getActiveCount() == 0
+-                    && pool.getTaskCount() == pool.getCompletedTaskCount()) return;
+-            try {
+-                Thread.sleep(50);
+-            } catch (InterruptedException e) {
+-                Thread.currentThread().interrupt();
+-                return;
+-            }
+-        }
+-        throw new AssertionError("실행기가 20초 안에 비워지지 않았다");
++        // 🔴 (총괄 v1.164 §3-2, 2026-11-13, 시험만) 옛 조건(대기열 비었음·active 0·taskCount == completed)은 놀고 있던 작업자가
++        //    작업을 꺼낸 뒤 실행 표시 전에도 참이다 — DrainGapGate(꺼낸 뒤 머묾)로 이 클래스의 단언이 작업 전에 읽히는 것을 고정 재현했다.
++        //    이 호출 전에 넣은 작업이 모두 끝났음을 실행기 장벽(확정 신호)으로 기다린다. 시간 초과는 실패다. 기대값·단언은 그대로다.
++        com.cryptoautotrader.api.support.ExecutorBarrier.awaitPriorTasks(ex.getThreadPoolExecutor(), 20_000);
+     }
+ 
+     @Test
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/IntentPrecommitAndOnceOnlyTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/IntentPrecommitAndOnceOnlyTest.java
+index eddccf91..c223c7c9 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/IntentPrecommitAndOnceOnlyTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/IntentPrecommitAndOnceOnlyTest.java
+@@ -102,19 +102,10 @@ class IntentPrecommitAndOnceOnlyTest extends IntegrationTestBase {
+     }
+ 
+     private void awaitDrained() {
+-        var pool = orderExecutor.getThreadPoolExecutor();
+-        long deadline = System.currentTimeMillis() + 20_000;
+-        while (System.currentTimeMillis() < deadline) {
+-            if (pool.getQueue().isEmpty() && pool.getActiveCount() == 0
+-                    && pool.getTaskCount() == pool.getCompletedTaskCount()) return;
+-            try {
+-                Thread.sleep(50);
+-            } catch (InterruptedException ie) {
+-                Thread.currentThread().interrupt();
+-                return;
+-            }
+-        }
+-        throw new AssertionError("orderExecutor 가 비워지지 않았다");
++        // 🔴 (총괄 v1.164 §3-2, 2026-11-13, 시험만) 옛 조건(대기열 비었음·active 0·taskCount == completed)은 놀고 있던 작업자가
++        //    작업을 꺼낸 뒤 실행 표시 전에도 참이다 — DrainGapGate(꺼낸 뒤 머묾)로 이 클래스의 단언이 작업 전에 읽히는 것을 고정 재현했다.
++        //    이 호출 전에 넣은 작업이 모두 끝났음을 실행기 장벽(확정 신호)으로 기다린다. 시간 초과는 실패다. 기대값·단언은 그대로다.
++        com.cryptoautotrader.api.support.ExecutorBarrier.awaitPriorTasks(orderExecutor.getThreadPoolExecutor(), 20_000);
+     }
+ 
+     private record Fixture(Long sessionId, Long positionId, OrderRequest request) { }
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/LimitedTestExchangeRecoveryTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/LimitedTestExchangeRecoveryTest.java
+index ae5ad20d..1dee57d4 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/LimitedTestExchangeRecoveryTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/LimitedTestExchangeRecoveryTest.java
+@@ -228,19 +228,10 @@ class LimitedTestExchangeRecoveryTest extends IntegrationTestBase {
+     }
+ 
+     private static void awaitDrained(ThreadPoolTaskExecutor ex) {
+-        var pool = ex.getThreadPoolExecutor();
+-        long deadline = System.currentTimeMillis() + 20_000;
+-        while (System.currentTimeMillis() < deadline) {
+-            if (pool.getQueue().isEmpty() && pool.getActiveCount() == 0
+-                    && pool.getTaskCount() == pool.getCompletedTaskCount()) return;
+-            try {
+-                Thread.sleep(50);
+-            } catch (InterruptedException e) {
+-                Thread.currentThread().interrupt();
+-                return;
+-            }
+-        }
+-        throw new AssertionError("실행기가 20초 안에 비워지지 않았다");
++        // 🔴 (총괄 v1.164 §3-2, 2026-11-13, 시험만) 옛 조건(대기열 비었음·active 0·taskCount == completed)은 놀고 있던 작업자가
++        //    작업을 꺼낸 뒤 실행 표시 전에도 참이다 — DrainGapGate(꺼낸 뒤 머묾)로 이 클래스의 단언이 작업 전에 읽히는 것을 고정 재현했다.
++        //    이 호출 전에 넣은 작업이 모두 끝났음을 실행기 장벽(확정 신호)으로 기다린다. 시간 초과는 실패다. 기대값·단언은 그대로다.
++        com.cryptoautotrader.api.support.ExecutorBarrier.awaitPriorTasks(ex.getThreadPoolExecutor(), 20_000);
+     }
+ 
+     @Test
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/LiveEmergencyStopUnderConcurrentWriteTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/LiveEmergencyStopUnderConcurrentWriteTest.java
+index 32d11f44..ef54a41d 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/LiveEmergencyStopUnderConcurrentWriteTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/LiveEmergencyStopUnderConcurrentWriteTest.java
+@@ -125,19 +125,10 @@ class LiveEmergencyStopUnderConcurrentWriteTest extends IntegrationTestBase {
+     }
+ 
+     private void awaitDrained() {
+-        var pool = orderExecutor.getThreadPoolExecutor();
+-        long deadline = System.currentTimeMillis() + 20_000;
+-        while (System.currentTimeMillis() < deadline) {
+-            if (pool.getQueue().isEmpty() && pool.getActiveCount() == 0
+-                    && pool.getTaskCount() == pool.getCompletedTaskCount()) return;
+-            try {
+-                Thread.sleep(50);
+-            } catch (InterruptedException e) {
+-                Thread.currentThread().interrupt();
+-                return;
+-            }
+-        }
+-        throw new AssertionError("orderExecutor 가 20초 안에 비워지지 않았다");
++        // 🔴 (총괄 v1.164 §3-2, 2026-11-13, 시험만) 옛 조건(대기열 비었음·active 0·taskCount == completed)은 놀고 있던 작업자가
++        //    작업을 꺼낸 뒤 실행 표시 전에도 참이다 — DrainGapGate(꺼낸 뒤 머묾)로 이 클래스의 단언이 작업 전에 읽히는 것을 고정 재현했다.
++        //    이 호출 전에 넣은 작업이 모두 끝났음을 실행기 장벽(확정 신호)으로 기다린다. 시간 초과는 실패다. 기대값·단언은 그대로다.
++        com.cryptoautotrader.api.support.ExecutorBarrier.awaitPriorTasks(orderExecutor.getThreadPoolExecutor(), 20_000);
+     }
+ 
+     private Throwable run(Runnable r) {
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/LiveStopUnderConcurrentWriteTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/LiveStopUnderConcurrentWriteTest.java
+index 696cbc30..9c561b37 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/LiveStopUnderConcurrentWriteTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/LiveStopUnderConcurrentWriteTest.java
+@@ -195,29 +195,10 @@ class LiveStopUnderConcurrentWriteTest extends IntegrationTestBase {
+      * 실행기를 직접 드레인한다: <b>큐가 비고 활성 스레드가 0</b> 이 되어야 제출 작업이 끝난 것이다.</p>
+      */
+     private void awaitOrderExecutorDrained() {
+-        var pool = orderExecutor.getThreadPoolExecutor();
+-        long deadline = System.currentTimeMillis() + 15_000;
+-        while (System.currentTimeMillis() < deadline) {
+-            if (pool.getQueue().isEmpty() && pool.getActiveCount() == 0
+-                    && pool.getTaskCount() == pool.getCompletedTaskCount()) {
+-                // 한 번 더 확인 — 작업이 큐에서 꺼내진 직후일 수 있다
+-                try {
+-                    Thread.sleep(50);
+-                } catch (InterruptedException ie) {
+-                    Thread.currentThread().interrupt();
+-                    return;
+-                }
+-                if (pool.getQueue().isEmpty() && pool.getActiveCount() == 0
+-                    && pool.getTaskCount() == pool.getCompletedTaskCount()) return;
+-            }
+-            try {
+-                Thread.sleep(50);
+-            } catch (InterruptedException ie) {
+-                Thread.currentThread().interrupt();
+-                return;
+-            }
+-        }
+-        throw new AssertionError("orderExecutor 가 15초 안에 비워지지 않았다 — 비동기 작업이 정체됐다");
++        // 🔴 (총괄 v1.164 §3-2, 2026-11-13, 시험만) 옛 조건(대기열 비었음·active 0·taskCount == completed)은 놀고 있던 작업자가
++        //    작업을 꺼낸 뒤 실행 표시 전에도 참이다 — DrainGapGate(꺼낸 뒤 머묾)로 이 클래스의 단언이 작업 전에 읽히는 것을 고정 재현했다.
++        //    이 호출 전에 넣은 작업이 모두 끝났음을 실행기 장벽(확정 신호)으로 기다린다. 시간 초과는 실패다. 기대값·단언은 그대로다.
++        com.cryptoautotrader.api.support.ExecutorBarrier.awaitPriorTasks(orderExecutor.getThreadPoolExecutor(), 15_000);
+     }
+ 
+     @Test
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/N17RestInvalidPriceTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/N17RestInvalidPriceTest.java
+index d061eda2..b2c9f191 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/N17RestInvalidPriceTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/N17RestInvalidPriceTest.java
+@@ -192,19 +192,10 @@ class N17RestInvalidPriceTest extends IntegrationTestBase {
+     }
+ 
+     private static void drain(ThreadPoolTaskExecutor executor) {
+-        var pool = executor.getThreadPoolExecutor();
+-        long deadline = System.currentTimeMillis() + 20_000;
+-        while (System.currentTimeMillis() < deadline) {
+-            if (pool.getQueue().isEmpty() && pool.getActiveCount() == 0
+-                    && pool.getTaskCount() == pool.getCompletedTaskCount()) return;
+-            try {
+-                Thread.sleep(50);
+-            } catch (InterruptedException e) {
+-                Thread.currentThread().interrupt();
+-                return;
+-            }
+-        }
+-        throw new AssertionError("실행기가 20초 안에 비워지지 않았다");
++        // 🔴 (총괄 v1.164 §3-2, 2026-11-13, 시험만) 옛 조건(대기열 비었음·active 0·taskCount == completed)은 놀고 있던 작업자가
++        //    작업을 꺼낸 뒤 실행 표시 전에도 참이다 — DrainGapGate(꺼낸 뒤 머묾)로 이 클래스의 단언이 작업 전에 읽히는 것을 고정 재현했다.
++        //    이 호출 전에 넣은 작업이 모두 끝났음을 실행기 장벽(확정 신호)으로 기다린다. 시간 초과는 실패다. 기대값·단언은 그대로다.
++        com.cryptoautotrader.api.support.ExecutorBarrier.awaitPriorTasks(executor.getThreadPoolExecutor(), 20_000);
+     }
+ 
+     private void restReturns(String coin, String price, Instant tradeAt) throws Exception {
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/N19RestFallbackItemDefenseTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/N19RestFallbackItemDefenseTest.java
+index 624e72a8..5bbd4fd8 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/N19RestFallbackItemDefenseTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/N19RestFallbackItemDefenseTest.java
+@@ -227,19 +227,10 @@ class N19RestFallbackItemDefenseTest extends IntegrationTestBase {
+     }
+ 
+     private static void drain(ThreadPoolTaskExecutor executor) {
+-        var pool = executor.getThreadPoolExecutor();
+-        long deadline = System.currentTimeMillis() + 20_000;
+-        while (System.currentTimeMillis() < deadline) {
+-            if (pool.getQueue().isEmpty() && pool.getActiveCount() == 0
+-                    && pool.getTaskCount() == pool.getCompletedTaskCount()) return;
+-            try {
+-                Thread.sleep(50);
+-            } catch (InterruptedException e) {
+-                Thread.currentThread().interrupt();
+-                return;
+-            }
+-        }
+-        throw new AssertionError("실행기가 20초 안에 비워지지 않았다");
++        // 🔴 (총괄 v1.164 §3-2, 2026-11-13, 시험만) 옛 조건(대기열 비었음·active 0·taskCount == completed)은 놀고 있던 작업자가
++        //    작업을 꺼낸 뒤 실행 표시 전에도 참이다 — DrainGapGate(꺼낸 뒤 머묾)로 이 클래스의 단언이 작업 전에 읽히는 것을 고정 재현했다.
++        //    이 호출 전에 넣은 작업이 모두 끝났음을 실행기 장벽(확정 신호)으로 기다린다. 시간 초과는 실패다. 기대값·단언은 그대로다.
++        com.cryptoautotrader.api.support.ExecutorBarrier.awaitPriorTasks(executor.getThreadPoolExecutor(), 20_000);
+     }
+ 
+     /** 응답 항목 하나. kind: 가격 문자열 그대로, 또는 "missing"(키 없음)·"null"(값 null). */
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/SlWatchdogFreshnessTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/SlWatchdogFreshnessTest.java
+index 931c0686..483b3a0c 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/SlWatchdogFreshnessTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/SlWatchdogFreshnessTest.java
+@@ -181,19 +181,10 @@ class SlWatchdogFreshnessTest extends IntegrationTestBase {
+     }
+ 
+     private static void drain(ThreadPoolTaskExecutor executor) {
+-        var pool = executor.getThreadPoolExecutor();
+-        long deadline = System.currentTimeMillis() + 20_000;
+-        while (System.currentTimeMillis() < deadline) {
+-            if (pool.getQueue().isEmpty() && pool.getActiveCount() == 0
+-                    && pool.getTaskCount() == pool.getCompletedTaskCount()) return;
+-            try {
+-                Thread.sleep(50);
+-            } catch (InterruptedException e) {
+-                Thread.currentThread().interrupt();
+-                return;
+-            }
+-        }
+-        throw new AssertionError("실행기가 20초 안에 비워지지 않았다");
++        // 🔴 (총괄 v1.164 §3-2, 2026-11-13, 시험만) 옛 조건(대기열 비었음·active 0·taskCount == completed)은 놀고 있던 작업자가
++        //    작업을 꺼낸 뒤 실행 표시 전에도 참이다 — DrainGapGate(꺼낸 뒤 머묾)로 이 클래스의 단언이 작업 전에 읽히는 것을 고정 재현했다.
++        //    이 호출 전에 넣은 작업이 모두 끝났음을 실행기 장벽(확정 신호)으로 기다린다. 시간 초과는 실패다. 기대값·단언은 그대로다.
++        com.cryptoautotrader.api.support.ExecutorBarrier.awaitPriorTasks(executor.getThreadPoolExecutor(), 20_000);
+     }
+ 
+     @SuppressWarnings("unchecked")
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/StaleRealtimeExitTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/StaleRealtimeExitTest.java
+index 0beef825..0839ca1c 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/StaleRealtimeExitTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/StaleRealtimeExitTest.java
+@@ -192,19 +192,10 @@ class StaleRealtimeExitTest extends IntegrationTestBase {
+     }
+ 
+     private static void drain(ThreadPoolTaskExecutor executor) {
+-        var pool = executor.getThreadPoolExecutor();
+-        long deadline = System.currentTimeMillis() + 20_000;
+-        while (System.currentTimeMillis() < deadline) {
+-            if (pool.getQueue().isEmpty() && pool.getActiveCount() == 0
+-                    && pool.getTaskCount() == pool.getCompletedTaskCount()) return;
+-            try {
+-                Thread.sleep(50);
+-            } catch (InterruptedException e) {
+-                Thread.currentThread().interrupt();
+-                return;
+-            }
+-        }
+-        throw new AssertionError("실행기가 20초 안에 비워지지 않았다");
++        // 🔴 (총괄 v1.164 §3-2, 2026-11-13, 시험만) 옛 조건(대기열 비었음·active 0·taskCount == completed)은 놀고 있던 작업자가
++        //    작업을 꺼낸 뒤 실행 표시 전에도 참이다 — DrainGapGate(꺼낸 뒤 머묾)로 이 클래스의 단언이 작업 전에 읽히는 것을 고정 재현했다.
++        //    이 호출 전에 넣은 작업이 모두 끝났음을 실행기 장벽(확정 신호)으로 기다린다. 시간 초과는 실패다. 기대값·단언은 그대로다.
++        com.cryptoautotrader.api.support.ExecutorBarrier.awaitPriorTasks(executor.getThreadPoolExecutor(), 20_000);
+     }
+ 
+     @ParameterizedTest(name = "{0}")
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/StopVersusInFlightExitRaceTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/StopVersusInFlightExitRaceTest.java
+index 668ae980..70ba1f3a 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/StopVersusInFlightExitRaceTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/StopVersusInFlightExitRaceTest.java
+@@ -239,6 +239,20 @@ class StopVersusInFlightExitRaceTest extends IntegrationTestBase {
+     }
+ 
+     private void drain(ThreadPoolTaskExecutor executor) {
++        // 🔴 (총괄 v1.164 §3-2, 2026-11-13, 시험만) 옛 조건(대기열 비었음·active 0·taskCount == completed)은 놀고 있던 작업자가
++        //    작업을 꺼낸 뒤 실행 표시 전에도 참이다 — DrainGapGate(꺼낸 뒤 머묾)로 이 클래스의 단언이 작업 전에 읽히는 것을 고정 재현했다.
++        //    이 호출 전에 넣은 작업이 모두 끝났음을 실행기 장벽(확정 신호)으로 기다린다. 시간 초과는 실패다. 기대값·단언은 그대로다.
++        com.cryptoautotrader.api.support.ExecutorBarrier.awaitPriorTasks(executor.getThreadPoolExecutor(), 20_000);
++    }
++
++    /**
++     * (다) 의 끼어들기 전용 — 정지 트랜잭션이 마지막 등록 조회 안(목 응답)에서 멈춘 동안에는 종전 대기 조건을 그대로 쓴다
++     * (총괄 v1.164 §3-2, 2026-11-13). 여기서 시세 작업 완료를 장벽으로 기다리거나, 종전 대기 그대로 실행기 시작만 50ms 늦춰도
++     * (DrainGapGate) 두 번째 WS 보호 매도 의도가 INTENT_READY 로 커밋된 뒤 20초 동안 제출되지 않았다 — 실행기 작업자는 모두 대기,
++     * 오류 기록 없음. 대기 방식과 무관한 시점 의존 관측이며 원인은 미확인이다(w20 근거 §4). 이 시험이 보는 것은 정지와 WS 의 순서이고,
++     * 뒤의 {@link #awaitSells} 가 실제 접수를 기다린다. 미확인 관측은 별도 항목으로 남기고 기대값은 바꾸지 않는다.
++     */
++    private void drainInsideStopAnswer(ThreadPoolTaskExecutor executor) {
+         var pool = executor.getThreadPoolExecutor();
+         long deadline = System.currentTimeMillis() + 20_000;
+         while (System.currentTimeMillis() < deadline) {
+@@ -424,7 +438,7 @@ class StopVersusInFlightExitRaceTest extends IntegrationTestBase {
+         Runnable reclose = () -> {
+             // ② 정지의 마지막 등록 조회가 결과를 읽은 직후 — WS 가 다시 CLOSING 으로 바꾸고 두 번째 매도를 낸다.
+             wsStopLoss(f);
+-            drain(marketDataExecutor);
++            drainInsideStopAnswer(marketDataExecutor);
+             awaitSells(f, 2);
+             assertThat(committedStatus(f.positionId())).isEqualTo("CLOSING");
+         };
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/SubmitResponseUnknownTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/SubmitResponseUnknownTest.java
+index 4aa0e2b0..0d555aef 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/SubmitResponseUnknownTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/SubmitResponseUnknownTest.java
+@@ -101,19 +101,10 @@ class SubmitResponseUnknownTest extends IntegrationTestBase {
+     }
+ 
+     private void awaitDrained() {
+-        var pool = orderExecutor.getThreadPoolExecutor();
+-        long deadline = System.currentTimeMillis() + 15_000;
+-        while (System.currentTimeMillis() < deadline) {
+-            if (pool.getQueue().isEmpty() && pool.getActiveCount() == 0
+-                    && pool.getTaskCount() == pool.getCompletedTaskCount()) return;
+-            try {
+-                Thread.sleep(50);
+-            } catch (InterruptedException ie) {
+-                Thread.currentThread().interrupt();
+-                return;
+-            }
+-        }
+-        throw new AssertionError("orderExecutor 가 비워지지 않았다 — 작업 스레드가 반환되지 않았다");
++        // 🔴 (총괄 v1.164 §3-2, 2026-11-13, 시험만) 옛 조건(대기열 비었음·active 0·taskCount == completed)은 놀고 있던 작업자가
++        //    작업을 꺼낸 뒤 실행 표시 전에도 참이다 — DrainGapGate(꺼낸 뒤 머묾)로 이 클래스의 단언이 작업 전에 읽히는 것을 고정 재현했다.
++        //    이 호출 전에 넣은 작업이 모두 끝났음을 실행기 장벽(확정 신호)으로 기다린다. 시간 초과는 실패다. 기대값·단언은 그대로다.
++        com.cryptoautotrader.api.support.ExecutorBarrier.awaitPriorTasks(orderExecutor.getThreadPoolExecutor(), 15_000);
+     }
+ 
+     private record Fixture(Long sessionId, Long positionId, OrderRequest request) { }
+-- 
+2.51.1.windows.1
+

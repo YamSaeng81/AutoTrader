@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="V84 보완 — 선커밋 증명·claim·철회 경합·종단 간 정확히 한 번" tests="4" skipped="0" failures="2" errors="0" timestamp="2026-11-13T05:47:15" hostname="DESKTOP-SF1KUQ5" time="0.088">
+  <properties/>
+  <testcase name="② -b 철회가 이기면 예약이 해제되고 claim 측은 밀렸음을 알게 된다" classname="com.cryptoautotrader.api.service.IntentPrecommitAndOnceOnlyTest" time="0.013"/>
+  <testcase name="② claim 과 철회는 같은 조건부 전환을 다투고 승자 하나만 처리한다" classname="com.cryptoautotrader.api.service.IntentPrecommitAndOnceOnlyTest" time="0.008"/>
+  <testcase name="③ 응답 유실 → 식별자 조회 → 체결 확인 → 반영 → 재조회에서 중복 반영이 없다" classname="com.cryptoautotrader.api.service.IntentPrecommitAndOnceOnlyTest" time="0.007">
+    <failure message="java.lang.AssertionError: [주문은 정확히 한 행이어야 한다] &#13;&#10;Expected size: 1 but was: 0 in:&#13;&#10;[]" type="java.lang.AssertionError">java.lang.AssertionError: [주문은 정확히 한 행이어야 한다] 
+Expected size: 1 but was: 0 in:
+[]
+	at com.cryptoautotrader.api.service.IntentPrecommitAndOnceOnlyTest.theOrder(IntentPrecommitAndOnceOnlyTest.java:158)
+	at com.cryptoautotrader.api.service.IntentPrecommitAndOnceOnlyTest.endToEndExactlyOnce(IntentPrecommitAndOnceOnlyTest.java:380)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="① 외부 호출 시점에 의도·식별자·예약이 이미 커밋돼 있다 (별도 연결 조회)" classname="com.cryptoautotrader.api.service.IntentPrecommitAndOnceOnlyTest" time="0.058">
+    <failure message="java.lang.AssertionError: [주문은 정확히 한 행이어야 한다] &#13;&#10;Expected size: 1 but was: 0 in:&#13;&#10;[]" type="java.lang.AssertionError">java.lang.AssertionError: [주문은 정확히 한 행이어야 한다] 
+Expected size: 1 but was: 0 in:
+[]
+	at com.cryptoautotrader.api.service.IntentPrecommitAndOnceOnlyTest.theOrder(IntentPrecommitAndOnceOnlyTest.java:158)
+	at com.cryptoautotrader.api.service.IntentPrecommitAndOnceOnlyTest.intentIsCommittedBeforeTheExchangeCall(IntentPrecommitAndOnceOnlyTest.java:208)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <system-out><![CDATA[14:47:15.316 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.IntentPrecommitAndOnceOnlyTest
+14:47:15.319 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+14:47:15.321 [Test worker] WARN  c.c.api.service.OrderExecutionEngine - 의도를 철회했다 ? 외부에 나간 적이 없다 (orderId=140, 사유=WITHDRAWN_OWNER_LOST: 의도를 만든 프로세스(inst-previous-boot)가 지금 프로세스가 아니다 ? 제출하지 않았다). ? 예약 해제는 고아 매수 정리가 담당한다(FAILED 매수 + size=0 포지션).
+14:47:15.325 [Test worker] WARN  c.c.api.service.LiveTradingService - 고아 포지션 정리 완료 (posId=106, coinPair=KRW-DOGE)
+14:47:15.332 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[claim·철회 경합] 승자=[claim] 오류=[]
+14:47:15.340 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+14:47:15.348 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

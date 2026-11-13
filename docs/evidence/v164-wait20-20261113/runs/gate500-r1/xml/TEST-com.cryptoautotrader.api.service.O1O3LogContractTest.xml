@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="O1·O3 로그 출력 계약 — 강제 갱신 WARN/ERROR 원문 없음·수준/건수/결과 유지, 실시간 손절 문구 중립(REST·WS 모두)" tests="17" skipped="0" failures="0" errors="0" timestamp="2026-11-13T05:47:54" hostname="DESKTOP-SF1KUQ5" time="3.745">
+  <properties/>
+  <testcase name="O3 분류 — 새 사유 '실시간 손절 — …' 과 과거 '실시간 손절(WS) — …' 모두 STOP_LOSS(과거 조회 호환 유지)" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.006"/>
+  <testcase name="LIVE 1초 전" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.004"/>
+  <testcase name="LIVE 121초 전" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.533"/>
+  <testcase name="DYNAMIC 1초 전" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.476"/>
+  <testcase name="DYNAMIC 121초 전" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.547"/>
+  <testcase name="LIVE malformed" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.003"/>
+  <testcase name="LIVE exception" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.003"/>
+  <testcase name="DYNAMIC malformed" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.005"/>
+  <testcase name="DYNAMIC exception" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.004"/>
+  <testcase name="LIVE REST_TRADE" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.532"/>
+  <testcase name="LIVE WS_TRADE" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.535"/>
+  <testcase name="DYNAMIC REST_TRADE" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.535"/>
+  <testcase name="DYNAMIC WS_TRADE" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.533"/>
+  <testcase name="LIVE trade_price=-5.125" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.005"/>
+  <testcase name="LIVE trade_price=0.00000000" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.003"/>
+  <testcase name="DYNAMIC trade_price=-5.125" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.003"/>
+  <testcase name="DYNAMIC trade_price=0.00000000" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.003"/>
+  <system-out><![CDATA[14:47:54.306 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.O1O3LogContractTest
+14:47:54.309 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+14:47:54.315 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+14:47:54.320 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+14:47:54.855 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+14:47:55.331 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+14:47:55.880 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+14:47:55.881 [Test worker] ERROR c.c.api.service.LiveTradingService - [§9] SL 미점검 세션 강제 복구 실패 ? 조회·변환 예외(원문 생략)
+14:47:55.885 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+14:47:55.886 [Test worker] ERROR c.c.api.service.LiveTradingService - [§9] SL 미점검 세션 강제 복구 실패 ? 조회·변환 예외(원문 생략)
+14:47:55.889 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+14:47:55.891 [Test worker] ERROR c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검 세션 강제 복구 실패 ? 조회·변환 예외(원문 생략)
+14:47:55.894 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+14:47:55.895 [Test worker] ERROR c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검 세션 강제 복구 실패 ? 조회·변환 예외(원문 생략)
+14:47:55.898 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+14:47:55.901 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=106, KRW-OLCL9, 손익=-6.666700%
+14:47:56.431 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+14:47:56.433 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=107, KRW-OLCL10, 손익=-6.666700%
+14:47:56.968 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+14:47:56.971 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-OLCD11 @ 280 pnl=-6.666700% (id=43)
+14:47:56.974 [Test worker] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+14:47:56.975 [Test worker] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 종료 (scheduler 유지 ? 재연결 가능)
+14:47:56.983 [HttpClient-90-Worker-0] WARN  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 종료: code=1000, reason=정상 종료
+14:47:56.984 [HttpClient-90-Worker-0] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+14:47:56.984 [HttpClient-90-Worker-0] INFO  c.c.e.upbit.UpbitWebSocketClient - 종료 요청됨. 재연결 스킵.
+14:47:57.504 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+14:47:57.507 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-OLCD12 @ 280 pnl=-6.666700% (id=44)
+14:47:58.039 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+14:47:58.041 [Test worker] WARN  c.c.api.service.LiveTradingService - [§9] REST 강제 갱신 시세가 가격이 아님 ? 발행하지 않음 (가격 분류=음수)
+14:47:58.044 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+14:47:58.045 [Test worker] WARN  c.c.api.service.LiveTradingService - [§9] REST 강제 갱신 시세가 가격이 아님 ? 발행하지 않음 (가격 분류=0)
+14:47:58.047 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+14:47:58.048 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] REST 강제 갱신 시세가 가격이 아님 ? 발행하지 않음 (가격 분류=음수)
+14:47:58.050 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+14:47:58.050 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] REST 강제 갱신 시세가 가격이 아님 ? 발행하지 않음 (가격 분류=0)
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

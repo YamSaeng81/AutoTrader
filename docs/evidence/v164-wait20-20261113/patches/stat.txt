@@ -1,0 +1,17 @@
+ .../CancelConfirmAndLateFillCleanupTest.java       |  19 +---
+ .../api/service/ClaimAndUnknownTrackingTest.java   |  17 +---
+ .../api/service/DailySma20LiveOrderPathTest.java   |  17 +---
+ .../api/service/ExchangeRecoveryRestartTest.java   |  17 +---
+ .../service/IntentPrecommitAndOnceOnlyTest.java    |  17 +---
+ .../service/LimitedTestExchangeRecoveryTest.java   |  17 +---
+ .../LiveEmergencyStopUnderConcurrentWriteTest.java |  17 +---
+ .../service/LiveStopUnderConcurrentWriteTest.java  |  27 +-----
+ .../api/service/N17RestInvalidPriceTest.java       |  17 +---
+ .../service/N19RestFallbackItemDefenseTest.java    |  17 +---
+ .../api/service/SlWatchdogFreshnessTest.java       |  17 +---
+ .../api/service/StaleRealtimeExitTest.java         |  17 +---
+ .../service/StopVersusInFlightExitRaceTest.java    |  16 +++-
+ .../api/service/SubmitResponseUnknownTest.java     |  17 +---
+ .../cryptoautotrader/api/support/DrainGapGate.java | 105 +++++++++++++++++++++
+ .../src/test/resources/META-INF/spring.factories   |   1 +
+ 16 files changed, 173 insertions(+), 182 deletions(-)

@@ -1,0 +1,22 @@
+대상	v156목록	v158표	88f06345 옛조건 대기	호출(정리/본문)	대기 대상 완료 사건	대기 직후 단언(대표)	옛 대기+게이트500(gate500-r1)	장벽 보완+게이트500(gate500-barrier-r1)	기존 보완	분류
+CancelConfirmAndLateFillCleanupTest	O	O	awaitDrained(orderExecutor)	18(1/17)	정리 작업·청산 확정 뒤 @Async 매도 제출(claim→거래소→결과 커밋)	재시도 매도 수(verify createOrder 2회)·CLOSED·수수료 출처	74 중 실패2(D2 EXCHANGE_REJECTED LIVE·DYNAMIC: createOrder 2회 기대 1회)	74/74	—	경쟁 확인→보완
+ClaimAndUnknownTrackingTest	O	O	awaitDrained(orderExecutor)	3(0/3)	submitOrder(@Async) 의도·claim·응답 유실 UNKNOWN 기록	주문 1행·식별자·UNKNOWN	7 중 실패3(주문 0행)	7/7	—	경쟁 확인→보완
+DailySma20LiveOrderPathTest	O	O	awaitDrained(orderExecutor)	3(1/2)	회차 승인 뒤 매수/매도 커밋 뒤 제출→SUBMITTED 기록	SUBMITTED·거래소 주문번호·createOrder 1회	24 중 실패14(INTENT_READY)	24/24	—	경쟁 확인→보완(awaitOrders 는 행 생성만 기다림)
+ExchangeRecoveryRestartTest	O	O	awaitDrained(ex) orderExecutor·marketDataExecutor	5(0/5)	DOWN 비상정지 청산 매도(@Async)·복구 이벤트(marketDataExecutor)	RUNNING 재시작·청산 매도 1회	5 중 실패3	5/5	—	경쟁 확인→보완
+ExecutorBarrier(.java)	O	X	해당 없음(확정 신호 구현)	—	—	—	—	—	fa4363f6	대상 아님(보완 수단)
+IntentPrecommitAndOnceOnlyTest	O	O	awaitDrained(orderExecutor)	2(0/2)	submitOrder(@Async) 선커밋·응답 유실	주문 1행·별도 연결 상태	4 중 실패2(주문 0행)	4/4	—	경쟁 확인→보완
+LateOrderSubmissionAfterStopTest	O	O	awaitOrderExecutorDrained(2회 확인)	1(0/1)	정지 뒤 늦은 submitOrder 철회	STOPPED·거래소 매수 0회(음성)	1/1	(변경 안 함)	—	약화만(음성 단언 — 공백 때 거짓 통과 가능, 거짓 실패 없음). 미변경
+LimitedTestExchangeRecoveryTest	O	O	awaitDrained(ex) 두 실행기	6(2/4)	DOWN 비상정지 청산 매도·복구 이벤트·정리 작업	청산 매도 1회·started_at 보존	4 중 실패2(매도 0)	4/4	—	경쟁 확인→보완
+LiveEmergencyStopUnderConcurrentWriteTest	O	O	awaitDrained(orderExecutor)	1(0/1)	비상정지 청산 매도(@Async)	EMERGENCY_STOPPED·매도 1회·CLOSED	3 중 실패3	3/3	—	경쟁 확인→보완
+LiveStopUnderConcurrentWriteTest	O	O	awaitOrderExecutorDrained(2회 확인)	4(0/4)	정지 청산 매도(@Async)	매도 정확히 1건·createOrder 1회	3 중 실패2	3/3	—	경쟁 확인→보완(2회 확인도 공백을 닫지 못함)
+N15PgLockWaitExpiryTest	O	O	drain(ex)	2(2/0)	정리 전 매수 의도 비동기 처리	(정리 전용)	건너뜀4(PG 전용)	건너뜀4	—	정리 전용·PG 전용 — H2 미실행, 미변경
+N16InvalidPriceReproTest	O	O	drain(ex)	9(2/7)	실시간 손절 매도(@Async)	매도 1회(awaitSells 앞 verify)·0회(음성)	13/13	(변경 안 함)	02d14061	이미 보완(관측 1회 → 시험 보완)
+N17RestInvalidPriceTest	O	O	drain(ex)	4(2/2)	SL 감시기 → REST 강제 갱신 → 발행 → marketDataExecutor 처리기	실제 점검 시각 기록·매도 1회	24 중 실패2(점검 시각 그대로)	24/24	—	경쟁 확인→보완(2단계: 시세 실행기)
+N19RestFallbackItemDefenseTest	O	O	drain(ex)	4(2/2)	REST 폴백 발행 → 처리기 → 보호 매도(@Async)	보호 매도 1회씩	23 중 실패1(매도 0)	23/23	—	경쟁 확인→보완
+O1O3LogContractTest	X	O	drain(ex)	4(2/2)	실시간 손절 매도(@Async)	verify(timeout) 뒤 매도 1회	17/17	(변경 안 함)	84fb03d6	이미 보완(관측 1회 → 시험 보완)
+OrderExecutorDrainPredicateGapTest	O	X	옛 조건을 반례로 보이는 시험	—	—	—	—	—	7297b67f	대상 아님(경계 시험)
+SlWatchdogFreshnessTest	O	O	drain(ex)	4(2/2)	감시기 발행 → marketDataExecutor 처리기 점검 기록	실제 점검 시각·경보 문구	4 중 실패2(점검 시각 그대로)	4 중 실패1(DYNAMIC "121초 전" 문구 — 게이트 지연 누적 127초, 게이트50 통과)	—	경쟁 확인→보완(남은 1건은 게이트 지연 부산물)
+StaleRealtimeExitTest	O	O	drain(ex)	4(2/2)	실시간 손절 매도(@Async)	신선한 이벤트 보호 매도 1회	2 중 실패2(매도 0)	2/2	—	경쟁 확인→보완
+StopVersusInFlightExitRaceTest	O	O	drain(ex)	10(2/8)	정지·WS 손절 매도(@Async)·정리 작업	매도 1·2회(awaitSells 폴링 뒤)	7 중 실패2((다) 두 번째 WS 매도 INTENT_READY)	7 중 실패2(같음)	—	보완 + (다) 정지 목 응답 안 시세 대기 1곳 종전 유지. (다) 실패는 종전 코드+게이트50에서도 같다(orig-gate50-stopversus) — 대기 방식과 무관한 미확인 관측(본문 §4)
+SubmitOrderBoundaryProbeTest	O	O	없음(결과 커밋 latch)	—	—	—	—	—	4a4a04a3	이미 보완
+SubmitResponseUnknownTest	O	O	awaitDrained(orderExecutor)	4(0/4)	submitOrder(@Async) 응답 유실	거래소 접수 1회·추적 단서	3 중 실패2(접수 0)	3/3	—	경쟁 확인→보완

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="N02 낡은 실시간 시세 — 관측 시각이 유효기간을 넘은 가격은 보호 매도를 내지 않는다" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-11-13T06:01:35" hostname="DESKTOP-SF1KUQ5" time="0.03">
+  <properties/>
+  <testcase name="LIVE" classname="com.cryptoautotrader.api.service.StaleRealtimeExitTest" time="0.015"/>
+  <testcase name="DYNAMIC" classname="com.cryptoautotrader.api.service.StaleRealtimeExitTest" time="0.014"/>
+  <system-out><![CDATA[15:01:34.999 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 성공
+15:01:35.001 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - WebSocket 구독 메시지 전송: coins=[KRW-WDGD4]
+15:01:35.002 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.StaleRealtimeExitTest
+15:01:35.005 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+15:01:35.012 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=111, KRW-STLL1, 손익=-6.666700%
+15:01:35.021 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+15:01:35.025 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-STLD2 @ 280 pnl=-6.666700% (id=47)
+15:01:35.028 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 성공
+15:01:35.029 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - WebSocket 구독 메시지 전송: coins=[KRW-WDGD4]
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="N02 보완 SL 감시기 — 낡은 REST 응답은 점검·매도·재개 문구 없음, 신선한 응답은 실제 점검 기록" tests="4" skipped="0" failures="1" errors="0" timestamp="2026-11-13T05:55:31" hostname="DESKTOP-SF1KUQ5" time="18.278">
+  <properties/>
+  <testcase name="LIVE" classname="com.cryptoautotrader.api.service.SlWatchdogFreshnessTest" time="2.546"/>
+  <testcase name="DYNAMIC" classname="com.cryptoautotrader.api.service.SlWatchdogFreshnessTest" time="8.623">
+    <failure message="java.lang.AssertionError: &#13;&#10;Expecting all elements of:&#13;&#10;  [&quot;⚠️ [동적#45] SL 실시간 감시 이상: KRW-WDGD2 (3분 이상 미점검). REST 시세도 체결 127초 전 값이라(기준 120초) 5분 연속 실시간 SL 점검에 쓰지 못했습니다 — 낡은 시세로는 점검·매도하지 않습니다. 60초 폴링은 계속 돌고 있으므로 손절 자체가 멈춘 것은 아닙니다.&quot;]&#13;&#10;to satisfy given requirements, but these elements did not:&#13;&#10;&#13;&#10;&quot;⚠️ [동적#45] SL 실시간 감시 이상: KRW-WDGD2 (3분 이상 미점검). REST 시세도 체결 127초 전 값이라(기준 120초) 5분 연속 실시간 SL 점검에 쓰지 못했습니다 — 낡은 시세로는 점검·매도하지 않습니다. 60초 폴링은 계속 돌고 있으므로 손절 자체가 멈춘 것은 아닙니다.&quot;&#13;&#10;error: &#13;&#10;Expecting actual:&#13;&#10;  &quot;⚠️ [동적#45] SL 실시간 감시 이상: KRW-WDGD2 (3분 이상 미점검). REST 시세도 체결 127초 전 값이라(기준 120초) 5분 연속 실시간 SL 점검에 쓰지 못했습니다 — 낡은 시세로는 점검·매도하지 않습니다. 60초 폴링은 계속 돌고 있으므로 손절 자체가 멈춘 것은 아닙니다.&quot;&#13;&#10;to contain:&#13;&#10;  &quot;체결 121초 전&quot; " type="java.lang.AssertionError">java.lang.AssertionError: 
+Expecting all elements of:
+  [&quot;⚠️ [동적#45] SL 실시간 감시 이상: KRW-WDGD2 (3분 이상 미점검). REST 시세도 체결 127초 전 값이라(기준 120초) 5분 연속 실시간 SL 점검에 쓰지 못했습니다 — 낡은 시세로는 점검·매도하지 않습니다. 60초 폴링은 계속 돌고 있으므로 손절 자체가 멈춘 것은 아닙니다.&quot;]
+to satisfy given requirements, but these elements did not:
+
+&quot;⚠️ [동적#45] SL 실시간 감시 이상: KRW-WDGD2 (3분 이상 미점검). REST 시세도 체결 127초 전 값이라(기준 120초) 5분 연속 실시간 SL 점검에 쓰지 못했습니다 — 낡은 시세로는 점검·매도하지 않습니다. 60초 폴링은 계속 돌고 있으므로 손절 자체가 멈춘 것은 아닙니다.&quot;
+error: 
+Expecting actual:
+  &quot;⚠️ [동적#45] SL 실시간 감시 이상: KRW-WDGD2 (3분 이상 미점검). REST 시세도 체결 127초 전 값이라(기준 120초) 5분 연속 실시간 SL 점검에 쓰지 못했습니다 — 낡은 시세로는 점검·매도하지 않습니다. 60초 폴링은 계속 돌고 있으므로 손절 자체가 멈춘 것은 아닙니다.&quot;
+to contain:
+  &quot;체결 121초 전&quot; 
+	at com.cryptoautotrader.api.service.SlWatchdogFreshnessTest.staleRestResponseNeitherChecksNorClaimsResumption(SlWatchdogFreshnessTest.java:237)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:992)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="LIVE" classname="com.cryptoautotrader.api.service.SlWatchdogFreshnessTest" time="3.559"/>
+  <testcase name="DYNAMIC" classname="com.cryptoautotrader.api.service.SlWatchdogFreshnessTest" time="3.549"/>
+  <system-out><![CDATA[14:55:31.907 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.SlWatchdogFreshnessTest
+14:55:31.910 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+14:55:31.912 [Test worker] WARN  c.c.api.service.LiveTradingService - [§9] SL 미점검 경고: sessionId=109 coin=KRW-WDGL1 마지막체크=2026-11-13T05:45:31.911795900Z (3분 초과)
+14:55:34.455 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+14:55:34.459 [Test worker] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+14:55:34.461 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검: sessionId=45 coin=KRW-WDGD2 마지막체크=2026-11-13T05:45:34.457962800Z (3분 초과, 연속 1회, WS구독=있음, REST강제갱신=STALE 체결 121초 전)
+14:55:34.502 [ForkJoinPool.commonPool-worker-2] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 성공
+14:55:34.502 [ForkJoinPool.commonPool-worker-2] INFO  c.c.e.upbit.UpbitWebSocketClient - WebSocket 구독 메시지 전송: coins=[KRW-WDGD2]
+14:55:35.982 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검: sessionId=45 coin=KRW-WDGD2 마지막체크=2026-11-13T05:45:34.457962800Z (3분 초과, 연속 2회, WS구독=있음, REST강제갱신=STALE 체결 122초 전)
+14:55:37.500 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검: sessionId=45 coin=KRW-WDGD2 마지막체크=2026-11-13T05:45:34.457962800Z (3분 초과, 연속 3회, WS구독=있음, REST강제갱신=STALE 체결 124초 전)
+14:55:39.017 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검: sessionId=45 coin=KRW-WDGD2 마지막체크=2026-11-13T05:45:34.457962800Z (3분 초과, 연속 4회, WS구독=있음, REST강제갱신=STALE 체결 125초 전)
+14:55:40.533 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검: sessionId=45 coin=KRW-WDGD2 마지막체크=2026-11-13T05:45:34.457962800Z (3분 초과, 연속 5회, WS구독=있음, REST강제갱신=STALE 체결 127초 전)
+14:55:43.079 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+14:55:43.081 [Test worker] WARN  c.c.api.service.LiveTradingService - [§9] SL 미점검 경고: sessionId=110 coin=KRW-WDGL3 마지막체크=2026-11-13T05:45:43.080198400Z (3분 초과)
+14:55:46.637 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+14:55:46.640 [Test worker] WARN  c.c.e.upbit.UpbitWebSocketClient - 이미 WebSocket에 연결되어 있음. 기존 연결 종료 후 재연결합니다.
+14:55:46.640 [Test worker] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+14:55:46.640 [Test worker] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+14:55:46.643 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검: sessionId=46 coin=KRW-WDGD4 마지막체크=2026-11-13T05:45:46.639917Z (3분 초과, 연속 1회, WS구독=있음, REST강제갱신=PUBLISHED 체결 1초 전)
+14:55:46.648 [HttpClient-105-Worker-0] WARN  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 종료: code=1000, reason=정상 종료
+14:55:46.648 [HttpClient-105-Worker-0] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+14:55:46.648 [HttpClient-105-Worker-0] INFO  c.c.e.upbit.UpbitWebSocketClient - 1000ms 후 WebSocket 재연결 시도
+14:55:46.673 [ForkJoinPool.commonPool-worker-2] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 성공
+14:55:46.673 [ForkJoinPool.commonPool-worker-2] INFO  c.c.e.upbit.UpbitWebSocketClient - WebSocket 구독 메시지 전송: coins=[KRW-WDGD4]
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

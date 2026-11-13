@@ -1,0 +1,366 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="#5 정지 ∥ 진행 중 청산 — 매도 1회, 정지 후에도 포지션 추적 유지" tests="7" skipped="0" failures="2" errors="0" timestamp="2026-11-13T06:13:49" hostname="DESKTOP-SF1KUQ5" time="45.233">
+  <properties/>
+  <testcase name="LIVE" classname="com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest" time="20.637">
+    <failure message="java.lang.AssertionError: 매도 2건이 접수 상태가 되지 않았다: [INTENT_READY/null, FAILED/uuid-svr-1-160911120244800]" type="java.lang.AssertionError">java.lang.AssertionError: 매도 2건이 접수 상태가 되지 않았다: [INTENT_READY/null, FAILED/uuid-svr-1-160911120244800]
+	at com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest.awaitSells(StopVersusInFlightExitRaceTest.java:273)
+	at com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest.lambda$positionFlipsDuringFinalRegistrationScan$16(StopVersusInFlightExitRaceTest.java:428)
+	at com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest.lambda$positionFlipsDuringFinalRegistrationScan$18(StopVersusInFlightExitRaceTest.java:441)
+	at org.mockito.internal.stubbing.StubbedInvocationMatcher.answer(StubbedInvocationMatcher.java:42)
+	at org.mockito.internal.handler.MockHandlerImpl.handle(MockHandlerImpl.java:103)
+	at org.mockito.internal.handler.NullResultGuardian.handle(NullResultGuardian.java:29)
+	at org.mockito.internal.handler.InvocationNotifierHandler.handle(InvocationNotifierHandler.java:34)
+	at org.mockito.internal.creation.bytebuddy.MockMethodInterceptor.doIntercept(MockMethodInterceptor.java:82)
+	at org.mockito.internal.creation.bytebuddy.MockMethodInterceptor.doIntercept(MockMethodInterceptor.java:56)
+	at org.mockito.internal.creation.bytebuddy.MockMethodInterceptor$DispatcherDefaultingToRealMethod.interceptAbstract(MockMethodInterceptor.java:161)
+	at com.cryptoautotrader.api.repository.PositionRepository$MockitoMock$PcDJKpXH.findBySessionKindAndSessionIdAndStatusIn(Unknown Source)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.invoke(PersistenceExceptionTranslationInterceptor.java:137)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:720)
+	at com.cryptoautotrader.api.repository.PositionRepository$MockitoMock$PcDJKpXH$$SpringCGLIB$$0.findBySessionKindAndSessionIdAndStatusIn(&lt;generated&gt;)
+	at com.cryptoautotrader.api.service.LiveTradingService.closeSessionPositions(LiveTradingService.java:1848)
+	at com.cryptoautotrader.api.service.LiveTradingService.stopSession(LiveTradingService.java:624)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at org.springframework.transaction.interceptor.TransactionInterceptor$1.proceedWithInvocation(TransactionInterceptor.java:123)
+	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:392)
+	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:720)
+	at com.cryptoautotrader.api.service.LiveTradingService$$SpringCGLIB$$1.stopSession(&lt;generated&gt;)
+	at com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest.stop(StopVersusInFlightExitRaceTest.java:204)
+	at com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest.positionFlipsDuringFinalRegistrationScan(StopVersusInFlightExitRaceTest.java:445)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:992)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="DYNAMIC" classname="com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest" time="20.375">
+    <failure message="java.lang.AssertionError: 매도 2건이 접수 상태가 되지 않았다: [INTENT_READY/null, FAILED/uuid-svr-1-160931619828800]" type="java.lang.AssertionError">java.lang.AssertionError: 매도 2건이 접수 상태가 되지 않았다: [INTENT_READY/null, FAILED/uuid-svr-1-160931619828800]
+	at com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest.awaitSells(StopVersusInFlightExitRaceTest.java:273)
+	at com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest.lambda$positionFlipsDuringFinalRegistrationScan$16(StopVersusInFlightExitRaceTest.java:428)
+	at com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest.lambda$positionFlipsDuringFinalRegistrationScan$18(StopVersusInFlightExitRaceTest.java:441)
+	at org.mockito.internal.stubbing.StubbedInvocationMatcher.answer(StubbedInvocationMatcher.java:42)
+	at org.mockito.internal.handler.MockHandlerImpl.handle(MockHandlerImpl.java:103)
+	at org.mockito.internal.handler.NullResultGuardian.handle(NullResultGuardian.java:29)
+	at org.mockito.internal.handler.InvocationNotifierHandler.handle(InvocationNotifierHandler.java:34)
+	at org.mockito.internal.creation.bytebuddy.MockMethodInterceptor.doIntercept(MockMethodInterceptor.java:82)
+	at org.mockito.internal.creation.bytebuddy.MockMethodInterceptor.doIntercept(MockMethodInterceptor.java:56)
+	at org.mockito.internal.creation.bytebuddy.MockMethodInterceptor$DispatcherDefaultingToRealMethod.interceptAbstract(MockMethodInterceptor.java:161)
+	at com.cryptoautotrader.api.repository.PositionRepository$MockitoMock$PcDJKpXH.findBySessionKindAndSessionIdAndStatusIn(Unknown Source)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.invoke(PersistenceExceptionTranslationInterceptor.java:137)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:720)
+	at com.cryptoautotrader.api.repository.PositionRepository$MockitoMock$PcDJKpXH$$SpringCGLIB$$0.findBySessionKindAndSessionIdAndStatusIn(&lt;generated&gt;)
+	at com.cryptoautotrader.api.service.DynamicTradingService.closeOpenPositions(DynamicTradingService.java:2572)
+	at com.cryptoautotrader.api.service.DynamicTradingService.stopSession(DynamicTradingService.java:634)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at org.springframework.transaction.interceptor.TransactionInterceptor$1.proceedWithInvocation(TransactionInterceptor.java:123)
+	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:392)
+	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:720)
+	at com.cryptoautotrader.api.service.DynamicTradingService$$SpringCGLIB$$1.stopSession(&lt;generated&gt;)
+	at com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest.stop(StopVersusInFlightExitRaceTest.java:203)
+	at com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest.positionFlipsDuringFinalRegistrationScan(StopVersusInFlightExitRaceTest.java:445)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:992)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="&#x1f534; 페이퍼 세션 정지 — 닫히지 않은 페이퍼 포지션은 자기 종류(DYN_PAPER)로 등록돼 실자금 정리 작업(DYNAMIC)에 오르지 않는다" classname="com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest" time="0.043"/>
+  <testcase name="LIVE" classname="com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest" time="0.343"/>
+  <testcase name="DYNAMIC" classname="com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest" time="0.331"/>
+  <testcase name="LIVE" classname="com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest" time="1.709"/>
+  <testcase name="DYNAMIC" classname="com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest" time="1.78"/>
+  <system-out><![CDATA[15:13:34.662 [Test worker] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest]: StopVersusInFlightExitRaceTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+15:13:34.967 [Test worker] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.5)
+
+15:13:35.479 [background-preinit] INFO  o.h.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.1.Final
+15:13:36.814 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Multiple Spring Data modules found, entering strict repository configuration mode
+15:13:36.815 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+15:13:37.076 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 253 ms. Found 39 JPA repository interfaces.
+15:13:37.089 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Multiple Spring Data modules found, entering strict repository configuration mode
+15:13:37.090 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+15:13:37.108 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.BacktestJobRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:13:37.108 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.BacktestMetricsRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:13:37.109 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.BacktestRunRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:13:37.109 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.BacktestTradeRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:13:37.110 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.CandleDataRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:13:37.110 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.DailyHealthSnapshotRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:13:37.112 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.DiscordChannelConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:13:37.112 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.DiscordSendLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:13:37.112 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.DynamicSellSettlementRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:13:37.112 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.DynamicSessionRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:13:37.112 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.ExecutionDriftLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:13:37.113 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.KillCriteriaJudgmentRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:13:37.113 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.LiveTradingSessionRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:13:37.113 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.LlmCallLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:13:37.113 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.LlmProviderConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:13:37.114 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.LlmTaskConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:13:37.114 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.MarketDataCacheRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:13:37.115 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.NewsItemCacheRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:13:37.115 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.NewsSourceConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:13:37.115 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.NightlySchedulerConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:13:37.116 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.NotionReportConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:13:37.116 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.NotionReportLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:13:37.116 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.OrderRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:13:37.116 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.OrderSettlementDiscrepancyRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:13:37.116 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.paper.PaperOrderRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:13:37.117 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.paper.PaperPositionRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:13:37.117 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.paper.VirtualBalanceRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:13:37.117 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.PositionCleanupRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:13:37.118 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.PositionRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:13:37.118 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.RegimeChangeLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:13:37.118 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.RiskConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:13:37.119 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.RulesetSnapshotRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:13:37.119 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.StrategyConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:13:37.119 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.StrategyLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:13:37.119 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.StrategyTimeframeEnabledRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:13:37.120 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.StrategyTypeEnabledRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:13:37.120 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.TelegramNotificationLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:13:37.120 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.TradeLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:13:37.120 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.WeightOptimizerSnapshotRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+15:13:37.120 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 21 ms. Found 0 Redis repository interfaces.
+15:13:39.841 [Test worker] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 0 (http)
+15:13:39.880 [Test worker] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-auto-1"]
+15:13:39.887 [Test worker] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+15:13:39.888 [Test worker] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.20]
+15:13:40.109 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+15:13:40.112 [Test worker] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 4581 ms
+15:13:40.550 [Test worker] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+15:13:40.851 [Test worker] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:testdb user=SA
+15:13:40.854 [Test worker] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+15:13:41.231 [Test worker] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+15:13:41.473 [Test worker] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 6.4.4.Final
+15:13:41.519 [Test worker] INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
+15:13:41.699 [Test worker] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+15:13:41.777 [Test worker] WARN  org.hibernate.orm.deprecation - HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+15:13:43.337 [Test worker] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+15:13:43.339 [Test worker] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+15:13:43.443 [Test worker] WARN  c.c.api.config.SingleInstanceGuard - ? 단일 인스턴스 강제가 꺼져 있다(trading.single-instance.enabled=false) ? 시험 전용 설정이다
+15:13:44.111 [Test worker] INFO  o.s.d.j.r.query.QueryEnhancerFactory - Hibernate is in classpath; If applicable, HQL parser will be used.
+[DrainGapGate] marketDataExecutor 교체 ? 꺼낸 뒤 50ms 머묾 · core 2 max 4 queue 100 거절 AbortPolicy
+15:13:47.685 [Test worker] WARN  c.c.api.service.DbResetService - DB_RESET_PASSWORD 미설정 ? DB 초기화 기능이 비활성화됩니다(모든 요청 거부).
+[DrainGapGate] orderExecutor 교체 ? 꺼낸 뒤 50ms 머묾 · core 2 max 4 queue 50 거절 AbortPolicy
+15:13:48.857 [Test worker] INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 1 endpoint(s) beneath base path '/actuator'
+15:13:48.915 [Test worker] INFO  o.s.s.web.DefaultSecurityFilterChain - Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@2d9ad8d3, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@b4eed97, org.springframework.security.web.context.SecurityContextHolderFilter@4955f300, org.springframework.security.web.header.HeaderWriterFilter@39a2abc, org.springframework.web.filter.CorsFilter@9381a33, org.springframework.security.web.authentication.logout.LogoutFilter@5682488f, com.cryptoautotrader.api.config.ApiTokenAuthFilter@1d3bf0af, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@46a6805b, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@748c34ac, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@1abea9f9, org.springframework.security.web.session.SessionManagementFilter@3abfc3a0, org.springframework.security.web.access.ExceptionTranslationFilter@75b12e88, org.springframework.security.web.access.intercept.AuthorizationFilter@7863367a]
+15:13:49.531 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+15:13:49.739 [Test worker] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-auto-1"]
+15:13:49.751 [Test worker] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 3423 (http) with context path ''
+15:13:49.972 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+15:13:50.114 [market-data-1] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=1, KRW-SVRL1, 손익=-6.666700%
+15:13:50.373 [Test worker] WARN  c.c.api.service.LiveTradingService - 매도 주문 FAILED ? 포지션 OPEN 롤백 (orderId=1, posId=1, sessionId=1)
+15:13:50.437 [market-data-2] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=1, KRW-SVRL1, 손익=-6.666700%
+15:14:10.582 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+15:14:10.653 [market-data-2] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-SVRD2 @ 280 pnl=-6.666700% (id=1)
+15:14:10.782 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 매도 주문 FAILED ? 포지션 OPEN 롤백 (orderId=3, posId=2, sessionId=1)
+15:14:10.790 [Test worker] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+15:14:10.807 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 매도 롤백 포지션 재결속: KRW-SVRD2 → POSITION_MONITORING 복귀 (posId=2, sessionId=1)
+15:14:10.867 [market-data-2] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-SVRD2 @ 280 pnl=-6.666700% (id=1)
+15:14:10.879 [market-data-2] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+15:14:10.879 [market-data-2] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 종료 (scheduler 유지 ? 재연결 가능)
+15:14:10.947 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 성공
+15:14:10.950 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - WebSocket 구독 메시지 전송: coins=[KRW-SVRD2]
+15:14:30.960 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+15:14:31.010 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+15:14:31.084 [market-data-1] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=2, KRW-SVRL3, 손익=-6.666700%
+15:14:31.125 [Test worker] WARN  c.c.api.service.LiveTradingService - ? 정지했으나 **정리 미완료** ? 미해결 제출 1건이 남았다 (sessionId=2). 그 주문은 접수됐을 수 있으므로 자금·슬롯을 점유한 것으로 두고 추적을 계속한다. 종결은 근거를 확인한 사람이 한다.
+[가 LIVE] 세션=STOPPED 포지션=CLOSING 매도=[SUBMITTED/실시간 손절 ? 손익률 -6.666700%] 정리대기=true
+15:14:31.198 [Test worker] WARN  c.c.api.service.LiveTradingService - 매도 주문 FAILED ? 포지션 OPEN 롤백 (orderId=5, posId=4, sessionId=2)
+15:14:31.213 [Test worker] WARN  c.c.api.service.LiveTradingService - 정지 후 정리 ? 청산 매도 제출 (posId=4, sessionId=2, 수량=9.80000000, 사유=STOPPED_OPEN)
+[가 LIVE 거절 후] 포지션=CLOSING 매도=2 정리 메모=청산 매도 체결 대기
+15:14:31.354 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+15:14:31.424 [market-data-1] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-SVRD4 @ 280 pnl=-6.666700% (id=3)
+15:14:31.461 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] ? 정지했으나 **정리 미완료** ? 미해결 제출 1건이 남았다 (sessionId=3). 자금·슬롯을 점유한 것으로 두고 추적을 계속한다.
+[가 DYNAMIC] 세션=STOPPED 포지션=CLOSING 매도=[SUBMITTED/실시간 손절 ? pnl -6.666700%] 정리대기=true
+15:14:31.535 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 매도 주문 FAILED ? 포지션 OPEN 롤백 (orderId=7, posId=5, sessionId=3)
+15:14:31.536 [Test worker] ERROR c.c.a.service.DynamicTradingService - [Dynamic] 매도 롤백 포지션 재결속 불가 ? 세션 비가동 (posId=5, sessionId=3, status=STOPPED). 수동 조치 필요
+15:14:31.546 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 정지 후 정리 ? 청산 매도 제출 (posId=5, sessionId=3, 수량=9.80000000, 사유=STOPPED_OPEN)
+[가 DYNAMIC 거절 후] 포지션=CLOSING 매도=2 정리 메모=청산 매도 체결 대기
+15:14:31.687 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+15:14:31.710 [Thread-7] WARN  c.c.api.service.LiveTradingService - ? 정지했으나 **정리 미완료** ? 미해결 제출 1건이 남았다 (sessionId=3). 그 주문은 접수됐을 수 있으므로 자금·슬롯을 점유한 것으로 두고 추적을 계속한다. 종결은 근거를 확인한 사람이 한다.
+[나 LIVE #0] 세션=STOPPED 포지션=CLOSING 매도=[SUBMITTED/세션 정지 -- 포지션 청산] 정리대기=true
+15:14:31.845 [Test worker] WARN  c.c.api.service.LiveTradingService - 매도 주문 FAILED ? 포지션 OPEN 롤백 (orderId=9, posId=6, sessionId=3)
+15:14:31.855 [Test worker] WARN  c.c.api.service.LiveTradingService - 정지 후 정리 ? 청산 매도 제출 (posId=6, sessionId=3, 수량=9.80000000, 사유=STOPPED_OPEN)
+[나 LIVE #0 거절 후] 포지션=CLOSING 매도=2 정리 메모=청산 매도 체결 대기
+15:14:32.002 [Thread-9] WARN  c.c.api.service.LiveTradingService - ? 정지했으나 **정리 미완료** ? 미해결 제출 1건이 남았다 (sessionId=4). 그 주문은 접수됐을 수 있으므로 자금·슬롯을 점유한 것으로 두고 추적을 계속한다. 종결은 근거를 확인한 사람이 한다.
+[나 LIVE #1] 세션=STOPPED 포지션=CLOSING 매도=[SUBMITTED/세션 정지 -- 포지션 청산] 정리대기=true
+15:14:32.137 [Test worker] WARN  c.c.api.service.LiveTradingService - 매도 주문 FAILED ? 포지션 OPEN 롤백 (orderId=11, posId=7, sessionId=4)
+15:14:32.150 [Test worker] WARN  c.c.api.service.LiveTradingService - 정지 후 정리 ? 청산 매도 제출 (posId=7, sessionId=4, 수량=9.80000000, 사유=STOPPED_OPEN)
+[나 LIVE #1 거절 후] 포지션=CLOSING 매도=2 정리 메모=청산 매도 체결 대기
+15:14:32.234 [Thread-11] WARN  c.c.api.service.LiveTradingService - ? 정지했으나 **정리 미완료** ? 미해결 제출 1건이 남았다 (sessionId=5). 그 주문은 접수됐을 수 있으므로 자금·슬롯을 점유한 것으로 두고 추적을 계속한다. 종결은 근거를 확인한 사람이 한다.
+[나 LIVE #2] 세션=STOPPED 포지션=CLOSING 매도=[SUBMITTED/세션 정지 -- 포지션 청산] 정리대기=true
+15:14:32.370 [Test worker] WARN  c.c.api.service.LiveTradingService - 매도 주문 FAILED ? 포지션 OPEN 롤백 (orderId=13, posId=8, sessionId=5)
+15:14:32.385 [Test worker] WARN  c.c.api.service.LiveTradingService - 정지 후 정리 ? 청산 매도 제출 (posId=8, sessionId=5, 수량=9.80000000, 사유=STOPPED_OPEN)
+[나 LIVE #2 거절 후] 포지션=CLOSING 매도=2 정리 메모=청산 매도 체결 대기
+15:14:32.589 [Thread-13] WARN  c.c.api.service.LiveTradingService - ? 정지했으나 **정리 미완료** ? 미해결 제출 1건이 남았다 (sessionId=6). 그 주문은 접수됐을 수 있으므로 자금·슬롯을 점유한 것으로 두고 추적을 계속한다. 종결은 근거를 확인한 사람이 한다.
+[나 LIVE #3] 세션=STOPPED 포지션=CLOSING 매도=[SUBMITTED/세션 정지 -- 포지션 청산] 정리대기=true
+15:14:32.719 [Test worker] WARN  c.c.api.service.LiveTradingService - 매도 주문 FAILED ? 포지션 OPEN 롤백 (orderId=15, posId=9, sessionId=6)
+15:14:32.730 [Test worker] WARN  c.c.api.service.LiveTradingService - 정지 후 정리 ? 청산 매도 제출 (posId=9, sessionId=6, 수량=9.80000000, 사유=STOPPED_OPEN)
+[나 LIVE #3 거절 후] 포지션=CLOSING 매도=2 정리 메모=청산 매도 체결 대기
+15:14:32.825 [Thread-15] WARN  c.c.api.service.LiveTradingService - ? 정지했으나 **정리 미완료** ? 미해결 제출 1건이 남았다 (sessionId=7). 그 주문은 접수됐을 수 있으므로 자금·슬롯을 점유한 것으로 두고 추적을 계속한다. 종결은 근거를 확인한 사람이 한다.
+[나 LIVE #4] 세션=STOPPED 포지션=CLOSING 매도=[SUBMITTED/세션 정지 -- 포지션 청산] 정리대기=true
+15:14:32.950 [Test worker] WARN  c.c.api.service.LiveTradingService - 매도 주문 FAILED ? 포지션 OPEN 롤백 (orderId=17, posId=10, sessionId=7)
+15:14:32.971 [Test worker] WARN  c.c.api.service.LiveTradingService - 정지 후 정리 ? 청산 매도 제출 (posId=10, sessionId=7, 수량=9.80000000, 사유=STOPPED_OPEN)
+[나 LIVE #4 거절 후] 포지션=CLOSING 매도=2 정리 메모=청산 매도 체결 대기
+15:14:33.134 [Thread-17] WARN  c.c.api.service.LiveTradingService - ? 정지했으나 **정리 미완료** ? 미해결 제출 1건이 남았다 (sessionId=8). 그 주문은 접수됐을 수 있으므로 자금·슬롯을 점유한 것으로 두고 추적을 계속한다. 종결은 근거를 확인한 사람이 한다.
+[나 LIVE #5] 세션=STOPPED 포지션=CLOSING 매도=[SUBMITTED/세션 정지 -- 포지션 청산] 정리대기=true
+15:14:33.265 [Test worker] WARN  c.c.api.service.LiveTradingService - 매도 주문 FAILED ? 포지션 OPEN 롤백 (orderId=19, posId=11, sessionId=8)
+15:14:33.281 [Test worker] WARN  c.c.api.service.LiveTradingService - 정지 후 정리 ? 청산 매도 제출 (posId=11, sessionId=8, 수량=9.80000000, 사유=STOPPED_OPEN)
+[나 LIVE #5 거절 후] 포지션=CLOSING 매도=2 정리 메모=청산 매도 체결 대기
+[나 LIVE] WS 손절이 먼저 매도한 회차 0/6
+15:14:33.396 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+15:14:33.409 [Thread-19] WARN  c.c.a.service.DynamicTradingService - [Dynamic] ? 정지했으나 **정리 미완료** ? 미해결 제출 1건이 남았다 (sessionId=4). 자금·슬롯을 점유한 것으로 두고 추적을 계속한다.
+[나 DYNAMIC #0] 세션=STOPPED 포지션=CLOSING 매도=[SUBMITTED/세션 정지 ? 포지션 청산] 정리대기=true
+15:14:33.597 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 매도 주문 FAILED ? 포지션 OPEN 롤백 (orderId=21, posId=12, sessionId=4)
+15:14:33.598 [Test worker] ERROR c.c.a.service.DynamicTradingService - [Dynamic] 매도 롤백 포지션 재결속 불가 ? 세션 비가동 (posId=12, sessionId=4, status=STOPPED). 수동 조치 필요
+15:14:33.608 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 정지 후 정리 ? 청산 매도 제출 (posId=12, sessionId=4, 수량=9.80000000, 사유=STOPPED_OPEN)
+[나 DYNAMIC #0 거절 후] 포지션=CLOSING 매도=2 정리 메모=청산 매도 체결 대기
+15:14:33.740 [Thread-21] WARN  c.c.a.service.DynamicTradingService - [Dynamic] ? 정지했으나 **정리 미완료** ? 미해결 제출 1건이 남았다 (sessionId=5). 자금·슬롯을 점유한 것으로 두고 추적을 계속한다.
+[나 DYNAMIC #1] 세션=STOPPED 포지션=CLOSING 매도=[SUBMITTED/세션 정지 ? 포지션 청산] 정리대기=true
+15:14:33.870 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 매도 주문 FAILED ? 포지션 OPEN 롤백 (orderId=23, posId=13, sessionId=5)
+15:14:33.872 [Test worker] ERROR c.c.a.service.DynamicTradingService - [Dynamic] 매도 롤백 포지션 재결속 불가 ? 세션 비가동 (posId=13, sessionId=5, status=STOPPED). 수동 조치 필요
+15:14:33.880 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 정지 후 정리 ? 청산 매도 제출 (posId=13, sessionId=5, 수량=9.80000000, 사유=STOPPED_OPEN)
+[나 DYNAMIC #1 거절 후] 포지션=CLOSING 매도=2 정리 메모=청산 매도 체결 대기
+15:14:34.026 [Thread-23] WARN  c.c.a.service.DynamicTradingService - [Dynamic] ? 정지했으나 **정리 미완료** ? 미해결 제출 1건이 남았다 (sessionId=6). 자금·슬롯을 점유한 것으로 두고 추적을 계속한다.
+[나 DYNAMIC #2] 세션=STOPPED 포지션=CLOSING 매도=[SUBMITTED/세션 정지 ? 포지션 청산] 정리대기=true
+15:14:34.144 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 매도 주문 FAILED ? 포지션 OPEN 롤백 (orderId=25, posId=14, sessionId=6)
+15:14:34.145 [Test worker] ERROR c.c.a.service.DynamicTradingService - [Dynamic] 매도 롤백 포지션 재결속 불가 ? 세션 비가동 (posId=14, sessionId=6, status=STOPPED). 수동 조치 필요
+15:14:34.151 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 정지 후 정리 ? 청산 매도 제출 (posId=14, sessionId=6, 수량=9.80000000, 사유=STOPPED_OPEN)
+[나 DYNAMIC #2 거절 후] 포지션=CLOSING 매도=2 정리 메모=청산 매도 체결 대기
+15:14:34.297 [Thread-25] WARN  c.c.a.service.DynamicTradingService - [Dynamic] ? 정지했으나 **정리 미완료** ? 미해결 제출 1건이 남았다 (sessionId=7). 자금·슬롯을 점유한 것으로 두고 추적을 계속한다.
+[나 DYNAMIC #3] 세션=STOPPED 포지션=CLOSING 매도=[SUBMITTED/세션 정지 ? 포지션 청산] 정리대기=true
+15:14:34.423 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 매도 주문 FAILED ? 포지션 OPEN 롤백 (orderId=27, posId=15, sessionId=7)
+15:14:34.424 [Test worker] ERROR c.c.a.service.DynamicTradingService - [Dynamic] 매도 롤백 포지션 재결속 불가 ? 세션 비가동 (posId=15, sessionId=7, status=STOPPED). 수동 조치 필요
+15:14:34.432 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 정지 후 정리 ? 청산 매도 제출 (posId=15, sessionId=7, 수량=9.80000000, 사유=STOPPED_OPEN)
+[나 DYNAMIC #3 거절 후] 포지션=CLOSING 매도=2 정리 메모=청산 매도 체결 대기
+15:14:34.582 [Thread-27] WARN  c.c.a.service.DynamicTradingService - [Dynamic] ? 정지했으나 **정리 미완료** ? 미해결 제출 1건이 남았다 (sessionId=8). 자금·슬롯을 점유한 것으로 두고 추적을 계속한다.
+[나 DYNAMIC #4] 세션=STOPPED 포지션=CLOSING 매도=[SUBMITTED/세션 정지 ? 포지션 청산] 정리대기=true
+15:14:34.714 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 매도 주문 FAILED ? 포지션 OPEN 롤백 (orderId=29, posId=16, sessionId=8)
+15:14:34.715 [Test worker] ERROR c.c.a.service.DynamicTradingService - [Dynamic] 매도 롤백 포지션 재결속 불가 ? 세션 비가동 (posId=16, sessionId=8, status=STOPPED). 수동 조치 필요
+15:14:34.723 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 정지 후 정리 ? 청산 매도 제출 (posId=16, sessionId=8, 수량=9.80000000, 사유=STOPPED_OPEN)
+[나 DYNAMIC #4 거절 후] 포지션=CLOSING 매도=2 정리 메모=청산 매도 체결 대기
+15:14:34.876 [Thread-29] WARN  c.c.a.service.DynamicTradingService - [Dynamic] ? 정지했으나 **정리 미완료** ? 미해결 제출 1건이 남았다 (sessionId=9). 자금·슬롯을 점유한 것으로 두고 추적을 계속한다.
+[나 DYNAMIC #5] 세션=STOPPED 포지션=CLOSING 매도=[SUBMITTED/세션 정지 ? 포지션 청산] 정리대기=true
+15:14:35.001 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 매도 주문 FAILED ? 포지션 OPEN 롤백 (orderId=31, posId=17, sessionId=9)
+15:14:35.002 [Test worker] ERROR c.c.a.service.DynamicTradingService - [Dynamic] 매도 롤백 포지션 재결속 불가 ? 세션 비가동 (posId=17, sessionId=9, status=STOPPED). 수동 조치 필요
+15:14:35.013 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 정지 후 정리 ? 청산 매도 제출 (posId=17, sessionId=9, 수량=9.80000000, 사유=STOPPED_OPEN)
+[나 DYNAMIC #5 거절 후] 포지션=CLOSING 매도=2 정리 메모=청산 매도 체결 대기
+[나 DYNAMIC] WS 손절이 먼저 매도한 회차 0/6
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

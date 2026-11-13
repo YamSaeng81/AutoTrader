@@ -1,0 +1,127 @@
+{
+  "review_version": "1.164",
+  "review_sequence": 408,
+  "submitted": "960828e7f239cf083a6d2d2215c7d5fff32eec83",
+  "verification_scope": "Local committed blobs, working files, preserved execution output, static SQL and shell review, bash syntax, time arithmetic. No new production, DB or remote query.",
+  "manifest_verification": [
+    {
+      "folder": "v163-loss-window-20261113",
+      "files": 4,
+      "entries": [
+        {
+          "path": "loss-window-readonly.sql",
+          "sha256": "2dffc0da17b9d7f85d10ad869afc0316ea15bfefacf6d3c6c64dec0fa0137f5b",
+          "working_match": true,
+          "git_match": true
+        },
+        {
+          "path": "run-loss-window.sh",
+          "sha256": "6a5c55ce724fd31669462270d1c402309091c8140180d3d3ccabd4d88948e1d8",
+          "working_match": true,
+          "git_match": true
+        },
+        {
+          "path": "out-loss-window.txt",
+          "sha256": "a6409b2821bc13c90654afd61aa9dc7bbf8a6a13b330417ade3ca688ba6cce99",
+          "working_match": true,
+          "git_match": true
+        },
+        {
+          "path": "README.md",
+          "sha256": "6b3c490f2e0c6bcb038a7fb1f652a7808215cbd54275883dd435c8465c3ed9ff",
+          "working_match": true,
+          "git_match": true
+        }
+      ]
+    },
+    {
+      "folder": "review-0e4cc208",
+      "files": 3,
+      "entries": [
+        {
+          "path": "README.md",
+          "sha256": "2b2bfdbc5f4ba4f22f1ac8764d31dd64d5c5b4aead608425a96d2942f817dc30",
+          "working_match": true,
+          "git_match": true
+        },
+        {
+          "path": "loss-window-readonly.sql",
+          "sha256": "2dffc0da17b9d7f85d10ad869afc0316ea15bfefacf6d3c6c64dec0fa0137f5b",
+          "working_match": true,
+          "git_match": true
+        },
+        {
+          "path": "checks.json",
+          "sha256": "fcc2a259573f05f890183d2925cd8063ec9945e05dfa06d28530fd6fc14e8309",
+          "working_match": true,
+          "git_match": true
+        }
+      ]
+    }
+  ],
+  "query": {
+    "source_sql_identical": true,
+    "sha256": "2dffc0da17b9d7f85d10ad869afc0316ea15bfefacf6d3c6c64dec0fa0137f5b",
+    "local_and_preserved_server_input_hash_equal": true,
+    "preserved_asof_kst": "2026-11-13T14:30:18.676501",
+    "preserved_psql_and_ssh_rc": 0,
+    "runner_bash_n_rc": 0,
+    "loss_rows": 1,
+    "loss_krw": "-359.38855656",
+    "order_id": 12082,
+    "session_id": 93,
+    "position_id": 4151,
+    "running_dynamic_real_count": 0,
+    "running_dynamic_real_initial_capital": 0,
+    "future_timestamp": false,
+    "applied_kst": "2026-10-17T10:16:03.573717",
+    "expiry_kst": "2026-11-16T10:16:03.573717",
+    "inclusive_at_exact_expiry": true,
+    "retry_target_kst": "2026-11-16T10:25:00",
+    "margin_seconds": "536.426283"
+  },
+  "local_refs": {
+    "HEAD": "960828e7f239cf083a6d2d2215c7d5fff32eec83",
+    "origin/main": "960828e7f239cf083a6d2d2215c7d5fff32eec83",
+    "integration/v158": "88f06345af31888c2c8669ebe8ad00ca02cfd6d8",
+    "origin/integration/v158": "88f06345af31888c2c8669ebe8ad00ca02cfd6d8"
+  },
+  "work_continuation": {
+    "v158_classification_data_rows": 19,
+    "v156_named_list_count": 20,
+    "reconcile_targets_against": "88f06345",
+    "classification_only_is_not_completion_race_proof": true,
+    "n05_existing_table_reuse": true
+  },
+  "current_docs": {
+    "files": [
+      "START_HERE.md",
+      "LIMITED_LIVE_TEST_PLAN.md",
+      "CURRENT_HANDOFF.md",
+      "LIVE_READINESS.md",
+      "NOVEMBER_LIVE_UPGRADE.md",
+      "PROGRESS.md",
+      "README.md"
+    ],
+    "lines": {
+      "START_HERE.md": 36,
+      "LIMITED_LIVE_TEST_PLAN.md": 124,
+      "CURRENT_HANDOFF.md": 32,
+      "LIVE_READINESS.md": 46,
+      "NOVEMBER_LIVE_UPGRADE.md": 56,
+      "PROGRESS.md": 55,
+      "README.md": 41
+    },
+    "night_principle_unchanged": true,
+    "recent_sequences": [
+      "408",
+      "407",
+      "406",
+      "405",
+      "404"
+    ],
+    "local_links_checked": 109,
+    "broken_links": 0,
+    "foreign_cjk_matches": 0
+  }
+}

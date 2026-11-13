@@ -1,0 +1,21 @@
+HEAD 88f06345af31888c2c8669ebe8ad00ca02cfd6d8
+ M web-api/src/test/java/com/cryptoautotrader/api/service/CancelConfirmAndLateFillCleanupTest.java
+ M web-api/src/test/java/com/cryptoautotrader/api/service/ClaimAndUnknownTrackingTest.java
+ M web-api/src/test/java/com/cryptoautotrader/api/service/DailySma20LiveOrderPathTest.java
+ M web-api/src/test/java/com/cryptoautotrader/api/service/ExchangeRecoveryRestartTest.java
+ M web-api/src/test/java/com/cryptoautotrader/api/service/IntentPrecommitAndOnceOnlyTest.java
+ M web-api/src/test/java/com/cryptoautotrader/api/service/LimitedTestExchangeRecoveryTest.java
+ M web-api/src/test/java/com/cryptoautotrader/api/service/LiveEmergencyStopUnderConcurrentWriteTest.java
+ M web-api/src/test/java/com/cryptoautotrader/api/service/LiveStopUnderConcurrentWriteTest.java
+ M web-api/src/test/java/com/cryptoautotrader/api/service/N17RestInvalidPriceTest.java
+ M web-api/src/test/java/com/cryptoautotrader/api/service/N19RestFallbackItemDefenseTest.java
+ M web-api/src/test/java/com/cryptoautotrader/api/service/SlWatchdogFreshnessTest.java
+ M web-api/src/test/java/com/cryptoautotrader/api/service/StaleRealtimeExitTest.java
+ M web-api/src/test/java/com/cryptoautotrader/api/service/StopVersusInFlightExitRaceTest.java
+ M web-api/src/test/java/com/cryptoautotrader/api/service/SubmitResponseUnknownTest.java
+?? web-api/src/test/java/com/cryptoautotrader/api/support/DrainGapGate.java
+?? web-api/src/test/resources/META-INF/
+gate_ms=50 beans=default
+classes=CancelConfirmAndLateFillCleanupTest ClaimAndUnknownTrackingTest DailySma20LiveOrderPathTest ExchangeRecoveryRestartTest IntentPrecommitAndOnceOnlyTest LateOrderSubmissionAfterStopTest LimitedTestExchangeRecoveryTest LiveEmergencyStopUnderConcurrentWriteTest LiveStopUnderConcurrentWriteTest N15PgLockWaitExpiryTest N16InvalidPriceReproTest N17RestInvalidPriceTest N19RestFallbackItemDefenseTest O1O3LogContractTest SlWatchdogFreshnessTest StaleRealtimeExitTest StopVersusInFlightExitRaceTest SubmitResponseUnknownTest 
+start 2026-11-13 15:10:55    
+end 2026-11-13 15:13:15     rc=1
