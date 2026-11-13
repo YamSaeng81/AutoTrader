@@ -1,0 +1,696 @@
+{
+  "review_version": "1.163",
+  "review_sequence": 406,
+  "submitted": "0e4cc2083580fdf9c630b4a66551bc9334e69698",
+  "manifest": [
+    {
+      "path": "README.md",
+      "expected": "44eaf81e222e7a31a158d073c139cce485cc8d410580fc8c649bb7218652e87b",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "maint-v161/alerts-before.txt",
+      "expected": "be561852bc9ab1fe2b5887869f2f4f9f368884fdae81d0d50e72fc3ced43613d",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "maint-v161/btc-before.txt",
+      "expected": "db9a2ae20ed9bb7ebf523e8e82a48db2a4101a00a07bcb25c4275a28983e779a",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "maint-v161/container-time-before.txt",
+      "expected": "6f25c44baa1037bedff868a9cd0da0cc7f8f5226b6af30608cbccb650ec35ade",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "maint-v161/crontab-before.txt",
+      "expected": "f2dce2809c09aa4466a95200caa19547118e444b4ac90b4363e20a158dee9b5b",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "maint-v161/entry-before.txt",
+      "expected": "a09a4768b383b566e186cd6bbd8c084243d07539068b2820811e20d9337975fc",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "maint-v161/fe-ref-before.txt",
+      "expected": "e5da5f503ab983d8092a31944e4ec2226a5deda978536a98ba0d923ba7684465",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "maint-v161/freshness_snap.json.before",
+      "expected": "95755af650919290d23b8c45ef59ef2d7b260757391c5cb759eefb6a11481cce",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "maint-v161/freshness_streak.json.before",
+      "expected": "eb3a2d6986c291feb7a4ab28a33703ffdea02a449652848f98292701f433eb65",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "maint-v161/git-before.txt",
+      "expected": "e0aa0c9d25c7eda15d5a91235693b8db58658104ab55dc7b07676546cfe11eff",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "maint-v161/hold-before.txt",
+      "expected": "a121cb02c30de17f596771ca56785993bb8f510d724fe370355b0a55b05d5762",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "maint-v161/http-before.txt",
+      "expected": "70be4d8cfdf7a38eef09afce13c3be8b737ebe68c4f5624d6304099c380a9cd5",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "maint-v161/image-before.txt",
+      "expected": "adb6100a5045445349034c08a993b1b2d5462160aa15a6eddab06f3e67dc5b98",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "maint-v161/image-fe-before.txt",
+      "expected": "80d14093ac2acbb2742b48485d8af7c0935fdd081167fddd25ba80884d94fe3a",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "maint-v161/ledger-files-before.sha",
+      "expected": "035daf5a56bc733478266f82226c3118c445ca88834899ffbee679223651faf7",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "maint-v161/maint_start.txt",
+      "expected": "2a61cd68f0a51c59e924597272a08234cf9f4e32c3be11d72cc30dd8ad25da60",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "maint-v161/maint_verify.py",
+      "expected": "39e62884d096160e3ada3404ce013c381a14c837e9464c9131cc747dacf50f96",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "maint-v161/n17-before.txt",
+      "expected": "8d947e4792159351504a64c9a6b8e4c25c8e658f487c6c0b188b75119f6a23b0",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "maint-v161/n19-before.txt",
+      "expected": "a9f2299cc107583f1611fc2ae9cd221edc904506857d6e08f7275c8eeb580ce3",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "maint-v161/n20-before.txt",
+      "expected": "9f94fdbce0626b346ccb37828df237f7172894277068005c2940de1a2522409c",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "maint-v161/news-before.txt",
+      "expected": "ffdd578503b8f1d80e3e965fa376f64e6c30814226759a5fbd9d1397b4873657",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "maint-v161/news-err-before.txt",
+      "expected": "9c46acf3a81feb1c16b6cc9f7bf56008d5cf7b3b76d0559c5c22193373e21dbd",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "maint-v161/pgrep-u0.err",
+      "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "maint-v161/pgrep-u0.txt",
+      "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "maint-v161/preflight-loss.sql",
+      "expected": "af4105c1f70f6f095b8f1bbbb1c722acd717b2dcd46190e3a9224cd949c5cab0",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "maint-v161/preflight-loss.txt",
+      "expected": "b9a3243fca7bda0d05e887740a973f34d371ecbf9c841123891a41c860124626",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "maint-v161/q-before.txt",
+      "expected": "6faa4e70f86b0acf8314d5f5e078c800a105825b18ffb75b95a180adedb2ad1d",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "maint-v161/s-before.txt",
+      "expected": "7259e13e702439facb5bc02cfa8afd148fd5fdd03d79a80bb1d0ad366e55980a",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "maint-v161/start_66.py.before",
+      "expected": "68d441ce0ed66d0a654d9ec7ca485d0a69a5bb8bacf4de48b5d61d0ef813b56b",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "maint-v161/svc-before.txt",
+      "expected": "529ad74747a3a4f9c700236131e02590dc3082a607d1c09dda428d0b565b1036",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "maint-v161/t-before.txt",
+      "expected": "063a6ad7df873f445499a4d2f5a4bdfc28ce71b49d97b2a2c7c514ce0dadefe8",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "maint-v161/timezone-before.txt",
+      "expected": "a764065b3c0a4addb4a8483c912c637f239501b83f2931df45383831d19adfda",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "out/exit-codes.txt",
+      "expected": "098ab16b1337b169e986d32aaff73154d46ad7786825f06035e15b13fc207211",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "out/out-U0-deploy.txt",
+      "expected": "05e8cdab867c3a6c4aefc1b0446dde6f83f669fd24162b05c88361a29d76900c",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "pre/report-reread.txt",
+      "expected": "56d194a2a24afee70ab598d5165f8d423aafde30b9881c830f38cd20db6e695c",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "runner/blocks/F.sh",
+      "expected": "b7e3fc2c1753c2ac8f2c8f99aee56dc05b013cbce2045ca25c30d95dbe0353b6",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "runner/blocks/G.sh",
+      "expected": "4d7ff02a94194fc17e11ed062b4c0fdb80a395aa282c941e7b624be95851c822",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "runner/blocks/U0.sh",
+      "expected": "052b73b9b5650bcf9be8402cb3e89251a2eb32596df9fcb06ac1c633d2511bcf",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "runner/blocks/U1.sh",
+      "expected": "1c2adda930beb6f5e9ecdd24bf6720f7ee698d80d147181b64a16370d94849c8",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "runner/blocks/U1되돌림.sh",
+      "expected": "dc3befdae7e0116a088290a5d3462173d87e5065003815531e922cbc93b50220",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "runner/blocks/U2.sh",
+      "expected": "0f9f5f006afd95d25f3ce8c95f9d8b94bd3dd06a270ca55fc947d43ffb6da030",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "runner/blocks/U3.sh",
+      "expected": "4a1f73524449324953e7efd63aa6d90bb21e879ba6c5dd7d819eae8e320bf414",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "runner/blocks/U4.sh",
+      "expected": "1fa20c0cf7a0cd0187031a2e0e34c96dc5933288bfd2703b3170c58116679f4b",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "runner/blocks/UF2.sh",
+      "expected": "d1e55d048f9a6ad13cf061f09a37e6bd6144124964c2b05cb1198e4aba1974fd",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "runner/blocks/U되돌림.sh",
+      "expected": "1d62dc3b656192c8f498f1dafa51e467d57188869f3e8150ab6fdb4ea53d4128",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "runner/blocks/U뒤관측.sh",
+      "expected": "f7cab10ed081cc27d00532acf46ae5b3cf75e71f6513097bc398d1ffdf8a78b0",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "runner/blocks/U변수.sh",
+      "expected": "47170e8483872ccb732d6ed4294e0cde09bb43322ff8dd4535210a458fd69bf2",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "runner/blocks/blocks.json",
+      "expected": "89917b8b8512e36083ad516c9ce3aef3d2abbf8a241b23fe9a70af8252c790e7",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "runner/extract.py",
+      "expected": "b29bfe2823e28a945fabb733b9c90e7f3dc887808e006c18a0abb95e3953b3c4",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "runner/run.sh",
+      "expected": "c0b1eec729748b70146decf87d5ad2ef2b84a1fcce44f06ef23111f66c66ad33",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "runner/runner-selftest.txt",
+      "expected": "68e444ea73f44bd3c8fda182941fd4c2135572827e2b3798519c69fc4d37f7c5",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "server-sha256.txt",
+      "expected": "7741576cd77a79243812630ae659ea9a2da9be018d55bd9db60d8893c81892aa",
+      "working_match": true,
+      "git_match": true
+    }
+  ],
+  "prior_review_manifest": [
+    {
+      "path": "README.md",
+      "expected": "961e5943b8270824205f5b586cc1587640a67eef214ea8c0a8c9faa46c95be4d",
+      "working_match": true,
+      "git_match": true
+    },
+    {
+      "path": "checks.json",
+      "expected": "5d89c9f73dff42f75cc1c5c22a5b5c35d9dcb369bd8c6450e7d0ef32600a7dba",
+      "working_match": true,
+      "git_match": true
+    }
+  ],
+  "server_manifest": [
+    {
+      "path": "alerts-before.txt",
+      "sha256": "be561852bc9ab1fe2b5887869f2f4f9f368884fdae81d0d50e72fc3ced43613d",
+      "copy_exists": true,
+      "match": true
+    },
+    {
+      "path": "backend-before.log",
+      "sha256": "a03c4bf7ce3d6b5900362a8164682499291e4cdf42eb294c5b64eee20da064f4",
+      "copy_exists": false
+    },
+    {
+      "path": "btc-before.txt",
+      "sha256": "db9a2ae20ed9bb7ebf523e8e82a48db2a4101a00a07bcb25c4275a28983e779a",
+      "copy_exists": true,
+      "match": true
+    },
+    {
+      "path": "container-time-before.txt",
+      "sha256": "6f25c44baa1037bedff868a9cd0da0cc7f8f5226b6af30608cbccb650ec35ade",
+      "copy_exists": true,
+      "match": true
+    },
+    {
+      "path": "crontab-before.txt",
+      "sha256": "f2dce2809c09aa4466a95200caa19547118e444b4ac90b4363e20a158dee9b5b",
+      "copy_exists": true,
+      "match": true
+    },
+    {
+      "path": "entry-before.txt",
+      "sha256": "a09a4768b383b566e186cd6bbd8c084243d07539068b2820811e20d9337975fc",
+      "copy_exists": true,
+      "match": true
+    },
+    {
+      "path": "fe-ref-before.txt",
+      "sha256": "e5da5f503ab983d8092a31944e4ec2226a5deda978536a98ba0d923ba7684465",
+      "copy_exists": true,
+      "match": true
+    },
+    {
+      "path": "freshness_snap.json.before",
+      "sha256": "95755af650919290d23b8c45ef59ef2d7b260757391c5cb759eefb6a11481cce",
+      "copy_exists": true,
+      "match": true
+    },
+    {
+      "path": "freshness_streak.json.before",
+      "sha256": "eb3a2d6986c291feb7a4ab28a33703ffdea02a449652848f98292701f433eb65",
+      "copy_exists": true,
+      "match": true
+    },
+    {
+      "path": "git-before.txt",
+      "sha256": "e0aa0c9d25c7eda15d5a91235693b8db58658104ab55dc7b07676546cfe11eff",
+      "copy_exists": true,
+      "match": true
+    },
+    {
+      "path": "hold-before.txt",
+      "sha256": "a121cb02c30de17f596771ca56785993bb8f510d724fe370355b0a55b05d5762",
+      "copy_exists": true,
+      "match": true
+    },
+    {
+      "path": "http-before.txt",
+      "sha256": "70be4d8cfdf7a38eef09afce13c3be8b737ebe68c4f5624d6304099c380a9cd5",
+      "copy_exists": true,
+      "match": true
+    },
+    {
+      "path": "image-before.txt",
+      "sha256": "adb6100a5045445349034c08a993b1b2d5462160aa15a6eddab06f3e67dc5b98",
+      "copy_exists": true,
+      "match": true
+    },
+    {
+      "path": "image-fe-before.txt",
+      "sha256": "80d14093ac2acbb2742b48485d8af7c0935fdd081167fddd25ba80884d94fe3a",
+      "copy_exists": true,
+      "match": true
+    },
+    {
+      "path": "ledger-files-before.sha",
+      "sha256": "035daf5a56bc733478266f82226c3118c445ca88834899ffbee679223651faf7",
+      "copy_exists": true,
+      "match": true
+    },
+    {
+      "path": "maint_start.txt",
+      "sha256": "2a61cd68f0a51c59e924597272a08234cf9f4e32c3be11d72cc30dd8ad25da60",
+      "copy_exists": true,
+      "match": true
+    },
+    {
+      "path": "maint_verify.py",
+      "sha256": "39e62884d096160e3ada3404ce013c381a14c837e9464c9131cc747dacf50f96",
+      "copy_exists": true,
+      "match": true
+    },
+    {
+      "path": "n17-before.txt",
+      "sha256": "8d947e4792159351504a64c9a6b8e4c25c8e658f487c6c0b188b75119f6a23b0",
+      "copy_exists": true,
+      "match": true
+    },
+    {
+      "path": "n19-before.txt",
+      "sha256": "a9f2299cc107583f1611fc2ae9cd221edc904506857d6e08f7275c8eeb580ce3",
+      "copy_exists": true,
+      "match": true
+    },
+    {
+      "path": "n20-before.txt",
+      "sha256": "9f94fdbce0626b346ccb37828df237f7172894277068005c2940de1a2522409c",
+      "copy_exists": true,
+      "match": true
+    },
+    {
+      "path": "news-before.txt",
+      "sha256": "ffdd578503b8f1d80e3e965fa376f64e6c30814226759a5fbd9d1397b4873657",
+      "copy_exists": true,
+      "match": true
+    },
+    {
+      "path": "news-err-before.txt",
+      "sha256": "9c46acf3a81feb1c16b6cc9f7bf56008d5cf7b3b76d0559c5c22193373e21dbd",
+      "copy_exists": true,
+      "match": true
+    },
+    {
+      "path": "pgrep-u0.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "copy_exists": true,
+      "match": true
+    },
+    {
+      "path": "pgrep-u0.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "copy_exists": true,
+      "match": true
+    },
+    {
+      "path": "preflight-loss.sql",
+      "sha256": "af4105c1f70f6f095b8f1bbbb1c722acd717b2dcd46190e3a9224cd949c5cab0",
+      "copy_exists": true,
+      "match": true
+    },
+    {
+      "path": "preflight-loss.txt",
+      "sha256": "b9a3243fca7bda0d05e887740a973f34d371ecbf9c841123891a41c860124626",
+      "copy_exists": true,
+      "match": true
+    },
+    {
+      "path": "q-before.txt",
+      "sha256": "6faa4e70f86b0acf8314d5f5e078c800a105825b18ffb75b95a180adedb2ad1d",
+      "copy_exists": true,
+      "match": true
+    },
+    {
+      "path": "s-before.txt",
+      "sha256": "7259e13e702439facb5bc02cfa8afd148fd5fdd03d79a80bb1d0ad366e55980a",
+      "copy_exists": true,
+      "match": true
+    },
+    {
+      "path": "start_66.py.before",
+      "sha256": "68d441ce0ed66d0a654d9ec7ca485d0a69a5bb8bacf4de48b5d61d0ef813b56b",
+      "copy_exists": true,
+      "match": true
+    },
+    {
+      "path": "svc-before.txt",
+      "sha256": "529ad74747a3a4f9c700236131e02590dc3082a607d1c09dda428d0b565b1036",
+      "copy_exists": true,
+      "match": true
+    },
+    {
+      "path": "t-before.txt",
+      "sha256": "063a6ad7df873f445499a4d2f5a4bdfc28ce71b49d97b2a2c7c514ce0dadefe8",
+      "copy_exists": true,
+      "match": true
+    },
+    {
+      "path": "timezone-before.txt",
+      "sha256": "a764065b3c0a4addb4a8483c912c637f239501b83f2931df45383831d19adfda",
+      "copy_exists": true,
+      "match": true
+    }
+  ],
+  "blocks": [
+    {
+      "name": "F.sh",
+      "sha256": "b7e3fc2c1753c2ac8f2c8f99aee56dc05b013cbce2045ca25c30d95dbe0353b6",
+      "source_matches": 1,
+      "syntax_rc": 0
+    },
+    {
+      "name": "G.sh",
+      "sha256": "4d7ff02a94194fc17e11ed062b4c0fdb80a395aa282c941e7b624be95851c822",
+      "source_matches": 1,
+      "syntax_rc": 0
+    },
+    {
+      "name": "U0.sh",
+      "sha256": "052b73b9b5650bcf9be8402cb3e89251a2eb32596df9fcb06ac1c633d2511bcf",
+      "source_matches": 1,
+      "syntax_rc": 0
+    },
+    {
+      "name": "U1.sh",
+      "sha256": "1c2adda930beb6f5e9ecdd24bf6720f7ee698d80d147181b64a16370d94849c8",
+      "source_matches": 1,
+      "syntax_rc": 0
+    },
+    {
+      "name": "U1되돌림.sh",
+      "sha256": "dc3befdae7e0116a088290a5d3462173d87e5065003815531e922cbc93b50220",
+      "source_matches": 1,
+      "syntax_rc": 0
+    },
+    {
+      "name": "U2.sh",
+      "sha256": "0f9f5f006afd95d25f3ce8c95f9d8b94bd3dd06a270ca55fc947d43ffb6da030",
+      "source_matches": 1,
+      "syntax_rc": 0
+    },
+    {
+      "name": "U3.sh",
+      "sha256": "4a1f73524449324953e7efd63aa6d90bb21e879ba6c5dd7d819eae8e320bf414",
+      "source_matches": 1,
+      "syntax_rc": 0
+    },
+    {
+      "name": "U4.sh",
+      "sha256": "1fa20c0cf7a0cd0187031a2e0e34c96dc5933288bfd2703b3170c58116679f4b",
+      "source_matches": 1,
+      "syntax_rc": 0
+    },
+    {
+      "name": "UF2.sh",
+      "sha256": "d1e55d048f9a6ad13cf061f09a37e6bd6144124964c2b05cb1198e4aba1974fd",
+      "source_matches": 1,
+      "syntax_rc": 0
+    },
+    {
+      "name": "U되돌림.sh",
+      "sha256": "1d62dc3b656192c8f498f1dafa51e467d57188869f3e8150ab6fdb4ea53d4128",
+      "source_matches": 1,
+      "syntax_rc": 0
+    },
+    {
+      "name": "U뒤관측.sh",
+      "sha256": "f7cab10ed081cc27d00532acf46ae5b3cf75e71f6513097bc398d1ffdf8a78b0",
+      "source_matches": 1,
+      "syntax_rc": 0
+    },
+    {
+      "name": "U변수.sh",
+      "sha256": "47170e8483872ccb732d6ed4294e0cde09bb43322ff8dd4535210a458fd69bf2",
+      "source_matches": 1,
+      "syntax_rc": 0
+    }
+  ],
+  "gs_sql": {
+    "gs": "6385e1d5",
+    "path": "docs/evidence/v159-20261113/d4-draft/preflight-real-loss-readonly.v2.sql",
+    "sha256": "af4105c1f70f6f095b8f1bbbb1c722acd717b2dcd46190e3a9224cd949c5cab0",
+    "server_copy_match": true
+  },
+  "report_reread": [
+    {
+      "name": "20261113-1000.txt",
+      "sha256": "cf4bfe284008430da378bd552e42e4739e41eefe438a12c458b67ef8747d06ce",
+      "matches": true
+    },
+    {
+      "name": "20261113-1000.txt.msg",
+      "sha256": "43154259a31efb71b381e8c47e9ae713ef4c3740551c2fcd49445948e62a81e7",
+      "matches": true
+    },
+    {
+      "name": "20261113-1000.txt.raw",
+      "sha256": "863c5ba579debd03d206a0cc97d7cb3c3da38bf4ad4c9a3ee23e39321594dc52",
+      "matches": true
+    },
+    {
+      "name": "last_send",
+      "sha256": "a72eea82f6c938f8f8dec8beeb0c8372136791724c2e14eb6211ed63c9c7007f",
+      "matches": true
+    }
+  ],
+  "runner": {
+    "sha256": "c0b1eec729748b70146decf87d5ad2ef2b84a1fcce44f06ef23111f66c66ad33",
+    "ssh_status_captured": true,
+    "returns_status": true,
+    "selftest_preserved_sha256": "68e444ea73f44bd3c8fda182941fd4c2135572827e2b3798519c69fc4d37f7c5"
+  },
+  "loss": {
+    "dynamic_30d_loss": "-359.3885565600000000",
+    "dynamic_capital": "0",
+    "row_present": true,
+    "stop_present": true
+  },
+  "refs": {
+    "HEAD": "0e4cc2083580fdf9c630b4a66551bc9334e69698",
+    "origin/main": "0e4cc2083580fdf9c630b4a66551bc9334e69698",
+    "integration/v158": "88f06345af31888c2c8669ebe8ad00ca02cfd6d8",
+    "origin/integration/v158": "88f06345af31888c2c8669ebe8ad00ca02cfd6d8"
+  },
+  "independent_scope": {
+    "new_production_access": false,
+    "fresh_remote_query": false,
+    "regression_rerun": false,
+    "pg_execution_of_new_diagnostic_sql": false
+  },
+  "diagnostic_sql": {
+    "sha256": "2dffc0da17b9d7f85d10ad869afc0316ea15bfefacf6d3c6c64dec0fa0137f5b",
+    "transaction": "REPEATABLE READ READ ONLY",
+    "window_hours": 720,
+    "includes_boundary": true,
+    "commits": false,
+    "static_review_only": true
+  },
+  "assumed_time_example": {
+    "not_verified_sell_applied_at": "2026-10-17T10:16:03.608+09:00",
+    "plus_720_hours": "2026-11-16T10:16:03.608000+09:00"
+  },
+  "documentation": {
+    "links_checked": 103,
+    "broken_links": [],
+    "night_text_unchanged": true,
+    "night_text_sha256": "c81ecda1d04b432fe6d9c896cad284f294c3ed403c33e823d73dc5f573effc3e",
+    "recent_sequences": [
+      "406",
+      "405",
+      "404",
+      "403",
+      "402"
+    ],
+    "line_counts": {
+      "docs/START_HERE.md": 36,
+      "docs/LIMITED_LIVE_TEST_PLAN.md": 124,
+      "docs/CURRENT_HANDOFF.md": 32,
+      "docs/LIVE_READINESS.md": 46,
+      "docs/NOVEMBER_LIVE_UPGRADE.md": 56,
+      "docs/PROGRESS.md": 57,
+      "docs/README.md": 41
+    },
+    "unexpected_cjk_count": 0,
+    "changed_managed_docs": [
+      "docs/CURRENT_HANDOFF.md",
+      "docs/LIMITED_LIVE_TEST_PLAN.md",
+      "docs/LIVE_READINESS.md",
+      "docs/NOVEMBER_LIVE_UPGRADE.md",
+      "docs/PROGRESS.md",
+      "docs/README.md",
+      "docs/START_HERE.md"
+    ]
+  }
+}
