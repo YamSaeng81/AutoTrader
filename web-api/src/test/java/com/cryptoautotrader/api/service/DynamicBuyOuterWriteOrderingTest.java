@@ -100,6 +100,8 @@ class DynamicBuyOuterWriteOrderingTest extends IntegrationTestBase {
      * 대역으로 뒀는데, 이제 <b>예약(차감)이 그 엔진 안에서</b> 일어나므로 엔진을 대역으로 두면 관측할
      * 대상이 사라진다.
      */
+    /** 외부 연결 격리 (총괄 v1.166 §3-2 후속, 2026-11-15, 시험만) — 전체 회귀(b2976905)에서 이 클래스의 시험 스레드가 실제 Upbit WebSocket 첫 연결을 열었다(근거 v166 int-full-b2976905·ws-origin). WS 재연결·구독 자체는 시험 대상이 아니다. 기존 단언은 그대로다. */
+    @MockBean private com.cryptoautotrader.exchange.upbit.UpbitWebSocketClient upbitWebSocketClient;
     @MockBean
     private com.cryptoautotrader.exchange.upbit.UpbitOrderClient upbitOrderClient;
 
