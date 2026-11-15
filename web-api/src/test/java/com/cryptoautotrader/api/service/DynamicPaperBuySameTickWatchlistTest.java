@@ -83,6 +83,14 @@ class DynamicPaperBuySameTickWatchlistTest extends IntegrationTestBase {
     @MockBean
     private com.cryptoautotrader.exchange.upbit.UpbitOrderClient upbitOrderClient;
 
+    /**
+     * 실시간 시세 경계 대역(총괄 v1.168 §3-1) — 매수 뒤 {@code refreshWsSubscription → WsSubscriptionManager.recompute} 가 실제
+     * {@code UpbitWebSocketClient.connect} 로 api.upbit.com 에 연결을 시도했고(출처 추적 n01), 실패 뒤 재연결 예약이 캐시된 컨텍스트에서
+     * 뒤 클래스까지 이어졌다. 이 시험은 WS 연결을 단언하지 않는다 — 구독 목록 계산은 관리자에서 그대로 돈다.
+     */
+    @MockBean
+    private com.cryptoautotrader.exchange.upbit.UpbitWebSocketClient upbitWebSocketClient;
+
     private final ListAppender<ILoggingEvent> logs = new ListAppender<>();
     private Logger serviceLogger;
     private Level savedLevel;

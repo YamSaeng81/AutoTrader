@@ -78,6 +78,11 @@ class SettlementRoundingPgTest extends IntegrationTestBase {
     @MockBean private UpbitOrderClient upbitOrderClient;
     /** {@code checkOrderStatus} 는 이것이 null 이면 아무 일도 하지 않고 돌아간다. */
     @MockBean private com.cryptoautotrader.exchange.upbit.UpbitRestClient upbitRestClient;
+    /**
+     * 실시간 시세 경계 대역(총괄 v1.168 §3-1) — DYNAMIC 매수 뒤 {@code refreshWsSubscription} 이 실제 WS 연결·재연결 예약을 만들었다
+     * (출처 추적 n02, 차단2). 정산 단언은 WS 와 무관하다.
+     */
+    @MockBean private com.cryptoautotrader.exchange.upbit.UpbitWebSocketClient upbitWebSocketClient;
 
     private static final BigDecimal REQUEST = new BigDecimal("3000.00");
     private static final BigDecimal AFTER_RESERVE = new BigDecimal("7000.00");

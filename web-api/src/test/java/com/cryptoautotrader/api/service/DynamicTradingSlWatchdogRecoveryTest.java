@@ -52,6 +52,13 @@ class DynamicTradingSlWatchdogRecoveryTest extends IntegrationTestBase {
     @MockBean
     private TelegramNotificationService telegramService;
 
+    /**
+     * 실시간 시세 경계 대역(총괄 v1.168 §3-1) — {@code warnStaleSlCheck → refreshWsSubscription} 가 실제 WS 연결을 시도하고 재연결 예약을
+     * 남겼다(출처 추적 n01). 이 시험은 REST 강제 갱신·경고만 단언한다.
+     */
+    @MockBean
+    private com.cryptoautotrader.exchange.upbit.UpbitWebSocketClient upbitWebSocketClient;
+
     @BeforeEach
     @AfterEach
     void cleanup() {

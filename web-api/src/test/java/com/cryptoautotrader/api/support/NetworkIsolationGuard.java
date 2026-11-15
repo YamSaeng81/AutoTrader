@@ -70,13 +70,68 @@ public final class NetworkIsolationGuard {
             // 목록을 못 얻으면 자기 주소 연결은 기록된다
         }
         ownAddresses = Set.copyOf(addrs);
+        if ("1".equals(System.getenv(TRACE_ENV))) installTraceSelector();
         previous = System.getSecurityManager();
         System.setSecurityManager(new Guard());
         installed = true;
     }
 
+    /**
+     * 🔬 출처 추적(총괄 v1.168 §3-1, 기본 꺼짐 — {@code TEST_NET_TRACE=1}). HttpClient 의 이름 해석은 작업 스레드에서 JDK 프레임만으로
+     * 일어나 호출자를 알 수 없다. 그 클라이언트는 <b>생성 시점</b>의 기본 {@link java.net.ProxySelector} 를 잡고, 요청·WebSocket 열기 때
+     * <b>호출 스레드</b>에서 {@code select(uri)} 를 부른다. 그 순간의 스레드·앱 호출 위치·시험 클래스를 기록하고 원래 선택기에 그대로 위임한다
+     * (동작 불변, 막는 것은 위 관리자). 감시 설치 때 — 어떤 HttpClient 생성보다 먼저 — 바꾸고, {@link #uninstall()} 이 되돌린다.
+     */
+    public static final String TRACE_ENV = "TEST_NET_TRACE";
+    private static final List<String> TRACES = new ArrayList<>();
+    private static volatile java.net.ProxySelector traceOriginal;
+    private static volatile java.net.ProxySelector traceMine;
+    /** 지금 실행 중인 시험 클래스(확장이 갱신) — 추적 기록에 붙인다. */
+    static volatile String currentClass = "-";
+
+    private static void installTraceSelector() {
+        java.net.ProxySelector orig = java.net.ProxySelector.getDefault();
+        traceOriginal = orig;
+        traceMine = new java.net.ProxySelector() {
+            @Override
+            public List<java.net.Proxy> select(java.net.URI uri) {
+                String host = uri.getHost() == null ? "" : uri.getHost();
+                if (!isLocal(host)) {
+                    StringBuilder sb = new StringBuilder();
+                    int shown = 0;
+                    for (StackTraceElement e : new Throwable().getStackTrace()) {
+                        String c = e.getClassName();
+                        if (c.startsWith("com.cryptoautotrader") && !c.contains("NetworkIsolation")) {
+                            if (shown++ > 0) sb.append(" <- ");
+                            sb.append(c.substring(c.lastIndexOf('.') + 1)).append('.').append(e.getMethodName()).append(':').append(e.getLineNumber());
+                            if (shown == 6) break;
+                        }
+                    }
+                    synchronized (TRACES) {
+                        TRACES.add(java.time.LocalTime.now() + " class=" + currentClass + " uri=" + uri.getScheme() + "://" + host + uri.getRawPath()
+                                + " [" + Thread.currentThread().getName() + "] " + (shown == 0 ? "(앱 프레임 없음)" : sb));
+                    }
+                }
+                return orig != null ? orig.select(uri) : List.of(java.net.Proxy.NO_PROXY);
+            }
+
+            @Override
+            public void connectFailed(java.net.URI uri, java.net.SocketAddress sa, java.io.IOException ioe) {
+                if (orig != null) orig.connectFailed(uri, sa, ioe);
+            }
+        };
+        java.net.ProxySelector.setDefault(traceMine);
+    }
+
+    public static List<String> traces() {
+        synchronized (TRACES) {
+            return List.copyOf(TRACES);
+        }
+    }
+
     /** 원래 보안 관리자로 되돌린다(보통 null). */
     public static synchronized void uninstall() {
+        if (traceMine != null && java.net.ProxySelector.getDefault() == traceMine) java.net.ProxySelector.setDefault(traceOriginal);
         if (!installed) return;
         if (System.getSecurityManager() instanceof Guard) {
             System.setSecurityManager(previous);
@@ -221,7 +276,8 @@ public final class NetworkIsolationGuard {
                     }
                     return;
                 }
-                String entry = actions + " " + sp.getName() + " [" + Thread.currentThread().getName() + "] " + origin();
+                String entry = actions + " " + sp.getName() + " [" + Thread.currentThread().getName() + "] " + origin()
+                        + ("1".equals(System.getenv(TRACE_ENV)) ? " @" + java.time.LocalTime.now() + " class=" + currentClass : "");
                 synchronized (ATTEMPTS) {
                     ATTEMPTS.add(entry);
                 }

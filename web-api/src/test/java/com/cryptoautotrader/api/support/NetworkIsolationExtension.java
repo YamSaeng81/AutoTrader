@@ -35,6 +35,9 @@ public class NetworkIsolationExtension implements BeforeAllCallback, AfterAllCal
         context.getRoot().getStore(ExtensionContext.Namespace.GLOBAL)
                 .getOrComputeIfAbsent(NetworkIsolationExtension.class.getName() + ".restore", k -> new Restore(),
                         ExtensionContext.Store.CloseableResource.class);
+        if (context.getParent().map(p -> p.getParent().isEmpty()).orElse(false)) {
+            NetworkIsolationGuard.currentClass = context.getRequiredTestClass().getSimpleName();
+        }
     }
 
     @Override
@@ -66,6 +69,8 @@ public class NetworkIsolationExtension implements BeforeAllCallback, AfterAllCal
                             + String.join("\n", NetworkIsolationGuard.probes()))
                     + (NetworkIsolationGuard.selfConnections().isEmpty() ? "" : "\n--- 허용한 자기 인터페이스 연결(기계 안)\n"
                             + String.join("\n", NetworkIsolationGuard.selfConnections()))
+                    + (NetworkIsolationGuard.traces().isEmpty() ? "" : "\n--- 출처 추적(TEST_NET_TRACE=1, 호출 스레드의 선택기 질의)\n"
+                            + String.join("\n", NetworkIsolationGuard.traces()))
                     + "\n";
             System.out.println("[NET-GUARD] 요약\n" + summary);
             try {
