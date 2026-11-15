@@ -1,0 +1,49 @@
+> Task :strategy-lib:compileJava UP-TO-DATE
+> Task :strategy-lib:processResources NO-SOURCE
+> Task :strategy-lib:classes UP-TO-DATE
+> Task :strategy-lib:jar UP-TO-DATE
+> Task :core-engine:compileJava UP-TO-DATE
+> Task :core-engine:processResources NO-SOURCE
+> Task :core-engine:classes UP-TO-DATE
+> Task :core-engine:jar UP-TO-DATE
+> Task :exchange-adapter:compileJava UP-TO-DATE
+> Task :exchange-adapter:processResources NO-SOURCE
+> Task :exchange-adapter:classes UP-TO-DATE
+> Task :exchange-adapter:jar UP-TO-DATE
+> Task :web-api:compileJava UP-TO-DATE
+> Task :web-api:processResources UP-TO-DATE
+> Task :web-api:classes UP-TO-DATE
+> Task :web-api:compileTestJava
+> Task :web-api:processTestResources UP-TO-DATE
+> Task :web-api:testClasses
+WARNING: A terminally deprecated method in java.lang.System has been called
+WARNING: System::setSecurityManager has been called by com.cryptoautotrader.api.support.NetworkIsolationGuard (file:/D:/tmp/race-b987d7a7/web-api/build/classes/java/test/)
+WARNING: Please consider reporting this to the maintainers of com.cryptoautotrader.api.support.NetworkIsolationGuard
+WARNING: System::setSecurityManager will be removed in a future release
+Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+20:24:56.137 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+20:24:56.137 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+20:24:56.140 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+20:24:56.141 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+20:24:56.143 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+
+> Task :web-api:test
+
+잔액 반영 두 자리 규칙 ? 실제 정산 코드 (로컬 PostgreSQL) > executionError FAILED
+    java.lang.AssertionError at NetworkIsolationExtension.java:50
+
+17 tests completed, 1 failed
+
+> Task :web-api:test FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':web-api:test'.
+> There were failing tests. See the report at: file:///D:/tmp/race-b987d7a7/web-api/build/reports/tests/test/index.html
+
+* Try:
+> Run with --scan to get full insights.
+
+BUILD FAILED in 25s
+11 actionable tasks: 2 executed, 9 up-to-date

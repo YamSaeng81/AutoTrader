@@ -1,0 +1,219 @@
+> Task :cleanTest UP-TO-DATE
+> Task :core-engine:cleanTest
+> Task :exchange-adapter:cleanTest
+> Task :strategy-lib:cleanTest
+> Task :web-api:cleanTest UP-TO-DATE
+> Task :compileJava NO-SOURCE
+> Task :processResources NO-SOURCE
+> Task :classes UP-TO-DATE
+> Task :compileTestJava NO-SOURCE
+> Task :processTestResources NO-SOURCE
+> Task :testClasses UP-TO-DATE
+> Task :test NO-SOURCE
+> Task :strategy-lib:compileJava UP-TO-DATE
+> Task :strategy-lib:processResources NO-SOURCE
+> Task :strategy-lib:classes UP-TO-DATE
+> Task :strategy-lib:jar UP-TO-DATE
+> Task :core-engine:compileJava UP-TO-DATE
+> Task :core-engine:processResources NO-SOURCE
+> Task :core-engine:classes UP-TO-DATE
+> Task :core-engine:jar UP-TO-DATE
+> Task :core-engine:compileTestJava UP-TO-DATE
+> Task :core-engine:processTestResources NO-SOURCE
+> Task :core-engine:testClasses UP-TO-DATE
+> Task :core-engine:test
+> Task :exchange-adapter:compileJava UP-TO-DATE
+> Task :exchange-adapter:processResources NO-SOURCE
+> Task :exchange-adapter:classes UP-TO-DATE
+> Task :exchange-adapter:jar UP-TO-DATE
+> Task :exchange-adapter:compileTestJava UP-TO-DATE
+> Task :exchange-adapter:processTestResources NO-SOURCE
+> Task :exchange-adapter:testClasses UP-TO-DATE
+> Task :exchange-adapter:test
+> Task :strategy-lib:compileTestJava UP-TO-DATE
+> Task :strategy-lib:processTestResources NO-SOURCE
+> Task :strategy-lib:testClasses UP-TO-DATE
+> Task :strategy-lib:test
+> Task :web-api:compileJava UP-TO-DATE
+> Task :web-api:processResources UP-TO-DATE
+> Task :web-api:classes UP-TO-DATE
+
+> Task :web-api:compileTestJava
+D:\tmp\race-b987d7a7\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationExtension.java:66: warning: [removal] getSecurityManager() in System has been deprecated and marked for removal
+                    + "\nrestored_security_manager=" + System.getSecurityManager()
+                                                             ^
+D:\tmp\race-b987d7a7\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationGuard.java:33: warning: [removal] SecurityManager in java.lang has been deprecated and marked for removal
+    private static volatile SecurityManager previous;
+                            ^
+D:\tmp\race-b987d7a7\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationGuard.java:74: warning: [removal] getSecurityManager() in System has been deprecated and marked for removal
+        previous = System.getSecurityManager();
+                         ^
+D:\tmp\race-b987d7a7\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationGuard.java:75: warning: [removal] setSecurityManager(SecurityManager) in System has been deprecated and marked for removal
+        System.setSecurityManager(new Guard());
+              ^
+D:\tmp\race-b987d7a7\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationGuard.java:136: warning: [removal] getSecurityManager() in System has been deprecated and marked for removal
+        if (System.getSecurityManager() instanceof Guard) {
+                  ^
+D:\tmp\race-b987d7a7\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationGuard.java:137: warning: [removal] setSecurityManager(SecurityManager) in System has been deprecated and marked for removal
+            System.setSecurityManager(previous);
+                  ^
+D:\tmp\race-b987d7a7\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationGuard.java:143: warning: [removal] getSecurityManager() in System has been deprecated and marked for removal
+        return installed && System.getSecurityManager() instanceof Guard;
+                                  ^
+D:\tmp\race-b987d7a7\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationGuard.java:236: warning: [removal] SecurityManager in java.lang has been deprecated and marked for removal
+    private static final class Guard extends SecurityManager {
+                                             ^
+8 warnings
+
+> Task :web-api:processTestResources
+> Task :web-api:testClasses
+WARNING: A terminally deprecated method in java.lang.System has been called
+WARNING: System::setSecurityManager has been called by com.cryptoautotrader.api.support.NetworkIsolationGuard (file:/D:/tmp/race-b987d7a7/web-api/build/classes/java/test/)
+WARNING: Please consider reporting this to the maintainers of com.cryptoautotrader.api.support.NetworkIsolationGuard
+WARNING: System::setSecurityManager will be removed in a future release
+> Task :web-api:test
+
+Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+23:25:44.244 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+23:25:44.244 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+23:25:44.244 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+23:25:44.244 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+23:25:44.245 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+23:25:44.260 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+23:25:44.260 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+23:25:44.261 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+23:25:44.261 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-8 - Shutdown initiated...
+23:25:44.262 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-8 - Shutdown completed.
+23:25:44.278 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+23:25:44.278 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-9 - Shutdown initiated...
+23:25:44.279 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-9 - Shutdown completed.
+23:25:44.295 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+23:25:44.295 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+23:25:44.296 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+23:25:44.296 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-12 - Shutdown initiated...
+23:25:44.297 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-12 - Shutdown completed.
+23:25:44.312 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+23:25:44.312 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+23:25:44.312 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+23:25:44.312 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-16 - Shutdown initiated...
+23:25:44.313 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-16 - Shutdown completed.
+23:25:44.328 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+23:25:44.329 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+23:25:44.330 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+23:25:44.330 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-21 - Shutdown initiated...
+23:25:44.330 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-21 - Shutdown completed.
+23:25:44.346 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+23:25:44.346 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+23:25:44.347 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+23:25:44.350 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-22 - Shutdown initiated...
+23:25:44.351 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-22 - Shutdown completed.
+23:25:44.367 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+23:25:44.368 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-24 - Shutdown initiated...
+23:25:44.368 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-24 - Shutdown completed.
+23:25:44.383 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+23:25:44.383 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+23:25:44.385 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+23:25:44.385 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-25 - Shutdown initiated...
+23:25:44.385 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-25 - Shutdown completed.
+23:25:44.403 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+23:25:44.403 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-26 - Shutdown initiated...
+23:25:44.404 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-26 - Shutdown completed.
+23:25:44.419 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+23:25:44.419 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+23:25:44.419 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+23:25:44.420 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-27 - Shutdown initiated...
+23:25:44.420 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-27 - Shutdown completed.
+23:25:44.436 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+23:25:44.436 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+23:25:44.437 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+23:25:44.437 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-28 - Shutdown initiated...
+23:25:44.437 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-28 - Shutdown completed.
+23:25:44.453 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+23:25:44.454 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-29 - Shutdown initiated...
+23:25:44.454 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-29 - Shutdown completed.
+23:25:44.471 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+23:25:44.471 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-30 - Shutdown initiated...
+23:25:44.471 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-30 - Shutdown completed.
+23:25:44.484 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+23:25:44.484 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+23:25:44.485 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+23:25:44.485 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-31 - Shutdown initiated...
+23:25:44.485 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-31 - Shutdown completed.
+23:25:44.501 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+23:25:44.501 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+23:25:44.502 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+23:25:44.502 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-32 - Shutdown initiated...
+23:25:44.502 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-32 - Shutdown completed.
+23:25:44.516 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+23:25:44.516 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+23:25:44.516 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+23:25:44.517 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-33 - Shutdown initiated...
+23:25:44.517 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-33 - Shutdown completed.
+23:25:44.531 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+23:25:44.532 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-34 - Shutdown initiated...
+23:25:44.532 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-34 - Shutdown completed.
+23:25:44.546 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+23:25:44.547 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+23:25:44.547 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+23:25:44.547 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-35 - Shutdown initiated...
+23:25:44.548 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-35 - Shutdown completed.
+23:25:44.562 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+23:25:44.563 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-36 - Shutdown initiated...
+23:25:44.563 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-36 - Shutdown completed.
+23:25:44.579 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+23:25:44.579 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-37 - Shutdown initiated...
+23:25:44.579 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-37 - Shutdown completed.
+23:25:44.594 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+23:25:44.594 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+23:25:44.594 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+23:25:44.595 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-38 - Shutdown initiated...
+23:25:44.595 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-38 - Shutdown completed.
+23:25:44.609 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+23:25:44.609 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+23:25:44.609 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+23:25:44.610 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-39 - Shutdown initiated...
+23:25:44.610 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-39 - Shutdown completed.
+23:25:44.627 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+23:25:44.627 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+23:25:44.628 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+23:25:44.628 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-40 - Shutdown initiated...
+23:25:44.628 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-40 - Shutdown completed.
+23:25:44.642 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+23:25:44.643 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-43 - Shutdown initiated...
+23:25:44.643 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-43 - Shutdown completed.
+23:25:44.658 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+23:25:44.658 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+23:25:44.659 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+23:25:44.659 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-45 - Shutdown initiated...
+23:25:44.660 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-45 - Shutdown completed.
+23:25:44.676 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+23:25:44.676 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-52 - Shutdown initiated...
+23:25:44.676 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-52 - Shutdown completed.
+23:25:44.692 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+23:25:44.692 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+23:25:44.692 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+23:25:44.692 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-53 - Shutdown initiated...
+23:25:44.692 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-53 - Shutdown completed.
+23:25:44.708 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+23:25:44.708 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+23:25:44.708 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+23:25:44.709 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-54 - Shutdown initiated...
+23:25:44.709 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-54 - Shutdown completed.
+23:25:44.725 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+23:25:44.725 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+23:25:44.726 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+23:25:44.727 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-55 - Shutdown initiated...
+23:25:44.727 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-55 - Shutdown completed.
+23:25:44.741 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+23:25:44.741 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+23:25:44.742 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+23:25:44.742 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-56 - Shutdown initiated...
+23:25:44.742 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-56 - Shutdown completed.
+23:25:44.755 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+23:25:44.755 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+23:25:44.755 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+23:25:44.756 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-57 - Shutdown initiated...
+23:25:44.756 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-57 - Shutdown completed.
+
+BUILD SUCCESSFUL in 19m 53s
+22 actionable tasks: 9 executed, 13 up-to-date
