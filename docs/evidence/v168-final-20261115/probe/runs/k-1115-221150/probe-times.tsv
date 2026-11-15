@@ -1,0 +1,5 @@
+B01RealNextSellBarTest	realNextSellBar()	2026-11-15T13:12:08.413727700Z	2026-11-15T13:12:09.365023500Z	OK
+B01RealNextSellBarTest	hourAlignedPrevBarStillEvaluatedJustBeforeClose()	2026-11-15T13:12:09.377142200Z	2026-11-15T13:12:09.438340400Z	OK
+BtcGateUnknownEntryTest	승인 시점: 평가 때 최신이던 BTC 캔들이 승인 전에 사라지면 LIVE·DYNAMIC 모두 '판정 불가' 로 거절, 다시 오면 승인	2026-11-15T13:12:09.459247600Z	2026-11-15T13:12:09.744104300Z	OK
+BtcGateUnknownEntryTest	LIVE 평가 회차: BTC 캔들 없음·낡음 → 매수 없음, 최신 → 매수 (즉시 진입)	2026-11-15T13:12:09.747110Z	2026-11-15T13:12:09.883490Z	OK
+BtcGateUnknownEntryTest	DYNAMIC 평가 회차: BTC 캔들 없음·낡음 → 매수 없음, 최신 → 매수 (즉시 진입)	2026-11-15T13:12:09.885491500Z	2026-11-15T13:12:09.951528700Z	OK

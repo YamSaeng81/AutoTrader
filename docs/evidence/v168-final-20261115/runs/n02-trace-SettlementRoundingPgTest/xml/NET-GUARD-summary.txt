@@ -1,0 +1,16 @@
+installed_during_run=true
+disabled_reason=null
+classes_checked=1
+blocked_external_attempts=2
+allowed_jndi_nameserver_probes=3
+allowed_own_interface_connections=0
+restored_security_manager=null
+resolve api.upbit.com [HttpClient-13-Worker-0] (JDK 프레임만) @20:24:54.615420700 class=SettlementRoundingPgTest
+resolve api.upbit.com [HttpClient-14-Worker-0] (JDK 프레임만) @20:24:55.640356700 class=SettlementRoundingPgTest
+--- 허용한 권한 확인(패킷 없음)
+connect,resolve 168.126.63.1:53 [Test worker]
+connect,resolve 168.126.63.2:53 [Test worker]
+connect,resolve 168.126.63.1:53 [Test worker]
+--- 출처 추적(TEST_NET_TRACE=1, 호출 스레드의 선택기 질의)
+20:24:54.598665100 class=SettlementRoundingPgTest uri=https://api.upbit.com/websocket/v1 [Test worker] UpbitWebSocketClient.doConnect:177 <- UpbitWebSocketClient.connect:79 <- WsSubscriptionManager.recompute:75 <- WsSubscriptionManager.updateSource:41 <- DynamicTradingService.refreshWsSubscription:3452 <- DynamicTradingService.executeBuy:1796
+20:24:55.639311800 class=SettlementRoundingPgTest uri=https://api.upbit.com/websocket/v1 [upbit-ws-scheduler] UpbitWebSocketClient.doConnect:177 <- UpbitWebSocketClient.lambda$scheduleReconnect$3:425

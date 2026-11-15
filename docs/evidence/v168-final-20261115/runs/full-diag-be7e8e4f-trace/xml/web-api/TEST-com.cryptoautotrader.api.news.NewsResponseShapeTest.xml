@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.news.NewsResponseShapeTest" tests="27" skipped="0" failures="0" errors="0" timestamp="2026-11-15T11:43:33" hostname="DESKTOP-SF1KUQ5" time="0.329">
+  <properties/>
+  <testcase name="[1] RSS html 아래 channel → FAILED INVALID_RESPONSE" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.015"/>
+  <testcase name="[2] RSS html 아래 channel·item → FAILED INVALID_RESPONSE" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.02"/>
+  <testcase name="[3] RSS rss 손자 channel → FAILED INVALID_RESPONSE" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.012"/>
+  <testcase name="[4] RSS rss 아래 channel 없음 → FAILED INVALID_RESPONSE" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.013"/>
+  <testcase name="[5] RSS Atom(미지원) → FAILED INVALID_RESPONSE" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.013"/>
+  <testcase name="[6] RSS RDF 네임스페이스 아님 → FAILED INVALID_RESPONSE" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.012"/>
+  <testcase name="[7] RSS 접두어 붙은 rss → FAILED INVALID_RESPONSE" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.011"/>
+  <testcase name="[1] RSS 2.0 빈 channel → SUCCESS 0건 (기존 형식 유지)" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.013"/>
+  <testcase name="[2] RSS 2.0 1건 → SUCCESS 1건 (기존 형식 유지)" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.011"/>
+  <testcase name="[3] RSS 0.91 1건 → SUCCESS 1건 (기존 형식 유지)" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.013"/>
+  <testcase name="[4] RSS 2.0 미선언 dc 접두어 1건 → SUCCESS 1건 (기존 형식 유지)" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.013"/>
+  <testcase name="[5] RSS 1.0(RDF) 빈 channel → SUCCESS 0건 (기존 형식 유지)" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.011"/>
+  <testcase name="[6] RSS 1.0(RDF) 1건 → SUCCESS 1건 (기존 형식 유지)" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.012"/>
+  <testcase name="[1] 업비트 success:true 빈 배열 → SUCCESS 0건 (기존 호환)" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.012"/>
+  <testcase name="[2] 업비트 success:true 1건 → SUCCESS 1건 (기존 호환)" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.01"/>
+  <testcase name="[3] 업비트 success 없음 data.notices → SUCCESS 1건 (기존 호환)" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.012"/>
+  <testcase name="[4] 업비트 success 없음 data.list → SUCCESS 1건 (기존 호환)" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.011"/>
+  <testcase name="[5] 업비트 success 없음 최상위 notices → SUCCESS 1건 (기존 호환)" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.01"/>
+  <testcase name="[6] 업비트 success 없음 빈 배열 → SUCCESS 0건 (기존 호환)" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.011"/>
+  <testcase name="[1] 업비트 success:false 빈 배열 → FAILED SOURCE_REPORTED_FAILURE, 항목 저장 없음" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.01"/>
+  <testcase name="[2] 업비트 success:false 항목 1개 → FAILED SOURCE_REPORTED_FAILURE, 항목 저장 없음" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.01"/>
+  <testcase name="[3] 업비트 success:false data.list → FAILED SOURCE_REPORTED_FAILURE, 항목 저장 없음" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.01"/>
+  <testcase name="[4] 업비트 success:false 배열 없음 → FAILED SOURCE_REPORTED_FAILURE, 항목 저장 없음" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.009"/>
+  <testcase name="[5] 업비트 success 문자열 &quot;true&quot; → FAILED INVALID_RESPONSE, 항목 저장 없음" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.01"/>
+  <testcase name="[6] 업비트 success 숫자 1 → FAILED INVALID_RESPONSE, 항목 저장 없음" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.011"/>
+  <testcase name="[7] 업비트 success null → FAILED INVALID_RESPONSE, 항목 저장 없음" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.009"/>
+  <testcase name="[8] 업비트 success 문자열 &quot;false&quot; → FAILED INVALID_RESPONSE, 항목 저장 없음" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.009"/>
+  <system-out><![CDATA[20:43:33.073 [Test worker] DEBUG c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 시작 ? sourceId=b
+20:43:33.076 [Test worker] WARN  c.c.api.news.source.RssNewsSource - [RssNewsSource] 지원하는 RSS 구조 아님(루트 rss 또는 rdf:RDF 바로 아래 channel 필요) ? sourceId=b
+20:43:33.076 [Test worker] WARN  c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 미완료 ? sourceId=b 결과=FAILED 종류=INVALID_RESPONSE 판정=2026-11-15T11:43:33.076840200Z 받은=0건 신규=0건
+20:43:33.090 [Test worker] DEBUG c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 시작 ? sourceId=b
+20:43:33.101 [Test worker] WARN  c.c.api.news.source.RssNewsSource - [RssNewsSource] 지원하는 RSS 구조 아님(루트 rss 또는 rdf:RDF 바로 아래 channel 필요) ? sourceId=b
+20:43:33.101 [Test worker] WARN  c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 미완료 ? sourceId=b 결과=FAILED 종류=INVALID_RESPONSE 판정=2026-11-15T11:43:33.101578600Z 받은=0건 신규=0건
+20:43:33.110 [Test worker] DEBUG c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 시작 ? sourceId=b
+20:43:33.113 [Test worker] WARN  c.c.api.news.source.RssNewsSource - [RssNewsSource] 지원하는 RSS 구조 아님(루트 rss 또는 rdf:RDF 바로 아래 channel 필요) ? sourceId=b
+20:43:33.113 [Test worker] WARN  c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 미완료 ? sourceId=b 결과=FAILED 종류=INVALID_RESPONSE 판정=2026-11-15T11:43:33.113543300Z 받은=0건 신규=0건
+20:43:33.123 [Test worker] DEBUG c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 시작 ? sourceId=b
+20:43:33.126 [Test worker] WARN  c.c.api.news.source.RssNewsSource - [RssNewsSource] 지원하는 RSS 구조 아님(루트 rss 또는 rdf:RDF 바로 아래 channel 필요) ? sourceId=b
+20:43:33.127 [Test worker] WARN  c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 미완료 ? sourceId=b 결과=FAILED 종류=INVALID_RESPONSE 판정=2026-11-15T11:43:33.126997900Z 받은=0건 신규=0건
+20:43:33.136 [Test worker] DEBUG c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 시작 ? sourceId=b
+20:43:33.140 [Test worker] WARN  c.c.api.news.source.RssNewsSource - [RssNewsSource] 지원하는 RSS 구조 아님(루트 rss 또는 rdf:RDF 바로 아래 channel 필요) ? sourceId=b
+20:43:33.140 [Test worker] WARN  c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 미완료 ? sourceId=b 결과=FAILED 종류=INVALID_RESPONSE 판정=2026-11-15T11:43:33.140305500Z 받은=0건 신규=0건
+20:43:33.148 [Test worker] DEBUG c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 시작 ? sourceId=b
+20:43:33.152 [Test worker] WARN  c.c.api.news.source.RssNewsSource - [RssNewsSource] 지원하는 RSS 구조 아님(루트 rss 또는 rdf:RDF 바로 아래 channel 필요) ? sourceId=b
+20:43:33.152 [Test worker] WARN  c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 미완료 ? sourceId=b 결과=FAILED 종류=INVALID_RESPONSE 판정=2026-11-15T11:43:33.152827500Z 받은=0건 신규=0건
+20:43:33.161 [Test worker] DEBUG c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 시작 ? sourceId=b
+20:43:33.164 [Test worker] WARN  c.c.api.news.source.RssNewsSource - [RssNewsSource] 지원하는 RSS 구조 아님(루트 rss 또는 rdf:RDF 바로 아래 channel 필요) ? sourceId=b
+20:43:33.164 [Test worker] WARN  c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 미완료 ? sourceId=b 결과=FAILED 종류=INVALID_RESPONSE 판정=2026-11-15T11:43:33.164629400Z 받은=0건 신규=0건
+20:43:33.172 [Test worker] DEBUG c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 시작 ? sourceId=b
+20:43:33.177 [Test worker] DEBUG c.c.api.news.source.RssNewsSource - [RssNewsSource] 수집 완료 ? sourceId=b 0건
+20:43:33.177 [Test worker] INFO  c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 완료 ? sourceId=b 전체=0건 신규=0건
+20:43:33.186 [Test worker] DEBUG c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 시작 ? sourceId=b
+20:43:33.189 [Test worker] DEBUG c.c.api.news.source.RssNewsSource - [RssNewsSource] 수집 완료 ? sourceId=b 1건
+20:43:33.189 [Test worker] INFO  c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 완료 ? sourceId=b 전체=1건 신규=1건
+20:43:33.198 [Test worker] DEBUG c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 시작 ? sourceId=b
+20:43:33.202 [Test worker] DEBUG c.c.api.news.source.RssNewsSource - [RssNewsSource] 수집 완료 ? sourceId=b 1건
+20:43:33.203 [Test worker] INFO  c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 완료 ? sourceId=b 전체=1건 신규=1건
+20:43:33.212 [Test worker] DEBUG c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 시작 ? sourceId=b
+20:43:33.215 [Test worker] DEBUG c.c.api.news.source.RssNewsSource - [RssNewsSource] 수집 완료 ? sourceId=b 1건
+20:43:33.216 [Test worker] INFO  c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 완료 ? sourceId=b 전체=1건 신규=1건
+20:43:33.224 [Test worker] DEBUG c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 시작 ? sourceId=b
+20:43:33.228 [Test worker] DEBUG c.c.api.news.source.RssNewsSource - [RssNewsSource] 수집 완료 ? sourceId=b 0건
+20:43:33.228 [Test worker] INFO  c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 완료 ? sourceId=b 전체=0건 신규=0건
+20:43:33.236 [Test worker] DEBUG c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 시작 ? sourceId=b
+20:43:33.239 [Test worker] DEBUG c.c.api.news.source.RssNewsSource - [RssNewsSource] 수집 완료 ? sourceId=b 1건
+20:43:33.239 [Test worker] INFO  c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 완료 ? sourceId=b 전체=1건 신규=1건
+20:43:33.250 [Test worker] DEBUG c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 시작 ? sourceId=b
+20:43:33.254 [Test worker] DEBUG c.c.a.news.source.UpbitNoticeSource - [UpbitNoticeSource] 수집 완료 ? 0건(빈 공지 배열)
+20:43:33.254 [Test worker] INFO  c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 완료 ? sourceId=b 전체=0건 신규=0건
+20:43:33.261 [Test worker] DEBUG c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 시작 ? sourceId=b
+20:43:33.264 [Test worker] DEBUG c.c.a.news.source.UpbitNoticeSource - [UpbitNoticeSource] 수집 완료 ? 1건
+20:43:33.264 [Test worker] INFO  c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 완료 ? sourceId=b 전체=1건 신규=1건
+20:43:33.274 [Test worker] DEBUG c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 시작 ? sourceId=b
+20:43:33.277 [Test worker] DEBUG c.c.a.news.source.UpbitNoticeSource - [UpbitNoticeSource] 수집 완료 ? 1건
+20:43:33.277 [Test worker] INFO  c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 완료 ? sourceId=b 전체=1건 신규=1건
+20:43:33.284 [Test worker] DEBUG c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 시작 ? sourceId=b
+20:43:33.287 [Test worker] DEBUG c.c.a.news.source.UpbitNoticeSource - [UpbitNoticeSource] 수집 완료 ? 1건
+20:43:33.288 [Test worker] INFO  c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 완료 ? sourceId=b 전체=1건 신규=1건
+20:43:33.295 [Test worker] DEBUG c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 시작 ? sourceId=b
+20:43:33.298 [Test worker] DEBUG c.c.a.news.source.UpbitNoticeSource - [UpbitNoticeSource] 수집 완료 ? 1건
+20:43:33.299 [Test worker] INFO  c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 완료 ? sourceId=b 전체=1건 신규=1건
+20:43:33.306 [Test worker] DEBUG c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 시작 ? sourceId=b
+20:43:33.309 [Test worker] DEBUG c.c.a.news.source.UpbitNoticeSource - [UpbitNoticeSource] 수집 완료 ? 0건(빈 공지 배열)
+20:43:33.309 [Test worker] INFO  c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 완료 ? sourceId=b 전체=0건 신규=0건
+20:43:33.317 [Test worker] DEBUG c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 시작 ? sourceId=b
+20:43:33.320 [Test worker] WARN  c.c.a.news.source.UpbitNoticeSource - [UpbitNoticeSource] 응답 success=false ? sourceId=b
+20:43:33.320 [Test worker] WARN  c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 미완료 ? sourceId=b 결과=FAILED 종류=SOURCE_REPORTED_FAILURE 판정=2026-11-15T11:43:33.320924500Z 받은=0건 신규=0건
+20:43:33.328 [Test worker] DEBUG c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 시작 ? sourceId=b
+20:43:33.331 [Test worker] WARN  c.c.a.news.source.UpbitNoticeSource - [UpbitNoticeSource] 응답 success=false ? sourceId=b
+20:43:33.331 [Test worker] WARN  c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 미완료 ? sourceId=b 결과=FAILED 종류=SOURCE_REPORTED_FAILURE 판정=2026-11-15T11:43:33.331728700Z 받은=0건 신규=0건
+20:43:33.339 [Test worker] DEBUG c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 시작 ? sourceId=b
+20:43:33.342 [Test worker] WARN  c.c.a.news.source.UpbitNoticeSource - [UpbitNoticeSource] 응답 success=false ? sourceId=b
+20:43:33.342 [Test worker] WARN  c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 미완료 ? sourceId=b 결과=FAILED 종류=SOURCE_REPORTED_FAILURE 판정=2026-11-15T11:43:33.342259500Z 받은=0건 신규=0건
+20:43:33.349 [Test worker] DEBUG c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 시작 ? sourceId=b
+20:43:33.352 [Test worker] WARN  c.c.a.news.source.UpbitNoticeSource - [UpbitNoticeSource] 응답 success=false ? sourceId=b
+20:43:33.352 [Test worker] WARN  c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 미완료 ? sourceId=b 결과=FAILED 종류=SOURCE_REPORTED_FAILURE 판정=2026-11-15T11:43:33.352415Z 받은=0건 신규=0건
+20:43:33.359 [Test worker] DEBUG c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 시작 ? sourceId=b
+20:43:33.362 [Test worker] WARN  c.c.a.news.source.UpbitNoticeSource - [UpbitNoticeSource] success 값이 boolean 아님 ? sourceId=b
+20:43:33.362 [Test worker] WARN  c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 미완료 ? sourceId=b 결과=FAILED 종류=INVALID_RESPONSE 판정=2026-11-15T11:43:33.362577800Z 받은=0건 신규=0건
+20:43:33.371 [Test worker] DEBUG c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 시작 ? sourceId=b
+20:43:33.374 [Test worker] WARN  c.c.a.news.source.UpbitNoticeSource - [UpbitNoticeSource] success 값이 boolean 아님 ? sourceId=b
+20:43:33.374 [Test worker] WARN  c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 미완료 ? sourceId=b 결과=FAILED 종류=INVALID_RESPONSE 판정=2026-11-15T11:43:33.374029900Z 받은=0건 신규=0건
+20:43:33.381 [Test worker] DEBUG c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 시작 ? sourceId=b
+20:43:33.384 [Test worker] WARN  c.c.a.news.source.UpbitNoticeSource - [UpbitNoticeSource] success 값이 boolean 아님 ? sourceId=b
+20:43:33.384 [Test worker] WARN  c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 미완료 ? sourceId=b 결과=FAILED 종류=INVALID_RESPONSE 판정=2026-11-15T11:43:33.384444900Z 받은=0건 신규=0건
+20:43:33.391 [Test worker] DEBUG c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 시작 ? sourceId=b
+20:43:33.393 [Test worker] WARN  c.c.a.news.source.UpbitNoticeSource - [UpbitNoticeSource] success 값이 boolean 아님 ? sourceId=b
+20:43:33.394 [Test worker] WARN  c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 미완료 ? sourceId=b 결과=FAILED 종류=INVALID_RESPONSE 판정=2026-11-15T11:43:33.394743900Z 받은=0건 신규=0건
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,30 @@
+DynamicPaperBuySameTickWatchlistTest	8	실패1	오류0	건너뜀0
+DynamicPaperTradingTest	10	실패1	오류0	건너뜀0
+DynamicScanTransitionGuardTest	7	실패0	오류0	건너뜀0
+DynamicTradingSlWatchdogRecoveryTest	7	실패1	오류0	건너뜀0
+코인 우선순위 — 같은 회차 후보를 사전 등록 순서로 승인	11	실패1	오류0	건너뜀0
+거래소 DOWN → 복구 자동 재시작	6	실패1	오류0	건너뜀0
+정지가 롤백된 뒤 재시도해도 KRW 복원은 한 번이다 (선행 조건 5)	1	실패0	오류0	건너뜀0
+N15 최종 승인 경계 — 한도 조회·세션 잠금·의도 승인 중 E 도달 시 차감·의도 없음	9	실패0	오류0	건너뜀0
+O1·O3 로그 출력 계약 — 강제 갱신 WARN/ERROR 원문 없음·수준/건수/결과 유지, 실시간 손절 문구 중립(REST·WS 모두)	17	실패0	오류0	건너뜀0
+scheduler 프로필 — 정리 작업이 대기 행을 가져간다	3	실패1	오류0	건너뜀0
+SMA20 LIVE_ALIGNED 남은 차이 — 평균가·급변 간격·위험 관문·가격 없는 시간 청산·정지/청산 경합	7	실패1	오류0	건너뜀0
+SqlTraceSelfTest	3	실패0	오류0	건너뜀0
+합계	89	실패7	오류0	건너뜀0
+FAIL DynamicPaperBuySameTickWatchlistTest :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-14-Worker-0] (JDK 프레임만) @20:22:13.418239200 class=DynamicPaperBuySameTickWatchlistTest]
+FAIL DynamicPaperTradingTest :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 2건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-15-Worker-0] (JDK 프레임만) @20:22:14.441718800 class=DynamicPaperTradingTest, resolve api.upbit.com [HttpClient-30-Worker-0] (JDK 프레임만) @20:22:16.456732300 class=DynamicPaperTradingTest]
+FAIL DynamicTradingSlWatchdogRecoveryTest :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 2건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-43-Worker-0] (JDK 프레임만) @20:22:20.477290600 class=DynamicTradingSlWatchdogRecoveryTest, resolve api.upbit.com [HttpClient-56-Worker-0] (JDK 프레임만) @20:22:21.599436600 class=DynamicTradingSlWatchdog
+FAIL 코인 우선순위 — 같은 회차 후보를 사전 등록 순서로 승인 :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-57-Worker-0] (JDK 프레임만) @20:22:22.615104600 class=EntryPriorityRoundsTest]
+FAIL 거래소 DOWN → 복구 자동 재시작 :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 3건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-72-Worker-0] (JDK 프레임만) @20:22:24.622698300 class=ExchangeRecoveryRestartTest, resolve api.upbit.com [HttpClient-86-Worker-0] (JDK 프레임만) @20:22:28.496641300 class=ExchangeRecoveryRestartTest, reso
+FAIL scheduler 프로필 — 정리 작업이 대기 행을 가져간다 :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 4건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-123-Worker-0] (JDK 프레임만) @20:22:36.633610900 class=SchedulerProfileCleanupTest, resolve api.upbit.com [HttpClient-136-Worker-0] (JDK 프레임만) @20:22:44.503789 class=SchedulerProfileCleanupTest, resol
+FAIL SMA20 LIVE_ALIGNED 남은 차이 — 평균가·급변 간격·위험 관문·가격 없는 시간 청산·정지/청산 경합 :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-150-Worker-0] (JDK 프레임만) @20:23:22.650814900 class=Sma20LiveAlignedGapsTest]
+외부WS연결·구독줄=14
+--- NET-GUARD
+installed_during_run=true
+disabled_reason=null
+classes_checked=12
+blocked_external_attempts=14
+allowed_jndi_nameserver_probes=3
+allowed_own_interface_connections=6
+restored_security_manager=null
+resolve api.upbit.com [HttpClient-14-Worker-0] (JDK 프레임만) @20:22:13.418239200 class=DynamicPaperBuySameTickWatchlistTest

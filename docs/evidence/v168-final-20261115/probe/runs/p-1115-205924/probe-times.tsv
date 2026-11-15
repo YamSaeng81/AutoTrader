@@ -1,0 +1,67 @@
+BtcGateUnknownEntryTest	승인 시점: 평가 때 최신이던 BTC 캔들이 승인 전에 사라지면 LIVE·DYNAMIC 모두 '판정 불가' 로 거절, 다시 오면 승인	2026-11-15T11:59:42.440366400Z	2026-11-15T11:59:43.241715Z	OK
+BtcGateUnknownEntryTest	LIVE 평가 회차: BTC 캔들 없음·낡음 → 매수 없음, 최신 → 매수 (즉시 진입)	2026-11-15T11:59:43.263369900Z	2026-11-15T11:59:43.399349400Z	OK
+BtcGateUnknownEntryTest	DYNAMIC 평가 회차: BTC 캔들 없음·낡음 → 매수 없음, 최신 → 매수 (즉시 진입)	2026-11-15T11:59:43.401349600Z	2026-11-15T11:59:43.480226100Z	OK
+DailySma20LiveOrderPathTest	maxHoldHours=0 — 익절은 그대로 작동한다(보유 72시간, 저장된 익절가 도달)	2026-11-15T11:59:46.391199300Z	2026-11-15T11:59:46.543394400Z	OK
+DailySma20LiveOrderPathTest	보유 24시간 경과 → 시간 청산 매도, 같은 회차의 BUY 신호로 다시 사지 않는다	2026-11-15T11:59:46.546398900Z	2026-11-15T11:59:46.602802600Z	OK
+DailySma20LiveOrderPathTest	이전 포지션이 청산된 세션은 다음 마감 봉의 BUY 로 다시 들어간다(재진입)	2026-11-15T11:59:46.604914700Z	2026-11-15T11:59:46.687985100Z	OK
+DailySma20LiveOrderPathTest	일봉 마감 봉 + 종가 > SMA20 + 관문 통과 → 매수 1건, 금액 = min(20,200 × 0.995, 20,000) = 20,000	2026-11-15T11:59:46.689782600Z	2026-11-15T11:59:46.768260Z	OK
+DailySma20LiveOrderPathTest	통합 ③ 같은 응답 반복·수수료 정정 — 반복은 변화 없음, 수수료 9.00→9.99 는 차액 0.99 만 한 번	2026-11-15T11:59:46.769256300Z	2026-11-15T11:59:46.888401Z	OK
+DailySma20LiveOrderPathTest	maxHoldHours=0 — 보유 72시간에도 시간 청산·추가 매수가 없다(일봉 BUY 유지 중)	2026-11-15T11:59:46.889407300Z	2026-11-15T11:59:46.933214800Z	OK
+DailySma20LiveOrderPathTest	UNKNOWN 매수가 남은 세션 — 다음 마감의 BUY 신호에도 새 매수를 내지 않는다	2026-11-15T11:59:46.934719100Z	2026-11-15T11:59:46.979843600Z	OK
+DailySma20LiveOrderPathTest	마감 종가 ≤ SMA20, 손실 −2% → 전략 SELL 체결(손실 탈출 −0.30% 아래)	2026-11-15T11:59:46.981843500Z	2026-11-15T11:59:47.029659900Z	OK
+DailySma20LiveOrderPathTest	maxHoldHours=0 — 마감 종가 ≤ SMA20 이면 전략 SELL 이 그대로 나간다(보유 72시간, −2%)	2026-11-15T11:59:47.031658Z	2026-11-15T11:59:47.076065800Z	OK
+DailySma20LiveOrderPathTest	maxHoldHours=0 — 생성 요청(POST) → 저장 → 재조회(GET·DB)까지 0 이 유지되고 다른 설정도 그대로다	2026-11-15T11:59:47.077066400Z	2026-11-15T11:59:47.423455400Z	OK
+DailySma20LiveOrderPathTest	마감 종가 ≤ SMA20 이어도 손익 −0.30% ~ +0.30% 이면 본전 차단 — 매도 없음, 다음 회차로 미뤄진다	2026-11-15T11:59:47.426455300Z	2026-11-15T11:59:47.470694300Z	OK
+DailySma20LiveOrderPathTest	정지 — UNKNOWN 매수는 식별자 취소 요청만, 매도·자금 복원 없음, 포지션은 정리 대기로 열어 둔다	2026-11-15T11:59:47.472200100Z	2026-11-15T11:59:47.616714900Z	OK
+DailySma20LiveOrderPathTest	통합 ⑥ 매수 체결 → 세션 정지 → 청산 매도 체결 — STOPPED·활성 주문 0·정리 대기 0·보유량 0 일치	2026-11-15T11:59:47.619538100Z	2026-11-15T11:59:47.827212200Z	OK
+DailySma20LiveOrderPathTest	일봉 신호는 BUY 여도 H1 종가가 EMA200 아래면 EMA200 관문이 막는다 — 주문 없음, 사유 기록	2026-11-15T11:59:47.828207200Z	2026-11-15T11:59:47.860576200Z	OK
+DailySma20LiveOrderPathTest	정지 — UNKNOWN 매도가 남은 CLOSING 포지션은 다시 팔지 않는다(진행 중 매도는 취소도 하지 않는다)	2026-11-15T11:59:47.861745700Z	2026-11-15T11:59:47.890323700Z	OK
+DailySma20LiveOrderPathTest	통합 ② 부분 체결 뒤 잔량 취소 — 0.0008 BTC·10,000·수수료 5 반영, 미사용 9,995 복원(고아 정리 반복에도 한 번)	2026-11-15T11:59:47.893614100Z	2026-11-15T11:59:47.959988200Z	OK
+DailySma20LiveOrderPathTest	통합 ① 전량 체결 — 체결대금 19,980·수수료 9.99·BTC 0.0016, 미사용 10.01 복원 → 잔액 210.01	2026-11-15T11:59:47.961539200Z	2026-11-15T11:59:48.037000400Z	OK
+DailySma20LiveOrderPathTest	maxHoldHours=0 — 손절은 그대로 작동한다(보유 72시간, −10%)	2026-11-15T11:59:48.039Z	2026-11-15T11:59:48.073827700Z	OK
+DailySma20LiveOrderPathTest	같은 자료라도 마지막 닫힌 봉이 마감 봉이 아니면 HOLD — 주문 없음	2026-11-15T11:59:48.075832900Z	2026-11-15T11:59:48.107463100Z	OK
+DailySma20LiveOrderPathTest	통합 ④ 체결대금만 정정 — 수량 0.0016 그대로, 19,980→19,990 이면 평균단가·투입금·잔액이 함께 바뀌고 반복은 변화 없음	2026-11-15T11:59:48.108463500Z	2026-11-15T11:59:48.549105200Z	OK
+DailySma20LiveOrderPathTest	이익으로 잔액 25,000 — 1회 상한이 있으면 20,000 매수, 없으면 24,875 로 포지션당 한도에 걸려 매수 없음	2026-11-15T11:59:48.550794800Z	2026-11-15T11:59:48.625102900Z	OK
+DailySma20LiveOrderPathTest	보유 중 BUY 신호는 추가 매수하지 않는다(재조정 없음)	2026-11-15T11:59:48.627102300Z	2026-11-15T11:59:48.662806900Z	OK
+DailySma20LiveOrderPathTest	UNKNOWN 매도가 남은 CLOSING 포지션 — 손절 구간·SELL 신호여도 다시 팔지 않고 새로 사지도 않는다	2026-11-15T11:59:48.664949Z	2026-11-15T11:59:48.694858900Z	OK
+DailySma20LiveOrderPathTest	통합 ⑤ 매수 체결 → 손절 → 매도 체결 — 포지션 CLOSED, 잔액 210.01 + 18,880 − 9.44, 보유량 0 일치, 반복 응답은 한 번만	2026-11-15T11:59:48.696262200Z	2026-11-15T11:59:48.794003Z	OK
+DailySma20PaperForwardPathTest	SID 203 조건(20,200·0.995·상한 20,000) — 매수금은 20,099 가 아니라 20,000, 남는 현금 200	2026-11-15T11:59:51.287929700Z	2026-11-15T11:59:51.437915600Z	OK
+DailySma20PaperForwardPathTest	요청 검증 — 서비스와 같은 표로 통과/거절이 같다	2026-11-15T11:59:51.440916900Z	2026-11-15T11:59:51.607516600Z	OK
+DailySma20PaperForwardPathTest	HTTP 생성 경로 — 키 없는 20,200 요청은 검증 오류로 거절되고 세션이 생기지 않는다	2026-11-15T11:59:51.608524700Z	2026-11-15T11:59:51.649864100Z	OK
+DailySma20PaperForwardPathTest	키가 없는 세션은 종전과 같다 — 100,000 × 0.995 = 99,500	2026-11-15T11:59:51.651552200Z	2026-11-15T11:59:51.692042Z	OK
+DailySma20PaperForwardPathTest	HTTP 생성 경로 — JSON 명시적 null 상한은 400, 세션 없음	2026-11-15T11:59:51.693547Z	2026-11-15T11:59:51.711307200Z	OK
+DailySma20PaperForwardPathTest	상한이 가용 × 비율보다 크면 상한은 걸리지 않는다 — 20,200 × 0.995 = 20,099	2026-11-15T11:59:51.712311800Z	2026-11-15T11:59:51.744545400Z	OK
+DailySma20PaperForwardPathTest	명시적 null 세션은 평가 경로까지 가지 않는다 — 생성 전에 거절	2026-11-15T11:59:51.745545400Z	2026-11-15T11:59:51.764866700Z	OK
+DailySma20PaperForwardPathTest	서비스 생성 경로 — 키 없음/정상/숫자 문자열/0/음수/미만/형식 이상/불리언/객체/명시적 null, 거절이면 세션 없음·문구에 입력 원문 없음	2026-11-15T11:59:51.766370200Z	2026-11-15T11:59:51.815144Z	OK
+DynamicBlackSwanCooldownCrossKindTest	대조 — PAPER 틱 없이 같은 회복 캔들의 REAL 틱은 BLACK_SWAN 쿨다운으로 막히지 않는다	2026-11-15T11:59:53.977433Z	2026-11-15T11:59:54.038597400Z	OK
+DynamicBlackSwanCooldownCrossKindTest	기동 복원 대조 — REAL 이 만든 쿨다운은 재기동 뒤 복원된다	2026-11-15T11:59:54.040611700Z	2026-11-15T11:59:54.084843600Z	OK
+DynamicBlackSwanCooldownCrossKindTest	기동 복원 비대칭 — PAPER 가 만든 쿨다운은 재기동 뒤 복원되지 않는다(재기동 전에는 REAL 을 막았다)	2026-11-15T11:59:54.087352600Z	2026-11-15T11:59:54.100834Z	OK
+DynamicBlackSwanCooldownCrossKindTest	간섭 — PAPER 가 급락 봉을 평가해 쿨다운을 기록하면, 회복 뒤 REAL 의 BUY 가 'BLACK_SWAN 쿨다운'으로 막힌다	2026-11-15T11:59:54.101834200Z	2026-11-15T11:59:54.121612900Z	OK
+EntryPriorityEndToEndTest	등록 순서의 반대로 평가해도 마감 뒤 IOTA(DYNAMIC)·CRO(LIVE)가 승인되고, 마감 전에는 주문이 없다	2026-11-15T11:59:54.154908400Z	2026-11-15T11:59:54.287308600Z	OK
+EntryPriorityEndToEndTest	대조 — 회차를 끄면(즉시 진입, 종전 동작) 같은 평가 순서에서 먼저 평가된 INJ·G 가 슬롯을 가져간다	2026-11-15T11:59:54.288308800Z	2026-11-15T11:59:54.378616100Z	OK
+ExitAbArmContractTest	같은 입력 진입 — 매수금 같음(100,000×0.8 → 상한 20,000), A 손절 거리는 ATR 식·B 는 5%, 익절은 손절 폭에서 파생	2026-11-15T11:59:54.383948800Z	2026-11-15T11:59:54.426047100Z	OK
+ExitAbArmContractTest	8개 본문 — 저장값은 stopLossPct(null/5.00)만 다르고 지문은 A≠B	2026-11-15T11:59:54.427551800Z	2026-11-15T11:59:54.471494600Z	OK
+N15EntryExpiryTest	접수 EARLY	2026-11-15T11:59:54.519460700Z	2026-11-15T11:59:54.615103700Z	OK
+N15EntryExpiryTest	접수 LATE	2026-11-15T11:59:54.618103900Z	2026-11-15T11:59:54.655354700Z	OK
+N15EntryExpiryTest	② DYNAMIC: E−1ms 진입, E 만료 — 예약·의도·거래소 0, 원래 신호에 만료 사유	2026-11-15T11:59:54.657356300Z	2026-11-15T11:59:54.738117500Z	OK
+N15EntryExpiryTest	접수 EARLY	2026-11-15T11:59:54.740117400Z	2026-11-15T11:59:54.850724500Z	OK
+N15EntryExpiryTest	접수 LATE	2026-11-15T11:59:54.852087300Z	2026-11-15T11:59:54.946372600Z	OK
+N15EntryExpiryTest	⑥ 정의 W=min(T/2,5분)·D=C+W·E=D+W, H1 09:00→09:05→09:10, M1·M5 는 E=다음 마감 — M5 E−1ms 콜백, E 콜백 없음	2026-11-15T11:59:54.948381800Z	2026-11-15T11:59:54.961233800Z	OK
+N15EntryExpiryTest	LIVE 접수 EARLY	2026-11-15T11:59:54.962233300Z	2026-11-15T11:59:55.020615900Z	OK
+N15EntryExpiryTest	LIVE 접수 LATE	2026-11-15T11:59:55.021622100Z	2026-11-15T11:59:55.067038500Z	OK
+N15EntryExpiryTest	접수 EARLY	2026-11-15T11:59:55.069046Z	2026-11-15T11:59:55.093377Z	OK
+N15EntryExpiryTest	접수 LATE	2026-11-15T11:59:55.095384500Z	2026-11-15T11:59:55.119052600Z	OK
+SharedPaperLoopIsolationTest	기존 76의 결정은 새 9가 있어도 같다 · 새 세션은 기존 뒤에 평가된다 · REAL 표 불변	2026-11-15T11:59:57.094813800Z	2026-11-15T11:59:58.192280400Z	OK
+SharedPaperLoopIsolationTest	포지션 경로 — 기존 세션 2/3 에 열린 포지션(1/3 은 이 틱에 손절)을 넣어도 기존 76 의 청산·잔액·평가손익은 새 9 와 무관하다	2026-11-15T11:59:58.193280200Z	2026-11-15T11:59:59.460427200Z	OK
+Sma20LivePaperSameInputTest	S09b 공유 풀 총 한도 부족 — LIVE 예약 거절, PAPER 진입(독립 가상 잔액)	2026-11-15T12:00:01.201762300Z	2026-11-15T12:00:01.246533700Z	OK
+Sma20LivePaperSameInputTest	S04b 승인 실행 만료 E 경계(E 정각) — LIVE 만료로 진입 없음, PAPER 진입	2026-11-15T12:00:01.247535700Z	2026-11-15T12:00:01.270529500Z	OK
+Sma20LivePaperSameInputTest	S06 장중 SL 도달(진행 중 봉 저가 −6%, 종가 −1%) — 평가 회차는 둘 다 유지, 실시간 시세로 LIVE 만 손절	2026-11-15T12:00:01.271522800Z	2026-11-15T12:00:01.316481700Z	OK
+Sma20LivePaperSameInputTest	S07 장중 TP 근처(진행 중 봉 고가 +4%, TP +3%, 종가 +1%) — 둘 다 청산 없음, LIVE 만 실시간 고가로 TP 를 끌어올림	2026-11-15T12:00:01.317497700Z	2026-11-15T12:00:01.345543200Z	OK
+Sma20LivePaperSameInputTest	S10 정상 청산(일봉 마감 종가 < SMA20, 보유 20h, +1%) — 둘 다 전략 신호 청산, LIVE 는 매도 주문 접수·PAPER 는 즉시 체결	2026-11-15T12:00:01.346555600Z	2026-11-15T12:00:01.373015300Z	OK
+Sma20LivePaperSameInputTest	S03 BTC 판정 불가(대조 코인 KRW-ETH, BTC 캔들 없음) — LIVE 차단, PAPER 진입. KRW-BTC 세션은 자기 캔들을 써서 S02 로 귀결(비적용)	2026-11-15T12:00:01.374538600Z	2026-11-15T12:00:01.403812400Z	OK
+Sma20LivePaperSameInputTest	S09a 전역 위험 한도 거절 — LIVE 승인 시각 checkRisk 거절로 진입 없음, PAPER 진입	2026-11-15T12:00:01.404816900Z	2026-11-15T12:00:01.429780700Z	OK
+Sma20LivePaperSameInputTest	S01 정상 진입 — 결정·매수금 같음, 시점(PAPER 평가 즉시 / LIVE 회차 승인 뒤)과 기준가(PAPER 슬리피지 0.1%) 다름	2026-11-15T12:00:01.430781300Z	2026-11-15T12:00:01.473180400Z	OK
+Sma20LivePaperSameInputTest	S08 시세 무효·회복 — 낡은 캔들(종가 SL 아래)로 PAPER 는 손절, LIVE 는 유효 현재가 없으면 판정 안 함 → 실시간 현재가 회복 뒤 손절	2026-11-15T12:00:01.474179300Z	2026-11-15T12:00:01.506247600Z	OK
+Sma20LivePaperSameInputTest	S05 신호 뒤 가격 변화(평가와 승인 사이 +2%) — 매수금 같음, LIVE 기준가는 승인 시각 가격, PAPER 는 평가 시각 가격	2026-11-15T12:00:01.507247500Z	2026-11-15T12:00:01.541955700Z	OK
+Sma20LivePaperSameInputTest	S04a 승인 실행 만료 E 직전(E−1ms) — LIVE 진입, PAPER 는 이미 평가 시각에 진입	2026-11-15T12:00:01.542956200Z	2026-11-15T12:00:01.584020300Z	FAIL [E 직전 진입 — 실행 전 기대와 관측이 다르다(기대값을 고치지 말고 보고)]  Expecting value to be true but was false
+Sma20LivePaperSameInputTest	S02 낡은 입력(마지막 완료 봉 3시간 전) — LIVE 판정 불가로 진입 없음, PAPER 는 낡은 봉으로 진입	2026-11-15T12:00:01.587172500Z	2026-11-15T12:00:01.609023300Z	OK

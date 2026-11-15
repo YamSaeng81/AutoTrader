@@ -1,0 +1,192 @@
+diff -ru "/d/Claude Code/projects/crypto-auto-trader/docs/evidence/v167-race-20261115/d4/blocks-d4/U0.sh" blocks-d4/U0.sh
+--- "/d/Claude Code/projects/crypto-auto-trader/docs/evidence/v167-race-20261115/d4/blocks-d4/U0.sh"	2026-11-15 16:09:00.643676600 +0900
++++ blocks-d4/U0.sh	2026-11-15 22:30:49.403287700 +0900
+@@ -1,7 +1,7 @@
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "$M" = "$HOME/maint-v167" ] && [ "${UB:-}" = V167D4 ] && [ "$NEW" = 99e6ab109c8a2b3778d2d5ddb430e06d1f308d6f ] && [ -n "${JARN:-}" ] && [ -n "${JARM:-}" ] && type fresh_idle > /dev/null 2>&1 && type n21mark > /dev/null 2>&1 && type n21after > /dev/null 2>&1 && [ -n "${BTCIN:-}" ] && type sid203 > /dev/null 2>&1 && type newsobs > /dev/null 2>&1 && type httpobs > /dev/null 2>&1 && type holdobs > /dev/null 2>&1 && type entryobs > /dev/null 2>&1 && type n17obs > /dev/null 2>&1 && type n19obs > /dev/null 2>&1 && type n20obs > /dev/null 2>&1 || stop "변수 순서 — F 변수 → G 변수 → v1.167 통합 후보 초안 D4 U 변수"
++[ "$M" = "$HOME/maint-v168" ] && [ "${UB:-}" = V168D4 ] && [ "$NEW" = 0e1d2a021ab2f3c759a9b2be9c4f09430f93c80d ] && [ -n "${JARN:-}" ] && [ -n "${JARM:-}" ] && type fresh_idle > /dev/null 2>&1 && type n21mark > /dev/null 2>&1 && type n21after > /dev/null 2>&1 && [ -n "${BTCIN:-}" ] && type sid203 > /dev/null 2>&1 && type newsobs > /dev/null 2>&1 && type httpobs > /dev/null 2>&1 && type holdobs > /dev/null 2>&1 && type entryobs > /dev/null 2>&1 && type n17obs > /dev/null 2>&1 && type n19obs > /dev/null 2>&1 && type n20obs > /dev/null 2>&1 || stop "변수 순서 — F 변수 → G 변수 → v1.168 통합 후보 초안 D4 U 변수"
+ case "$IMGOLD" in sha256:*) ;; *) stop "IMGOLD 가 sha256: 이미지 ID 가 아님 — 승인된 U 변수 원문이 아님(초안 D1~D4 는 실행하지 않는다)" ;; esac
+ [ ! -e "$M/ok-U1" ] || stop "U1 을 이미 시작했다 — U0 를 다시 하지 않는다. ls -l $M 를 보고"
+ kwin "$(date +%s)" || stop "시작 시각·정기 보고 확인 — 위 줄"
+@@ -11,7 +11,7 @@
+ git fetch origin
+ git cat-file -e "$NEW^{commit}" || stop "후보 802b691 없음"
+ git merge-base --is-ancestor $OLD $NEW || stop "b5cd1d0 가 후보의 조상이 아님"
+-[ "$(git diff --name-only $OLD $NEW)" = "$DIFFN" ] || stop "diff 가 정확히 기대 130경로(시험 100·제품 Java 20·V96 1·build.gradle 1·프런트 8)가 아님"
++[ "$(git diff --name-only $OLD $NEW)" = "$DIFFN" ] || stop "diff 가 정확히 기대 133경로(시험 103·제품 Java 20·V96 1·build.gradle 1·프런트 8)가 아님"
+ svc | tee "$M/svc-before.txt"
+ IMG0=$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)"); echo "$IMG0" | tee "$M/image-before.txt"
+ [ "$IMG0" = "$IMGOLD" ] && [ "$IMGOLD" = "$(cat ~/maint-o13n21/image-new.txt)" ] || stop "실행 이미지가 #27 배포 이미지(~/maint-o13n21/image-new.txt)와 다름"
+diff -ru "/d/Claude Code/projects/crypto-auto-trader/docs/evidence/v167-race-20261115/d4/blocks-d4/U1.sh" blocks-d4/U1.sh
+--- "/d/Claude Code/projects/crypto-auto-trader/docs/evidence/v167-race-20261115/d4/blocks-d4/U1.sh"	2026-11-15 16:09:00.643676600 +0900
++++ blocks-d4/U1.sh	2026-11-15 22:30:49.403287700 +0900
+@@ -1,7 +1,7 @@
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "${UB:-}" = V167D4 ] || stop "U 변수가 v1.167 통합 후보 초안 D4 판이 아님 — F → G → v1.167 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
++[ "${UB:-}" = V168D4 ] || stop "U 변수가 v1.168 통합 후보 초안 D4 판이 아님 — F → G → v1.168 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+ [ -e "$M/ok-U0" ] || stop "U0 미통과"
+ [ ! -e "$M/ok-U1" ] || stop "U1 을 이미 통과했다 — 바로 U2"
+ [ $(( $(date +%s) - $(stat -c %Y "$M/ok-U0") )) -le 1800 ] || stop "U0 가 30분보다 오래됨 — U0 부터(아직 바꾼 것 없음, U1-되돌림 하지 않는다)"
+@@ -80,9 +80,9 @@
+ [ "$JC" = 0 ] || stop "jar 비교기 v2 거절(종료 $JC) — 중복 항목·형식 이상. jar-diff.txt 를 보고(재기동 전). U1-되돌림"
+ [ "$(grep -v '^(끝)' "$M/jar-diff.txt")" = "$RARX" ] || stop "jar 차이가 기대 62줄(변경 48·추가 14, V96 SQL 포함)이 아님 — jar-diff.txt 를 보고(재기동 전). U1-되돌림"
+ grep -qxF "$JARN" "$M/jar-diff.txt" || stop "항목 수가 881 → 895 가 아님 — jar-diff.txt 를 보고(재기동 전). U1-되돌림"
+-# V167D4: 이름 목록(RARX)은 88f06345 입력 jar 와 같다 — 새 jar 의 항목 내용 목록 해시(JARM)로 후보 입력을 확인한다
++# V168D4: 이름 목록(RARX)은 88f06345 입력 jar 와 같다 — 새 jar 의 항목 내용 목록 해시(JARM)로 후보 입력을 확인한다
+ python3 - "$M/app-new.jar" > "$M/jar-manifest-new.txt" 2>&1 <<'EOF' && JMC=0 || JMC=$?
+-# 새 jar 항목 내용 목록(V167D4 U1 JARM) — jar 비교기 v2 의 entries()(중복 거절 포함)를 그대로 쓰고, 항목 이름·sha256 을 이름순으로 출력한다.
++# 새 jar 항목 내용 목록(V168D4 U1 JARM) — jar 비교기 v2 의 entries()(중복 거절 포함)를 그대로 쓰고, 항목 이름·sha256 을 이름순으로 출력한다.
+ # 이름 목록(RARX)만으로는 같은 경로가 바뀐 후보 jar 를 구별하지 못한다(b5cd1d0 대비 88f06345·99e6ab10 이 같은 62줄). 이 목록의 sha256 이 JARM 이다.
+ import hashlib, io, re, sys, zipfile
+ # jar 비교기 v2(총괄 v1.135 H2) — v1(k23-prep-51dcee5/jars/jarcmp.py)과 같은 항목 비교에 '중복 명시 거절'을 더했다.
+@@ -131,7 +131,7 @@
+ EOF
+ [ "$JMC" = 0 ] || stop "새 jar 항목 목록 거절(종료 $JMC) — jar-manifest-new.txt 를 보고(재기동 전). U1-되돌림"
+ JMH=$(sha256sum < "$M/jar-manifest-new.txt" | cut -c1-64); echo "JARM $JMH" | tee "$M/jar-manifest-sha.txt"
+-[ "$JMH" = "$JARM" ] || stop "새 jar 항목 내용이 후보 99e6ab10 목록(JARM)과 다름 — 옛 후보 jar 이거나 다른 입력. jar-manifest-new.txt 를 보고(재기동 전). U1-되돌림"
++[ "$JMH" = "$JARM" ] || stop "새 jar 항목 내용이 후보 0e1d2a02(제품 입력 99e6ab10) 목록(JARM)과 다름 — 옛 후보 jar 이거나 다른 입력. jar-manifest-new.txt 를 보고(재기동 전). U1-되돌림"
+ echo "== frontend(같은 릴리스) — 기존 이미지 보존 태그·새 이미지 빌드(재기동 없음)"
+ FE0=$(cat "$M/image-fe-before.txt"); FEREF=$(cat "$M/fe-ref-before.txt"); FER=${FEREF%%:*}
+ if docker image inspect $FER:b5cd1d0 > /dev/null 2>&1; then [ "$(docker image inspect --format '{{.Id}}' $FER:b5cd1d0)" = "$FE0" ] || stop "$FER:b5cd1d0 태그가 이미 다른 이미지를 가리킨다 — U1-되돌림"; fi
+diff -ru "/d/Claude Code/projects/crypto-auto-trader/docs/evidence/v167-race-20261115/d4/blocks-d4/U1�\220\230�\217\214림.sh" "blocks-d4/U1�\220\230�\217\214림.sh"
+--- "/d/Claude Code/projects/crypto-auto-trader/docs/evidence/v167-race-20261115/d4/blocks-d4/U1�\220\230�\217\214림.sh"	2026-11-15 16:09:00.644674600 +0900
++++ "blocks-d4/U1�\220\230�\217\214림.sh"	2026-11-15 22:30:49.403287700 +0900
+@@ -3,7 +3,7 @@
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "${UB:-}" = V167D4 ] || stop "U 변수가 v1.167 통합 후보 초안 D4 판이 아님 — F → G → v1.167 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
++[ "${UB:-}" = V168D4 ] || stop "U 변수가 v1.168 통합 후보 초안 D4 판이 아님 — F → G → v1.168 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+ [ ! -e "$M/ok-U2" ] && [ ! -e "$M/t-deploy.utc" ] || stop "U2(재기동)를 시작했다 — U1-되돌림이 아니라 U되돌림"
+ IMG0=$(cat "$M/image-before.txt"); [ "$IMG0" = "$IMGOLD" ] || stop "image-before 가 #27 이미지(IMGOLD)가 아님"
+ [ -e "$M/start_66.py.before" ] || stop "U0 보존본이 없다 — 보고"
+diff -ru "/d/Claude Code/projects/crypto-auto-trader/docs/evidence/v167-race-20261115/d4/blocks-d4/U2.sh" blocks-d4/U2.sh
+--- "/d/Claude Code/projects/crypto-auto-trader/docs/evidence/v167-race-20261115/d4/blocks-d4/U2.sh"	2026-11-15 16:09:00.644674600 +0900
++++ blocks-d4/U2.sh	2026-11-15 22:30:49.403287700 +0900
+@@ -1,7 +1,7 @@
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "${UB:-}" = V167D4 ] || stop "U 변수가 v1.167 통합 후보 초안 D4 판이 아님 — F → G → v1.167 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
++[ "${UB:-}" = V168D4 ] || stop "U 변수가 v1.168 통합 후보 초안 D4 판이 아님 — F → G → v1.168 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+ [ -e "$M/ok-U1" ] || stop "U1 미통과"
+ [ ! -e "$M/ok-U2" ] || stop "U2 를 이미 했다 — U3"
+ IMG1=$(cat "$M/image-new.txt")
+diff -ru "/d/Claude Code/projects/crypto-auto-trader/docs/evidence/v167-race-20261115/d4/blocks-d4/U3.sh" blocks-d4/U3.sh
+--- "/d/Claude Code/projects/crypto-auto-trader/docs/evidence/v167-race-20261115/d4/blocks-d4/U3.sh"	2026-11-15 16:09:00.644674600 +0900
++++ blocks-d4/U3.sh	2026-11-15 22:30:49.404289900 +0900
+@@ -1,7 +1,7 @@
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "${UB:-}" = V167D4 ] || stop "U 변수가 v1.167 통합 후보 초안 D4 판이 아님 — F → G → v1.167 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
++[ "${UB:-}" = V168D4 ] || stop "U 변수가 v1.168 통합 후보 초안 D4 판이 아님 — F → G → v1.168 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+ if [ -e "$M/t-rollback.utc" ]; then S=$(cat "$M/t-rollback.utc"); EXP=$(cat "$M/image-before.txt"); T=rollback; else [ -e "$M/ok-U2" ] || stop "U2 미통과"; S=$(cat "$M/t-deploy.utc"); EXP=$(cat "$M/image-new.txt"); T=deploy; fi
+ [ $(( $(date +%s) - $(date -d "$S" +%s) )) -ge 300 ] || stop "기동 5분 전 — 5분이 지난 뒤 U3"
+ $DC ps backend
+diff -ru "/d/Claude Code/projects/crypto-auto-trader/docs/evidence/v167-race-20261115/d4/blocks-d4/U4.sh" blocks-d4/U4.sh
+--- "/d/Claude Code/projects/crypto-auto-trader/docs/evidence/v167-race-20261115/d4/blocks-d4/U4.sh"	2026-11-15 16:09:00.645675800 +0900
++++ blocks-d4/U4.sh	2026-11-15 22:30:49.404289900 +0900
+@@ -1,7 +1,7 @@
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "${UB:-}" = V167D4 ] || stop "U 변수가 v1.167 통합 후보 초안 D4 판이 아님 — F → G → v1.167 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
++[ "${UB:-}" = V168D4 ] || stop "U 변수가 v1.168 통합 후보 초안 D4 판이 아님 — F → G → v1.168 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+ [ -e "$M/ok-U3-deploy" ] || stop "U3 미통과"
+ S=$(cat "$M/t-deploy.utc")
+ [ $(( $(date +%s) - $(date -d "$S" +%s) )) -ge 1800 ] || stop "아직 30분 전 — 완료로 판정하지 않는다"
+diff -ru "/d/Claude Code/projects/crypto-auto-trader/docs/evidence/v167-race-20261115/d4/blocks-d4/UF2.sh" blocks-d4/UF2.sh
+--- "/d/Claude Code/projects/crypto-auto-trader/docs/evidence/v167-race-20261115/d4/blocks-d4/UF2.sh"	2026-11-15 16:09:00.645675800 +0900
++++ blocks-d4/UF2.sh	2026-11-15 22:30:49.405290700 +0900
+@@ -1,10 +1,10 @@
+-# UF2(V167D4 새 블록) — U3(deploy) 통과 뒤 frontend 만 새 이미지로 교체한다. backend 먼저·frontend 나중이 기본안이다.
++# UF2(V168D4 새 블록) — U3(deploy) 통과 뒤 frontend 만 새 이미지로 교체한다. backend 먼저·frontend 나중이 기본안이다.
+ # 사이 구간(구 frontend + 새 API)은 키 없는 세션 표시·정지 이동이 같다(로컬 대역 fe-compat-old A·B). 새 모드 CLOSING 은 구 화면이 0원·보유 0 으로 보이므로
+ # 양쪽 설치·관측이 끝나기 전에는 새 모의 세션을 만들지 않는다.
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "${UB:-}" = V167D4 ] || stop "U 변수가 v1.167 통합 후보 초안 D4 판이 아님 — F → G → v1.167 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
++[ "${UB:-}" = V168D4 ] || stop "U 변수가 v1.168 통합 후보 초안 D4 판이 아님 — F → G → v1.168 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+ [ -e "$M/ok-U3-deploy" ] || stop "U3(deploy) 미통과 — frontend 는 backend 관측 뒤"
+ [ ! -e "$M/t-rollback.utc" ] || stop "되돌림을 시작했다 — frontend 를 바꾸지 않는다"
+ [ ! -e "$M/ok-UF2" ] || stop "UF2 를 이미 했다 — U4"
+diff -ru "/d/Claude Code/projects/crypto-auto-trader/docs/evidence/v167-race-20261115/d4/blocks-d4/U�\220\230�\217\214림.sh" "blocks-d4/U�\220\230�\217\214림.sh"
+--- "/d/Claude Code/projects/crypto-auto-trader/docs/evidence/v167-race-20261115/d4/blocks-d4/U�\220\230�\217\214림.sh"	2026-11-15 16:09:00.645675800 +0900
++++ "blocks-d4/U�\220\230�\217\214림.sh"	2026-11-15 22:30:49.405290700 +0900
+@@ -1,7 +1,7 @@
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "${UB:-}" = V167D4 ] || stop "U 변수가 v1.167 통합 후보 초안 D4 판이 아님 — F → G → v1.167 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
++[ "${UB:-}" = V168D4 ] || stop "U 변수가 v1.168 통합 후보 초안 D4 판이 아님 — F → G → v1.168 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+ IMG0=$(cat "$M/image-before.txt"); [ "$IMG0" = "$IMGOLD" ] || stop "image-before 가 #27 이미지(IMGOLD)가 아님"
+ [ -e "$M/start_66.py.before" ] || stop "U0 보존본이 없다 — 보고"
+ { git rev-parse HEAD; git status --porcelain --untracked-files=no; echo "(끝)"; } | tee "$M/git-pre-rollback.txt"
+diff -ru "/d/Claude Code/projects/crypto-auto-trader/docs/evidence/v167-race-20261115/d4/blocks-d4/U�\222��\200측.sh" "blocks-d4/U�\222��\200측.sh"
+--- "/d/Claude Code/projects/crypto-auto-trader/docs/evidence/v167-race-20261115/d4/blocks-d4/U�\222��\200측.sh"	2026-11-15 16:09:00.646674200 +0900
++++ "blocks-d4/U�\222��\200측.sh"	2026-11-15 22:30:49.405290700 +0900
+@@ -1,7 +1,7 @@
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "${UB:-}" = V167D4 ] || stop "U 변수가 v1.167 통합 후보 초안 D4 판이 아님 — F → G → v1.167 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
++[ "${UB:-}" = V168D4 ] || stop "U 변수가 v1.168 통합 후보 초안 D4 판이 아님 — F → G → v1.168 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+ [ -e "$M/ok-U4" ] || stop "U4 미통과"
+ S=$(cat "$M/t-deploy.utc"); TS=$(date '+%Y%m%d-%H%M')
+ [ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$(cat "$M/image-new.txt")" ] || stop "실행 이미지가 image-new 와 다름 — 보고"
+diff -ru "/d/Claude Code/projects/crypto-auto-trader/docs/evidence/v167-race-20261115/d4/blocks-d4/U�\200�\210\230.sh" "blocks-d4/U�\200�\210\230.sh"
+--- "/d/Claude Code/projects/crypto-auto-trader/docs/evidence/v167-race-20261115/d4/blocks-d4/U�\200�\210\230.sh"	2026-11-15 16:09:00.646674200 +0900
++++ "blocks-d4/U�\200�\210\230.sh"	2026-11-15 22:30:49.405290700 +0900
+@@ -1,5 +1,5 @@
+-M=~/maint-v167; mkdir -p "$M"; OPS=~/ops-scripts; UB=V167D4   # v1.167 통합 후보(candidate/order-poll-race-b987d7a7 99e6ab10, 88f06345 + 주문 확인 경합 보완 19d1cc61) 배포 D4(미승인·실행 금지) 판 표지 — U 블록 전부가 확인한다. 원본 구조 V161D4(v161-20261113/d4, 그 원본 V160D4·V159D4·SMA20PD4 sma20p-d4-af7ffa58), 생성기 mkdraft8.py(값 변경 + JARM 대조 추가). backend+frontend 같은 릴리스, DDL V96(새 backend 기동 때 Flyway)
+-OLD=b5cd1d0d47ea68ffe6ff476b89cf9fca5bef1b88; NEW=99e6ab109c8a2b3778d2d5ddb430e06d1f308d6f
++M=~/maint-v168; mkdir -p "$M"; OPS=~/ops-scripts; UB=V168D4   # v1.168 통합 후보(candidate/order-poll-race-b987d7a7 0e1d2a02, 99e6ab10 + 시험 전용 보완 — 제품·빌드·프런트 입력은 99e6ab10 과 같음) 배포 D4(미승인·실행 금지) 판 표지 — U 블록 전부가 확인한다. 원본 구조 V167D4(v167-race-20261115/d4, 그 원본 V161D4·V160D4·V159D4·SMA20PD4), 생성기 mkdraft9.py(값만 변경). backend+frontend 같은 릴리스, DDL V96(새 backend 기동 때 Flyway)
++OLD=b5cd1d0d47ea68ffe6ff476b89cf9fca5bef1b88; NEW=0e1d2a021ab2f3c759a9b2be9c4f09430f93c80d
+ IMGOLD=sha256:52e12428a60df5413d6e495024220bbd4c8fa07830549556f0b47bbe6ad39055   # #27 O1·O3+N21 통합 배포 이미지(~/maint-o13n21/image-new.txt, v1.140 수용 값) — U0 가 실행 이미지·기록 파일과 같은지 확인한다. sha256: 로 시작하지 않으면 U0 가 멈춘다
+ IMGPREV8=sha256:426a09a20afc9e16cff8b7a569d4e04f18ed47cefb9242f44e3b9ea9666153a1   # #26 이미지 — 이전 복구 태그 autotrader-backend:1899b49 가 가리킨다(D3 U1 이 만듦, 보존, 바꾸지 않는다)
+ IMGPREV7=sha256:200f2f5727e90204574fd9965a5cc06dfc5d317e98c13b200de2ac7201378ae6   # #25 이미지 — 이전 복구 태그 autotrader-backend:ee509cf 가 가리킨다(#26 U1 이 만듦, 보존, 바꾸지 않는다)
+@@ -50,6 +50,7 @@
+   web-api/src/test/java/com/cryptoautotrader/api/service/AbstractPerformanceSnapshotS5.java \
+   web-api/src/test/java/com/cryptoautotrader/api/service/AbstractSma20SameInputFixture.java \
+   web-api/src/test/java/com/cryptoautotrader/api/service/AlignedRestartContextTest.java \
++  web-api/src/test/java/com/cryptoautotrader/api/service/AlignedRoundBoundaryProbeTest.java \
+   web-api/src/test/java/com/cryptoautotrader/api/service/AlignedV147FixesTest.java \
+   web-api/src/test/java/com/cryptoautotrader/api/service/AlignedV148FixesTest.java \
+   web-api/src/test/java/com/cryptoautotrader/api/service/AlignedV150FixesTest.java \
+@@ -76,6 +77,7 @@
+   web-api/src/test/java/com/cryptoautotrader/api/service/DynamicScanTransitionGuardTest.java \
+   web-api/src/test/java/com/cryptoautotrader/api/service/DynamicSlWatchdogNoiseTest.java \
+   web-api/src/test/java/com/cryptoautotrader/api/service/DynamicStopRaceTest.java \
++  web-api/src/test/java/com/cryptoautotrader/api/service/DynamicTradingSlWatchdogRecoveryTest.java \
+   web-api/src/test/java/com/cryptoautotrader/api/service/EngineParityTest.java \
+   web-api/src/test/java/com/cryptoautotrader/api/service/EntryPriorityEndToEndTest.java \
+   web-api/src/test/java/com/cryptoautotrader/api/service/EntryRoundsCrossRoundPaperDelayTest.java \
+@@ -139,11 +141,12 @@
+   web-api/src/test/java/com/cryptoautotrader/api/support/NetworkIsolationGuard.java \
+   web-api/src/test/java/com/cryptoautotrader/api/support/OrderFlowObservation.java \
+   web-api/src/test/java/com/cryptoautotrader/api/support/OutboundNetworkGuard.java \
++  web-api/src/test/java/com/cryptoautotrader/api/support/TestRoundKeys.java \
+   web-api/src/test/resources/META-INF/services/org.junit.jupiter.api.extension.Extension \
+   web-api/src/test/resources/META-INF/spring.factories \
+   web-api/src/test/resources/application-test.yml \
+   web-api/src/test/resources/junit-platform.properties \
+-  web-api/src/test/resources/schema-h2.sql)"   # git diff --name-only OLD NEW — 130경로(시험 100·제품 Java 20·V96 1·build.gradle 1·프런트 8). 앞 판 88f06345 목록에 시험 전용 28경로 추가
++  web-api/src/test/resources/schema-h2.sql)"   # git diff --name-only OLD NEW — 133경로(시험 103·제품 Java 20·V96 1·build.gradle 1·프런트 8). 앞 판 99e6ab10 목록에 시험 전용 3경로 추가
+ RARX="$(printf '%s\n' '변경 BOOT-INF/classes/com/cryptoautotrader/api/controller/PaperTradingController.class' \
+   '변경 BOOT-INF/classes/com/cryptoautotrader/api/dto/PaperTradingStartRequest.class' \
+   '변경 BOOT-INF/classes/com/cryptoautotrader/api/dto/PerformanceSummaryResponse$PerformanceSummaryResponseBuilder.class' \
+@@ -207,7 +210,7 @@
+   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/TelegramNotificationService.class' \
+   '추가 BOOT-INF/classes/db/migration/V96__paper_aligned_runtime_state.sql')"   # 보존 b5cd1d0.jar(a7ef759f…) 대 로컬 bootJar 99e6ab10(f7450f13…), 비교기 v2 — 변경 48·추가 14. 🔴 88f06345 입력 jar(0834382a…)와 이름 목록이 같다 — 내용 구별은 JARM
+ JARN="(끝) 881 895"
+-JARM=7df5758fc48231372a9a507b228bafb5bfed1648332a8566e0881d80e2e1176d   # V167D4: 새 jar 항목 이름·sha256 목록(jarmanifest, 895줄)의 sha256 — 로컬 bootJar 99e6ab10. 88f06345 입력 jar 는 a91ffaaf…, b5cd1d0 는 a66d2ccd…
++JARM=7df5758fc48231372a9a507b228bafb5bfed1648332a8566e0881d80e2e1176d   # V168D4: 새 jar 항목 이름·sha256 목록(jarmanifest, 895줄)의 sha256 — 로컬 bootJar 99e6ab10(0e1d2a02 와 제품·빌드·프런트 입력 동일). 88f06345 입력 jar 는 a91ffaaf…, b5cd1d0 는 a66d2ccd…
+ V96F=web-api/src/main/resources/db/migration/V96__paper_aligned_runtime_state.sql; V96B=5b92eef03548c6bd1feaef2b35451563d5327246; V96SUM=-424836241   # V96 원문 블롭·Flyway 체크섬(로컬 실제 java -jar 기동 두 번에서 같은 값, oldbin-v96-r1·r2)
+ v96() { [ "$($PSQL -At -c "SELECT max(version::int) FROM flyway_schema_history WHERE success")" = "96" ] ; }
+ FEIMGOLD=sha256:d825a9f5b00d3dac93ee154f32f91b5a1474248fefaa3651f0d0c3b0cc2f7f66   # 실행 중 frontend 이미지 ID — 운영 읽기 2026-11-13 13:39:36 KST(N03 11-13 10:00 회차 읽기, 컨테이너 9a63d15ab110, docs/evidence/n03-1113-1000/frontend-image.txt). U0 가 실행 중 frontend 와 다시 대조하고 다르면 멈춘다

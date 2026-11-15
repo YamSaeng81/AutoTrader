@@ -1,0 +1,27 @@
+Sma20LiveAlignedPaperSameInputTest	A04a E 직전 — 둘 다 진입	2026-11-15T13:00:23.245688600Z	2026-11-15T13:00:23.973571700Z	OK
+Sma20LiveAlignedPaperSameInputTest	A10 정상 청산 — 둘 다 전략 신호 청산(LIVE 접수 / PAPER 즉시)	2026-11-15T13:00:23.990368900Z	2026-11-15T13:00:24.239800600Z	OK
+Sma20LiveAlignedPaperSameInputTest	A02 낡은 입력 — 둘 다 판정 불가로 진입 없음·신호 로그 없음	2026-11-15T13:00:24.241805900Z	2026-11-15T13:00:24.370194800Z	OK
+Sma20LiveAlignedPaperSameInputTest	A11 같은 체결가 대역 — LIVE 매수 주문을 PAPER 체결가로 정산(운영 폴러 checkOrderStatus): 잔액 같음, 수량·수수료는 수수료 기준 차이	2026-11-15T13:00:24.372035700Z	2026-11-15T13:00:24.680963100Z	OK
+Sma20LiveAlignedPaperSameInputTest	A07 장중 TP 근처 — 둘 다 청산 없음, 같은 실시간 고가로 같은 익절가 트레일링	2026-11-15T13:00:24.683964500Z	2026-11-15T13:00:24.819767300Z	OK
+Sma20LiveAlignedPaperSameInputTest	A08 시세 무효·회복 — 낡은 캔들·유효 현재가 없음: 둘 다 유지 → 실시간 현재가 회복: 둘 다 손절	2026-11-15T13:00:24.822281Z	2026-11-15T13:00:24.983778100Z	OK
+Sma20LiveAlignedPaperSameInputTest	A09b 공유 풀 총 한도 부족 — LIVE 만 막힘(REAL 계좌 관문 — 남은 차이)	2026-11-15T13:00:24.984779200Z	2026-11-15T13:00:25.108748600Z	OK
+Sma20LiveAlignedPaperSameInputTest	A04b E 정각 — 둘 다 만료로 진입 없음	2026-11-15T13:00:25.111257900Z	2026-11-15T13:00:25.190237100Z	OK
+Sma20LiveAlignedPaperSameInputTest	A01 정상 진입 — 평가 직후 둘 다 대기, 승인 뒤 둘 다 진입·같은 매수금·같은 손절/익절 거리, 기준가 차이는 슬리피지뿐	2026-11-15T13:00:25.191237600Z	2026-11-15T13:00:25.330006100Z	OK
+Sma20LiveAlignedPaperSameInputTest	A09a 전역 위험 한도 거절 — LIVE 만 막힘(REAL 계좌 관문, 모의 계좌 대응물 없음 — 남은 차이)	2026-11-15T13:00:25.331012600Z	2026-11-15T13:00:25.423632700Z	OK
+Sma20LiveAlignedPaperSameInputTest	A05 신호 뒤 +2% — 둘 다 승인 시각 가격 기준(PAPER 는 거기에 슬리피지)	2026-11-15T13:00:25.424632800Z	2026-11-15T13:00:25.520940300Z	OK
+Sma20LiveAlignedPaperSameInputTest	A12 같은 체결가 대역(매도) — 전략 SELL 뒤 LIVE 매도 주문을 PAPER 매도 체결가로 정산(운영 폴러): 가용 잔액 같음	2026-11-15T13:00:25.522598800Z	2026-11-15T13:00:25.650866200Z	OK
+Sma20LiveAlignedPaperSameInputTest	A03 BTC 판정 불가(KRW-ETH, BTC 캔들 없음) — 둘 다 같은 HOLD 사유, 진입 없음	2026-11-15T13:00:25.651865800Z	2026-11-15T13:00:25.724100600Z	OK
+Sma20LiveAlignedPaperSameInputTest	A06 장중 SL — 평가 회차 둘 다 유지, 같은 실시간 저가로 둘 다 손절(LIVE CLOSING 접수 / PAPER 즉시 CLOSED)	2026-11-15T13:00:25.725094100Z	2026-11-15T13:00:25.788874700Z	OK
+Sma20LiveAlignedPaperSameInputTest	C00 실행 모드 생성 계약 — 키 없음/LIVE_ALIGNED 통과, null·다른 문자열·소문자·숫자 거절(세션 없음), DTO 와 같은 판정	2026-11-15T13:00:25.790884500Z	2026-11-15T13:00:25.948307300Z	OK
+Sma20LivePaperSameInputTest	S09b 공유 풀 총 한도 부족 — LIVE 예약 거절, PAPER 진입(독립 가상 잔액)	2026-11-15T13:00:29.549805300Z	2026-11-15T13:00:29.638227700Z	OK
+Sma20LivePaperSameInputTest	S04b 승인 실행 만료 E 경계(E 정각) — LIVE 만료로 진입 없음, PAPER 진입	2026-11-15T13:00:29.639227800Z	2026-11-15T13:00:29.692651300Z	OK
+Sma20LivePaperSameInputTest	S06 장중 SL 도달(진행 중 봉 저가 −6%, 종가 −1%) — 평가 회차는 둘 다 유지, 실시간 시세로 LIVE 만 손절	2026-11-15T13:00:29.693651400Z	2026-11-15T13:00:29.764658500Z	OK
+Sma20LivePaperSameInputTest	S07 장중 TP 근처(진행 중 봉 고가 +4%, TP +3%, 종가 +1%) — 둘 다 청산 없음, LIVE 만 실시간 고가로 TP 를 끌어올림	2026-11-15T13:00:29.765322100Z	2026-11-15T13:00:29.832879500Z	OK
+Sma20LivePaperSameInputTest	S10 정상 청산(일봉 마감 종가 < SMA20, 보유 20h, +1%) — 둘 다 전략 신호 청산, LIVE 는 매도 주문 접수·PAPER 는 즉시 체결	2026-11-15T13:00:29.834994900Z	2026-11-15T13:00:29.890096600Z	OK
+Sma20LivePaperSameInputTest	S03 BTC 판정 불가(대조 코인 KRW-ETH, BTC 캔들 없음) — LIVE 차단, PAPER 진입. KRW-BTC 세션은 자기 캔들을 써서 S02 로 귀결(비적용)	2026-11-15T13:00:29.891096700Z	2026-11-15T13:00:29.940268700Z	OK
+Sma20LivePaperSameInputTest	S09a 전역 위험 한도 거절 — LIVE 승인 시각 checkRisk 거절로 진입 없음, PAPER 진입	2026-11-15T13:00:29.941277Z	2026-11-15T13:00:29.998965700Z	OK
+Sma20LivePaperSameInputTest	S01 정상 진입 — 결정·매수금 같음, 시점(PAPER 평가 즉시 / LIVE 회차 승인 뒤)과 기준가(PAPER 슬리피지 0.1%) 다름	2026-11-15T13:00:29.999965100Z	2026-11-15T13:00:30.081551300Z	OK
+Sma20LivePaperSameInputTest	S08 시세 무효·회복 — 낡은 캔들(종가 SL 아래)로 PAPER 는 손절, LIVE 는 유효 현재가 없으면 판정 안 함 → 실시간 현재가 회복 뒤 손절	2026-11-15T13:00:30.082549900Z	2026-11-15T13:00:30.146515Z	OK
+Sma20LivePaperSameInputTest	S05 신호 뒤 가격 변화(평가와 승인 사이 +2%) — 매수금 같음, LIVE 기준가는 승인 시각 가격, PAPER 는 평가 시각 가격	2026-11-15T13:00:30.147514900Z	2026-11-15T13:00:30.219435800Z	OK
+Sma20LivePaperSameInputTest	S04a 승인 실행 만료 E 직전(E−1ms) — LIVE 진입, PAPER 는 이미 평가 시각에 진입	2026-11-15T13:00:30.220435700Z	2026-11-15T13:00:30.281316500Z	OK
+Sma20LivePaperSameInputTest	S02 낡은 입력(마지막 완료 봉 3시간 전) — LIVE 판정 불가로 진입 없음, PAPER 는 낡은 봉으로 진입	2026-11-15T13:00:30.282317100Z	2026-11-15T13:00:30.344793300Z	OK

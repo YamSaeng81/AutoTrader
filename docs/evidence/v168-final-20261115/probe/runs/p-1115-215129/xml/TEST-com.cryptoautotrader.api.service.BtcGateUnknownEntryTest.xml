@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="BTC 급락 관문 판정 불가 — 캔들이 없거나 낡으면 LIVE·DYNAMIC 의 평가·승인 시점 매수를 막고, 최신이면 나간다" tests="3" skipped="0" failures="1" errors="0" timestamp="2026-11-15T12:52:09" hostname="DESKTOP-SF1KUQ5" time="0.255">
+  <properties/>
+  <testcase name="승인 시점: 평가 때 최신이던 BTC 캔들이 승인 전에 사라지면 LIVE·DYNAMIC 모두 '판정 불가' 로 거절, 다시 오면 승인" classname="com.cryptoautotrader.api.service.BtcGateUnknownEntryTest" time="0.102">
+    <failure message="org.opentest4j.AssertionFailedError: [평가 때는 관문 통과 — 회차에 접수] &#13;&#10;expected: 1&#13;&#10; but was: 0" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: [평가 때는 관문 통과 — 회차에 접수] 
+expected: 1
+ but was: 0
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base@17.0.12/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base@17.0.12/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)
+	at app//com.cryptoautotrader.api.service.BtcGateUnknownEntryTest.approvalTime(BtcGateUnknownEntryTest.java:265)
+	at java.base@17.0.12/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="LIVE 평가 회차: BTC 캔들 없음·낡음 → 매수 없음, 최신 → 매수 (즉시 진입)" classname="com.cryptoautotrader.api.service.BtcGateUnknownEntryTest" time="0.075"/>
+  <testcase name="DYNAMIC 평가 회차: BTC 캔들 없음·낡음 → 매수 없음, 최신 → 매수 (즉시 진입)" classname="com.cryptoautotrader.api.service.BtcGateUnknownEntryTest" time="0.076"/>
+  <system-out><![CDATA[21:52:09.407 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.BtcGateUnknownEntryTest
+21:52:09.411 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:52:09.459 [Test worker] WARN  c.c.a.service.WatchlistFilterService - [Watchlist] KRW 마켓 목록 없음
+21:52:09.460 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 공용 유니버스 비어 있음 ? 직전 목록 유지 (id=1, 1종목)
+21:52:09.515 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:52:09.528 [Test worker] ERROR c.c.api.service.CandleFreshnessGuard - ? [캔들 최신성] BTC 급락 관문 H1 판정 불가 (LIVE) ? 이 관문을 요구하는 신규 진입을 막는다: BTC 캔들 판정 불가(캔들 없음) ? 급락 여부를 모른다
+21:52:09.528 [Test worker] WARN  c.c.api.service.LiveTradingService - BTC_MARKET_GUARD 판정 불가 ? BUY 차단 (sessionId=4, KRW-CRO): BTC 캔들 판정 불가(캔들 없음) ? 급락 여부를 모른다
+21:52:09.543 [Test worker] WARN  c.c.api.service.LiveTradingService - BTC_MARKET_GUARD 판정 불가 ? BUY 차단 (sessionId=5, KRW-CRO): BTC 캔들 판정 불가(최신 완료 봉 없음 ? 마지막 완료 봉 2026-11-15T07:52:09Z, 필요 2026-11-15T11:00:00Z 이후(187분 늦음)) ? 급락 여부를 모른다
+21:52:09.560 [Test worker] WARN  c.c.api.service.CandleFreshnessGuard - [캔들 최신성] BTC 급락 관문 H1 판정 재개 (LIVE): 종전 2026-11-15T12:52:09.528200500Z BTC 캔들 판정 불가(캔들 없음) ? 급락 여부를 모른다
+21:52:09.579 [order-exec-1] ERROR o.s.a.i.SimpleAsyncUncaughtExceptionHandler - Unexpected exception occurred invoking async method: public void com.cryptoautotrader.api.service.OrderExecutionEngine.submitPreparedOrder(java.lang.Long,com.cryptoautotrader.api.dto.OrderRequest)
+java.lang.NullPointerException: Cannot invoke "com.cryptoautotrader.exchange.upbit.UpbitOrderClient$ExchangeResult.response()" because "exchangeResult" is null
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.recordSubmitOutcome(OrderExecutionEngine.java:1132)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.lambda$callExchangeAndRecord$11(OrderExecutionEngine.java:1044)
+	at org.springframework.transaction.support.TransactionTemplate.execute(TransactionTemplate.java:140)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.callExchangeAndRecord(OrderExecutionEngine.java:1043)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.submitPreparedOrder(OrderExecutionEngine.java:670)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at org.springframework.aop.interceptor.AsyncExecutionInterceptor.lambda$invoke$0(AsyncExecutionInterceptor.java:113)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+21:52:09.591 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:52:09.598 [Test worker] WARN  c.c.a.service.WatchlistFilterService - [Watchlist] KRW 마켓 목록 없음
+21:52:09.598 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 공용 유니버스 비어 있음 ? 직전 목록 유지 (id=2, 1종목)
+21:52:09.598 [Test worker] ERROR c.c.api.service.CandleFreshnessGuard - ? [캔들 최신성] BTC 급락 관문 H1 판정 불가 (DYNAMIC) ? 이 관문을 요구하는 신규 진입을 막는다: BTC 캔들 판정 불가(캔들 없음) ? 급락 여부를 모른다
+21:52:09.599 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] BTC_MARKET_GUARD 판정 불가 ? BUY 차단: KRW-IOTA (id=2): BTC 캔들 판정 불가(캔들 없음) ? 급락 여부를 모른다
+21:52:09.604 [Test worker] WARN  c.c.a.service.WatchlistFilterService - [Watchlist] KRW 마켓 목록 없음
+21:52:09.604 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 공용 유니버스 비어 있음 ? 직전 목록 유지 (id=3, 1종목)
+21:52:09.605 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] BTC_MARKET_GUARD 판정 불가 ? BUY 차단: KRW-IOTA (id=3): BTC 캔들 판정 불가(최신 완료 봉 없음 ? 마지막 완료 봉 2026-11-15T07:52:09Z, 필요 2026-11-15T11:00:00Z 이후(187분 늦음)) ? 급락 여부를 모른다
+21:52:09.610 [Test worker] WARN  c.c.a.service.WatchlistFilterService - [Watchlist] KRW 마켓 목록 없음
+21:52:09.610 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 공용 유니버스 비어 있음 ? 직전 목록 유지 (id=4, 1종목)
+21:52:09.610 [Test worker] WARN  c.c.api.service.CandleFreshnessGuard - [캔들 최신성] BTC 급락 관문 H1 판정 재개 (DYNAMIC): 종전 2026-11-15T12:52:09.598395400Z BTC 캔들 판정 불가(캔들 없음) ? 급락 여부를 모른다
+21:52:09.655 [order-exec-2] ERROR o.s.a.i.SimpleAsyncUncaughtExceptionHandler - Unexpected exception occurred invoking async method: public void com.cryptoautotrader.api.service.OrderExecutionEngine.submitPreparedOrder(java.lang.Long,com.cryptoautotrader.api.dto.OrderRequest)
+java.lang.NullPointerException: Cannot invoke "com.cryptoautotrader.exchange.upbit.UpbitOrderClient$ExchangeResult.response()" because "exchangeResult" is null
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.recordSubmitOutcome(OrderExecutionEngine.java:1132)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.lambda$callExchangeAndRecord$11(OrderExecutionEngine.java:1044)
+	at org.springframework.transaction.support.TransactionTemplate.execute(TransactionTemplate.java:140)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.callExchangeAndRecord(OrderExecutionEngine.java:1043)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.submitPreparedOrder(OrderExecutionEngine.java:670)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at org.springframework.aop.interceptor.AsyncExecutionInterceptor.lambda$invoke$0(AsyncExecutionInterceptor.java:113)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

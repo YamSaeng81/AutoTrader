@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.SessionBalanceUpdaterTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-11-15T14:24:57" hostname="DESKTOP-SF1KUQ5" time="0.074">
+  <properties/>
+  <testcase name="단일 스레드 mutation: version 증가 + 값 반영" classname="com.cryptoautotrader.api.service.SessionBalanceUpdaterTest" time="0.003"/>
+  <testcase name="동시 increment 10회 → 모든 증분이 보존된다 (last-write-wins 없음)" classname="com.cryptoautotrader.api.service.SessionBalanceUpdaterTest" time="0.071"/>
+  <system-out><![CDATA[23:24:57.392 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.SessionBalanceUpdaterTest
+23:24:57.393 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+23:24:57.396 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+23:24:57.399 [pool-34-thread-4] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=439 attempt=1 backoff=8ms
+23:24:57.399 [pool-34-thread-5] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=439 attempt=1 backoff=10ms
+23:24:57.401 [pool-34-thread-2] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=439 attempt=1 backoff=9ms
+23:24:57.401 [pool-34-thread-6] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=439 attempt=1 backoff=8ms
+23:24:57.402 [pool-34-thread-3] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=439 attempt=1 backoff=7ms
+23:24:57.410 [pool-34-thread-3] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=439 attempt=2 backoff=16ms
+23:24:57.412 [pool-34-thread-2] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=439 attempt=2 backoff=14ms
+23:24:57.431 [pool-34-thread-3] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=439 attempt=3 backoff=33ms
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

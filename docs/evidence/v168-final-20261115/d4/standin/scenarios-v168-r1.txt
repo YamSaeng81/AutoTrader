@@ -1,0 +1,57 @@
+== x01 정상: 실제 새 jar(0e1d2a02 bootJar)로 U0→U1→U2(V96)→U3→UF2→U4→U뒤관측, JARM 기록
+PASS x01 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS x01 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS x01 — jar-manifest-sha(U1 JARM 기록) = JARM 7df5758fc48231
+PASS x01 — jar-diff 62줄+끝 줄 = 63
+PASS x01 — HEAD = 0e1d2a021ab2f3c759a
+PASS x01 — image-fe-before = sha256:d825a9f5b00d
+PASS x01 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS x01 U3 — 종료 0 · '✅ U3(deploy) 통과' · checkout 1
+PASS x01 UF2 — 종료 0 · '✅ UF2 통과' · checkout 1
+PASS x01 U4 — 종료 0 · '✅ U4 통과' · checkout 1
+PASS x01 U뒤관측 — 종료 0 · '' · checkout 1
+PASS x01 — start_66.py sha256 = 68d441ce0ed66d0a654
+PASS x01 — 옛 기록 폴더 maint-v167 안 만듦 = 없음
+== x02 UF2 뒤 U되돌림 — b5cd1d0·#27 이미지·frontend 원복
+PASS x02 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS x02 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS x02 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS x02 U3 — 종료 0 · '✅ U3(deploy) 통과' · checkout 1
+PASS x02 UF2 — 종료 0 · '✅ UF2 통과' · checkout 1
+PASS x02 U되돌림 — 종료 0 · 'b5cd1d0 (#27 이미지) 로 복귀' · checkout 2
+PASS x02 — frontend 원복 = sha256:d825a9f5b00d
+PASS x02 — backend = sha256:52e12428a60d
+PASS x02 — HEAD = b5cd1d0d47ea68ffe6f
+== x03 U1 뒤 U2 하지 않음 → U1-되돌림
+PASS x03 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS x03 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS x03 U1되돌림 — 종료 0 · '↩ U1-되돌림 끝' · checkout 2
+PASS x03 — backend latest = sha256:52e12428a60d
+PASS x03 — frontend latest = sha256:d825a9f5b00d
+PASS x03 — HEAD = b5cd1d0d47ea68ffe6f
+== x04 옛 후보 jar(88f06345 입력, 이름 목록 같음) → RARX·JARN 통과, JARM 에서 재기동 전 멈춤 → U1-되돌림
+PASS x04 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS x04 U1 — 종료 1 · '새 jar 항목 내용이 후보 0e1d2a02(제품 입력 99e6ab10) 목록(JARM)과 다름' · checkout 1
+PASS x04 — 옛 jar 도 이름 목록 62줄+끝 줄(RARX·JARN 통과) = 63
+PASS x04 — 실행 backend(재기동 없음) = sha256:52e12428a60d
+PASS x04 U1되돌림 — 종료 0 · '↩ U1-되돌림 끝' · checkout 2
+PASS x04 — HEAD = b5cd1d0d47ea68ffe6f
+PASS x04 — backend latest = sha256:52e12428a60d
+== x05 b5cd1d0 jar 로 빌드됨 → 이름 목록(RARX)에서 먼저 멈춤(JARM 까지 가지 않음)
+PASS x05 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS x05 U1 — 종료 1 · 'jar 차이가 기대 62줄' · checkout 1
+PASS x05 — JARM 기록 없음 = 없음
+== x06·x12 JARM 없음 / 변조
+PASS x06 U0 — 종료 1 · '변수 순서 — F 변수 → G 변수 → v1.168 통합 후보 초안 D4 U 변수' · checkout 0
+PASS x12 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS x12 U1 — 종료 1 · '새 jar 항목 내용이 후보 0e1d2a02(제품 입력 99e6ab10) 목록(JARM)과 다름' · checkout 1
+== 판 표지·기록 폴더·옛 판 혼합 거부(checkout 0)
+PASS x07 U0 — 종료 1 · '변수 순서 — F 변수 → G 변수 → v1.168 통합 후보 초안 D4 U 변수' · checkout 0
+PASS x08 U0 — 종료 1 · '변수 순서 — F 변수 → G 변수 → v1.167 통합 후보 초안 D4 U 변수' · checkout 0
+PASS x09 U0 — 종료 1 · '변수 순서 — F 변수 → G 변수 → v1.168 통합 후보 초안 D4 U 변수' · checkout 0
+PASS x10 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS x10 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS x10 U2 — 종료 1 · 'U 변수가 v1.168 통합 후보 초안 D4 판이 아님' · checkout 1
+PASS x11 U0 — 종료 1 · '실행 중 frontend 이미지가 FEIMGOLD 와 다름' · checkout 0
+PASS 전체 — 금지 명령 기록 줄 수 합 = 0
+== 결과: PASS 49 · FAIL 0

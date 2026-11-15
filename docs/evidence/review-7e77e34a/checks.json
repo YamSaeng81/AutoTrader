@@ -1,0 +1,812 @@
+{
+    "reviewed_main":  "7e77e34ad4f70fae6392f97e07bb80332a1f58a1",
+    "manifests":  {
+                      "v167-race-20261115":  {
+                                                 "count":  677,
+                                                 "worktree_mismatch":  [
+
+                                                                       ],
+                                                 "blob_mismatch":  [
+
+                                                                   ]
+                                             },
+                      "review-40bf70b9":  {
+                                              "count":  3,
+                                              "worktree_mismatch":  [
+
+                                                                    ],
+                                              "blob_mismatch":  [
+
+                                                                ]
+                                          },
+                      "n03-1113-2200":  {
+                                            "count":  15,
+                                            "worktree_mismatch":  [
+
+                                                                  ],
+                                            "blob_mismatch":  [
+
+                                                              ]
+                                        },
+                      "n03-1114-1000":  {
+                                            "count":  17,
+                                            "worktree_mismatch":  [
+
+                                                                  ],
+                                            "blob_mismatch":  [
+
+                                                              ]
+                                        },
+                      "n03-1114-2200":  {
+                                            "count":  15,
+                                            "worktree_mismatch":  [
+
+                                                                  ],
+                                            "blob_mismatch":  [
+
+                                                              ]
+                                        },
+                      "n03-1115-1000":  {
+                                            "count":  17,
+                                            "worktree_mismatch":  [
+
+                                                                  ],
+                                            "blob_mismatch":  [
+
+                                                              ]
+                                        }
+                  },
+    "runs":  {
+                 "r10-h2-base":  {
+                                     "totals":  {
+                                                    "tests":  11,
+                                                    "failures":  11,
+                                                    "errors":  0,
+                                                    "skipped":  0,
+                                                    "passed":  0
+                                                },
+                                     "modules":  {
+                                                     "web-api":  {
+                                                                     "tests":  11,
+                                                                     "failures":  11,
+                                                                     "errors":  0,
+                                                                     "skipped":  0,
+                                                                     "passed":  0
+                                                                 }
+                                                 },
+                                     "failures":  [
+                                                      {
+                                                          "xml":  "xml/TEST-com.cryptoautotrader.api.service.SubmitPollRaceTest.xml",
+                                                          "case":  "D — 제출 결과와 체결·정산이 반영된 뒤 폴러가 재개해도 FILLED·체결량·정산값·포지션·잔액을 덮지 않는다",
+                                                          "message":  "org.opentest4j.AssertionFailedError: [🔴 종결·정산 결과를 낡은 SUBMITTING 엔티티로 덮지 않는다] \r\nexpected: \"state=FILLED | uuid=uuid-race-d | submittedAt=2026-11-15T06:54:54.340778Z | filled=9.80000000 | price=300.00000000 | filledAt=2026"
+                                                      },
+                                                      {
+                                                          "xml":  "xml/TEST-com.cryptoautotrader.api.service.SubmitPollRaceTest.xml",
+                                                          "case":  "C — 제출 결과 뒤 조회 \u0027찾음\u0027 으로 재개해도 응답 원문·제출 시각을 덮지 않고 SUBMITTED 전이를 두 번 남기지 않는다",
+                                                          "message":  "org.opentest4j.AssertionFailedError: [🔴 제출 응답 원문을 낡은 엔티티의 null 로 덮지 않는다] \r\nexpected: \"{\"uuid\":\"uuid-race-c\",\"state\":\"wait\"}\"\r\n but was: null"
+                                                      },
+                                                      {
+                                                          "xml":  "xml/TEST-com.cryptoautotrader.api.service.SubmitPollRaceTest.xml",
+                                                          "case":  "LIVE SELL — 순서 A",
+                                                          "message":  "org.opentest4j.AssertionFailedError: \r\nExpecting actual:\r\n  [\"null→INTENT_READY\",\r\n    \"INTENT_READY→SUBMITTING\",\r\n    \"SUBMITTING→SUBMITTED\",\r\n    \"SUBMITTING→UNKNOWN\"]\r\nto contain exactly (and in same order):\r\n  [\"null"
+                                                      },
+                                                      {
+                                                          "xml":  "xml/TEST-com.cryptoautotrader.api.service.SubmitPollRaceTest.xml",
+                                                          "case":  "LIVE SELL — 순서 B",
+                                                          "message":  "org.opentest4j.AssertionFailedError: \r\nexpected: null\r\n but was: \"식별자로 조회되지 않음 — 미접수로 단정하지 않는다 (시도 0회)\""
+                                                      },
+                                                      {
+                                                          "xml":  "xml/TEST-com.cryptoautotrader.api.service.SubmitPollRaceTest.xml",
+                                                          "case":  "DYNAMIC BUY — 순서 A",
+                                                          "message":  "org.opentest4j.AssertionFailedError: \r\nExpecting actual:\r\n  [\"null→INTENT_READY\",\r\n    \"INTENT_READY→SUBMITTING\",\r\n    \"SUBMITTING→SUBMITTED\",\r\n    \"SUBMITTING→UNKNOWN\"]\r\nto contain exactly (and in same order):\r\n  [\"null"
+                                                      },
+                                                      {
+                                                          "xml":  "xml/TEST-com.cryptoautotrader.api.service.SubmitPollRaceTest.xml",
+                                                          "case":  "DYNAMIC BUY — 순서 B",
+                                                          "message":  "org.opentest4j.AssertionFailedError: \r\nexpected: null\r\n but was: \"식별자로 조회되지 않음 — 미접수로 단정하지 않는다 (시도 0회)\""
+                                                      },
+                                                      {
+                                                          "xml":  "xml/TEST-com.cryptoautotrader.api.service.SubmitPollRaceTest.xml",
+                                                          "case":  "DYNAMIC SELL — 순서 A",
+                                                          "message":  "org.opentest4j.AssertionFailedError: \r\nExpecting actual:\r\n  [\"null→INTENT_READY\",\r\n    \"INTENT_READY→SUBMITTING\",\r\n    \"SUBMITTING→SUBMITTED\",\r\n    \"SUBMITTING→UNKNOWN\"]\r\nto contain exactly (and in same order):\r\n  [\"null"
+                                                      },
+                                                      {
+                                                          "xml":  "xml/TEST-com.cryptoautotrader.api.service.SubmitPollRaceTest.xml",
+                                                          "case":  "DYNAMIC SELL — 순서 B",
+                                                          "message":  "org.opentest4j.AssertionFailedError: \r\nexpected: null\r\n but was: \"식별자로 조회되지 않음 — 미접수로 단정하지 않는다 (시도 0회)\""
+                                                      },
+                                                      {
+                                                          "xml":  "xml/TEST-com.cryptoautotrader.api.service.SubmitPollRaceTest.xml",
+                                                          "case":  "B — 폴러의 UNKNOWN 이 먼저 커밋되면 제출 결과가 SUBMITTED·주문번호를 붙이고 불명 사유를 해제한다",
+                                                          "message":  "org.opentest4j.AssertionFailedError: [주문번호를 확보했으므로 \u0027조회되지 않음\u0027 사유를 남기지 않는다] \r\nexpected: null\r\n but was: \"식별자로 조회되지 않음 — 미접수로 단정하지 않는다 (시도 0회)\""
+                                                      },
+                                                      {
+                                                          "xml":  "xml/TEST-com.cryptoautotrader.api.service.SubmitPollRaceTest.xml",
+                                                          "case":  "A — 폴러가 SUBMITTING 을 읽은 뒤 제출 결과가 커밋되면, 조회 \u0027없음\u0027 이 SUBMITTED·주문번호를 덮지 않는다",
+                                                          "message":  "org.opentest4j.AssertionFailedError: [🔴 커밋된 SUBMITTED 를 낡은 SUBMITTING 엔티티로 덮지 않는다] \r\nexpected: \"SUBMITTED\"\r\n but was: \"UNKNOWN\""
+                                                      },
+                                                      {
+                                                          "xml":  "xml/TEST-com.cryptoautotrader.api.service.SubmitPollRaceTest.xml",
+                                                          "case":  "E — 폴러가 식별자로 찾아 체결을 반영한 뒤 제출 호출이 통신 오류로 끝나도 FILLED 를 UNKNOWN 으로 바꾸지 않는다",
+                                                          "message":  "org.opentest4j.AssertionFailedError: [🔴 늦은 통신 오류가 종결을 UNKNOWN 으로 되돌리지 않는다] \r\nexpected: \"state=FILLED | uuid=uuid-race-e | submittedAt=2026-11-15T06:54:57.302433Z | filled=9.80000000 | price=300.00000000 | filledAt=2026-1"
+                                                      }
+                                                  ],
+                                     "metadata":  {
+                                                      "meta.txt":  "HEAD 42d2cd3ae08867d8cfcfb397418d8e5878c4e7c9\nM  web-api/src/main/java/com/cryptoautotrader/api/repository/OrderRepository.java\nM  web-api/src/main/java/com/cryptoautotrader/api/service/OrderExecutionEngine.java\nworktree_diff_sha256 2203f2838a06e6ea21e44edf14144c955707467706029aeb233a86a1600444ef\ngate_ms=off\nclasses=SubmitPollRaceTest\nstart 2026-11-15 15:54:31    \nend 2026-11-15 15:54:58     rc=1\n"
+                                                  },
+                                     "guards":  {
+                                                    "xml/NET-GUARD-summary.txt":  [
+                                                                                      "installed_during_run=true",
+                                                                                      "disabled_reason=null",
+                                                                                      "classes_checked=1",
+                                                                                      "blocked_external_attempts=0",
+                                                                                      "allowed_jndi_nameserver_probes=3",
+                                                                                      "allowed_own_interface_connections=0",
+                                                                                      "restored_security_manager=null"
+                                                                                  ]
+                                                }
+                                 },
+                 "r11-pg-base":  {
+                                     "totals":  {
+                                                    "tests":  14,
+                                                    "failures":  13,
+                                                    "errors":  0,
+                                                    "skipped":  0,
+                                                    "passed":  1
+                                                },
+                                     "modules":  {
+                                                     "web-api":  {
+                                                                     "tests":  14,
+                                                                     "failures":  13,
+                                                                     "errors":  0,
+                                                                     "skipped":  0,
+                                                                     "passed":  1
+                                                                 }
+                                                 },
+                                     "failures":  [
+                                                      {
+                                                          "xml":  "xml/TEST-com.cryptoautotrader.api.service.SubmitPollRacePgTest.xml",
+                                                          "case":  "D — 제출 결과와 체결·정산이 반영된 뒤 폴러가 재개해도 FILLED·체결량·정산값·포지션·잔액을 덮지 않는다",
+                                                          "message":  "org.opentest4j.AssertionFailedError: [🔴 종결·정산 결과를 낡은 SUBMITTING 엔티티로 덮지 않는다] \r\nexpected: \"state=FILLED | uuid=uuid-race-d | submittedAt=2026-11-15T06:55:19.860005Z | filled=9.80000000 | price=300.00000000 | filledAt=2026"
+                                                      },
+                                                      {
+                                                          "xml":  "xml/TEST-com.cryptoautotrader.api.service.SubmitPollRacePgTest.xml",
+                                                          "case":  "C — 제출 결과 뒤 조회 \u0027찾음\u0027 으로 재개해도 응답 원문·제출 시각을 덮지 않고 SUBMITTED 전이를 두 번 남기지 않는다",
+                                                          "message":  "org.opentest4j.AssertionFailedError: [🔴 제출 응답 원문을 낡은 엔티티의 null 로 덮지 않는다] \r\nexpected: \"{\"uuid\":\"uuid-race-c\",\"state\":\"wait\"}\"\r\n but was: null"
+                                                      },
+                                                      {
+                                                          "xml":  "xml/TEST-com.cryptoautotrader.api.service.SubmitPollRacePgTest.xml",
+                                                          "case":  "LIVE SELL — 순서 A",
+                                                          "message":  "org.opentest4j.AssertionFailedError: \r\nExpecting actual:\r\n  [\"null→INTENT_READY\",\r\n    \"INTENT_READY→SUBMITTING\",\r\n    \"SUBMITTING→SUBMITTED\",\r\n    \"SUBMITTING→UNKNOWN\"]\r\nto contain exactly (and in same order):\r\n  [\"null"
+                                                      },
+                                                      {
+                                                          "xml":  "xml/TEST-com.cryptoautotrader.api.service.SubmitPollRacePgTest.xml",
+                                                          "case":  "LIVE SELL — 순서 B",
+                                                          "message":  "org.opentest4j.AssertionFailedError: \r\nexpected: null\r\n but was: \"식별자로 조회되지 않음 — 미접수로 단정하지 않는다 (시도 0회)\""
+                                                      },
+                                                      {
+                                                          "xml":  "xml/TEST-com.cryptoautotrader.api.service.SubmitPollRacePgTest.xml",
+                                                          "case":  "DYNAMIC BUY — 순서 A",
+                                                          "message":  "org.opentest4j.AssertionFailedError: \r\nExpecting actual:\r\n  [\"null→INTENT_READY\",\r\n    \"INTENT_READY→SUBMITTING\",\r\n    \"SUBMITTING→SUBMITTED\",\r\n    \"SUBMITTING→UNKNOWN\"]\r\nto contain exactly (and in same order):\r\n  [\"null"
+                                                      },
+                                                      {
+                                                          "xml":  "xml/TEST-com.cryptoautotrader.api.service.SubmitPollRacePgTest.xml",
+                                                          "case":  "DYNAMIC BUY — 순서 B",
+                                                          "message":  "org.opentest4j.AssertionFailedError: \r\nexpected: null\r\n but was: \"식별자로 조회되지 않음 — 미접수로 단정하지 않는다 (시도 0회)\""
+                                                      },
+                                                      {
+                                                          "xml":  "xml/TEST-com.cryptoautotrader.api.service.SubmitPollRacePgTest.xml",
+                                                          "case":  "DYNAMIC SELL — 순서 A",
+                                                          "message":  "org.opentest4j.AssertionFailedError: \r\nExpecting actual:\r\n  [\"null→INTENT_READY\",\r\n    \"INTENT_READY→SUBMITTING\",\r\n    \"SUBMITTING→SUBMITTED\",\r\n    \"SUBMITTING→UNKNOWN\"]\r\nto contain exactly (and in same order):\r\n  [\"null"
+                                                      },
+                                                      {
+                                                          "xml":  "xml/TEST-com.cryptoautotrader.api.service.SubmitPollRacePgTest.xml",
+                                                          "case":  "DYNAMIC SELL — 순서 B",
+                                                          "message":  "org.opentest4j.AssertionFailedError: \r\nexpected: null\r\n but was: \"식별자로 조회되지 않음 — 미접수로 단정하지 않는다 (시도 0회)\""
+                                                      },
+                                                      {
+                                                          "xml":  "xml/TEST-com.cryptoautotrader.api.service.SubmitPollRacePgTest.xml",
+                                                          "case":  "B — 폴러의 UNKNOWN 이 먼저 커밋되면 제출 결과가 SUBMITTED·주문번호를 붙이고 불명 사유를 해제한다",
+                                                          "message":  "org.opentest4j.AssertionFailedError: [주문번호를 확보했으므로 \u0027조회되지 않음\u0027 사유를 남기지 않는다] \r\nexpected: null\r\n but was: \"식별자로 조회되지 않음 — 미접수로 단정하지 않는다 (시도 0회)\""
+                                                      },
+                                                      {
+                                                          "xml":  "xml/TEST-com.cryptoautotrader.api.service.SubmitPollRacePgTest.xml",
+                                                          "case":  "A — 폴러가 SUBMITTING 을 읽은 뒤 제출 결과가 커밋되면, 조회 \u0027없음\u0027 이 SUBMITTED·주문번호를 덮지 않는다",
+                                                          "message":  "org.opentest4j.AssertionFailedError: [🔴 커밋된 SUBMITTED 를 낡은 SUBMITTING 엔티티로 덮지 않는다] \r\nexpected: \"SUBMITTED\"\r\n but was: \"UNKNOWN\""
+                                                      },
+                                                      {
+                                                          "xml":  "xml/TEST-com.cryptoautotrader.api.service.SubmitPollRacePgTest.xml",
+                                                          "case":  "E — 폴러가 식별자로 찾아 체결을 반영한 뒤 제출 호출이 통신 오류로 끝나도 FILLED 를 UNKNOWN 으로 바꾸지 않는다",
+                                                          "message":  "org.opentest4j.AssertionFailedError: [🔴 늦은 통신 오류가 종결을 UNKNOWN 으로 되돌리지 않는다] \r\nexpected: \"state=FILLED | uuid=uuid-race-e | submittedAt=2026-11-15T06:55:22.817874Z | filled=9.80000000 | price=300.00000000 | filledAt=2026-1"
+                                                      },
+                                                      {
+                                                          "xml":  "xml/TEST-com.cryptoautotrader.api.service.SubmitPollRacePgTest.xml",
+                                                          "case":  "F — 제출 결과 기록 중 다른 경로가 행을 잠그고 FILLED 를 반영하면, 그 커밋 뒤 최신 행을 보고 덮지 않는다",
+                                                          "message":  "org.opentest4j.AssertionFailedError: [🔴 잠금 대기 뒤 최신 행(FILLED)을 보고 SUBMITTED 로 되돌리지 않는다] \r\nexpected: \"FILLED\"\r\n but was: \"SUBMITTED\""
+                                                      },
+                                                      {
+                                                          "xml":  "xml/TEST-com.cryptoautotrader.api.service.SubmitPollRacePgTest.xml",
+                                                          "case":  "G — 폴러가 조회 \u0027없음\u0027 으로 재개할 때 제출 결과가 행을 잠그고 커밋 전이면, 그 커밋 뒤 0행이 되어 쓰지 않는다",
+                                                          "message":  "org.opentest4j.AssertionFailedError: [🔴 잠금 대기 뒤 0행 — SUBMITTED 를 UNKNOWN 으로 덮지 않는다] \r\nexpected: \"SUBMITTED\"\r\n but was: \"UNKNOWN\""
+                                                      }
+                                                  ],
+                                     "metadata":  {
+                                                      "meta.txt":  "HEAD 42d2cd3ae08867d8cfcfb397418d8e5878c4e7c9\nM  web-api/src/main/java/com/cryptoautotrader/api/repository/OrderRepository.java\nM  web-api/src/main/java/com/cryptoautotrader/api/service/OrderExecutionEngine.java\nworktree_diff_sha256 2203f2838a06e6ea21e44edf14144c955707467706029aeb233a86a1600444ef\ngate_ms=off\nclasses=SubmitPollRacePgTest\nstart 2026-11-15 15:54:59    \nend 2026-11-15 15:55:39     rc=1\npg_db=r167_r11_pg_base_13153\n"
+                                                  },
+                                     "guards":  {
+                                                    "xml/NET-GUARD-summary.txt":  [
+                                                                                      "installed_during_run=true",
+                                                                                      "disabled_reason=null",
+                                                                                      "classes_checked=1",
+                                                                                      "blocked_external_attempts=0",
+                                                                                      "allowed_jndi_nameserver_probes=3",
+                                                                                      "allowed_own_interface_connections=0",
+                                                                                      "restored_security_manager=null"
+                                                                                  ]
+                                                }
+                                 },
+                 "r14-rel71-99e6ab10":  {
+                                            "totals":  {
+                                                           "tests":  546,
+                                                           "failures":  0,
+                                                           "errors":  0,
+                                                           "skipped":  5,
+                                                           "passed":  541
+                                                       },
+                                            "modules":  {
+                                                            "web-api":  {
+                                                                            "tests":  546,
+                                                                            "failures":  0,
+                                                                            "errors":  0,
+                                                                            "skipped":  5,
+                                                                            "passed":  541
+                                                                        }
+                                                        },
+                                            "failures":  [
+
+                                                         ],
+                                            "metadata":  {
+                                                             "meta.txt":  "HEAD 99e6ab109c8a2b3778d2d5ddb430e06d1f308d6f\nworktree_diff_sha256 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\ngate_ms=off\nclasses=AtomicPathBypassTest BtcGateSupplyEndToEndTest BtcGateUnknownEntryTest CancelConfirmAndLateFillCleanupTest CancelOutcomeUnknownTest CandleGapExitTest ClaimAndUnknownTrackingTest ConcurrentEntryCapTest ConcurrentFillSettlementTest DailySma20LiveOrderPathTest DataControllerIntegrationTest DoubleSellGuardTest DynamicBuyCompletesConsistentlyTest DynamicBuyExternalSubmissionBoundaryTest DynamicBuyOuterWriteOrderingTest DynamicCircuitBreakerTest DynamicFillAccountingTest DynamicJudgeClockTest DynamicPaperTradingTest DynamicPoolReservationTest DynamicScanTransitionGuardTest DynamicSessionRowLockContentionTest DynamicSlWatchdogNoiseTest DynamicStopRaceTest EngineParityTest EntryPriorityEndToEndTest EntryPriorityRoundsTest ExchangeRecoveryRestartTest ExecutorBarrierPremiseProbeTest ExecutorBarrierTest G1SubmitBoundaryDiagTest IntentPrecommitAndOnceOnlyTest LateOrderSubmissionAfterStopTest LimitedTestExchangeRecoveryTest LiveEmergencyStopUnderConcurrentWriteTest LiveStopUnderConcurrentWriteTest N15EntryExpiryTest N15FinalApprovalBoundaryTest N15PgLockWaitExpiryTest N16InvalidPriceReproTest N17RestInvalidPriceTest N19RestFallbackItemDefenseTest O1O3LogContractTest OrderExecutionEngineTest OrderExecutorDrainPredicateGapTest OrderSubmitAfterCommitTest PaperStopUnderConcurrentWriteTest PositionLimitTest R5RealCashflowRiskTest RateLimiterEmergencyStopTest RealtimeProtectionSaturationTest RealtimeThrottleCrossingTest SchedulerProfileCleanupTest SellQuarantineReleaseTest SharedLoopRoundsActiveTest SharedMarketDataExecutorSaturationTest SharedPaperLoopIsolationTest SlWatchdogFreshnessTest Sma20LiveAlignedGapsTest Sma20LiveAlignedPaperSameInputTest SnapshotBoundaryRaceTest StaleRealtimeExitTest StopVersusInFlightExitRaceTest SubmitOrderBoundaryProbeTest SubmitPollRaceTest SubmitResponseUnknownTest TelegramQueueSaturationTest TelegramTestIsolationTest UnknownOrderAdjustmentTest WalkForwardGateTimeframeTest WsFallbackTest\nstart 2026-11-15 15:56:41    \nend 2026-11-15 16:00:27     rc=0\n"
+                                                         },
+                                            "guards":  {
+                                                           "xml/NET-GUARD-summary.txt":  [
+                                                                                             "installed_during_run=true",
+                                                                                             "disabled_reason=null",
+                                                                                             "classes_checked=70",
+                                                                                             "blocked_external_attempts=0",
+                                                                                             "allowed_jndi_nameserver_probes=3",
+                                                                                             "allowed_own_interface_connections=27",
+                                                                                             "restored_security_manager=null"
+                                                                                         ]
+                                                       }
+                                        },
+                 "pg99-SubmitPollRacePgTest":  {
+                                                   "totals":  {
+                                                                  "tests":  14,
+                                                                  "failures":  0,
+                                                                  "errors":  0,
+                                                                  "skipped":  0,
+                                                                  "passed":  14
+                                                              },
+                                                   "modules":  {
+                                                                   "web-api":  {
+                                                                                   "tests":  14,
+                                                                                   "failures":  0,
+                                                                                   "errors":  0,
+                                                                                   "skipped":  0,
+                                                                                   "passed":  14
+                                                                               }
+                                                               },
+                                                   "failures":  [
+
+                                                                ],
+                                                   "metadata":  {
+                                                                    "meta.txt":  "HEAD 99e6ab109c8a2b3778d2d5ddb430e06d1f308d6f\nworktree_diff_sha256 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\ngate_ms=off\nclasses=SubmitPollRacePgTest\nstart 2026-11-15 16:04:21    \nend 2026-11-15 16:04:45     rc=0\npg_db=r167_submitpollracepgtest_19888 env=RACE_PG_URL\n"
+                                                                },
+                                                   "guards":  {
+                                                                  "xml/NET-GUARD-summary.txt":  [
+                                                                                                    "installed_during_run=true",
+                                                                                                    "disabled_reason=null",
+                                                                                                    "classes_checked=1",
+                                                                                                    "blocked_external_attempts=0",
+                                                                                                    "allowed_jndi_nameserver_probes=3",
+                                                                                                    "allowed_own_interface_connections=0",
+                                                                                                    "restored_security_manager=null"
+                                                                                                ]
+                                                              }
+                                               },
+                 "pg99-SettlementRoundingPgTest":  {
+                                                       "totals":  {
+                                                                      "tests":  17,
+                                                                      "failures":  1,
+                                                                      "errors":  0,
+                                                                      "skipped":  0,
+                                                                      "passed":  16
+                                                                  },
+                                                       "modules":  {
+                                                                       "web-api":  {
+                                                                                       "tests":  17,
+                                                                                       "failures":  1,
+                                                                                       "errors":  0,
+                                                                                       "skipped":  0,
+                                                                                       "passed":  16
+                                                                                   }
+                                                                   },
+                                                       "failures":  [
+                                                                        {
+                                                                            "xml":  "xml/TEST-com.cryptoautotrader.api.service.SettlementRoundingPgTest.xml",
+                                                                            "case":  "executionError",
+                                                                            "message":  "java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 2건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-13-Worker-0] (JDK 프레임만), resolve api.upbit.com [HttpClient-14-Worker-0] (JDK 프레임만)]"
+                                                                        }
+                                                                    ],
+                                                       "metadata":  {
+                                                                        "meta.txt":  "HEAD 99e6ab109c8a2b3778d2d5ddb430e06d1f308d6f\nworktree_diff_sha256 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\ngate_ms=off\nclasses=SettlementRoundingPgTest\nstart 2026-11-15 16:03:57    \nend 2026-11-15 16:04:20     rc=1\npg_db=r167_settlementroundingpgtest_6030 env=SR_PG_URL\n"
+                                                                    },
+                                                       "guards":  {
+                                                                      "xml/NET-GUARD-summary.txt":  [
+                                                                                                        "installed_during_run=true",
+                                                                                                        "disabled_reason=null",
+                                                                                                        "classes_checked=1",
+                                                                                                        "blocked_external_attempts=2",
+                                                                                                        "allowed_jndi_nameserver_probes=3",
+                                                                                                        "allowed_own_interface_connections=0",
+                                                                                                        "restored_security_manager=null"
+                                                                                                    ]
+                                                                  }
+                                                   },
+                 "pgbase-SettlementRoundingPgTest":  {
+                                                         "totals":  {
+                                                                        "tests":  17,
+                                                                        "failures":  1,
+                                                                        "errors":  0,
+                                                                        "skipped":  0,
+                                                                        "passed":  16
+                                                                    },
+                                                         "modules":  {
+                                                                         "web-api":  {
+                                                                                         "tests":  17,
+                                                                                         "failures":  1,
+                                                                                         "errors":  0,
+                                                                                         "skipped":  0,
+                                                                                         "passed":  16
+                                                                                     }
+                                                                     },
+                                                         "failures":  [
+                                                                          {
+                                                                              "xml":  "xml/TEST-com.cryptoautotrader.api.service.SettlementRoundingPgTest.xml",
+                                                                              "case":  "executionError",
+                                                                              "message":  "java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 2건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-13-Worker-0] (JDK 프레임만), resolve api.upbit.com [HttpClient-14-Worker-0] (JDK 프레임만)]"
+                                                                          }
+                                                                      ],
+                                                         "metadata":  {
+                                                                          "meta.txt":  "HEAD 99e6ab109c8a2b3778d2d5ddb430e06d1f308d6f\nM  web-api/src/main/java/com/cryptoautotrader/api/repository/OrderRepository.java\nM  web-api/src/main/java/com/cryptoautotrader/api/service/OrderExecutionEngine.java\nworktree_diff_sha256 2203f2838a06e6ea21e44edf14144c955707467706029aeb233a86a1600444ef\ngate_ms=off\nclasses=SettlementRoundingPgTest\nstart 2026-11-15 16:05:04    \nend 2026-11-15 16:05:33     rc=1\npg_db=r167_settlementroundingpgtest_21159 env=SR_PG_URL\n"
+                                                                      },
+                                                         "guards":  {
+                                                                        "xml/NET-GUARD-summary.txt":  [
+                                                                                                          "installed_during_run=true",
+                                                                                                          "disabled_reason=null",
+                                                                                                          "classes_checked=1",
+                                                                                                          "blocked_external_attempts=2",
+                                                                                                          "allowed_jndi_nameserver_probes=3",
+                                                                                                          "allowed_own_interface_connections=0",
+                                                                                                          "restored_security_manager=null"
+                                                                                                      ]
+                                                                    }
+                                                     },
+                 "full-99e6ab10":  {
+                                       "totals":  {
+                                                      "tests":  1822,
+                                                      "failures":  12,
+                                                      "errors":  0,
+                                                      "skipped":  88,
+                                                      "passed":  1722
+                                                  },
+                                       "modules":  {
+                                                       "core-engine":  {
+                                                                           "tests":  298,
+                                                                           "failures":  0,
+                                                                           "errors":  0,
+                                                                           "skipped":  7,
+                                                                           "passed":  291
+                                                                       },
+                                                       "exchange-adapter":  {
+                                                                                "tests":  11,
+                                                                                "failures":  0,
+                                                                                "errors":  0,
+                                                                                "skipped":  0,
+                                                                                "passed":  11
+                                                                            },
+                                                       "strategy-lib":  {
+                                                                            "tests":  113,
+                                                                            "failures":  0,
+                                                                            "errors":  0,
+                                                                            "skipped":  0,
+                                                                            "passed":  113
+                                                                        },
+                                                       "web-api":  {
+                                                                       "tests":  1400,
+                                                                       "failures":  12,
+                                                                       "errors":  0,
+                                                                       "skipped":  81,
+                                                                       "passed":  1307
+                                                                   }
+                                                   },
+                                       "failures":  [
+                                                        {
+                                                            "xml":  "xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicPaperBuySameTickWatchlistTest.xml",
+                                                            "case":  "executionError",
+                                                            "message":  "java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-598-Worker-0] (JDK 프레임만)]"
+                                                        },
+                                                        {
+                                                            "xml":  "xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicPaperTradingTest.xml",
+                                                            "case":  "executionError",
+                                                            "message":  "java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-599-Worker-0] (JDK 프레임만)]"
+                                                        },
+                                                        {
+                                                            "xml":  "xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicScanTransitionGuardTest.xml",
+                                                            "case":  "executionError",
+                                                            "message":  "java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-614-Worker-0] (JDK 프레임만)]"
+                                                        },
+                                                        {
+                                                            "xml":  "xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicTradingSlWatchdogRecoveryTest.xml",
+                                                            "case":  "executionError",
+                                                            "message":  "java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 2건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-627-Worker-0] (JDK 프레임만), resolve api.upbit.com [HttpClient-640-Worker-0] (JDK 프레임만)]"
+                                                        },
+                                                        {
+                                                            "xml":  "xml/web-api/TEST-com.cryptoautotrader.api.service.EntryPriorityRoundsTest.xml",
+                                                            "case":  "executionError",
+                                                            "message":  "java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-641-Worker-0] (JDK 프레임만)]"
+                                                        },
+                                                        {
+                                                            "xml":  "xml/web-api/TEST-com.cryptoautotrader.api.service.ExchangeRecoveryRestartTest.xml",
+                                                            "case":  "executionError",
+                                                            "message":  "java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 3건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-659-Worker-0] (JDK 프레임만), resolve api.upbit.com [HttpClient-673-Worker-0] (JDK 프레임만), resolve api.upbit.com [HttpCli"
+                                                        },
+                                                        {
+                                                            "xml":  "xml/web-api/TEST-com.cryptoautotrader.api.service.KrwRestoreRollbackRetryTest.xml",
+                                                            "case":  "executionError",
+                                                            "message":  "java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-700-Worker-0] (JDK 프레임만)]"
+                                                        },
+                                                        {
+                                                            "xml":  "xml/web-api/TEST-com.cryptoautotrader.api.service.N15FinalApprovalBoundaryTest.xml",
+                                                            "case":  "executionError",
+                                                            "message":  "java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-753-Worker-0] (JDK 프레임만)]"
+                                                        },
+                                                        {
+                                                            "xml":  "xml/web-api/TEST-com.cryptoautotrader.api.service.O1O3LogContractTest.xml",
+                                                            "case":  "executionError",
+                                                            "message":  "java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-798-Worker-0] (JDK 프레임만)]"
+                                                        },
+                                                        {
+                                                            "xml":  "xml/web-api/TEST-com.cryptoautotrader.api.service.SchedulerProfileCleanupTest.xml",
+                                                            "case":  "executionError",
+                                                            "message":  "java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 2건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-847-Worker-0] (JDK 프레임만), resolve api.upbit.com [HttpClient-860-Worker-0] (JDK 프레임만)]"
+                                                        },
+                                                        {
+                                                            "xml":  "xml/web-api/TEST-com.cryptoautotrader.api.service.Sma20LiveAlignedGapsTest.xml",
+                                                            "case":  "executionError",
+                                                            "message":  "java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-918-Worker-0] (JDK 프레임만)]"
+                                                        },
+                                                        {
+                                                            "xml":  "xml/web-api/TEST-com.cryptoautotrader.api.support.sqltrace.SqlTraceSelfTest.xml",
+                                                            "case":  "executionError",
+                                                            "message":  "java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-1042-Worker-0] (JDK 프레임만)]"
+                                                        }
+                                                    ],
+                                       "metadata":  {
+                                                        "cmd.txt":  "cmd ./gradlew cleanTest test --continue\n",
+                                                        "git-status.txt":  "",
+                                                        "time.txt":  "HEAD 99e6ab109c8a2b3778d2d5ddb430e06d1f308d6f dirty=0\nworktree_diff_sha256 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\nenv DRAIN_GAP_GATE_MS=unset N15_PG_URL=unset G1_OUTBOUND_GUARD=unset TEST_NET_GUARD=unset\nstart 2026-11-15 16:06:32    \nrc=1 end 2026-11-15 16:27:07    \n"
+                                                    },
+                                       "guards":  {
+                                                      "xml/web-api/NET-GUARD-summary.txt":  [
+                                                                                                "installed_during_run=true",
+                                                                                                "disabled_reason=null",
+                                                                                                "classes_checked=190",
+                                                                                                "blocked_external_attempts=16",
+                                                                                                "allowed_jndi_nameserver_probes=3",
+                                                                                                "allowed_own_interface_connections=69",
+                                                                                                "restored_security_manager=null"
+                                                                                            ]
+                                                  }
+                                   }
+             },
+    "jars":  {
+                 "b5cd1d0":  {
+                                 "file_sha256":  "a7ef759f86c6048b442b1fe37019ed2560fd87453fbea8991a67f49d8d28c79f",
+                                 "entries":  881,
+                                 "manifest_sha256":  "a66d2ccdb60de900c596edab2dad81904aaf173d0242c1f145c96f400ddda9ca",
+                                 "diff_to_candidate":  {
+                                                           "changed":  [
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/controller/PaperTradingController.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/dto/PaperTradingStartRequest.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/dto/PerformanceSummaryResponse$PerformanceSummaryResponseBuilder.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/dto/PerformanceSummaryResponse$RegimeStat$RegimeStatBuilder.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/dto/PerformanceSummaryResponse$RegimeStat.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/dto/PerformanceSummaryResponse$SessionPerformance$SessionPerformanceBuilder.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/dto/PerformanceSummaryResponse$SessionPerformance.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/dto/PerformanceSummaryResponse.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/entity/paper/PaperPositionEntity$PaperPositionEntityBuilder.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/entity/paper/PaperPositionEntity.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/entity/paper/VirtualBalanceEntity$VirtualBalanceEntityBuilder.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/entity/paper/VirtualBalanceEntity.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/repository/OrderRepository.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/repository/paper/PaperPositionRepository.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/repository/paper/VirtualBalanceRepository.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/service/CandleFreshnessGuard.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$1.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$2.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$3.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$BlackSwanGateDecision.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$BuyCandidate.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$EmptyPositionOutcome.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/service/EntryPriorityRounds.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService$1.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService$EmptyPositionOutcome.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService$PriceSnapshot.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$1.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$2.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$3.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$4.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$5.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$CancelOutcome.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$IntentExpired.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$ReservationRejected.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$SubmitRejection.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/service/PaperTradingService$1.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/service/PaperTradingService$RiskMetrics.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/service/PaperTradingService.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/service/RiskManagementService.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/service/TelegramNotificationService$Attempt.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/service/TelegramNotificationService$Outcome.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/service/TelegramNotificationService$Reply.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/service/TelegramNotificationService$SendMessageRequest.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/service/TelegramNotificationService$TradeEvent.class",
+                                                                           "BOOT-INF/classes/com/cryptoautotrader/api/service/TelegramNotificationService.class"
+                                                                       ],
+                                                           "added":  [
+                                                                         "BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$ClosingSellIntent.class",
+                                                                         "BOOT-INF/classes/com/cryptoautotrader/api/service/PaperExecutionMode.class",
+                                                                         "BOOT-INF/classes/com/cryptoautotrader/api/service/PaperMaxInvestment.class",
+                                                                         "BOOT-INF/classes/com/cryptoautotrader/api/service/PaperTradingService$2.class",
+                                                                         "BOOT-INF/classes/com/cryptoautotrader/api/service/PaperTradingService$AlignedEntryExpired.class",
+                                                                         "BOOT-INF/classes/com/cryptoautotrader/api/service/PaperTradingService$SessionValuation.class",
+                                                                         "BOOT-INF/classes/com/cryptoautotrader/api/service/RealtimeProtectLines$Collector.class",
+                                                                         "BOOT-INF/classes/com/cryptoautotrader/api/service/RealtimeProtectLines$Line.class",
+                                                                         "BOOT-INF/classes/com/cryptoautotrader/api/service/RealtimeProtectLines.class",
+                                                                         "BOOT-INF/classes/com/cryptoautotrader/api/service/RealtimeProtectionDispatcher$CoinLane.class",
+                                                                         "BOOT-INF/classes/com/cryptoautotrader/api/service/RealtimeProtectionDispatcher$Engine.class",
+                                                                         "BOOT-INF/classes/com/cryptoautotrader/api/service/RealtimeProtectionDispatcher$Snapshot.class",
+                                                                         "BOOT-INF/classes/com/cryptoautotrader/api/service/RealtimeProtectionDispatcher.class",
+                                                                         "BOOT-INF/classes/db/migration/V96__paper_aligned_runtime_state.sql"
+                                                                     ],
+                                                           "deleted":  [
+
+                                                                       ]
+                                                       }
+                             },
+                 "88f06345":  {
+                                  "file_sha256":  "0834382ab008e1b203b6f74718799dc183e63b2c3cf9d67b6c974b6c30c5e100",
+                                  "entries":  895,
+                                  "manifest_sha256":  "a91ffaafa3b1b5b5e2698cbaabb4831e2d692e273729a49d278e7768aed846cf",
+                                  "diff_to_candidate":  {
+                                                            "changed":  [
+                                                                            "BOOT-INF/classes/com/cryptoautotrader/api/repository/OrderRepository.class",
+                                                                            "BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$5.class",
+                                                                            "BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$CancelOutcome.class",
+                                                                            "BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$SubmitRejection.class",
+                                                                            "BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine.class"
+                                                                        ],
+                                                            "added":  [
+
+                                                                      ],
+                                                            "deleted":  [
+
+                                                                        ]
+                                                        }
+                              },
+                 "99e6ab10":  {
+                                  "file_sha256":  "f7450f131b87f11687c7f4124458e7e4646a4fe9b9ef1ec3419e63f56b8e8fd5",
+                                  "entries":  895,
+                                  "manifest_sha256":  "7df5758fc48231372a9a507b228bafb5bfed1648332a8566e0881d80e2e1176d"
+                              }
+             },
+    "n03":  {
+                "n03-1113-2200":  {
+                                      "server_report_hashes":  {
+                                                                   "20261113-2200.txt":  true,
+                                                                   "20261113-2200.txt.msg":  true,
+                                                                   "20261113-2200.txt.raw":  true
+                                                               },
+                                      "server_record_matches_local":  {
+                                                                          "20261113-2200.txt":  true,
+                                                                          "20261113-2200.txt.msg":  true,
+                                                                          "20261113-2200.txt.raw":  true
+                                                                      },
+                                      "runtime":  "2026-11-15 06:36:15\nserver 2026-11-15 15:36:16 KST\n2026-11-15 06:36:18\n",
+                                      "last_send":  "2026-11-15 10:00:04 KST 보고 전송 성공 · 🟢 점검 항목 정상\n"
+                                  },
+                "n03-1114-1000":  {
+                                      "server_report_hashes":  {
+                                                                   "20261114-1000.txt":  true,
+                                                                   "20261114-1000.txt.msg":  true,
+                                                                   "20261114-1000.txt.raw":  true
+                                                               },
+                                      "server_record_matches_local":  {
+                                                                          "20261114-1000.txt":  true,
+                                                                          "20261114-1000.txt.msg":  true,
+                                                                          "20261114-1000.txt.raw":  true
+                                                                      },
+                                      "runtime":  "2026-11-15 06:36:19\nserver 2026-11-15 15:36:20 KST\n2026-11-15 06:36:23\n",
+                                      "last_send":  "2026-11-15 10:00:04 KST 보고 전송 성공 · 🟢 점검 항목 정상\n"
+                                  },
+                "n03-1114-2200":  {
+                                      "server_report_hashes":  {
+                                                                   "20261114-2200.txt":  true,
+                                                                   "20261114-2200.txt.msg":  true,
+                                                                   "20261114-2200.txt.raw":  true
+                                                               },
+                                      "server_record_matches_local":  {
+                                                                          "20261114-2200.txt":  true,
+                                                                          "20261114-2200.txt.msg":  true,
+                                                                          "20261114-2200.txt.raw":  true
+                                                                      },
+                                      "runtime":  "2026-11-15 06:36:23\nserver 2026-11-15 15:36:25 KST\n2026-11-15 06:36:27\n",
+                                      "last_send":  "2026-11-15 10:00:04 KST 보고 전송 성공 · 🟢 점검 항목 정상\n"
+                                  },
+                "n03-1115-1000":  {
+                                      "server_report_hashes":  {
+                                                                   "20261115-1000.txt":  true,
+                                                                   "20261115-1000.txt.msg":  true,
+                                                                   "20261115-1000.txt.raw":  true
+                                                               },
+                                      "server_record_matches_local":  {
+                                                                          "20261115-1000.txt":  true,
+                                                                          "20261115-1000.txt.msg":  true,
+                                                                          "20261115-1000.txt.raw":  true
+                                                                      },
+                                      "runtime":  "2026-11-15 06:36:27\nserver 2026-11-15 15:36:28 KST\n2026-11-15 06:36:31\n",
+                                      "last_send":  "2026-11-15 10:00:04 KST 보고 전송 성공 · 🟢 점검 항목 정상\n"
+                                  }
+            },
+    "existing_pg":  {
+                        "pg99-ClosingIntentAtomicityPgTest":  {
+                                                                  "tests":  5,
+                                                                  "failures":  0,
+                                                                  "errors":  0,
+                                                                  "skipped":  0,
+                                                                  "passed":  5
+                                                              },
+                        "pg99-ClosingIntentRollbackPgTest":  {
+                                                                 "tests":  2,
+                                                                 "failures":  0,
+                                                                 "errors":  0,
+                                                                 "skipped":  0,
+                                                                 "passed":  2
+                                                             },
+                        "pg99-LiveLossWindowPgTest":  {
+                                                          "tests":  7,
+                                                          "failures":  0,
+                                                          "errors":  0,
+                                                          "skipped":  0,
+                                                          "passed":  7
+                                                      },
+                        "pg99-N15PgLockWaitExpiryTest":  {
+                                                             "tests":  13,
+                                                             "failures":  0,
+                                                             "errors":  0,
+                                                             "skipped":  0,
+                                                             "passed":  13
+                                                         },
+                        "pg99-PartialSellRealizedPnlPgTest":  {
+                                                                  "tests":  7,
+                                                                  "failures":  0,
+                                                                  "errors":  0,
+                                                                  "skipped":  0,
+                                                                  "passed":  7
+                                                              },
+                        "pg99-PhantomKeepsConfirmedPnlPgTest":  {
+                                                                    "tests":  4,
+                                                                    "failures":  0,
+                                                                    "errors":  0,
+                                                                    "skipped":  0,
+                                                                    "passed":  4
+                                                                },
+                        "pg99-RealLossGlobalPgTest":  {
+                                                          "tests":  3,
+                                                          "failures":  0,
+                                                          "errors":  0,
+                                                          "skipped":  0,
+                                                          "passed":  3
+                                                      },
+                        "pg99-RealLossThreeFormulaPgTest":  {
+                                                                "tests":  8,
+                                                                "failures":  0,
+                                                                "errors":  0,
+                                                                "skipped":  0,
+                                                                "passed":  8
+                                                            },
+                        "pg99-SettlementRoundingPgTest":  {
+                                                              "tests":  17,
+                                                              "failures":  1,
+                                                              "errors":  0,
+                                                              "skipped":  0,
+                                                              "passed":  16
+                                                          },
+                        "pg99-SubmitPollRacePgTest":  {
+                                                          "tests":  14,
+                                                          "failures":  0,
+                                                          "errors":  0,
+                                                          "skipped":  0,
+                                                          "passed":  14
+                                                      }
+                    },
+    "refs":  {
+                 "HEAD":  "7e77e34ad4f70fae6392f97e07bb80332a1f58a1",
+                 "origin/main":  "7e77e34ad4f70fae6392f97e07bb80332a1f58a1",
+                 "candidate/order-poll-race-b987d7a7":  "99e6ab109c8a2b3778d2d5ddb430e06d1f308d6f",
+                 "origin/candidate/order-poll-race-b987d7a7":  "99e6ab109c8a2b3778d2d5ddb430e06d1f308d6f",
+                 "integration/v158":  "88f06345af31888c2c8669ebe8ad00ca02cfd6d8"
+             },
+    "product_paths":  [
+                          "web-api/src/main/java/com/cryptoautotrader/api/repository/OrderRepository.java",
+                          "web-api/src/main/java/com/cryptoautotrader/api/service/OrderExecutionEngine.java"
+                      ],
+    "block_manifest":  {
+                           "count":  10,
+                           "worktree_mismatch":  [
+
+                                                 ],
+                           "blob_mismatch":  [
+
+                                             ]
+                       },
+    "jarm_embedded_matches_file":  true,
+    "entries_function_ast_matches_comparator":  true,
+    "rarx_same_as_v161":  true,
+    "standin_local_raw":  {
+                              "count":  1421,
+                              "worktree_mismatch":  [
+
+                                                    ],
+                              "blob_mismatch":  [
+
+                                                ]
+                          },
+    "bash_syntax":  {
+                        "U0.sh":  0,
+                        "U1.sh":  0,
+                        "U1되돌림.sh":  0,
+                        "U2.sh":  0,
+                        "U3.sh":  0,
+                        "U4.sh":  0,
+                        "UF2.sh":  0,
+                        "U되돌림.sh":  0,
+                        "U뒤관측.sh":  0,
+                        "U변수.sh":  0
+                    },
+    "documents":  {
+                      "lines":  {
+                                    "docs/START_HERE.md":  38,
+                                    "docs/LIMITED_LIVE_TEST_PLAN.md":  136,
+                                    "docs/CURRENT_HANDOFF.md":  35,
+                                    "docs/LIVE_READINESS.md":  49,
+                                    "docs/NOVEMBER_LIVE_UPGRADE.md":  58,
+                                    "docs/PROGRESS.md":  56,
+                                    "docs/README.md":  41,
+                                    "docs/evidence/review-7e77e34a/README.md":  57
+                                },
+                      "links":  115,
+                      "broken_links":  [
+
+                                       ],
+                      "foreign_characters":  [
+
+                                             ],
+                      "night_rule_unchanged":  true,
+                      "recent_progress_items":  5
+                  }
+}

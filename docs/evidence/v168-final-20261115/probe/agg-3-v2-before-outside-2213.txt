@@ -1,0 +1,26 @@
+실행 6회 · 사례 816건 · 실패 3
+클래스	13	14	15	16	17	18	19
+AlignedRestartContextTest	1/0	1/0	1/0	1/0	1/0	1/0	0/0
+AlignedV147FixesTest	12/0	12/0	12/0	12/0	12/0	4/0	8/0
+AlignedV148FixesTest	14/0	14/0	14/0	14/0	14/0	0/0	14/0
+AlignedV150FixesTest	8/0	8/0	8/0	8/0	8/0	0/0	8/0
+B01RealNextSellBarTest	2/0	2/0	2/0	2/0	0/0	2/0	2/0
+BtcGateUnknownEntryTest	2/1	3/0	3/0	2/1	0/0	2/1	3/0
+DailySma20LiveOrderPathTest	24/0	24/0	24/0	24/0	0/0	24/0	24/0
+DailySma20PaperForwardPathTest	8/0	8/0	8/0	0/0	8/0	8/0	8/0
+DynamicBlackSwanCooldownCrossKindTest	4/0	4/0	4/0	0/0	4/0	4/0	4/0
+EntryPriorityEndToEndTest	2/0	2/0	2/0	0/0	2/0	2/0	2/0
+ExitAbArmContractTest	2/0	2/0	2/0	0/0	2/0	2/0	2/0
+N15EntryExpiryTest	10/0	10/0	10/0	0/0	10/0	10/0	10/0
+R5RealCashflowRiskTest	7/0	7/0	7/0	0/0	7/0	7/0	7/0
+RealNextBarClockTest	1/0	1/0	0/0	1/0	1/0	1/0	1/0
+SharedLoopRoundsActiveTest	2/0	2/0	0/0	2/0	2/0	2/0	2/0
+SharedMarketDataExecutorSaturationTest	1/0	1/0	0/0	1/0	1/0	1/0	1/0
+SharedPaperLoopIsolationTest	2/0	0/0	2/0	2/0	2/0	2/0	2/0
+Sma20LiveAlignedGapsTest	6/0	0/0	6/0	6/0	6/0	6/0	6/0
+Sma20LiveAlignedPaperSameInputTest	0/0	15/0	15/0	15/0	15/0	15/0	15/0
+Sma20LivePaperSameInputTest	0/0	12/0	12/0	12/0	12/0	12/0	12/0
+--- 실패(성공/실패 표기: 성공수/실패수)
+11-15 22:13:33 BtcGateUnknownEntryTest :: 승인 시점: 평가 때 최신이던 BTC 캔들이 승인 전에 사라지면 LIVE·DYNAMIC 모두 '판정 불가' 로 거절, 다시 오면 승인 :: FAIL [평가 때는 관문 통과 — 회차에 접수]   [probe]
+11-15 22:16:54 BtcGateUnknownEntryTest :: 승인 시점: 평가 때 최신이던 BTC 캔들이 승인 전에 사라지면 LIVE·DYNAMIC 모두 '판정 불가' 로 거절, 다시 오면 승인 :: FAIL [평가 때는 관문 통과 — 회차에 접수]   [probe]
+11-15 22:18:01 BtcGateUnknownEntryTest :: 승인 시점: 평가 때 최신이던 BTC 캔들이 승인 전에 사라지면 LIVE·DYNAMIC 모두 '판정 불가' 로 거절, 다시 오면 승인 :: FAIL [평가 때는 관문 통과 — 회차에 접수]   [probe]

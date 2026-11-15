@@ -1,0 +1,47 @@
+installed_during_run=true
+disabled_reason=null
+classes_checked=12
+blocked_external_attempts=14
+allowed_jndi_nameserver_probes=3
+allowed_own_interface_connections=6
+restored_security_manager=null
+resolve api.upbit.com [HttpClient-14-Worker-0] (JDK 프레임만) @20:22:13.418239200 class=DynamicPaperBuySameTickWatchlistTest
+resolve api.upbit.com [HttpClient-15-Worker-0] (JDK 프레임만) @20:22:14.441718800 class=DynamicPaperTradingTest
+resolve api.upbit.com [HttpClient-30-Worker-0] (JDK 프레임만) @20:22:16.456732300 class=DynamicPaperTradingTest
+resolve api.upbit.com [HttpClient-43-Worker-0] (JDK 프레임만) @20:22:20.477290600 class=DynamicTradingSlWatchdogRecoveryTest
+resolve api.upbit.com [HttpClient-56-Worker-0] (JDK 프레임만) @20:22:21.599436600 class=DynamicTradingSlWatchdogRecoveryTest
+resolve api.upbit.com [HttpClient-57-Worker-0] (JDK 프레임만) @20:22:22.615104600 class=EntryPriorityRoundsTest
+resolve api.upbit.com [HttpClient-72-Worker-0] (JDK 프레임만) @20:22:24.622698300 class=ExchangeRecoveryRestartTest
+resolve api.upbit.com [HttpClient-86-Worker-0] (JDK 프레임만) @20:22:28.496641300 class=ExchangeRecoveryRestartTest
+resolve api.upbit.com [HttpClient-87-Worker-0] (JDK 프레임만) @20:22:28.629985 class=ExchangeRecoveryRestartTest
+resolve api.upbit.com [HttpClient-123-Worker-0] (JDK 프레임만) @20:22:36.633610900 class=SchedulerProfileCleanupTest
+resolve api.upbit.com [HttpClient-136-Worker-0] (JDK 프레임만) @20:22:44.503789 class=SchedulerProfileCleanupTest
+resolve api.upbit.com [HttpClient-137-Worker-0] (JDK 프레임만) @20:22:52.647176200 class=SchedulerProfileCleanupTest
+resolve api.upbit.com [HttpClient-138-Worker-0] (JDK 프레임만) @20:23:14.507405500 class=SchedulerProfileCleanupTest
+resolve api.upbit.com [HttpClient-150-Worker-0] (JDK 프레임만) @20:23:22.650814900 class=Sma20LiveAlignedGapsTest
+--- 허용한 권한 확인(패킷 없음)
+connect,resolve 168.126.63.1:53 [Test worker]
+connect,resolve 168.126.63.2:53 [Test worker]
+connect,resolve 168.126.63.1:53 [Test worker]
+--- 허용한 자기 인터페이스 연결(기계 안)
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:11365 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:11365 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+accept,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:11319 [http-nio-auto-10-Acceptor] (앱 프레임 없음) org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:513 <- org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:71 <- org.apache.tomcat.util.net.Acceptor.run:128
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:11320 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:11320 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+accept,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:10757 [http-nio-auto-11-Acceptor] (앱 프레임 없음) org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:513 <- org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:71 <- org.apache.tomcat.util.net.Acceptor.run:128
+--- 출처 추적(TEST_NET_TRACE=1, 호출 스레드의 선택기 질의)
+20:22:13.401986500 class=DynamicPaperBuySameTickWatchlistTest uri=https://api.upbit.com/websocket/v1 [Test worker] UpbitWebSocketClient.doConnect:177 <- UpbitWebSocketClient.connect:79 <- WsSubscriptionManager.recompute:75 <- WsSubscriptionManager.updateSource:41 <- DynamicTradingService.refreshWsSubscription:3452 <- DynamicTradingService.executeBuy:1796
+20:22:14.438893 class=DynamicPaperTradingTest uri=https://api.upbit.com/websocket/v1 [upbit-ws-scheduler] UpbitWebSocketClient.doConnect:177 <- UpbitWebSocketClient.lambda$scheduleReconnect$3:425
+20:22:16.455732300 class=DynamicPaperTradingTest uri=https://api.upbit.com/websocket/v1 [upbit-ws-scheduler] UpbitWebSocketClient.doConnect:177 <- UpbitWebSocketClient.lambda$scheduleReconnect$3:425
+20:22:20.477290600 class=DynamicTradingSlWatchdogRecoveryTest uri=https://api.upbit.com/websocket/v1 [upbit-ws-scheduler] UpbitWebSocketClient.doConnect:177 <- UpbitWebSocketClient.lambda$scheduleReconnect$3:425
+20:22:21.598749800 class=DynamicTradingSlWatchdogRecoveryTest uri=https://api.upbit.com/websocket/v1 [Test worker] UpbitWebSocketClient.doConnect:177 <- UpbitWebSocketClient.connect:79 <- WsSubscriptionManager.recompute:75 <- WsSubscriptionManager.updateSource:41 <- DynamicTradingService.refreshWsSubscription:3452 <- DynamicTradingService.warnStaleSlCheck:3646
+20:22:22.615104600 class=EntryPriorityRoundsTest uri=https://api.upbit.com/websocket/v1 [upbit-ws-scheduler] UpbitWebSocketClient.doConnect:177 <- UpbitWebSocketClient.lambda$scheduleReconnect$3:425
+20:22:24.621186 class=ExchangeRecoveryRestartTest uri=https://api.upbit.com/websocket/v1 [upbit-ws-scheduler] UpbitWebSocketClient.doConnect:177 <- UpbitWebSocketClient.lambda$scheduleReconnect$3:425
+20:22:28.495855 class=ExchangeRecoveryRestartTest uri=https://api.upbit.com/websocket/v1 [upbit-ws-scheduler] UpbitWebSocketClient.doConnect:177 <- UpbitWebSocketClient.lambda$scheduleReconnect$3:425
+20:22:28.629467800 class=ExchangeRecoveryRestartTest uri=https://api.upbit.com/websocket/v1 [upbit-ws-scheduler] UpbitWebSocketClient.doConnect:177 <- UpbitWebSocketClient.lambda$scheduleReconnect$3:425
+20:22:36.632436900 class=SchedulerProfileCleanupTest uri=https://api.upbit.com/websocket/v1 [upbit-ws-scheduler] UpbitWebSocketClient.doConnect:177 <- UpbitWebSocketClient.lambda$scheduleReconnect$3:425
+20:22:44.502169500 class=SchedulerProfileCleanupTest uri=https://api.upbit.com/websocket/v1 [upbit-ws-scheduler] UpbitWebSocketClient.doConnect:177 <- UpbitWebSocketClient.lambda$scheduleReconnect$3:425
+20:22:52.646171100 class=SchedulerProfileCleanupTest uri=https://api.upbit.com/websocket/v1 [upbit-ws-scheduler] UpbitWebSocketClient.doConnect:177 <- UpbitWebSocketClient.lambda$scheduleReconnect$3:425
+20:23:14.506872400 class=SchedulerProfileCleanupTest uri=https://api.upbit.com/websocket/v1 [upbit-ws-scheduler] UpbitWebSocketClient.doConnect:177 <- UpbitWebSocketClient.lambda$scheduleReconnect$3:425
+20:23:22.649815300 class=Sma20LiveAlignedGapsTest uri=https://api.upbit.com/websocket/v1 [upbit-ws-scheduler] UpbitWebSocketClient.doConnect:177 <- UpbitWebSocketClient.lambda$scheduleReconnect$3:425

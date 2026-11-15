@@ -1,0 +1,19 @@
+diff --git a/web-api/src/test/resources/META-INF/services/org.junit.jupiter.api.extension.Extension b/web-api/src/test/resources/META-INF/services/org.junit.jupiter.api.extension.Extension
+index 9e8f02e5..b6beeb2f 100644
+--- a/web-api/src/test/resources/META-INF/services/org.junit.jupiter.api.extension.Extension
++++ b/web-api/src/test/resources/META-INF/services/org.junit.jupiter.api.extension.Extension
+@@ -1 +1,2 @@
+ com.cryptoautotrader.api.support.NetworkIsolationExtension
++com.cryptoautotrader.api.support.ProbeTimeExtension
+diff --git a/web-api/src/test/resources/application-test.yml b/web-api/src/test/resources/application-test.yml
+index 9719a389..812f031f 100644
+--- a/web-api/src/test/resources/application-test.yml
++++ b/web-api/src/test/resources/application-test.yml
+@@ -75,6 +75,7 @@ server:
+ logging:
+   level:
+     com.cryptoautotrader: WARN
++    com.cryptoautotrader.api.service.EntryPriorityRounds: INFO   # 탐침 전용(v1.168, 미커밋) — 회차 접수·거절 원문
+     org.springframework.web: WARN
+     org.springframework.test: WARN
+ 

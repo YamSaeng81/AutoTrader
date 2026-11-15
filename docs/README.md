@@ -12,7 +12,7 @@
 | 시작 가능 여부 | [준비 목록](LIVE_READINESS.md) | 현재 체크 항목 |
 | F 명령 | [실행 절차](LIMITED_LIVE_TEST_RUNBOOK.md) | 필요한 F 변수/블록과 선행 조건 |
 | 점검 설치·전환·결과 해석 | [OPS](OPS_DAILY_CHECK.md) | 필요한 §번호 |
-| 새 코드 수용·허용 범위 | [최신 총괄 v1.167](evidence/review-40bf70b9/README.md) | 주문 확인 경합 최소 후보·검증, 운영 기록 읽기와 U0/U1 진행 범위 |
+| 새 코드 수용·허용 범위 | [최신 총괄 v1.168](evidence/review-7e77e34a/README.md) | 경합 보완·JARM 설계 수용, 외부 연결·새 분기 검증과 고정 실행안 준비 |
 | 엔진 공통 제약 | [ENGINE_PARITY](ENGINE_PARITY.md) | 변경하는 규칙/엔진의 항목 |
 
 ## 고정 계약·상세 설계 — 필요한 부분만

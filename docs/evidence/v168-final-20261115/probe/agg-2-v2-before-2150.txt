@@ -1,0 +1,31 @@
+실행 10회 · 사례 1360건 · 실패 8
+클래스	00	01	02	03	50	51	52	53	54	55	56	57	58	59
+AlignedRestartContextTest	1/0	1/0	1/0	0/0	1/0	1/0	0/0	1/0	1/0	1/0	0/0	1/0	1/0	0/0
+AlignedV147FixesTest	12/0	12/0	12/0	0/0	12/0	10/0	2/0	12/0	12/0	0/0	12/0	12/0	12/0	0/0
+AlignedV148FixesTest	14/0	14/0	14/0	0/0	14/0	0/0	14/0	14/0	14/0	0/0	14/0	14/0	14/0	0/0
+AlignedV150FixesTest	8/0	8/0	8/0	0/0	8/0	0/0	8/0	8/0	8/0	0/0	8/0	8/0	8/0	0/0
+B01RealNextSellBarTest	2/0	2/0	0/0	2/0	2/0	0/0	2/0	2/0	2/0	0/0	2/0	2/0	1/0	1/0
+BtcGateUnknownEntryTest	2/1	3/0	0/0	2/1	3/0	0/0	2/1	3/0	3/0	0/0	3/0	3/0	0/0	3/0
+DailySma20LiveOrderPathTest	24/0	24/0	0/0	24/0	24/0	0/0	24/0	24/0	24/0	0/0	24/0	24/0	0/0	24/0
+DailySma20PaperForwardPathTest	8/0	8/0	0/0	8/0	8/0	0/0	8/0	8/0	0/0	8/0	8/0	8/0	0/0	8/0
+DynamicBlackSwanCooldownCrossKindTest	4/0	4/0	0/0	4/0	4/0	0/0	4/0	4/0	0/0	4/0	4/0	4/0	0/0	4/0
+EntryPriorityEndToEndTest	2/0	2/0	0/0	2/0	2/0	0/0	2/0	2/0	0/0	2/0	2/0	2/0	0/0	2/0
+ExitAbArmContractTest	2/0	2/0	0/0	2/0	2/0	0/0	2/0	2/0	0/0	2/0	2/0	2/0	0/0	2/0
+N15EntryExpiryTest	10/0	10/0	0/0	10/0	10/0	0/0	10/0	10/0	0/0	10/0	10/0	10/0	0/0	10/0
+R5RealCashflowRiskTest	7/0	7/0	0/0	7/0	0/0	7/0	7/0	7/0	0/0	7/0	7/0	7/0	0/0	7/0
+RealNextBarClockTest	1/0	1/0	0/0	1/0	0/0	1/0	1/0	1/0	0/0	1/0	1/0	1/0	0/0	1/0
+SharedLoopRoundsActiveTest	2/0	1/0	1/0	2/0	0/0	2/0	2/0	2/0	0/0	2/0	2/0	2/0	0/0	2/0
+SharedMarketDataExecutorSaturationTest	1/0	0/0	1/0	1/0	0/0	1/0	1/0	1/0	0/0	1/0	1/0	0/0	1/0	1/0
+SharedPaperLoopIsolationTest	2/0	0/0	2/0	2/0	0/0	2/0	2/0	2/0	0/0	2/0	2/0	0/0	2/0	2/0
+Sma20LiveAlignedGapsTest	6/0	0/0	6/0	6/0	0/0	6/0	6/0	0/0	6/0	6/0	6/0	0/0	6/0	6/0
+Sma20LiveAlignedPaperSameInputTest	15/0	0/0	15/0	15/0	0/0	15/0	15/0	0/0	15/0	15/0	15/0	0/0	15/0	15/0
+Sma20LivePaperSameInputTest	1/0	11/0	12/0	12/0	0/0	12/0	12/0	0/0	11/1	11/1	11/1	0/0	11/1	11/1
+--- 실패(성공/실패 표기: 성공수/실패수)
+11-15 21:52:09 BtcGateUnknownEntryTest :: 승인 시점: 평가 때 최신이던 BTC 캔들이 승인 전에 사라지면 LIVE·DYNAMIC 모두 '판정 불가' 로 거절, 다시 오면 승인 :: FAIL [평가 때는 관문 통과 — 회차에 접수]   [probe]
+11-15 21:54:10 Sma20LivePaperSameInputTest :: S04a 승인 실행 만료 E 직전(E−1ms) — LIVE 진입, PAPER 는 이미 평가 시각에 진입 :: FAIL [E 직전 진입 — 실행 전 기대와 관측이 다르다(기대값을 고치지 말고 보고)]   [probe]
+11-15 21:55:33 Sma20LivePaperSameInputTest :: S04a 승인 실행 만료 E 직전(E−1ms) — LIVE 진입, PAPER 는 이미 평가 시각에 진입 :: FAIL [E 직전 진입 — 실행 전 기대와 관측이 다르다(기대값을 고치지 말고 보고)]   [probe]
+11-15 21:56:55 Sma20LivePaperSameInputTest :: S04a 승인 실행 만료 E 직전(E−1ms) — LIVE 진입, PAPER 는 이미 평가 시각에 진입 :: FAIL [E 직전 진입 — 실행 전 기대와 관측이 다르다(기대값을 고치지 말고 보고)]   [probe]
+11-15 21:58:17 Sma20LivePaperSameInputTest :: S04a 승인 실행 만료 E 직전(E−1ms) — LIVE 진입, PAPER 는 이미 평가 시각에 진입 :: FAIL [E 직전 진입 — 실행 전 기대와 관측이 다르다(기대값을 고치지 말고 보고)]   [probe]
+11-15 21:59:39 Sma20LivePaperSameInputTest :: S04a 승인 실행 만료 E 직전(E−1ms) — LIVE 진입, PAPER 는 이미 평가 시각에 진입 :: FAIL [E 직전 진입 — 실행 전 기대와 관측이 다르다(기대값을 고치지 말고 보고)]   [probe]
+11-15 22:00:21 BtcGateUnknownEntryTest :: 승인 시점: 평가 때 최신이던 BTC 캔들이 승인 전에 사라지면 LIVE·DYNAMIC 모두 '판정 불가' 로 거절, 다시 오면 승인 :: FAIL [평가 때는 관문 통과 — 회차에 접수]   [probe]
+11-15 22:03:02 BtcGateUnknownEntryTest :: 승인 시점: 평가 때 최신이던 BTC 캔들이 승인 전에 사라지면 LIVE·DYNAMIC 모두 '판정 불가' 로 거절, 다시 오면 승인 :: FAIL [평가 때는 관문 통과 — 회차에 접수]   [probe]

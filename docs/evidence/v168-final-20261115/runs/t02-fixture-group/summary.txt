@@ -1,0 +1,23 @@
+148 §3-3 — 별도 컨텍스트 기동 뒤 청산 대기·판단 시각·MDD 피크 보존	1	실패0	오류0	건너뜀0
+147 보완 — 쓰기 직전 만료·청산 대기(0원 금지·사유 보존·첫 유효 시세)·위험 입력·원자성·커밋 뒤 보고	12	실패0	오류0	건너뜀0
+148 보완 — 대기 정산 가격·삭제 거절·미정산 보유 노출·커밋 뒤 보고 격리·런타임 상태 열	14	실패0	오류0	건너뜀0
+150 보완 — 정지 결과 DB 확정·일괄 정지 수·보유 한 스냅샷·잔고/목록/성과 평가 상태	8	실패0	오류0	건너뜀0
+B01 실제 다음 매도 봉 — 공통 시계로 다음 마감 봉, 평가 표시·보유 시작을 건드리지 않음	2	실패0	오류0	건너뜀0
+E R5 — 실제 매수→매도 커밋 뒤 위험 입력: 이익·수수료 경계·손실에서 LIVE 관례 손익과 PAPER 위험 손익 부호 일치, 연속 손실·일 손실 판정	7	실패0	오류0	건너뜀0
+D 실제 다음 봉 — 공통 시계로 마감 1µs 전(형성 중)·마감 정각(새 닫힌 봉), 마지막 평가 표시를 지우지 않음	1	실패0	오류0	건너뜀0
+회차 활성 공유 루프 — 기존 76 + 새 9(LIVE_ALIGNED) + REAL 후보·포지션: 기존 결정·REAL 불변, PAPER 는 REAL 뒤	2	실패0	오류0	건너뜀0
+F 공유 marketDataExecutor 실제 포화 — 포화 중 발행·해제 회복·대기열 지연 (래치·Future·장벽)	1	실패0	오류0	건너뜀0
+SMA20 LIVE_ALIGNED 남은 차이 — 평균가·급변 간격·위험 관문·가격 없는 시간 청산·정지/청산 경합	6	실패0	오류0	건너뜀0
+SMA20 같은 입력 LIVE↔PAPER(LIVE_ALIGNED) — 판단 흐름 정렬 확인	15	실패0	오류0	건너뜀0
+SMA20 같은 입력 LIVE↔PAPER 비교 — 진입·관문·회차·가격·장중 SL/TP·시세 무효·위험/한도·청산	12	실패0	오류0	건너뜀0
+합계	81	실패0	오류0	건너뜀0
+외부WS연결·구독줄=0
+--- NET-GUARD
+installed_during_run=true
+disabled_reason=null
+classes_checked=12
+blocked_external_attempts=0
+allowed_jndi_nameserver_probes=3
+allowed_own_interface_connections=33
+restored_security_manager=null
+
