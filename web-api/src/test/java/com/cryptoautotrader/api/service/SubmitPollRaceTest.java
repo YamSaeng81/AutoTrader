@@ -74,6 +74,10 @@ class SubmitPollRaceTest extends IntegrationTestBase {
     @AfterEach
     void cleanUp() {
         createdSessions.forEach(id -> {
+            // 실제 PG 에는 trade_log → order 외래키가 있다(SubmitPollRacePgTest). H2 에서도 같은 순서로 지운다.
+            List<Long> orderIds = orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc("LIVE", id).stream()
+                    .map(OrderEntity::getId).toList();
+            tradeLogRepository.findAll().stream().filter(l -> orderIds.contains(l.getOrderId())).forEach(tradeLogRepository::delete);
             orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc("LIVE", id).forEach(orderRepository::delete);
             positionRepository.findBySessionKindAndSessionId("LIVE", id).forEach(positionRepository::delete);
             sessionRepository.deleteById(id);
@@ -83,9 +87,9 @@ class SubmitPollRaceTest extends IntegrationTestBase {
 
     // ── 고정 장치 ────────────────────────────────────────────────
 
-    private record Fixture(Long sessionId, Long positionId, OrderRequest request) { }
+    record Fixture(Long sessionId, Long positionId, OrderRequest request) { }
 
-    private Fixture runningSessionWithBuyRequest() {
+    Fixture runningSessionWithBuyRequest() {
         LiveTradingSessionEntity session = sessionRepository.save(LiveTradingSessionEntity.builder()
                 .sessionType("REAL")
                 .strategyType("COMPOSITE_MOMENTUM_ICHIMOKU_V2")
@@ -140,23 +144,23 @@ class SubmitPollRaceTest extends IntegrationTestBase {
     }
 
     /** 제출 스레드가 거래소 호출 안에서 멈춘다. 호출 시점에 SUBMITTING 이 커밋돼 있다. */
-    private static final class CreateGate {
+    static final class CreateGate {
         final CountDownLatch atExchange = new CountDownLatch(1);
         final CountDownLatch release = new CountDownLatch(1);
         final AtomicReference<String> identifier = new AtomicReference<>();
     }
 
     /** 폴러가 식별자 조회 안에서 멈춘다. 그 전에 같은 트랜잭션에서 SUBMITTING 을 읽었다. */
-    private static final class QueryGate {
+    static final class QueryGate {
         final CountDownLatch querying = new CountDownLatch(1);
         final CountDownLatch release = new CountDownLatch(1);
     }
 
-    private static void await(CountDownLatch latch, String what) throws InterruptedException {
+    static void await(CountDownLatch latch, String what) throws InterruptedException {
         assertThat(latch.await(WAIT_MS, TimeUnit.MILLISECONDS)).as("신호 시간 초과: " + what).isTrue();
     }
 
-    private void stubCreate(CreateGate gate, String uuid, boolean timeout) {
+    void stubCreate(CreateGate gate, String uuid, boolean timeout) {
         Mockito.doAnswer(inv -> {
             gate.identifier.set(inv.getArgument(5));
             gate.atExchange.countDown();
@@ -172,7 +176,7 @@ class SubmitPollRaceTest extends IntegrationTestBase {
     }
 
     /** @param found null 이면 거래소가 "없다" 고 답한다 */
-    private void stubIdentifierQuery(QueryGate gate, OrderResponse found) {
+    void stubIdentifierQuery(QueryGate gate, OrderResponse found) {
         Mockito.doAnswer(inv -> {
             if (gate != null) {
                 gate.querying.countDown();
@@ -185,7 +189,7 @@ class SubmitPollRaceTest extends IntegrationTestBase {
     }
 
     /** 폴러의 해소 한 건을 별도 스레드에서 실행한다 — 운영의 scheduler 스레드에 해당한다. */
-    private Thread startResolver(Long orderId, AtomicReference<Throwable> failure) {
+    Thread startResolver(Long orderId, AtomicReference<Throwable> failure) {
         Thread t = new Thread(() -> {
             try {
                 orderExecutionEngine.resolveUnresolvedSubmission(orderId);
@@ -197,13 +201,13 @@ class SubmitPollRaceTest extends IntegrationTestBase {
         return t;
     }
 
-    private void join(Thread t, AtomicReference<Throwable> failure) throws InterruptedException {
+    void join(Thread t, AtomicReference<Throwable> failure) throws InterruptedException {
         t.join(WAIT_MS);
         assertThat(t.isAlive()).as("해소 스레드가 끝나야 한다").isFalse();
         assertThat(failure.get()).as("해소 스레드 예외").isNull();
     }
 
-    private void awaitSubmitThreadDone() {
+    void awaitSubmitThreadDone() {
         com.cryptoautotrader.api.support.ExecutorBarrier.awaitPriorTasks(orderExecutor.getThreadPoolExecutor(), WAIT_MS);
     }
 
@@ -213,11 +217,11 @@ class SubmitPollRaceTest extends IntegrationTestBase {
                 .map(OrderEntity::getId).findFirst().orElseThrow();
     }
 
-    private OrderEntity reload(Long id) {
+    OrderEntity reload(Long id) {
         return orderRepository.findById(id).orElseThrow();
     }
 
-    private List<String> transitions(Long orderId) {
+    List<String> transitions(Long orderId) {
         return tradeLogRepository.findAll().stream()
                 .filter(l -> orderId.equals(l.getOrderId()) && "STATE_CHANGE".equals(l.getEventType()))
                 .sorted(java.util.Comparator.comparing(TradeLogEntity::getId))
@@ -225,13 +229,13 @@ class SubmitPollRaceTest extends IntegrationTestBase {
                 .toList();
     }
 
-    private void verifySubmittedOnce() {
+    void verifySubmittedOnce() {
         Mockito.verify(upbitOrderClient, Mockito.times(1)).createOrder(
                 Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
     }
 
     /** 순서 A·C·D 의 앞부분: 제출 스레드를 거래소 호출 안에 세우고, 폴러를 조회 안에 세운다. */
-    private Long submitAndPark(Fixture f, CreateGate create) throws InterruptedException {
+    Long submitAndPark(Fixture f, CreateGate create) throws InterruptedException {
         orderExecutionEngine.submitOrder(f.request());
         await(create.atExchange, "제출 스레드의 거래소 호출");
         Long id = orderIdOf(f, create.identifier.get());
