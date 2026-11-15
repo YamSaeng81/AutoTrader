@@ -1023,12 +1023,17 @@ public class OrderExecutionEngine {
             log.error("거래소 주문 제출의 결과가 불명이다 (orderId={}, 식별자={}, 분류={}): {}",
                     orderId, snapshot.getClientOrderId(), rejection, e.getMessage(), e);
             submitTx.execute(st -> {
-                OrderEntity o = orderRepository.findById(orderId).orElse(null);
-                if (o != null) {
-                    transitionState(o, "UNKNOWN", null);
-                    o.setUnknownReason("제출 결과 불명: " + e.getMessage());
-                    orderRepository.save(o);
+                // 🔴 잠그고 읽어 **아직 SUBMITTING 일 때만** 불명으로 둔다 (총괄 v1.167, 2026-11-15). 호출이 오래 걸리는 동안
+                //    폴러가 식별자로 찾아 주문번호를 붙이고 체결까지 반영했을 수 있다 — 종전에는 그 FILLED 를 UNKNOWN 으로
+                //    되돌렸다(SubmitPollRaceTest E). 폴러가 이미 UNKNOWN 으로 올렸으면 그 사유·조회 메타를 그대로 둔다.
+                OrderEntity o = orderRepository.findByIdForUpdate(orderId).orElse(null);
+                if (o == null || !"SUBMITTING".equals(o.getState())) {
+                    log.warn("제출 결과 불명이지만 다른 경로가 먼저 갱신했다 — 상태를 바꾸지 않는다 (orderId={}, 현재상태={})",
+                            orderId, o == null ? "없음" : o.getState());
+                    return null;
                 }
+                o.setUnknownReason("제출 결과 불명: " + e.getMessage());
+                transitionState(o, "UNKNOWN", null);
                 return null;
             });
             return;
@@ -1117,11 +1122,43 @@ public class OrderExecutionEngine {
 
     /** D — 접수 응답을 기록한다. */
     private void recordSubmitOutcome(Long orderId, UpbitOrderClient.ExchangeResult exchangeResult) {
-        OrderEntity order = orderRepository.findById(orderId).orElse(null);
+        // 🔴 **잠그고 읽는다** (총괄 v1.167, 2026-11-15). 거래소 호출 동안 폴러가 이 행을 바꿨을 수 있다 — 식별자 조회 "없음" 으로
+        //    UNKNOWN 을 올렸거나, 찾아서 주문번호를 붙이고 체결까지 반영했을 수 있다. 읽기와 저장 사이에 다른 경로가 끼어들지 못하게
+        //    이 트랜잭션이 끝날 때까지 행을 잡고, 결과는 **아직 미해결(SUBMITTING·UNKNOWN)인 행에만** 반영한다.
+        OrderEntity order = orderRepository.findByIdForUpdate(orderId).orElse(null);
         if (order == null) {
             return;
         }
         OrderResponse exchangeResponse = exchangeResult.response();
+        String current = order.getState();
+        boolean unresolved = "SUBMITTING".equals(current) || "UNKNOWN".equals(current);
+        boolean sameOrder = order.getExchangeOrderId() == null
+                || order.getExchangeOrderId().equals(exchangeResponse.getUuid());
+        if (!unresolved || !sameOrder) {
+            // 폴러가 먼저 식별자로 찾아 추적·정산 경로로 넘겼다. 🔴 상태·주문번호·체결·정산값을 건드리지 않는다.
+            //    같은 주문의 응답 원문만 비어 있으면 남긴다(관측 기록, 회계와 무관).
+            if (sameOrder && order.getResponseJson() == null && exchangeResult.rawBody() != null) {
+                order.setResponseJson(exchangeResult.rawBody());
+                orderRepository.save(order);
+            }
+            log.warn("제출 응답이 도착했지만 다른 경로가 먼저 갱신했다 — 상태를 바꾸지 않는다 "
+                            + "(orderId={}, 현재상태={}, 현재 주문번호={}, 응답 주문번호={})",
+                    orderId, current, order.getExchangeOrderId(), exchangeResponse.getUuid());
+            return;
+        }
+        if ("UNKNOWN".equals(current) && unknownOrderAdjustmentService != null
+                && unknownOrderAdjustmentService.isAdjusted(orderId)) {
+            // 🔴 사람이 이미 회계를 맞춘 불명 주문이다(V91) — 폴러의 식별자 조회와 같게 관측만 남긴다.
+            unknownOrderAdjustmentService.recordLaterObservation(orderId, exchangeResponse.getState(),
+                    exchangeResponse.getExecutedVolume(),
+                    "제출 응답 늦게 도착: uuid=" + exchangeResponse.getUuid() + " 상태=" + exchangeResponse.getState(),
+                    Instant.now());
+            return;
+        }
+        if ("UNKNOWN".equals(current)) {
+            // 주문번호를 확보했다 — 폴러가 남긴 "조회되지 않음" 사유는 더 이상 사실이 아니다. 조회 메타(횟수·시각)는 남긴다.
+            order.setUnknownReason(null);
+        }
         order.setExchangeOrderId(exchangeResponse.getUuid());
         order.setSubmittedAt(Instant.now());
         order.setResponseJson(exchangeResult.rawBody());
@@ -2066,22 +2103,35 @@ public class OrderExecutionEngine {
             // 묻지 못했다. 🔴 상태를 바꾸지 않는다 — 모른다는 사실이 바뀐 것이 없다.
             log.warn("식별자 조회 실패 — 상태를 유지한다 (orderId={}, 식별자={}): {}",
                     order.getId(), order.getClientOrderId(), e.getMessage());
-            orderRepository.touchUnknownProbe(order.getId(), Instant.now());
+            orderRepository.touchUnknownProbeIfUnresolved(order.getId(), Instant.now());
             return Boolean.FALSE;
         }
 
-        orderRepository.touchUnknownProbe(order.getId(), Instant.now());
+        // 🔴 **조회 응답을 받은 뒤 최신 행에 조건을 둔다** (총괄 v1.167, 2026-11-15). 위의 `order` 는 조회 **전에** 읽은 값이다.
+        //    조회하는 동안 제출 스레드가 SUBMITTED·주문번호를 커밋했거나 다른 회차가 체결·정산을 반영했을 수 있다 — 종전에는
+        //    그 낡은 엔티티를 조건 없이 저장해 커밋된 SUBMITTED·주문번호·정산값을 SUBMITTING 시점 값으로 덮었다(413차
+        //    SchedulerProfileCleanupTest DYNAMIC 주문359, SubmitPollRaceTest A~D). 조건부 갱신이 0행이면 다른 경로가 먼저
+        //    해소했으므로 이 조회 결과로 아무것도 쓰지 않는다. 1행이면 행 잠금을 잡았고 컨텍스트가 비워졌으므로 다시 읽는다.
+        if (orderRepository.touchUnknownProbeIfUnresolved(order.getId(), Instant.now()) != 1) {
+            log.info("식별자 조회 중 다른 경로가 먼저 해소했다 — 조회 결과로 쓰지 않는다 (orderId={}, 조회 전 상태={}, 조회 결과={})",
+                    order.getId(), order.getState(), found == null ? "없음" : found.getUuid());
+            return Boolean.FALSE;
+        }
+        order = orderRepository.findById(orderId).orElse(null);
+        if (order == null) {
+            return Boolean.FALSE;
+        }
 
         if (found == null) {
             // 거래소가 "없다" 고 답했다. 🔴 그래도 종결하지 않는다 — 보존 기간이 명세에 없으므로
             //    "없다" 가 "접수된 적 없다" 와 같지 않다. 불명으로 올려 두고 사람이 판단한다.
+            order.setUnknownReason("식별자로 조회되지 않음 — 미접수로 단정하지 않는다 (시도 "
+                    + order.getUnknownProbeCount() + "회)");
             if (!"UNKNOWN".equals(order.getState())) {
                 transitionState(order, "UNKNOWN", null);
+            } else {
+                orderRepository.save(order);
             }
-            OrderEntity fresh = orderRepository.findById(orderId).orElse(order);
-            fresh.setUnknownReason("식별자로 조회되지 않음 — 미접수로 단정하지 않는다 (시도 "
-                    + fresh.getUnknownProbeCount() + "회)");
-            orderRepository.save(fresh);
             return Boolean.FALSE;
         }
 

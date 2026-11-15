@@ -393,6 +393,20 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
     int touchUnknownProbe(@Param("id") Long id, @Param("now") Instant now);
 
     /**
+     * 불명 조회 시도를 기록하되, <b>지금도 미해결인 행만</b> 바꾼다 (총괄 v1.167, 2026-11-15).
+     *
+     * <p>🔴 식별자 조회의 <b>응답을 받은 뒤</b> 부른다. 조회하는 동안 제출 스레드가 결과(SUBMITTED·주문번호)를 커밋했거나 다른
+     * 경로가 체결·종결을 반영했으면 0행이다 — 호출자는 그 조회 결과로 아무것도 쓰지 않는다. 1행이면 이 갱신이 행 잠금을 잡았으므로,
+     * 커밋까지 다른 경로가 이 행을 바꾸지 못한다. 영속성 컨텍스트를 비우므로 호출자는 다시 읽은 최신 행으로만 전이한다.</p>
+     *
+     * @return 1 = 아직 미해결(잠금 획득), 0 = 다른 경로가 먼저 해소했다
+     */
+    @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE OrderEntity o SET o.unknownProbeCount = o.unknownProbeCount + 1, o.unknownProbedAt = :now "
+            + "WHERE o.id = :id AND o.state IN ('SUBMITTING', 'UNKNOWN') AND o.exchangeOrderId IS NULL")
+    int touchUnknownProbeIfUnresolved(@Param("id") Long id, @Param("now") Instant now);
+
+    /**
      * 🔴 그 세션에 <b>회계 미반영 체결</b>이 있는가 — 있으면 신규 매수를 막는다 (V83).
      *
      * <p>포지션 수량이 아직 0 이라 슬롯 점유로 보이지 않으므로, 평가 루프가 "포지션 없음" 으로 보고
