@@ -1,0 +1,104 @@
+From b987d7a79f4ff9220420d5377356507bec9464d6 Mon Sep 17 00:00:00 2001
+From: YamSaeng81 <manicstr81@gmail.com>
+Date: Sun, 15 Nov 2026 10:00:02 +0900
+Subject: [PATCH 7/7] =?UTF-8?q?H2=20N15=20=EB=91=90=20=ED=81=B4=EB=9E=98?=
+ =?UTF-8?q?=EC=8A=A4:=20WS=20=EC=B2=AB=20=EC=97=B0=EA=B2=B0=20=EA=B2=A9?=
+ =?UTF-8?q?=EB=A6=AC=20+=20DYNAMIC=20=EC=8B=9C=EA=B0=81=20=EC=9D=98?=
+ =?UTF-8?q?=EC=A1=B4=20=EB=B3=B4=EC=99=84(=EC=8B=9C=ED=97=98=EB=A7=8C,=20?=
+ =?UTF-8?q?=EC=B4=9D=EA=B4=84=20v1.166=20=C2=A73-2=C2=B74=20=ED=9B=84?=
+ =?UTF-8?q?=EC=86=8D)?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- WS: 전체 회귀(b2976905)에서 두 클래스의 시험 스레드가 실제 Upbit WebSocket 첫 연결을 열었다 → UpbitWebSocketClient @MockBean.
+- 시각: N15PgLockWaitExpiryTest 와 같은 원인. 비정시 자료(실제 현재−61분)·실제 시각 접수는 정시 직전 실행에서 승인 E−1ms 의
+  BTC 관문이 "최신 완료 봉 없음"(affected46-wip 00:56 UTC 실행, 두 클래스 6건 실패). DYNAMIC 도 정시 격자·판단 시계 접수 C+1s.
+기대·단언 불변.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ .../api/service/N15EntryExpiryTest.java                | 10 ++++++----
+ .../api/service/N15FinalApprovalBoundaryTest.java      |  8 +++++---
+ 2 files changed, 11 insertions(+), 7 deletions(-)
+
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/N15EntryExpiryTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/N15EntryExpiryTest.java
+index 7b8dbf26..d9233379 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/N15EntryExpiryTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/N15EntryExpiryTest.java
+@@ -98,6 +98,8 @@ class N15EntryExpiryTest extends IntegrationTestBase {
+     @Autowired private JdbcTemplate jdbc;
+     @Autowired private com.cryptoautotrader.api.repository.MarketDataCacheRepository candleDataRepository;
+ 
++    /** 외부 연결 격리 (총괄 v1.166 §3-2 후속, 2026-11-15, 시험만) — 전체 회귀(b2976905)에서 이 클래스의 시험 스레드가 실제 Upbit WebSocket 첫 연결을 열었다(근거 v166 int-full-b2976905·ws-origin). WS 재연결·구독 자체는 시험 대상이 아니다. 기존 단언은 그대로다. */
++    @MockBean private com.cryptoautotrader.exchange.upbit.UpbitWebSocketClient upbitWebSocketClient;
+     @MockBean private MarketDataSyncService marketDataSyncService;
+     @MockBean private UpbitRestClient upbitRestClient;
+     @MockBean private com.cryptoautotrader.exchange.upbit.UpbitOrderClient upbitOrderClient;
+@@ -244,9 +246,9 @@ class N15EntryExpiryTest extends IntegrationTestBase {
+         return last;
+     }
+ 
+-    /** DYNAMIC 실제 시각 기준 자료(비정시 — {@link N15GridRounds#dynamicLastOpen}). DYNAMIC 은 캔들을 조회 대역으로만 읽는다(BTC 포함). */
++    /** DYNAMIC 정시 격자 자료 — LIVE 와 같은 L. DYNAMIC 은 캔들을 조회 대역으로만 읽는다(BTC 포함). v1.166 §3-4 후속(2026-11-15, 시험만): 후보 DYNAMIC 은 최신성·BTC 관문·접수를 판단 시계로 본다 — 옛 비정시 자료(실제 현재 − 61분)와 실제 시각 접수는 실제 현재가 정시 직전(:53 초과~정각)이면 승인 E−1ms 에서 BTC "최신 완료 봉 없음"이 됐다(v166 affected46-wip, 00:56 UTC 실행). N15PgLockWaitExpiryTest ⑤ 가 같은 원인을 시험 시계로 결정적으로 재현한다. LIVE 와 같은 정시 격자·접수 C+1s 로 만든다. 기대는 그대로다. */
+     private Instant dynamicData() {
+-        Instant last = N15GridRounds.dynamicLastOpen();
++        Instant last = N15GridRounds.gridLastOpen();
+         when(marketDataSyncService.fetchWithCache(anyString(), anyString(), anyInt())).thenReturn(candles(last));
+         return last;
+     }
+@@ -417,7 +419,7 @@ class N15EntryExpiryTest extends IntegrationTestBase {
+             Instant e = expiryOf(round);
+             Instant at = i == 0 ? e.minusMillis(1) : e;
+             DynamicSessionEntity d = dynamic(coin);
+-            fake.set(Instant.now());
++            fake.set(N15GridRounds.Intake.EARLY.at(round));   // v1.166: 판단 시계의 접수 C+1s(옛: 실제 현재)
+             evaluateDynamic(d);
+             assertThat(r.openRounds()).as(coin + " 접수").isEqualTo(1);
+             fake.set(at);
+@@ -511,7 +513,7 @@ class N15EntryExpiryTest extends IntegrationTestBase {
+         Instant dynOpen = market("KRW-IOTA", dynBase);
+         Instant eDyn = expiryOf(new EntryPriorityRounds.RoundKey("H1", dynOpen));
+         DynamicSessionEntity d = dynamic("KRW-IOTA");
+-        fake.set(Instant.now());
++        fake.set(N15GridRounds.Intake.EARLY.at(new EntryPriorityRounds.RoundKey("H1", dynOpen)));   // v1.166: 판단 시계의 접수 C+1s(옛: 실제 현재)
+         evaluateDynamic(d);
+         assertThat(rD.openRounds()).as("DYNAMIC 접수").isEqualTo(1);
+         doAnswer(inv -> {
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/N15FinalApprovalBoundaryTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/N15FinalApprovalBoundaryTest.java
+index 1e049752..d4a2a1f3 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/N15FinalApprovalBoundaryTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/N15FinalApprovalBoundaryTest.java
+@@ -99,6 +99,8 @@ class N15FinalApprovalBoundaryTest extends IntegrationTestBase {
+     @Autowired private JdbcTemplate jdbc;
+     @Autowired private com.cryptoautotrader.api.repository.MarketDataCacheRepository candleDataRepository;
+ 
++    /** 외부 연결 격리 (총괄 v1.166 §3-2 후속, 2026-11-15, 시험만) — 전체 회귀(b2976905)에서 이 클래스의 시험 스레드가 실제 Upbit WebSocket 첫 연결을 열었다(근거 v166 int-full-b2976905·ws-origin). WS 재연결·구독 자체는 시험 대상이 아니다. 기존 단언은 그대로다. */
++    @MockBean private com.cryptoautotrader.exchange.upbit.UpbitWebSocketClient upbitWebSocketClient;
+     @MockBean private MarketDataSyncService marketDataSyncService;
+     @MockBean private UpbitRestClient upbitRestClient;
+     @MockBean private com.cryptoautotrader.exchange.upbit.UpbitOrderClient upbitOrderClient;
+@@ -232,9 +234,9 @@ class N15FinalApprovalBoundaryTest extends IntegrationTestBase {
+         return last;
+     }
+ 
+-    /** DYNAMIC 실제 시각 기준 자료(비정시 — {@link N15GridRounds#dynamicLastOpen}). DYNAMIC 은 캔들을 조회 대역으로만 읽는다(BTC 포함). */
++    /** DYNAMIC 정시 격자 자료 — LIVE 와 같은 L. DYNAMIC 은 캔들을 조회 대역으로만 읽는다(BTC 포함). v1.166 §3-4 후속(2026-11-15, 시험만): 후보 DYNAMIC 은 최신성·BTC 관문·접수를 판단 시계로 본다 — 옛 비정시 자료(실제 현재 − 61분)와 실제 시각 접수는 실제 현재가 정시 직전(:53 초과~정각)이면 승인 E−1ms 에서 BTC "최신 완료 봉 없음"이 됐다(v166 affected46-wip, 00:56 UTC 실행). N15PgLockWaitExpiryTest ⑤ 가 같은 원인을 시험 시계로 결정적으로 재현한다. LIVE 와 같은 정시 격자·접수 C+1s 로 만든다. 기대는 그대로다. */
+     private Instant dynamicData() {
+-        Instant last = N15GridRounds.dynamicLastOpen();
++        Instant last = N15GridRounds.gridLastOpen();
+         when(marketDataSyncService.fetchWithCache(anyString(), anyString(), anyInt())).thenReturn(candles(last));
+         return last;
+     }
+@@ -334,7 +336,7 @@ class N15FinalApprovalBoundaryTest extends IntegrationTestBase {
+             System.out.println("[N15F] LIVE " + coin + " 접수 " + intake + " " + intake.at(round));
+             evaluateLive(liveRepo.findById(id).orElseThrow());
+         } else {
+-            fake.set(Instant.now());
++            fake.set((intake != null ? intake : N15GridRounds.Intake.EARLY).at(round));   // v1.166: 판단 시계의 접수(옛: 실제 현재)
+             evaluateDynamic(dynamicRepo.findById(id).orElseThrow());
+         }
+         assertThat(r.openRounds()).as(kind + " " + coin + " 접수").isEqualTo(1);
+-- 
+2.51.1.windows.1
+

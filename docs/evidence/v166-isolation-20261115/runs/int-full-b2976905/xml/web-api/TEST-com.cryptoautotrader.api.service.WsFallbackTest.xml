@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.WsFallbackTest" tests="6" skipped="0" failures="1" errors="0" timestamp="2026-11-15T00:49:16" hostname="DESKTOP-SF1KUQ5" time="3.835">
+  <properties/>
+  <testcase name="§9 WS 재연결: isWsDownLongerThan 리셋" classname="com.cryptoautotrader.api.service.WsFallbackTest" time="0.003"/>
+  <testcase name="§9 WS 중복 해제: wsDisconnectedSince 최초 시점 유지" classname="com.cryptoautotrader.api.service.WsFallbackTest" time="0.509"/>
+  <testcase name="§9 조용한 정지: 연결됨이지만 틱 끊기면 isWsStale/isWsUnhealthy 감지, markWsTick으로 회복" classname="com.cryptoautotrader.api.service.WsFallbackTest" time="1.104"/>
+  <testcase name="§9 never-connected: WS가 한 번도 연결 안 돼도 틱 정지로 폴백 발동(연결 플래그 무관)" classname="com.cryptoautotrader.api.service.WsFallbackTest" time="1.104"/>
+  <testcase name="§9 WS 끊김 &gt;30초: isWsDownLongerThan 정확성" classname="com.cryptoautotrader.api.service.WsFallbackTest" time="1.115"/>
+  <testcase name="executionError" classname="com.cryptoautotrader.api.service.WsFallbackTest" time="0.0">
+    <failure message="java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-1088-Worker-0] (JDK 프레임만)]" type="java.lang.AssertionError">java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-1088-Worker-0] (JDK 프레임만)]
+	at com.cryptoautotrader.api.support.NetworkIsolationExtension.afterAll(NetworkIsolationExtension.java:47)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <system-out><![CDATA[09:49:16.374 [Test worker] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+09:49:16.377 [Test worker] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+09:49:16.883 [Test worker] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+09:49:19.094 [Test worker] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+09:49:19.899 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+09:49:19.902 [ForkJoinPool.commonPool-worker-2] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.lang.SecurityException: [NET-GUARD] 시험 외부 연결 차단: resolve api.upbit.com
+java.util.concurrent.CompletionException: java.lang.SecurityException: [NET-GUARD] 시험 외부 연결 차단: resolve api.upbit.com
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.uniComposeStage(CompletableFuture.java:1189)
+	at java.base/java.util.concurrent.CompletableFuture.thenCompose(CompletableFuture.java:2309)
+	at java.net.http/jdk.internal.net.http.MultiExchange.responseAsyncImpl(MultiExchange.java:453)
+	at java.net.http/jdk.internal.net.http.MultiExchange.lambda$responseAsync0$2(MultiExchange.java:341)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1150)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+	at java.base/jdk.internal.misc.InnocuousThread.run(InnocuousThread.java:162)
+Caused by: java.lang.SecurityException: [NET-GUARD] 시험 외부 연결 차단: resolve api.upbit.com
+	at com.cryptoautotrader.api.support.NetworkIsolationGuard$Guard.inspect(NetworkIsolationGuard.java:231)
+	at com.cryptoautotrader.api.support.NetworkIsolationGuard$Guard.checkPermission(NetworkIsolationGuard.java:187)
+	at java.base/java.lang.SecurityManager.checkConnect(SecurityManager.java:916)
+	at java.base/java.net.InetAddress.getAllByName0(InetAddress.java:1480)
+	at java.base/java.net.InetAddress.getAllByName(InetAddress.java:1384)
+	at java.base/java.net.InetAddress.getAllByName(InetAddress.java:1305)
+	at java.base/java.net.InetAddress.getByName(InetAddress.java:1255)
+	at java.base/java.net.InetSocketAddress.<init>(InetSocketAddress.java:229)
+	at java.net.http/jdk.internal.net.http.HttpRequestImpl.lambda$getAddress$5(HttpRequestImpl.java:390)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:318)
+	at java.net.http/jdk.internal.net.http.HttpRequestImpl.getAddress(HttpRequestImpl.java:391)
+	at java.net.http/jdk.internal.net.http.Http1Exchange.<init>(Http1Exchange.java:198)
+	at java.net.http/jdk.internal.net.http.ExchangeImpl.createHttp1Exchange(ExchangeImpl.java:161)
+	at java.net.http/jdk.internal.net.http.ExchangeImpl.get(ExchangeImpl.java:89)
+	at java.net.http/jdk.internal.net.http.Exchange.establishExchange(Exchange.java:344)
+	at java.net.http/jdk.internal.net.http.Exchange.responseAsyncImpl0(Exchange.java:528)
+	at java.net.http/jdk.internal.net.http.Exchange.responseAsyncImpl(Exchange.java:381)
+	at java.net.http/jdk.internal.net.http.Exchange.responseAsync(Exchange.java:373)
+	at java.net.http/jdk.internal.net.http.MultiExchange.responseAsyncImpl(MultiExchange.java:408)
+	... 8 common frames omitted
+09:49:19.902 [ForkJoinPool.commonPool-worker-2] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+09:49:19.902 [ForkJoinPool.commonPool-worker-2] INFO  c.c.e.upbit.UpbitWebSocketClient - 30000ms 후 WebSocket 재연결 시도
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

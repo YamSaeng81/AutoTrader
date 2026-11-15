@@ -1,0 +1,119 @@
+From 8d5e41db47aabd299bf5ca22372bea00f5fc7af7 Mon Sep 17 00:00:00 2001
+From: YamSaeng81 <manicstr81@gmail.com>
+Date: Sun, 15 Nov 2026 09:12:49 +0900
+Subject: [PATCH 2/7] =?UTF-8?q?6=ED=81=B4=EB=9E=98=EC=8A=A4=20=EC=8B=A4?=
+ =?UTF-8?q?=EC=A0=9C=20WS=20=EC=97=B0=EA=B2=B0=20=EA=B2=A9=EB=A6=AC(?=
+ =?UTF-8?q?=EC=8B=9C=ED=97=98=EB=A7=8C,=20=EC=B4=9D=EA=B4=84=20v1.166=20?=
+ =?UTF-8?q?=C2=A73-2)?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+ExchangeRecoveryRestart·LimitedTestExchangeRecovery·LiveEmergencyStopUnderConcurrentWrite·N17RestInvalidPrice·
+SlWatchdogFreshness·StaleRealtimeExit 에 UpbitWebSocketClient @MockBean. 이 클래스들은 세션 시작·복구의 부수효과로
+구독 갱신(connect)을 부를 뿐 WS 재연결·구독 자체를 시험하지 않는다. 기존 단언·다른 대역 불변.
+감시 음성 대조(대역 전): WS 시도 14·차단 26, 6클래스 실패. 대역 뒤: 42/42, 차단 0.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ .../api/service/ExchangeRecoveryRestartTest.java              | 4 ++++
+ .../api/service/LimitedTestExchangeRecoveryTest.java          | 4 ++++
+ .../service/LiveEmergencyStopUnderConcurrentWriteTest.java    | 4 ++++
+ .../cryptoautotrader/api/service/N17RestInvalidPriceTest.java | 4 ++++
+ .../cryptoautotrader/api/service/SlWatchdogFreshnessTest.java | 4 ++++
+ .../cryptoautotrader/api/service/StaleRealtimeExitTest.java   | 4 ++++
+ 6 files changed, 24 insertions(+)
+
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/ExchangeRecoveryRestartTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/ExchangeRecoveryRestartTest.java
+index 203963ad..e673da37 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/ExchangeRecoveryRestartTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/ExchangeRecoveryRestartTest.java
+@@ -52,6 +52,10 @@ class ExchangeRecoveryRestartTest extends IntegrationTestBase {
+     /** 시작 경로의 잔고 동기화가 거래소를 부르지 않게 막는다 — 스냅숏은 시험 기반이 채운다. */
+     @MockBean private PortfolioSyncService portfolioSyncService;
+     @MockBean private UpbitOrderClient upbitOrderClient;
++    /** 외부 연결 격리 (총괄 v1.166 §3-2, 2026-11-13, 시험만) — 이 클래스는 세션 시작·복구의 부수효과로 구독 갱신(connect)을 부를 뿐
++     *  WS 재연결·구독 자체를 시험하지 않는다. 대역이 없으면 실제 Upbit WebSocket 에 연결을 시도했다(g1 근거 final-rel19-nogate,
++     *  v166 음성 대조 guard-neg-6cls). 실시세 틱이 시험 세션에 들어올 수도 있었다. 기존 단언은 그대로다. */
++    @MockBean private com.cryptoautotrader.exchange.upbit.UpbitWebSocketClient upbitWebSocketClient;
+ 
+     private BigDecimal savedTotal;
+     private final List<Long> created = new ArrayList<>();
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/LimitedTestExchangeRecoveryTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/LimitedTestExchangeRecoveryTest.java
+index 1dee57d4..330c3aba 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/LimitedTestExchangeRecoveryTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/LimitedTestExchangeRecoveryTest.java
+@@ -72,6 +72,10 @@ class LimitedTestExchangeRecoveryTest extends IntegrationTestBase {
+ 
+     @MockBean private PortfolioSyncService portfolioSyncService;
+     @MockBean private UpbitOrderClient upbitOrderClient;
++    /** 외부 연결 격리 (총괄 v1.166 §3-2, 2026-11-13, 시험만) — 이 클래스는 세션 시작·복구의 부수효과로 구독 갱신(connect)을 부를 뿐
++     *  WS 재연결·구독 자체를 시험하지 않는다. 대역이 없으면 실제 Upbit WebSocket 에 연결을 시도했다(g1 근거 final-rel19-nogate,
++     *  v166 음성 대조 guard-neg-6cls). 실시세 틱이 시험 세션에 들어올 수도 있었다. 기존 단언은 그대로다. */
++    @MockBean private com.cryptoautotrader.exchange.upbit.UpbitWebSocketClient upbitWebSocketClient;
+ 
+     private final List<Long> created = new ArrayList<>();
+     private BigDecimal savedTotal;
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/LiveEmergencyStopUnderConcurrentWriteTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/LiveEmergencyStopUnderConcurrentWriteTest.java
+index ef54a41d..c5b751d2 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/LiveEmergencyStopUnderConcurrentWriteTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/LiveEmergencyStopUnderConcurrentWriteTest.java
+@@ -52,6 +52,10 @@ class LiveEmergencyStopUnderConcurrentWriteTest extends IntegrationTestBase {
+     @SpyBean private PositionStateTransition positionStateTransition;
+     @SpyBean private RiskManagementService riskManagementService;
+     @MockBean private UpbitOrderClient upbitOrderClient;
++    /** 외부 연결 격리 (총괄 v1.166 §3-2, 2026-11-13, 시험만) — 이 클래스는 세션 시작·복구의 부수효과로 구독 갱신(connect)을 부를 뿐
++     *  WS 재연결·구독 자체를 시험하지 않는다. 대역이 없으면 실제 Upbit WebSocket 에 연결을 시도했다(g1 근거 final-rel19-nogate,
++     *  v166 음성 대조 guard-neg-6cls). 실시세 틱이 시험 세션에 들어올 수도 있었다. 기존 단언은 그대로다. */
++    @MockBean private com.cryptoautotrader.exchange.upbit.UpbitWebSocketClient upbitWebSocketClient;
+ 
+     @Autowired private LiveTradingSessionRepository sessionRepository;
+     @Autowired private PositionRepository positionRepository;
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/N17RestInvalidPriceTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/N17RestInvalidPriceTest.java
+index b2c9f191..ba774445 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/N17RestInvalidPriceTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/N17RestInvalidPriceTest.java
+@@ -73,6 +73,10 @@ class N17RestInvalidPriceTest extends IntegrationTestBase {
+     @Autowired @Qualifier("marketDataExecutor") private ThreadPoolTaskExecutor marketDataExecutor;
+ 
+     @MockBean private UpbitOrderClient upbitOrderClient;
++    /** 외부 연결 격리 (총괄 v1.166 §3-2, 2026-11-13, 시험만) — 이 클래스는 세션 시작·복구의 부수효과로 구독 갱신(connect)을 부를 뿐
++     *  WS 재연결·구독 자체를 시험하지 않는다. 대역이 없으면 실제 Upbit WebSocket 에 연결을 시도했다(g1 근거 final-rel19-nogate,
++     *  v166 음성 대조 guard-neg-6cls). 실시세 틱이 시험 세션에 들어올 수도 있었다. 기존 단언은 그대로다. */
++    @MockBean private com.cryptoautotrader.exchange.upbit.UpbitWebSocketClient upbitWebSocketClient;
+     @MockBean private UpbitRestClient upbitRestClient;
+     @MockBean private TelegramNotificationService telegramService;
+ 
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/SlWatchdogFreshnessTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/SlWatchdogFreshnessTest.java
+index 483b3a0c..74fd82a2 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/SlWatchdogFreshnessTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/SlWatchdogFreshnessTest.java
+@@ -72,6 +72,10 @@ class SlWatchdogFreshnessTest extends IntegrationTestBase {
+     @Autowired @Qualifier("marketDataExecutor") private ThreadPoolTaskExecutor marketDataExecutor;
+ 
+     @MockBean private UpbitOrderClient upbitOrderClient;
++    /** 외부 연결 격리 (총괄 v1.166 §3-2, 2026-11-13, 시험만) — 이 클래스는 세션 시작·복구의 부수효과로 구독 갱신(connect)을 부를 뿐
++     *  WS 재연결·구독 자체를 시험하지 않는다. 대역이 없으면 실제 Upbit WebSocket 에 연결을 시도했다(g1 근거 final-rel19-nogate,
++     *  v166 음성 대조 guard-neg-6cls). 실시세 틱이 시험 세션에 들어올 수도 있었다. 기존 단언은 그대로다. */
++    @MockBean private com.cryptoautotrader.exchange.upbit.UpbitWebSocketClient upbitWebSocketClient;
+     @MockBean private UpbitRestClient upbitRestClient;
+     @MockBean private TelegramNotificationService telegramService;
+ 
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/StaleRealtimeExitTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/StaleRealtimeExitTest.java
+index 0839ca1c..d804f4d7 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/StaleRealtimeExitTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/StaleRealtimeExitTest.java
+@@ -62,6 +62,10 @@ class StaleRealtimeExitTest extends IntegrationTestBase {
+     @Autowired @Qualifier("marketDataExecutor") private ThreadPoolTaskExecutor marketDataExecutor;
+ 
+     @MockBean private UpbitOrderClient upbitOrderClient;
++    /** 외부 연결 격리 (총괄 v1.166 §3-2, 2026-11-13, 시험만) — 이 클래스는 세션 시작·복구의 부수효과로 구독 갱신(connect)을 부를 뿐
++     *  WS 재연결·구독 자체를 시험하지 않는다. 대역이 없으면 실제 Upbit WebSocket 에 연결을 시도했다(g1 근거 final-rel19-nogate,
++     *  v166 음성 대조 guard-neg-6cls). 실시세 틱이 시험 세션에 들어올 수도 있었다. 기존 단언은 그대로다. */
++    @MockBean private com.cryptoautotrader.exchange.upbit.UpbitWebSocketClient upbitWebSocketClient;
+     @MockBean private UpbitRestClient upbitRestClient;
+ 
+     private final List<Long> liveSessions = new ArrayList<>();
+-- 
+2.51.1.windows.1
+

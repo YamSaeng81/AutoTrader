@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.TelegramTestIsolationTest" tests="1" skipped="0" failures="1" errors="0" timestamp="2026-11-15T00:49:14" hostname="DESKTOP-SF1KUQ5" time="0.0">
+  <properties/>
+  <testcase name="executionError" classname="com.cryptoautotrader.api.service.TelegramTestIsolationTest" time="0.0">
+    <failure message="java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-1067-Worker-0] (JDK 프레임만)]" type="java.lang.AssertionError">java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-1067-Worker-0] (JDK 프레임만)]
+	at com.cryptoautotrader.api.support.NetworkIsolationExtension.afterAll(NetworkIsolationExtension.java:47)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

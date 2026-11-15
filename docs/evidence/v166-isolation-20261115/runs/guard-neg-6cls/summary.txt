@@ -1,0 +1,23 @@
+거래소 DOWN → 복구 자동 재시작	6	실패1	오류0	건너뜀0
+N01 거래소 DOWN → UP — 제한시험(SMA20)은 재개하지 않고 최초 started_at 을 보존한다	5	실패1	오류0	건너뜀0
+LIVE 비상 정지 — 동시 쓰기 중에도 정지·청산이 끝난다 (선행 조건 5-b)	4	실패1	오류0	건너뜀0
+N17 SL 감시기 REST 강제 갱신 — 0·음수는 INVALID_PRICE·발행 0·가격 이상 문구, 정상 값 뒤 회복	25	실패1	오류0	건너뜀0
+N02 보완 SL 감시기 — 낡은 REST 응답은 점검·매도·재개 문구 없음, 신선한 응답은 실제 점검 기록	5	실패1	오류0	건너뜀0
+N02 낡은 실시간 시세 — 관측 시각이 유효기간을 넘은 가격은 보호 매도를 내지 않는다	3	실패1	오류0	건너뜀0
+합계	48	실패6	오류0	건너뜀0
+FAIL 거래소 DOWN → 복구 자동 재시작 :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 8건(차단됨, 귀속은 근사): [connect,resolve 168.126.63.1:53 [Test worker] (앱 프레임 없음), connect,resolve 168.126.63.2:53 [Test worker] (앱 프레임 없음), connect,resolve 168.126.63.1:53 [Test worker] (앱 프레임 없음), connect,resolve 168.126.63.2:53 [Test worker] (앱 프레임 없음)
+FAIL N01 거래소 DOWN → UP — 제한시험(SMA20)은 재개하지 않고 최초 started_at 을 보존한다 :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 4건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-16-Worker-0] (앱 프레임 없음), resolve api.upbit.com [HttpClient-17-Worker-0] (앱 프레임 없음), resolve api.upbit.com [HttpClient-18-Worker-0] (앱 프레임 없음), resolve api.upbit.com [HttpClient-19-Worker-0] (앱 프레임
+FAIL LIVE 비상 정지 — 동시 쓰기 중에도 정지·청산이 끝난다 (선행 조건 5-b) :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 3건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-20-Worker-0] (앱 프레임 없음), resolve [0:0:0:0:0:0:0:0] [Test worker] (앱 프레임 없음), resolve [0:0:0:0:0:0:0:0] [Test worker] (앱 프레임 없음)]
+FAIL N17 SL 감시기 REST 강제 갱신 — 0·음수는 INVALID_PRICE·발행 0·가격 이상 문구, 정상 값 뒤 회복 :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 4건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-34-Worker-0] (앱 프레임 없음), resolve [0:0:0:0:0:0:0:0] [Test worker] (앱 프레임 없음), resolve [0:0:0:0:0:0:0:0] [Test worker] (앱 프레임 없음), resolve api.upbit.com [HttpClient-46-Worker-0] (앱 프레임 없음)]
+FAIL N02 보완 SL 감시기 — 낡은 REST 응답은 점검·매도·재개 문구 없음, 신선한 응답은 실제 점검 기록 :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 2건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-47-Worker-0] (앱 프레임 없음), resolve api.upbit.com [HttpClient-48-Worker-0] (앱 프레임 없음)]
+FAIL N02 낡은 실시간 시세 — 관측 시각이 유효기간을 넘은 가격은 보호 매도를 내지 않는다 :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 5건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-49-Worker-0] (앱 프레임 없음), resolve api.upbit.com [HttpClient-50-Worker-0] (앱 프레임 없음), resolve [0:0:0:0:0:0:0:0] [Test worker] (앱 프레임 없음), resolve [0:0:0:0:0:0:0:0] [Test worker] (앱 프레임 없음), resolve 
+외부WS연결·구독줄=14
+--- NET-GUARD
+installed_during_run=true
+disabled_reason=null
+classes_checked=6
+blocked_external_attempts=26
+restored_security_manager=null
+connect,resolve 168.126.63.1:53 [Test worker] (앱 프레임 없음)
+connect,resolve 168.126.63.2:53 [Test worker] (앱 프레임 없음)
+connect,resolve 168.126.63.1:53 [Test worker] (앱 프레임 없음)

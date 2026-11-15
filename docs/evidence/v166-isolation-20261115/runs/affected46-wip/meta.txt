@@ -1,0 +1,21 @@
+HEAD b297690517d90edbfe053f99a9093ce342394c36
+ M web-api/src/test/java/com/cryptoautotrader/api/controller/DataControllerIntegrationTest.java
+ M web-api/src/test/java/com/cryptoautotrader/api/service/BtcGateSupplyEndToEndTest.java
+ M web-api/src/test/java/com/cryptoautotrader/api/service/BtcGateUnknownEntryTest.java
+ M web-api/src/test/java/com/cryptoautotrader/api/service/DynamicBuyCompletesConsistentlyTest.java
+ M web-api/src/test/java/com/cryptoautotrader/api/service/DynamicBuyExternalSubmissionBoundaryTest.java
+ M web-api/src/test/java/com/cryptoautotrader/api/service/DynamicBuyOuterWriteOrderingTest.java
+ M web-api/src/test/java/com/cryptoautotrader/api/service/DynamicPaperTradingTest.java
+ M web-api/src/test/java/com/cryptoautotrader/api/service/DynamicScanTransitionGuardTest.java
+ M web-api/src/test/java/com/cryptoautotrader/api/service/DynamicSlWatchdogNoiseTest.java
+ M web-api/src/test/java/com/cryptoautotrader/api/service/EntryPriorityEndToEndTest.java
+ M web-api/src/test/java/com/cryptoautotrader/api/service/N15EntryExpiryTest.java
+ M web-api/src/test/java/com/cryptoautotrader/api/service/N15FinalApprovalBoundaryTest.java
+ M web-api/src/test/java/com/cryptoautotrader/api/service/RealtimeProtectionSaturationTest.java
+ M web-api/src/test/java/com/cryptoautotrader/api/service/RealtimeThrottleCrossingTest.java
+ M web-api/src/test/java/com/cryptoautotrader/api/service/SchedulerProfileCleanupTest.java
+worktree_diff_sha256 ab5d09562152d937b96ef342b3cb98cf5afeac66c04d4f8f6c112a0e4b0b15ef
+gate_ms=off
+classes=BtcGateSupplyEndToEndTest BtcGateUnknownEntryTest CancelConfirmAndLateFillCleanupTest ConcurrentEntryCapTest ConcurrentFillSettlementTest DataControllerIntegrationTest DynamicBuyCompletesConsistentlyTest DynamicBuyExternalSubmissionBoundaryTest DynamicBuyOuterWriteOrderingTest DynamicCircuitBreakerTest DynamicFillAccountingTest DynamicJudgeClockTest DynamicPaperTradingTest DynamicPoolReservationTest DynamicScanTransitionGuardTest DynamicSessionRowLockContentionTest DynamicSlWatchdogNoiseTest EngineParityTest EntryPriorityEndToEndTest EntryPriorityRoundsTest ExchangeRecoveryRestartTest LateOrderSubmissionAfterStopTest LiveStopUnderConcurrentWriteTest N15EntryExpiryTest N15FinalApprovalBoundaryTest N17RestInvalidPriceTest N19RestFallbackItemDefenseTest O1O3LogContractTest OrderExecutorDrainPredicateGapTest OrderSubmitAfterCommitTest PaperStopUnderConcurrentWriteTest R5RealCashflowRiskTest RateLimiterEmergencyStopTest RealtimeProtectionSaturationTest RealtimeThrottleCrossingTest SchedulerProfileCleanupTest SharedLoopRoundsActiveTest SharedMarketDataExecutorSaturationTest SharedPaperLoopIsolationTest Sma20LiveAlignedGapsTest Sma20LiveAlignedPaperSameInputTest StaleRealtimeExitTest TelegramQueueSaturationTest TelegramTestIsolationTest$TestProfile WalkForwardGateTimeframeTest WsFallbackTest
+start 2026-11-15 09:54:28    
+end 2026-11-15 09:58:04     rc=1

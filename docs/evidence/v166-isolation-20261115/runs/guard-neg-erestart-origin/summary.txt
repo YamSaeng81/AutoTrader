@@ -1,0 +1,13 @@
+거래소 DOWN → 복구 자동 재시작	6	실패1	오류0	건너뜀0
+합계	6	실패1	오류0	건너뜀0
+FAIL 거래소 DOWN → 복구 자동 재시작 :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 6건(차단됨, 귀속은 근사): [connect,resolve 168.126.63.1:53 [Test worker] (앱 프레임 없음) io.netty.resolver.dns.DirContextUtils.addNameServers:49 <- io.netty.resolver.dns.DefaultDnsServerAddressStreamProvider.<clinit>:70 <- io.netty.resolver.dns.DnsServerAddressS
+외부WS연결·구독줄=2
+--- NET-GUARD
+installed_during_run=true
+disabled_reason=null
+classes_checked=1
+blocked_external_attempts=6
+restored_security_manager=null
+connect,resolve 168.126.63.1:53 [Test worker] (앱 프레임 없음) io.netty.resolver.dns.DirContextUtils.addNameServers:49 <- io.netty.resolver.dns.DefaultDnsServerAddressStreamProvider.<clinit>:70 <- io.netty.resolver.dns.DnsServerAddressStreamProviders$DefaultProviderHolder$1.provider:150 <- io.netty.resolver.dns.DnsServerAddressStreamProviders$DefaultProviderHolder$1.<init>:130
+connect,resolve 168.126.63.2:53 [Test worker] (앱 프레임 없음) io.netty.resolver.dns.DirContextUtils.addNameServers:49 <- io.netty.resolver.dns.DefaultDnsServerAddressStreamProvider.<clinit>:70 <- io.netty.resolver.dns.DnsServerAddressStreamProviders$DefaultProviderHolder$1.provider:150 <- io.netty.resolver.dns.DnsServerAddressStreamProviders$DefaultProviderHolder$1.<init>:130
+connect,resolve 168.126.63.1:53 [Test worker] (앱 프레임 없음) io.netty.resolver.dns.DirContextUtils.addNameServers:49 <- io.netty.resolver.dns.DefaultDnsServerAddressStreamProvider.<clinit>:70 <- io.netty.resolver.dns.DnsServerAddressStreamProviders$DefaultProviderHolder$1.provider:150 <- io.netty.resolver.dns.DnsServerAddressStreamProviders$DefaultProviderHolder$1.<init>:130

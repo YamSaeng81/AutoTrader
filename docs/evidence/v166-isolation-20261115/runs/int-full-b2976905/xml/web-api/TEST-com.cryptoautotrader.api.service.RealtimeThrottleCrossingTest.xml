@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="v1.155 §4-2 실시간 점검 간격 — 보호 가격 첫 통과 시세 (LIVE/DYNAMIC 직접 처리기)" tests="22" skipped="0" failures="1" errors="0" timestamp="2026-11-15T00:47:50" hostname="DESKTOP-SF1KUQ5" time="2.997">
+  <properties/>
+  <testcase name="D2 DYNAMIC 익절 — 익절가 330, 329 점검 뒤 5초 간격 안(4초)의 331(첫 통과): 점검·익절 1" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.011"/>
+  <testcase name="P6 LIVE 같은 코인 두 보호선(백분율 5%·절대 280) — 285.00025 점검 없음, 284 백분율 손절, 279 절대 손절: 매도 2" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.514"/>
+  <testcase name="P10 LIVE 반올림 경계 — 286 뒤 간격 안 285.0001(반올림 −5.0000%): 점검·손절 1" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.031"/>
+  <testcase name="P2 LIVE 백분율 손절(절대가 없음) — 286→285.00025→284(간격 안): 중간 미발동 시세는 점검하지 않고 284 점검·손절 1, 뒤 283 중복 0" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.016"/>
+  <testcase name="P3 DYNAMIC 절대 손절가 285 대조 — 같은 입력: 중간 점검 없음, 284 점검·손절 1" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.403"/>
+  <testcase name="P4 LIVE 절대 손절가 285 대조 — 같은 입력: 중간 점검 없음, 284 점검·손절 1" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.009"/>
+  <testcase name="L2 평상시 경로 경계 — 286 점검 뒤 정확히 5초 경과의 284: 수정 전후 모두 점검·손절 1" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.022"/>
+  <testcase name="P8 LIVE 백분율 — 0·낡은 280·285.00025 뒤 284: 앞 셋 점검·매도 없음, 284 점검·손절 1" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.01"/>
+  <testcase name="L7 비가격·낡은 시세 — 286 뒤 간격 안의 0·낡은(10분 전) 280 은 점검·매도·통과 기억 없음, 다음 유효 284 는 첫 통과로 점검" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.506"/>
+  <testcase name="L3 급등락 경로 — 310·290(급락 점검) 뒤 1초 간격 안(0.5초)의 280(첫 통과): 점검·손절 1" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.031"/>
+  <testcase name="P7 DYNAMIC 백분율 — 0·낡은 280·285.00025 뒤 284: 앞 셋 점검·매도 없음, 284 점검·손절 1" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.016"/>
+  <testcase name="L4 급등락 경로 경계 — 290 급락 점검 뒤 정확히 1초 경과의 280: 수정 전후 모두 점검·손절 1" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.403"/>
+  <testcase name="D4 DYNAMIC 단순 반복 — 손절가 위 290 세 번(간격 안): 첫 번만 점검, 매도 0" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.005"/>
+  <testcase name="D1 DYNAMIC 손절 — 286 점검 뒤 5초 간격 안(4초)의 284(첫 통과): 점검·손절 1" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.006"/>
+  <testcase name="P1 DYNAMIC 백분율 손절(절대가 없음) — 286→285.00025→284(간격 안): 중간 미발동 시세는 점검하지 않고 284 점검·손절 1, 뒤 283 중복 0" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.02"/>
+  <testcase name="P5 DYNAMIC 같은 코인 두 보호선(백분율 5%·절대 280) — 285.00025 점검 없음, 284 백분율 손절, 279 절대 손절: 매도 2" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.515"/>
+  <testcase name="P9 DYNAMIC 반올림 경계 — 286 뒤 간격 안 285.0001(반올림 −5.0000%): 점검·손절 1" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.031"/>
+  <testcase name="D3 DYNAMIC 경계 — 286 점검 뒤 정확히 5초 경과의 284: 수정 전후 모두 점검·손절 1" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.015"/>
+  <testcase name="L1 평상시 경로 — 286 점검 뒤 5초 간격 안(4초)의 284(손절가 285 첫 통과): 점검·손절 1" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.403"/>
+  <testcase name="L6 첫 통과 뒤 계속 아래 — 284(첫 통과) 뒤 283·282 는 간격 안이면 점검하지 않는다(유계), 매도 1(중복 없음)" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.012"/>
+  <testcase name="L5 단순 반복 — 손절가 위 290 세 번(간격 안): 첫 번만 점검, 매도 0 — 수정 전후 같다" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.004"/>
+  <testcase name="executionError" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.0">
+    <failure message="java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-863-Worker-0] (JDK 프레임만)]" type="java.lang.AssertionError">java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-863-Worker-0] (JDK 프레임만)]
+	at com.cryptoautotrader.api.support.NetworkIsolationExtension.afterAll(NetworkIsolationExtension.java:47)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <system-out><![CDATA[09:47:50.317 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest
+09:47:50.324 [Test worker] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+09:47:50.324 [Test worker] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 종료 (scheduler 유지 ? 재연결 가능)
+[THR155] D2 | DYNAMIC | 331 점검=true | 상태=CLOSING 매도=1
+09:47:50.331 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=409, KRW-T2X34100, 손익=-5.333300%
+09:47:50.334 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=410, KRW-T2X34100, 손익=-7.000000%
+[THR155] P6 | LIVE | 286=[true, true] | 285.00025=[false, false] | 284=[true, true] | 284뒤 매도=1 | 279=[false, true] | 백분율 포지션=CLOSING | 상태=CLOSING 매도=2
+09:47:50.846 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=411, KRW-T3X57100, 손익=-5.000000%
+[THR155] P10 | LIVE | 285.0001 점검=true | 상태=CLOSING 매도=1
+09:47:50.877 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=412, KRW-T4X40300, 손익=-5.333300%
+[THR155] P2 | LIVE | 286 점검=true | 285.00025 점검=false | 그때 매도=0 | 284 점검=true | 그때 매도=1 | 283 점검=false | 상태=CLOSING 매도=1
+09:47:50.894 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-T5X43200 @ 284 pnl=-5.333300% (id=265)
+[THR155] P3 | DYNAMIC | 285.00025 점검=false | 284 점검=true | 상태=CLOSING 매도=1
+09:47:51.297 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=413, KRW-T6X79500, 손익=-5.333300%
+[THR155] P4 | LIVE | 285.00025 점검=false | 284 점검=true | 상태=CLOSING 매도=1
+09:47:51.306 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=414, KRW-T7X53200, 손익=-5.333300%
+[THR155] L2 | LIVE | 284 점검=true | 상태=CLOSING 매도=1
+09:47:51.329 [Test worker] WARN  c.c.api.service.LiveTradingService - 가격이 아닌 실시간 시세 무시: KRW-T8X99400 0 관측 2026-11-15T00:47:51.329970Z 출처 WS_TRADE
+09:47:51.329 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=415, KRW-T8X99400, 손익=-5.333300%
+[THR155] P8 | LIVE | 0=false | 낡은280=false | 285.00025=false | 앞 매도=0 | 284=true | 상태=CLOSING 매도=1
+09:47:51.340 [Test worker] WARN  c.c.api.service.LiveTradingService - 가격이 아닌 실시간 시세 무시: KRW-T9X72200 0 관측 2026-11-15T00:47:51.340359800Z 출처 WS_TRADE
+09:47:51.341 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=416, KRW-T9X72200, 손익=-5.333300%
+[THR155] L7 | LIVE | 0 점검=false | 낡은 280 점검=false | 무효 뒤 매도=0 | 284 점검=true | 상태=CLOSING 매도=1
+09:47:51.847 [Test worker] WARN  c.c.api.service.LiveTradingService - 급락 감지 (sessionId=417, KRW-T10X6300): 손익=-3.333300% ? SL 유지 285.00000000 (조임 없음)
+09:47:51.847 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=417, KRW-T10X6300, 손익=-6.666700%
+[THR155] L3 | LIVE | 290 점검=true | 280 점검=true | 상태=CLOSING 매도=1
+09:47:51.879 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 가격이 아닌 실시간 시세 무시: KRW-T11X22800 0 관측 2026-11-15T00:47:51.879483300Z 출처 WS_TRADE
+09:47:51.879 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-T11X22800 @ 284 pnl=-5.333300% (id=266)
+[THR155] P7 | DYNAMIC | 0=false | 낡은280=false | 285.00025=false | 앞 매도=0 | 284=true | 상태=CLOSING 매도=1
+09:47:51.895 [Test worker] WARN  c.c.api.service.LiveTradingService - 급락 감지 (sessionId=418, KRW-T12X10700): 손익=-3.333300% ? SL 유지 285.00000000 (조임 없음)
+09:47:51.895 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=418, KRW-T12X10700, 손익=-6.666700%
+[THR155] L4 | LIVE | 280 점검=true | 상태=CLOSING 매도=1
+[THR155] D4 | DYNAMIC | 점검=true,false,false | 상태=OPEN 매도=0
+09:47:52.303 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-T14X60400 @ 284 pnl=-5.333300% (id=268)
+[THR155] D1 | DYNAMIC | 284 점검=true | 상태=CLOSING 매도=1
+09:47:52.309 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-T15X94500 @ 284 pnl=-5.333300% (id=269)
+[THR155] P1 | DYNAMIC | 286 점검=true | 285.00025 점검=false | 그때 매도=0 | 284 점검=true | 그때 매도=1 | 283 점검=false | 상태=CLOSING 매도=1
+09:47:52.331 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-T16X20800 @ 284 pnl=-5.333300% (id=270)
+09:47:52.333 [Test worker] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+09:47:52.335 [ForkJoinPool.commonPool-worker-2] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.lang.SecurityException: [NET-GUARD] 시험 외부 연결 차단: resolve api.upbit.com
+java.util.concurrent.CompletionException: java.lang.SecurityException: [NET-GUARD] 시험 외부 연결 차단: resolve api.upbit.com
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.uniComposeStage(CompletableFuture.java:1189)
+	at java.base/java.util.concurrent.CompletableFuture.thenCompose(CompletableFuture.java:2309)
+	at java.net.http/jdk.internal.net.http.MultiExchange.responseAsyncImpl(MultiExchange.java:453)
+	at java.net.http/jdk.internal.net.http.MultiExchange.lambda$responseAsync0$2(MultiExchange.java:341)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1150)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+	at java.base/jdk.internal.misc.InnocuousThread.run(InnocuousThread.java:162)
+Caused by: java.lang.SecurityException: [NET-GUARD] 시험 외부 연결 차단: resolve api.upbit.com
+	at com.cryptoautotrader.api.support.NetworkIsolationGuard$Guard.inspect(NetworkIsolationGuard.java:231)
+	at com.cryptoautotrader.api.support.NetworkIsolationGuard$Guard.checkPermission(NetworkIsolationGuard.java:187)
+	at java.base/java.lang.SecurityManager.checkConnect(SecurityManager.java:916)
+	at java.base/java.net.InetAddress.getAllByName0(InetAddress.java:1480)
+	at java.base/java.net.InetAddress.getAllByName(InetAddress.java:1384)
+	at java.base/java.net.InetAddress.getAllByName(InetAddress.java:1305)
+	at java.base/java.net.InetAddress.getByName(InetAddress.java:1255)
+	at java.base/java.net.InetSocketAddress.<init>(InetSocketAddress.java:229)
+	at java.net.http/jdk.internal.net.http.HttpRequestImpl.lambda$getAddress$5(HttpRequestImpl.java:390)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:318)
+	at java.net.http/jdk.internal.net.http.HttpRequestImpl.getAddress(HttpRequestImpl.java:391)
+	at java.net.http/jdk.internal.net.http.Http1Exchange.<init>(Http1Exchange.java:198)
+	at java.net.http/jdk.internal.net.http.ExchangeImpl.createHttp1Exchange(ExchangeImpl.java:161)
+	at java.net.http/jdk.internal.net.http.ExchangeImpl.get(ExchangeImpl.java:89)
+	at java.net.http/jdk.internal.net.http.Exchange.establishExchange(Exchange.java:344)
+	at java.net.http/jdk.internal.net.http.Exchange.responseAsyncImpl0(Exchange.java:528)
+	at java.net.http/jdk.internal.net.http.Exchange.responseAsyncImpl(Exchange.java:381)
+	at java.net.http/jdk.internal.net.http.Exchange.responseAsync(Exchange.java:373)
+	at java.net.http/jdk.internal.net.http.MultiExchange.responseAsyncImpl(MultiExchange.java:408)
+	... 8 common frames omitted
+09:47:52.335 [ForkJoinPool.commonPool-worker-2] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+09:47:52.335 [ForkJoinPool.commonPool-worker-2] INFO  c.c.e.upbit.UpbitWebSocketClient - 30000ms 후 WebSocket 재연결 시도
+09:47:52.335 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-T16X20800 @ 279 pnl=-7.000000% (id=271)
+09:47:52.338 [Test worker] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+09:47:52.338 [Test worker] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 종료 (scheduler 유지 ? 재연결 가능)
+[THR155] P5 | DYNAMIC | 286=[true, true] | 285.00025=[false, false] | 284=[true, true] | 284뒤 매도=1 | 279=[false, true] | 백분율 포지션=CLOSING | 상태=CLOSING 매도=2
+09:47:52.847 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-T17X87400 @ 285.0001 pnl=-5.000000% (id=272)
+[THR155] P9 | DYNAMIC | 285.0001 점검=true | 상태=CLOSING 매도=1
+09:47:52.879 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-T18X4700 @ 284 pnl=-5.333300% (id=273)
+[THR155] D3 | DYNAMIC | 284 점검=true | 상태=CLOSING 매도=1
+09:47:52.895 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=419, KRW-T19X43900, 손익=-5.333300%
+[THR155] L1 | LIVE | 286 점검=true | 284 점검=true | 상태=CLOSING 매도=1
+09:47:53.299 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=420, KRW-T20X5900, 손익=-5.333300%
+[THR155] L6 | LIVE | 점검=true,false,false | 상태=CLOSING 매도=1
+[THR155] L5 | LIVE | 점검=true,false,false | 상태=OPEN 매도=0
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

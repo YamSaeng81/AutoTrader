@@ -1,0 +1,67 @@
+Starting a Gradle Daemon, 1 busy Daemon could not be reused, use --status for details
+> Task :strategy-lib:compileJava UP-TO-DATE
+> Task :strategy-lib:processResources NO-SOURCE
+> Task :strategy-lib:classes UP-TO-DATE
+> Task :strategy-lib:jar UP-TO-DATE
+> Task :core-engine:compileJava UP-TO-DATE
+> Task :core-engine:processResources NO-SOURCE
+> Task :core-engine:classes UP-TO-DATE
+> Task :core-engine:jar UP-TO-DATE
+> Task :exchange-adapter:compileJava UP-TO-DATE
+> Task :exchange-adapter:processResources NO-SOURCE
+> Task :exchange-adapter:classes UP-TO-DATE
+> Task :exchange-adapter:jar UP-TO-DATE
+> Task :web-api:compileJava UP-TO-DATE
+> Task :web-api:processResources UP-TO-DATE
+> Task :web-api:classes UP-TO-DATE
+
+> Task :web-api:compileTestJava
+D:\tmp\g1-7d1d00ae\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationExtension.java:62: warning: [removal] getSecurityManager() in System has been deprecated and marked for removal
+                    + "\nrestored_security_manager=" + System.getSecurityManager()
+                                                             ^
+D:\tmp\g1-7d1d00ae\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationGuard.java:33: warning: [removal] SecurityManager in java.lang has been deprecated and marked for removal
+    private static volatile SecurityManager previous;
+                            ^
+D:\tmp\g1-7d1d00ae\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationGuard.java:57: warning: [removal] getSecurityManager() in System has been deprecated and marked for removal
+        previous = System.getSecurityManager();
+                         ^
+D:\tmp\g1-7d1d00ae\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationGuard.java:58: warning: [removal] setSecurityManager(SecurityManager) in System has been deprecated and marked for removal
+        System.setSecurityManager(new Guard());
+              ^
+D:\tmp\g1-7d1d00ae\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationGuard.java:65: warning: [removal] getSecurityManager() in System has been deprecated and marked for removal
+        if (System.getSecurityManager() instanceof Guard) {
+                  ^
+D:\tmp\g1-7d1d00ae\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationGuard.java:66: warning: [removal] setSecurityManager(SecurityManager) in System has been deprecated and marked for removal
+            System.setSecurityManager(previous);
+                  ^
+D:\tmp\g1-7d1d00ae\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationGuard.java:72: warning: [removal] getSecurityManager() in System has been deprecated and marked for removal
+        return installed && System.getSecurityManager() instanceof Guard;
+                                  ^
+D:\tmp\g1-7d1d00ae\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationGuard.java:150: warning: [removal] SecurityManager in java.lang has been deprecated and marked for removal
+    private static final class Guard extends SecurityManager {
+                                             ^
+8 warnings
+
+> Task :web-api:processTestResources UP-TO-DATE
+> Task :web-api:testClasses
+WARNING: A terminally deprecated method in java.lang.System has been called
+WARNING: System::setSecurityManager has been called by com.cryptoautotrader.api.support.NetworkIsolationGuard (file:/D:/tmp/g1-7d1d00ae/web-api/build/classes/java/test/)
+WARNING: Please consider reporting this to the maintainers of com.cryptoautotrader.api.support.NetworkIsolationGuard
+WARNING: System::setSecurityManager will be removed in a future release
+Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+09:12:34.116 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+09:12:34.117 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+09:12:34.118 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+09:12:34.140 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+09:12:34.140 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-2 - Shutdown initiated...
+09:12:34.141 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-2 - Shutdown completed.
+09:12:34.158 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+09:12:34.158 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-3 - Shutdown initiated...
+09:12:34.158 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-3 - Shutdown completed.
+09:12:34.175 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+09:12:34.176 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-4 - Shutdown initiated...
+09:12:34.177 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-4 - Shutdown completed.
+> Task :web-api:test
+
+BUILD SUCCESSFUL in 39s
+11 actionable tasks: 2 executed, 9 up-to-date

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="N02 보완 SL 감시기 — 낡은 REST 응답은 점검·매도·재개 문구 없음, 신선한 응답은 실제 점검 기록" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-11-15T00:28:10" hostname="DESKTOP-SF1KUQ5" time="2.082">
+  <properties/>
+  <testcase name="LIVE" classname="com.cryptoautotrader.api.service.SlWatchdogFreshnessTest" time="0.262"/>
+  <testcase name="DYNAMIC" classname="com.cryptoautotrader.api.service.SlWatchdogFreshnessTest" time="0.996"/>
+  <testcase name="LIVE" classname="com.cryptoautotrader.api.service.SlWatchdogFreshnessTest" time="0.403"/>
+  <testcase name="DYNAMIC" classname="com.cryptoautotrader.api.service.SlWatchdogFreshnessTest" time="0.418"/>
+  <system-out><![CDATA[09:28:10.528 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.SlWatchdogFreshnessTest
+09:28:10.530 [Test worker] INFO  o.a.c.c.C.[Tomcat-6].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+09:28:10.533 [Test worker] WARN  c.c.api.service.LiveTradingService - [§9] SL 미점검 경고: sessionId=109 coin=KRW-WDGL1 마지막체크=2026-11-15T00:18:10.532885900Z (3분 초과)
+09:28:10.793 [Test worker] INFO  o.a.c.c.C.[Tomcat-6].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+09:28:10.796 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검: sessionId=45 coin=KRW-WDGD2 마지막체크=2026-11-15T00:18:10.795676900Z (3분 초과, 연속 1회, WS구독=있음, REST강제갱신=STALE 체결 121초 전)
+09:28:10.972 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검: sessionId=45 coin=KRW-WDGD2 마지막체크=2026-11-15T00:18:10.795676900Z (3분 초과, 연속 2회, WS구독=있음, REST강제갱신=STALE 체결 121초 전)
+09:28:11.140 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검: sessionId=45 coin=KRW-WDGD2 마지막체크=2026-11-15T00:18:10.795676900Z (3분 초과, 연속 3회, WS구독=있음, REST강제갱신=STALE 체결 121초 전)
+09:28:11.323 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검: sessionId=45 coin=KRW-WDGD2 마지막체크=2026-11-15T00:18:10.795676900Z (3분 초과, 연속 4회, WS구독=있음, REST강제갱신=STALE 체결 121초 전)
+09:28:11.492 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검: sessionId=45 coin=KRW-WDGD2 마지막체크=2026-11-15T00:18:10.795676900Z (3분 초과, 연속 5회, WS구독=있음, REST강제갱신=STALE 체결 121초 전)
+09:28:11.790 [Test worker] INFO  o.a.c.c.C.[Tomcat-6].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+09:28:11.792 [Test worker] WARN  c.c.api.service.LiveTradingService - [§9] SL 미점검 경고: sessionId=110 coin=KRW-WDGL3 마지막체크=2026-11-15T00:18:11.792604800Z (3분 초과)
+09:28:12.194 [Test worker] INFO  o.a.c.c.C.[Tomcat-6].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+09:28:12.196 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검: sessionId=46 coin=KRW-WDGD4 마지막체크=2026-11-15T00:18:12.195578200Z (3분 초과, 연속 1회, WS구독=있음, REST강제갱신=PUBLISHED 체결 1초 전)
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

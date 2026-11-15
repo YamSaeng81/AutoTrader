@@ -1,0 +1,34 @@
+installed_during_run=true
+disabled_reason=null
+classes_checked=46
+blocked_external_attempts=0
+allowed_jndi_nameserver_probes=3
+allowed_own_interface_connections=21
+restored_security_manager=null
+
+--- 허용한 권한 확인(패킷 없음)
+connect,resolve 168.126.63.1:53 [Test worker]
+connect,resolve 168.126.63.2:53 [Test worker]
+connect,resolve 168.126.63.1:53 [Test worker]
+--- 허용한 자기 인터페이스 연결(기계 안)
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:11742 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:11742 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+accept,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:11743 [http-nio-auto-25-Acceptor] (앱 프레임 없음) org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:513 <- org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:71 <- org.apache.tomcat.util.net.Acceptor.run:128
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:14752 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:14752 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+accept,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:4982 [http-nio-auto-27-Acceptor] (앱 프레임 없음) org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:513 <- org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:71 <- org.apache.tomcat.util.net.Acceptor.run:128
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:4983 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:4983 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+accept,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:4985 [http-nio-auto-28-Acceptor] (앱 프레임 없음) org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:513 <- org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:71 <- org.apache.tomcat.util.net.Acceptor.run:128
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:7740 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:7740 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+accept,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:7741 [http-nio-auto-29-Acceptor] (앱 프레임 없음) org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:513 <- org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:71 <- org.apache.tomcat.util.net.Acceptor.run:128
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:7742 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:7742 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+accept,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:7743 [http-nio-auto-30-Acceptor] (앱 프레임 없음) org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:513 <- org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:71 <- org.apache.tomcat.util.net.Acceptor.run:128
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:7744 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:7744 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+accept,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:7897 [http-nio-auto-31-Acceptor] (앱 프레임 없음) org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:513 <- org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:71 <- org.apache.tomcat.util.net.Acceptor.run:128
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:7898 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:7898 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+accept,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:7899 [http-nio-auto-32-Acceptor] (앱 프레임 없음) org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:513 <- org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:71 <- org.apache.tomcat.util.net.Acceptor.run:128

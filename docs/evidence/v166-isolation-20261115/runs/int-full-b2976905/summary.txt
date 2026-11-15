@@ -1,0 +1,259 @@
+core-engine tests 298 fail 0 err 0 skip 7 pass 291
+exchange-adapter tests 11 fail 0 err 0 skip 0 pass 11
+strategy-lib tests 113 fail 0 err 0 skip 0 pass 113
+web-api tests 1413 fail 47 err 0 skip 72 pass 1294
+FAIL web-api DataController 통합 테스트 :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [task-2] UpbitRestClient.getCandles:84 <- UpbitCandleCollector.fetchCandles:49 <- DataCollectionService.collectSingle:124]
+FAIL web-api BTC 관문 데이터 공급 — BTC 세션 없는 LIVE·DYNAMIC: 수집 실패면 차단, 수집되면 진입 :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-405-Worker-0] (JDK 프레임만)]
+FAIL web-api BTC 급락 관문 판정 불가 — 캔들이 없거나 낡으면 LIVE·DYNAMIC 의 평가·승인 시점 매수를 막고, 최신이면 나간다 :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 2건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-406-Worker-0] (JDK 프레임만), resolve api.upbit.com [HttpClient-418-Worker-0] (JDK 프레임만)]
+FAIL web-api 식별자 취소·취소 확인·늦은 체결 정리 :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 7건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-419-Worker-0] (JDK 프레임만), resolve api.upbit.com [HttpClient-420-Worker-0] (JDK 프레임만), resolve api.upbit.com [HttpClient-421-Worker-0] (JDK 프레임만), resolve api.upbit.com [HttpClient-422-Worker-0] (J
+FAIL web-api 시험 11 — 서로 다른 세션의 동시 진입과 예약 상한 :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-481-Worker-0] (JDK 프레임만)]
+FAIL web-api 시험 10 — 같은 주문의 동시 반영에서 정산은 한 번 :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-482-Worker-0] (JDK 프레임만)]
+FAIL web-api DynamicBuyCompletesConsistentlyTest :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-530-Worker-0] (JDK 프레임만)]
+FAIL web-api DynamicBuyExternalSubmissionBoundaryTest :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 3건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-532-Worker-0] (JDK 프레임만), resolve api.upbit.com [HttpClient-545-Worker-0] (JDK 프레임만), resolve api.upbit.com [HttpClient-546-Worker-0] (JDK 프레임만)]
+FAIL web-api DynamicBuyOuterWriteOrderingTest :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 3건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-547-Worker-0] (JDK 프레임만), resolve api.upbit.com [HttpClient-559-Worker-0] (JDK 프레임만), resolve api.upbit.com [HttpClient-562-Worker-0] (JDK 프레임만)]
+FAIL web-api DynamicCircuitBreakerTest :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 2건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-563-Worker-0] (JDK 프레임만), resolve api.upbit.com [HttpClient-564-Worker-0] (JDK 프레임만)]
+FAIL web-api DYNAMIC 체결 회계 — 원자 경로 통합 :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 2건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-591-Worker-0] (JDK 프레임만), resolve api.upbit.com [HttpClient-592-Worker-0] (JDK 프레임만)]
+FAIL web-api 158 DYNAMIC 판단 시계 :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-593-Worker-0] (JDK 프레임만)]
+FAIL web-api DynamicPaperTradingTest :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-621-Worker-0] (JDK 프레임만)]
+FAIL web-api DYNAMIC 매수 — 공유 풀 예약 통합 :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-622-Worker-0] (JDK 프레임만)]
+FAIL web-api DynamicScanTransitionGuardTest :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 4건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-623-Worker-0] (JDK 프레임만), resolve api.upbit.com [HttpClient-636-Worker-0] (JDK 프레임만), resolve api.upbit.com [HttpClient-637-Worker-0] (JDK 프레임만), resolve api.upbit.com [HttpClient-638-Worker-0] (J
+FAIL web-api DynamicSessionRowLockContentionTest :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 3건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-639-Worker-0] (JDK 프레임만), resolve api.upbit.com [HttpClient-640-Worker-0] (JDK 프레임만), resolve api.upbit.com [HttpClient-641-Worker-0] (JDK 프레임만)]
+FAIL web-api DynamicSlWatchdogNoiseTest :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-642-Worker-0] (JDK 프레임만)]
+FAIL web-api EngineParityTest :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-643-Worker-0] (JDK 프레임만)]
+FAIL web-api 코인 우선순위 종단 간 — 엔진 평가 → 회차 접수 → 마감 뒤 등록 순서 승인 → 주문 의도 :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-644-Worker-0] (JDK 프레임만)]
+FAIL web-api 코인 우선순위 — 같은 회차 후보를 사전 등록 순서로 승인 :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 2건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-659-Worker-0] (JDK 프레임만), resolve api.upbit.com [HttpClient-660-Worker-0] (JDK 프레임만)]
+FAIL web-api 거래소 DOWN → 복구 자동 재시작 :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 3건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-664-Worker-0] (JDK 프레임만), resolve api.upbit.com [HttpClient-678-Worker-0] (JDK 프레임만), resolve api.upbit.com [HttpClient-679-Worker-0] (JDK 프레임만)]
+FAIL web-api 정지가 완료된 뒤에는 신규 매수가 제출되지 않는다 (선행 조건 5) :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 2건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-718-Worker-0] (JDK 프레임만), resolve api.upbit.com [HttpClient-719-Worker-0] (JDK 프레임만)]
+FAIL web-api 동시 쓰기 중에도 실전매매 정지는 성공하고 매도는 한 번만 나간다 (선행 조건 5) :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-746-Worker-0] (JDK 프레임만)]
+FAIL web-api N15 승인 실행 만료 — E=D+W 이상 새 예약·매수 의도 없음 :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-760-Worker-0] (JDK 프레임만)]
+FAIL web-api N15 최종 승인 경계 — 한도 조회·세션 잠금·의도 승인 중 E 도달 시 차감·의도 없음 :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-772-Worker-0] (JDK 프레임만)]
+FAIL web-api N17 SL 감시기 REST 강제 갱신 — 0·음수는 INVALID_PRICE·발행 0·가격 이상 문구, 정상 값 뒤 회복 :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-773-Worker-0] (JDK 프레임만)]
+FAIL web-api N19 REST 전역 폴백 — 0·음수·형식 이상 항목만 건너뛰고 앞뒤 정상 코인은 발행·보호 매도 유지, 내부 예외는 숨기지 않음 :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 2건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-785-Worker-0] (JDK 프레임만), resolve api.upbit.com [HttpClient-786-Worker-0] (JDK 프레임만)]
+FAIL web-api O1·O3 로그 출력 계약 — 강제 갱신 WARN/ERROR 원문 없음·수준/건수/결과 유지, 실시간 손절 문구 중립(REST·WS 모두) :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 3건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-809-Worker-0] (JDK 프레임만), resolve api.upbit.com [HttpClient-810-Worker-0] (JDK 프레임만), resolve api.upbit.com [HttpClient-811-Worker-0] (JDK 프레임만)]
+FAIL web-api orderExecutor 대기 조건 공백 — 놀고 있는 작업자 경로에서 비워짐 ≠ 완료 :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-812-Worker-0] (JDK 프레임만)]
+FAIL web-api OrderSubmitAfterCommitTest :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 2건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-813-Worker-0] (JDK 프레임만), resolve api.upbit.com [HttpClient-814-Worker-0] (JDK 프레임만)]
+FAIL web-api 동시 쓰기 중에도 모의투자 정지는 1회로 성공해야 한다 (선행 조건 5) :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-829-Worker-0] (JDK 프레임만)]
+FAIL web-api E R5 — 실제 매수→매도 커밋 뒤 위험 입력: 이익·수수료 경계·손실에서 LIVE 관례 손익과 PAPER 위험 손익 부호 일치, 연속 손실·일 손실 판정 :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-830-Worker-0] (JDK 프레임만)]
+FAIL web-api RateLimiterEmergencyStopTest :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 2건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-842-Worker-0] (JDK 프레임만), resolve api.upbit.com [HttpClient-843-Worker-0] (JDK 프레임만)]
+FAIL web-api F 실시간 보호 전달 — 실행기 포화 중 발행 지속·시세 장부·LIVE/DYNAMIC 손절 주문 의도·중복 없음·비가격 방어·해제 후 처리 :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 8건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-855-Worker-0] (JDK 프레임만), resolve api.upbit.com [HttpClient-856-Worker-0] (JDK 프레임만), resolve api.upbit.com [HttpClient-857-Worker-0] (JDK 프레임만), resolve api.upbit.com [HttpClient-859-Worker-0] (J
+FAIL web-api 155 §4-2 실시간 점검 간격 — 보호 가격 첫 통과 시세 (LIVE/DYNAMIC 직접 처리기) :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-863-Worker-0] (JDK 프레임만)]
+FAIL web-api scheduler 프로필 — 정리 작업이 대기 행을 가져간다 :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 19건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-874-Worker-0] (JDK 프레임만), resolve api.upbit.com [HttpClient-877-Worker-0] (JDK 프레임만), resolve api.upbit.com [HttpClient-878-Worker-0] (JDK 프레임만), resolve api.upbit.com [HttpClient-879-Worker-0] (
+FAIL web-api 회차 활성 공유 루프 — 기존 76 + 새 9(LIVE_ALIGNED) + REAL 후보·포지션: 기존 결정·REAL 불변, PAPER 는 REAL 뒤 :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 2건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-912-Worker-0] (JDK 프레임만), resolve api.upbit.com [HttpClient-914-Worker-0] (JDK 프레임만)]
+FAIL web-api F 공유 marketDataExecutor 실제 포화 — 포화 중 발행·해제 회복·대기열 지연 (래치·Future·장벽) :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-918-Worker-0] (JDK 프레임만)]
+FAIL web-api 공유 PAPER 루프 — 기존 76 + 새 9: 기존 결정 불변·순서·REAL 표 불변·틱 시간 :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-931-Worker-0] (JDK 프레임만)]
+FAIL web-api SMA20 LIVE_ALIGNED 남은 차이 — 평균가·급변 간격·위험 관문·가격 없는 시간 청산·정지/청산 경합 :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 2건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-943-Worker-0] (JDK 프레임만), resolve api.upbit.com [HttpClient-955-Worker-0] (JDK 프레임만)]
+FAIL web-api SMA20 같은 입력 LIVE↔PAPER(LIVE_ALIGNED) — 판단 흐름 정렬 확인 :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 4건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-956-Worker-0] (JDK 프레임만), resolve api.upbit.com [HttpClient-957-Worker-0] (JDK 프레임만), resolve api.upbit.com [HttpClient-969-Worker-0] (JDK 프레임만), resolve api.upbit.com [HttpClient-970-Worker-0] (J
+FAIL web-api N02 낡은 실시간 시세 — 관측 시각이 유효기간을 넘은 가격은 보호 매도를 내지 않는다 :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-994-Worker-0] (JDK 프레임만)]
+FAIL web-api TelegramQueueSaturationTest :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 2건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-1041-Worker-0] (JDK 프레임만), resolve api.upbit.com [HttpClient-1042-Worker-0] (JDK 프레임만)]
+FAIL web-api TelegramTestIsolationTest :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-1067-Worker-0] (JDK 프레임만)]
+FAIL web-api WalkForwardGateTimeframeTest :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-1082-Worker-0] (JDK 프레임만)]
+FAIL web-api WsFallbackTest :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-1088-Worker-0] (JDK 프레임만)]
+FAIL web-api 실행기 장벽 — 꺼낸 뒤·실행 전 창에서는 기다리고, 작업 종료 뒤에 성립 :: waitsThroughTheGapWindowAndCompletesAfterTask() :: org.opentest4j.AssertionFailedError: [옛 조건은 이 창에서 참] 
+Expecting value to be true but was false
+--- 건너뜀(클래스별)
+1	core-engine HeikinAshiStochBacktestRunner
+1	core-engine SignalExitGateAbBacktestRunner
+1	core-engine StrategyReviewAbBacktestRunner
+1	core-engine SupertrendFilterGateRunner
+1	core-engine SupertrendFilterQ2Runner
+1	core-engine SupertrendValidationRunner
+1	core-engine WeakThresholdAbBacktestRunner
+7	web-api 154 §3 LIVE 일/주/월 손실 합산 — 세션 매도 확정 손실 (로컬 PostgreSQL)
+7	web-api 155 §4-1 부분 매도 뒤 실현손익 — 덮어쓰기 없이 다리별 합 (로컬 PostgreSQL)
+3	web-api 157 §125-6 전역 REAL 확정 손실 — DYNAMIC REAL 손실 실패 재현·판정 변화 (로컬 PostgreSQL)
+4	web-api 157 §125-7 phantom 추정 청산 — 부분 매도 확정 손익 보존 (로컬 PostgreSQL)
+8	web-api 158 결정 2 — 실자금 손실 세 보호식 (로컬 PostgreSQL)
+5	web-api 158 결정 3 — CLOSING 과 매도 의도 원자성 (로컬 PostgreSQL)
+2	web-api 158 결정 3 — CLOSING+의도 롤백 계약 (로컬 PostgreSQL)
+1	web-api 5 올림·초 경계), API 목록 = DB 값
+1	web-api A/B 실제 연결 v4 — HTTP 생성 8 → 지문 → psql 확인 → 완성 → psql 추출 → 집계, 음성(지문 없음·복수·T0 전 거래·저장값 불일치)
+1	web-api A/B 실제 연결 — HTTP 생성 8 → 지문 → psql 확인 → 완성 → psql 추출 → 집계, 음성(지문 없음·복수·T0 전 거래·저장값 불일치)
+4	web-api HoldBaselineLoopPgTest
+6	web-api HoldBaselineSqlEquivalencePgTest
+2	web-api I 잔고·목록 RR — 실제 PG 경합: 조회 도중 정산이 커밋돼도 응답은 정산 전 스냅샷 하나, 커밋 뒤 조회는 정산 뒤 하나
+5	web-api N15 실제 PostgreSQL 잠금 대기 중 E — LIVE 계좌 잠금·DYNAMIC 세션 행 잠금, 차감·의도·슬롯·거래소 0 · 대조군 정상 진입
+1	web-api PerformanceSnapshotS5PgTest
+1	web-api PullbackMtfBacktestRunner
+8	web-api SettlementRoundingPgTest
+5	web-api V96 실제 PG — 조건부 피크 갱신·동시 갱신·정밀도·호출자 롤백·엔티티 저장 불간섭·재기동 복원과 첫 유효 시세 정산 1회
+1	web-api V96 실제 PG 이행 — V94 기점 + 두 열, 기존 행 불변, validate
+--- NET-GUARD (web-api)
+installed_during_run=true
+disabled_reason=null
+classes_checked=188
+blocked_external_attempts=104
+allowed_jndi_nameserver_probes=3
+allowed_own_interface_connections=63
+restored_security_manager=null
+resolve api.upbit.com [task-2] UpbitRestClient.getCandles:84 <- UpbitCandleCollector.fetchCandles:49 <- DataCollectionService.collectSingle:124
+resolve api.upbit.com [HttpClient-405-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-406-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-418-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-419-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-420-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-421-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-422-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-423-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-424-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-425-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-481-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-482-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-530-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-532-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-545-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-546-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-547-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-559-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-562-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-563-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-564-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-591-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-592-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-593-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-621-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-622-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-623-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-636-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-637-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-638-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-639-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-640-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-641-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-642-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-643-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-644-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-659-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-660-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-664-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-678-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-679-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-718-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-719-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-746-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-760-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-772-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-773-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-785-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-786-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-809-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-810-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-811-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-812-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-813-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-814-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-829-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-830-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-842-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-843-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-855-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-856-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-857-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-859-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-858-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-860-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-861-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-862-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-863-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-874-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-877-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-878-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-879-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-880-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-881-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [scheduler-1] ExchangeHealthMonitor.checkHealth:99
+resolve api.upbit.com [HttpClient-882-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-883-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-884-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-885-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-886-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-887-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-888-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-889-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-890-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-891-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-892-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [scheduler-8] ExchangeHealthMonitor.checkHealth:99
+resolve api.upbit.com [HttpClient-912-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-914-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-918-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-931-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-943-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-955-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-956-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-957-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-969-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-970-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-994-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-1041-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-1042-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-1067-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-1082-Worker-0] (JDK 프레임만)
+resolve api.upbit.com [HttpClient-1088-Worker-0] (JDK 프레임만)
+--- 허용한 권한 확인(패킷 없음)
+connect,resolve 168.126.63.1:53 [Test worker]
+connect,resolve 168.126.63.2:53 [Test worker]
+connect,resolve 168.126.63.1:53 [Test worker]
+--- 허용한 자기 인터페이스 연결(기계 안)
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:14261 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:14261 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+accept,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:14263 [http-nio-auto-2-Acceptor] (앱 프레임 없음) org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:513 <- org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:71 <- org.apache.tomcat.util.net.Acceptor.run:128
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:7310 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:7310 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+accept,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:7311 [http-nio-auto-3-Acceptor] (앱 프레임 없음) org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:513 <- org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:71 <- org.apache.tomcat.util.net.Acceptor.run:128
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:7312 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:7312 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+accept,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:7313 [http-nio-auto-4-Acceptor] (앱 프레임 없음) org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:513 <- org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:71 <- org.apache.tomcat.util.net.Acceptor.run:128
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:7314 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:7314 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+accept,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:7315 [http-nio-auto-5-Acceptor] (앱 프레임 없음) org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:513 <- org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:71 <- org.apache.tomcat.util.net.Acceptor.run:128
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:5586 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:5586 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+accept,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:5587 [http-nio-auto-14-Acceptor] (앱 프레임 없음) org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:513 <- org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:71 <- org.apache.tomcat.util.net.Acceptor.run:128
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:5589 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:5589 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+accept,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:5590 [http-nio-auto-16-Acceptor] (앱 프레임 없음) org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:513 <- org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:71 <- org.apache.tomcat.util.net.Acceptor.run:128
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:11454 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:11454 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+accept,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:11455 [http-nio-auto-38-Acceptor] (앱 프레임 없음) org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:513 <- org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:71 <- org.apache.tomcat.util.net.Acceptor.run:128
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:1990 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:1990 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+accept,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:1991 [http-nio-auto-39-Acceptor] (앱 프레임 없음) org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:513 <- org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:71 <- org.apache.tomcat.util.net.Acceptor.run:128
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:5497 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:5497 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+accept,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:5552 [http-nio-auto-40-Acceptor] (앱 프레임 없음) org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:513 <- org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:71 <- org.apache.tomcat.util.net.Acceptor.run:128
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:14970 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:14970 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+accept,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:5231 [http-nio-auto-7-Acceptor] (앱 프레임 없음) org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:513 <- org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:71 <- org.apache.tomcat.util.net.Acceptor.run:128
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:5230 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:5230 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+accept,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:5232 [http-nio-auto-42-Acceptor] (앱 프레임 없음) org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:513 <- org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:71 <- org.apache.tomcat.util.net.Acceptor.run:128
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:5233 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:5233 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+accept,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:5234 [http-nio-auto-43-Acceptor] (앱 프레임 없음) org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:513 <- org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:71 <- org.apache.tomcat.util.net.Acceptor.run:128
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:5235 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:5235 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+accept,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:5236 [http-nio-auto-44-Acceptor] (앱 프레임 없음) org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:513 <- org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:71 <- org.apache.tomcat.util.net.Acceptor.run:128
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:4596 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:4596 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+accept,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:4598 [http-nio-auto-45-Acceptor] (앱 프레임 없음) org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:513 <- org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:71 <- org.apache.tomcat.util.net.Acceptor.run:128
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:4599 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:4599 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+accept,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:4600 [http-nio-auto-46-Acceptor] (앱 프레임 없음) org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:513 <- org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:71 <- org.apache.tomcat.util.net.Acceptor.run:128
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:7878 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:7878 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+accept,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:7879 [http-nio-auto-47-Acceptor] (앱 프레임 없음) org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:513 <- org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:71 <- org.apache.tomcat.util.net.Acceptor.run:128
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:14971 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:14971 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+accept,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:7882 [http-nio-auto-8-Acceptor] (앱 프레임 없음) org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:513 <- org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:71 <- org.apache.tomcat.util.net.Acceptor.run:128
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:4165 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:4165 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+accept,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:14957 [http-nio-auto-12-Acceptor] (앱 프레임 없음) org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:513 <- org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:71 <- org.apache.tomcat.util.net.Acceptor.run:128
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:4166 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:4166 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+accept,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:14991 [http-nio-auto-13-Acceptor] (앱 프레임 없음) org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:513 <- org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:71 <- org.apache.tomcat.util.net.Acceptor.run:128
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:9546 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:9546 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+accept,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:14995 [http-nio-auto-10-Acceptor] (앱 프레임 없음) org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:513 <- org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:71 <- org.apache.tomcat.util.net.Acceptor.run:128
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:6806 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:6806 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+accept,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:14367 [http-nio-auto-17-Acceptor] (앱 프레임 없음) org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:513 <- org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept:71 <- org.apache.tomcat.util.net.Acceptor.run:128

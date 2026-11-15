@@ -1,0 +1,85 @@
+DataController 통합 테스트	11	실패1	오류0	건너뜀0
+BTC 관문 데이터 공급 — BTC 세션 없는 LIVE·DYNAMIC: 수집 실패면 차단, 수집되면 진입	3	실패0	오류0	건너뜀0
+BTC 급락 관문 판정 불가 — 캔들이 없거나 낡으면 LIVE·DYNAMIC 의 평가·승인 시점 매수를 막고, 최신이면 나간다	3	실패0	오류0	건너뜀0
+식별자 취소·취소 확인·늦은 체결 정리	74	실패0	오류0	건너뜀0
+시험 11 — 서로 다른 세션의 동시 진입과 예약 상한	3	실패0	오류0	건너뜀0
+시험 10 — 같은 주문의 동시 반영에서 정산은 한 번	4	실패0	오류0	건너뜀0
+DynamicBuyCompletesConsistentlyTest	1	실패0	오류0	건너뜀0
+DynamicBuyExternalSubmissionBoundaryTest	1	실패0	오류0	건너뜀0
+DynamicBuyOuterWriteOrderingTest	1	실패0	오류0	건너뜀0
+DynamicCircuitBreakerTest	4	실패0	오류0	건너뜀0
+DYNAMIC 체결 회계 — 원자 경로 통합	4	실패0	오류0	건너뜀0
+158 DYNAMIC 판단 시계	5	실패0	오류0	건너뜀0
+DynamicPaperTradingTest	9	실패0	오류0	건너뜀0
+DYNAMIC 매수 — 공유 풀 예약 통합	3	실패0	오류0	건너뜀0
+DynamicScanTransitionGuardTest	7	실패0	오류0	건너뜀0
+DynamicSessionRowLockContentionTest	1	실패0	오류0	건너뜀0
+DynamicSlWatchdogNoiseTest	6	실패0	오류0	건너뜀0
+EngineParityTest	27	실패0	오류0	건너뜀0
+코인 우선순위 종단 간 — 엔진 평가 → 회차 접수 → 마감 뒤 등록 순서 승인 → 주문 의도	2	실패0	오류0	건너뜀0
+코인 우선순위 — 같은 회차 후보를 사전 등록 순서로 승인	10	실패0	오류0	건너뜀0
+거래소 DOWN → 복구 자동 재시작	5	실패0	오류0	건너뜀0
+정지가 완료된 뒤에는 신규 매수가 제출되지 않는다 (선행 조건 5)	1	실패0	오류0	건너뜀0
+동시 쓰기 중에도 실전매매 정지는 성공하고 매도는 한 번만 나간다 (선행 조건 5)	3	실패0	오류0	건너뜀0
+N15 승인 실행 만료 — E=D+W 이상 새 예약·매수 의도 없음	10	실패3	오류0	건너뜀0
+N15 최종 승인 경계 — 한도 조회·세션 잠금·의도 승인 중 E 도달 시 차감·의도 없음	9	실패5	오류0	건너뜀0
+N17 SL 감시기 REST 강제 갱신 — 0·음수는 INVALID_PRICE·발행 0·가격 이상 문구, 정상 값 뒤 회복	24	실패0	오류0	건너뜀0
+N19 REST 전역 폴백 — 0·음수·형식 이상 항목만 건너뛰고 앞뒤 정상 코인은 발행·보호 매도 유지, 내부 예외는 숨기지 않음	23	실패0	오류0	건너뜀0
+O1·O3 로그 출력 계약 — 강제 갱신 WARN/ERROR 원문 없음·수준/건수/결과 유지, 실시간 손절 문구 중립(REST·WS 모두)	17	실패0	오류0	건너뜀0
+orderExecutor 대기 조건 공백 — 놀고 있는 작업자 경로에서 비워짐 ≠ 완료	3	실패0	오류0	건너뜀0
+OrderSubmitAfterCommitTest	3	실패0	오류0	건너뜀0
+동시 쓰기 중에도 모의투자 정지는 1회로 성공해야 한다 (선행 조건 5)	4	실패0	오류0	건너뜀0
+E R5 — 실제 매수→매도 커밋 뒤 위험 입력: 이익·수수료 경계·손실에서 LIVE 관례 손익과 PAPER 위험 손익 부호 일치, 연속 손실·일 손실 판정	7	실패0	오류0	건너뜀0
+RateLimiterEmergencyStopTest	5	실패0	오류0	건너뜀0
+F 실시간 보호 전달 — 실행기 포화 중 발행 지속·시세 장부·LIVE/DYNAMIC 손절 주문 의도·중복 없음·비가격 방어·해제 후 처리	13	실패0	오류0	건너뜀0
+155 §4-2 실시간 점검 간격 — 보호 가격 첫 통과 시세 (LIVE/DYNAMIC 직접 처리기)	21	실패0	오류0	건너뜀0
+scheduler 프로필 — 정리 작업이 대기 행을 가져간다	2	실패0	오류0	건너뜀0
+회차 활성 공유 루프 — 기존 76 + 새 9(LIVE_ALIGNED) + REAL 후보·포지션: 기존 결정·REAL 불변, PAPER 는 REAL 뒤	2	실패0	오류0	건너뜀0
+F 공유 marketDataExecutor 실제 포화 — 포화 중 발행·해제 회복·대기열 지연 (래치·Future·장벽)	1	실패0	오류0	건너뜀0
+공유 PAPER 루프 — 기존 76 + 새 9: 기존 결정 불변·순서·REAL 표 불변·틱 시간	2	실패0	오류0	건너뜀0
+SMA20 LIVE_ALIGNED 남은 차이 — 평균가·급변 간격·위험 관문·가격 없는 시간 청산·정지/청산 경합	6	실패0	오류0	건너뜀0
+SMA20 같은 입력 LIVE↔PAPER(LIVE_ALIGNED) — 판단 흐름 정렬 확인	15	실패0	오류0	건너뜀0
+N02 낡은 실시간 시세 — 관측 시각이 유효기간을 넘은 가격은 보호 매도를 내지 않는다	2	실패0	오류0	건너뜀0
+TelegramQueueSaturationTest	4	실패0	오류0	건너뜀0
+TelegramTestIsolationTest$TestProfile	1	실패0	오류0	건너뜀0
+WalkForwardGateTimeframeTest	9	실패0	오류0	건너뜀0
+WsFallbackTest	5	실패0	오류0	건너뜀0
+합계	376	실패9	오류0	건너뜀0
+FAIL DataController 통합 테스트 :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [task-2] UpbitRestClient.getCandles:84 <- UpbitCandleCollector.fetchCandles:49 <- DataCollectionService.collectSingle:124]
+FAIL N15 승인 실행 만료 — E=D+W 이상 새 예약·매수 의도 없음 :: ② DYNAMIC: E−1ms 진입, E 만료 — 예약·의도·거래소 0, 원래 신호에 만료 사유 :: org.opentest4j.AssertionFailedError: 
+expected: null
+ but was: "승인 차례에 BTC_MARKET_GUARD 판정 불가 — BTC 캔들 판정 불가(최신 완료 봉 없음 — 마지막 완료 봉 2026-11-14T23:55:10.824701700Z, 필요 2026-11-15T00:00:00Z 이후(4분 늦음)) — 급락 여부를 모른다"
+FAIL N15 승인 실행 만료 — E=D+W 이상 새 예약·매수 의도 없음 :: LIVE 접수 EARLY :: java.lang.AssertionError: 
+Expecting actual:
+  "승인 차례에 BTC_MARKET_GUARD 판정 불가 — BTC 캔들 판정 불가(최신 완료 봉 없음 — 마지막 완료 봉 2026-11-14T23:55:11.106561600Z, 필요 2026-11-15T00:00:00Z 이후(4분 늦음)) — 급락 여부를 모른다"
+to contain:
+  "ENTRY_EXPIRED" 
+FAIL N15 승인 실행 만료 — E=D+W 이상 새 예약·매수 의도 없음 :: LIVE 접수 LATE :: java.lang.AssertionError: 
+Expecting actual:
+  "승인 차례에 BTC_MARKET_GUARD 판정 불가 — BTC 캔들 판정 불가(최신 완료 봉 없음 — 마지막 완료 봉 2026-11-14T23:55:11.169955100Z, 필요 2026-11-15T00:00:00Z 이후(4분 늦음)) — 급락 여부를 모른다"
+to contain:
+  "ENTRY_EXPIRED" 
+FAIL N15 최종 승인 경계 — 한도 조회·세션 잠금·의도 승인 중 E 도달 시 차감·의도 없음 :: ⑨b (c) DYNAMIC 차감 뒤 의도 승인 조회 중 E — 가용 원복·열린 슬롯·의도·거래소 0, 신호에 ENTRY_EXPIRED :: org.opentest4j.AssertionFailedError: [갈고리가 의도 승인 안에서 불렸다] 
+expected: 1
+ but was: 0
+FAIL N15 최종 승인 경계 — 한도 조회·세션 잠금·의도 승인 중 E 도달 시 차감·의도 없음 :: ⑧ (b) DYNAMIC 세션 행 잠금(refresh) 대기 중 E — 차감·슬롯·의도·거래소 0, 신호에 ENTRY_EXPIRED :: org.opentest4j.AssertionFailedError: [승인 스레드가 예약의 세션 refresh 에서 기다렸다] 
+Expecting value to be true but was false
+FAIL N15 최종 승인 경계 — 한도 조회·세션 잠금·의도 승인 중 E 도달 시 차감·의도 없음 :: ⑦b (a) DYNAMIC 잠금 직후 E−1ms·손실 한도 검사 중 E — 차감·슬롯·의도·거래소 0, 신호에 ENTRY_EXPIRED :: org.opentest4j.AssertionFailedError: [갈고리가 예약 경로 안에서 불렸다] 
+expected: 1
+ but was: 0
+FAIL N15 최종 승인 경계 — 한도 조회·세션 잠금·의도 승인 중 E 도달 시 차감·의도 없음 :: LIVE 접수 EARLY :: org.opentest4j.AssertionFailedError: 
+expected: 1
+ but was: 0
+FAIL N15 최종 승인 경계 — 한도 조회·세션 잠금·의도 승인 중 E 도달 시 차감·의도 없음 :: LIVE 접수 LATE :: org.opentest4j.AssertionFailedError: 
+expected: 1
+ but was: 0
+외부WS연결·구독줄=0
+--- NET-GUARD
+installed_during_run=true
+disabled_reason=null
+classes_checked=46
+blocked_external_attempts=1
+allowed_jndi_nameserver_probes=3
+allowed_own_interface_connections=21
+restored_security_manager=null
+resolve api.upbit.com [task-2] UpbitRestClient.getCandles:84 <- UpbitCandleCollector.fetchCandles:49 <- DataCollectionService.collectSingle:124

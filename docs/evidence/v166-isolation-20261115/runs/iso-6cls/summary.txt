@@ -1,0 +1,17 @@
+거래소 DOWN → 복구 자동 재시작	5	실패0	오류0	건너뜀0
+N01 거래소 DOWN → UP — 제한시험(SMA20)은 재개하지 않고 최초 started_at 을 보존한다	4	실패0	오류0	건너뜀0
+LIVE 비상 정지 — 동시 쓰기 중에도 정지·청산이 끝난다 (선행 조건 5-b)	3	실패0	오류0	건너뜀0
+N17 SL 감시기 REST 강제 갱신 — 0·음수는 INVALID_PRICE·발행 0·가격 이상 문구, 정상 값 뒤 회복	24	실패0	오류0	건너뜀0
+N02 보완 SL 감시기 — 낡은 REST 응답은 점검·매도·재개 문구 없음, 신선한 응답은 실제 점검 기록	4	실패0	오류0	건너뜀0
+N02 낡은 실시간 시세 — 관측 시각이 유효기간을 넘은 가격은 보호 매도를 내지 않는다	2	실패0	오류0	건너뜀0
+합계	42	실패0	오류0	건너뜀0
+외부WS연결·구독줄=0
+--- NET-GUARD
+installed_during_run=true
+disabled_reason=null
+classes_checked=6
+blocked_external_attempts=0
+allowed_jndi_nameserver_probes=3
+restored_security_manager=null
+
+--- 허용한 권한 확인(패킷 없음)

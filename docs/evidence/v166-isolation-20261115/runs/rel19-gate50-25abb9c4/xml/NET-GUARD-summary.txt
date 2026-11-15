@@ -1,0 +1,11 @@
+installed_during_run=true
+disabled_reason=null
+classes_checked=18
+blocked_external_attempts=1
+allowed_jndi_nameserver_probes=3
+restored_security_manager=null
+connect,resolve [fd7a:115c:a1e0:0:0:0:3138:2020]:14120 [Test worker] (앱 프레임 없음) org.apache.tomcat.util.net.AbstractEndpoint.unlockAccept:1149 <- org.apache.tomcat.util.net.NioEndpoint.unlockAccept:382 <- org.apache.tomcat.util.net.AbstractEndpoint.pause:1419 <- org.apache.tomcat.util.net.NioEndpoint.stopInternal:295
+--- 허용한 권한 확인(패킷 없음)
+connect,resolve 168.126.63.1:53 [Test worker]
+connect,resolve 168.126.63.2:53 [Test worker]
+connect,resolve 168.126.63.1:53 [Test worker]

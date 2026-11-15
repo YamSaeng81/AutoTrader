@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.DynamicSlWatchdogNoiseTest" tests="7" skipped="0" failures="1" errors="0" timestamp="2026-11-15T00:46:54" hostname="DESKTOP-SF1KUQ5" time="0.04">
+  <properties/>
+  <testcase name="자가복구를 계속 시도했는데도 점검이 안 잡힐 때는 알린다 — 진짜 고장 신호" classname="com.cryptoautotrader.api.service.DynamicSlWatchdogNoiseTest" time="0.013"/>
+  <testcase name="&#x1f534; REST 자가복구가 되는 동안은 알리지 않는다 — 거래 뜸한 코인의 정상적인 틱 공백" classname="com.cryptoautotrader.api.service.DynamicSlWatchdogNoiseTest" time="0.006"/>
+  <testcase name="실전 세션도 마찬가지다 — 상태 불일치는 자가복구 가드가 다음 틱에 되돌린다" classname="com.cryptoautotrader.api.service.DynamicSlWatchdogNoiseTest" time="0.005"/>
+  <testcase name="&#x1f534; POSITION_MONITORING 인데 OPEN 포지션이 없으면 알리지 않는다 — 이게 무한 반복의 원인이었다" classname="com.cryptoautotrader.api.service.DynamicSlWatchdogNoiseTest" time="0.004"/>
+  <testcase name="포지션이 없으면 거래소 장애 중이어도 조용하다 — 감시 대상이 아니기 때문" classname="com.cryptoautotrader.api.service.DynamicSlWatchdogNoiseTest" time="0.005"/>
+  <testcase name="REST 강제 갱신 자체가 실패하면 즉시 알린다 — 거래소 장애는 기다릴 일이 아니다" classname="com.cryptoautotrader.api.service.DynamicSlWatchdogNoiseTest" time="0.004"/>
+  <testcase name="executionError" classname="com.cryptoautotrader.api.service.DynamicSlWatchdogNoiseTest" time="0.0">
+    <failure message="java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-642-Worker-0] (JDK 프레임만)]" type="java.lang.AssertionError">java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-642-Worker-0] (JDK 프레임만)]
+	at com.cryptoautotrader.api.support.NetworkIsolationExtension.afterAll(NetworkIsolationExtension.java:47)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <system-out><![CDATA[09:46:54.954 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.DynamicSlWatchdogNoiseTest
+09:46:54.956 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+09:46:54.960 [Test worker] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+09:46:54.962 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.lang.SecurityException: [NET-GUARD] 시험 외부 연결 차단: resolve api.upbit.com
+java.util.concurrent.CompletionException: java.lang.SecurityException: [NET-GUARD] 시험 외부 연결 차단: resolve api.upbit.com
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.uniComposeStage(CompletableFuture.java:1189)
+	at java.base/java.util.concurrent.CompletableFuture.thenCompose(CompletableFuture.java:2309)
+	at java.net.http/jdk.internal.net.http.MultiExchange.responseAsyncImpl(MultiExchange.java:453)
+	at java.net.http/jdk.internal.net.http.MultiExchange.lambda$responseAsync0$2(MultiExchange.java:341)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1150)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+	at java.base/jdk.internal.misc.InnocuousThread.run(InnocuousThread.java:162)
+Caused by: java.lang.SecurityException: [NET-GUARD] 시험 외부 연결 차단: resolve api.upbit.com
+	at com.cryptoautotrader.api.support.NetworkIsolationGuard$Guard.inspect(NetworkIsolationGuard.java:231)
+	at com.cryptoautotrader.api.support.NetworkIsolationGuard$Guard.checkPermission(NetworkIsolationGuard.java:187)
+	at java.base/java.lang.SecurityManager.checkConnect(SecurityManager.java:916)
+	at java.base/java.net.InetAddress.getAllByName0(InetAddress.java:1480)
+	at java.base/java.net.InetAddress.getAllByName(InetAddress.java:1384)
+	at java.base/java.net.InetAddress.getAllByName(InetAddress.java:1305)
+	at java.base/java.net.InetAddress.getByName(InetAddress.java:1255)
+	at java.base/java.net.InetSocketAddress.<init>(InetSocketAddress.java:229)
+	at java.net.http/jdk.internal.net.http.HttpRequestImpl.lambda$getAddress$5(HttpRequestImpl.java:390)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:318)
+	at java.net.http/jdk.internal.net.http.HttpRequestImpl.getAddress(HttpRequestImpl.java:391)
+	at java.net.http/jdk.internal.net.http.Http1Exchange.<init>(Http1Exchange.java:198)
+	at java.net.http/jdk.internal.net.http.ExchangeImpl.createHttp1Exchange(ExchangeImpl.java:161)
+	at java.net.http/jdk.internal.net.http.ExchangeImpl.get(ExchangeImpl.java:89)
+	at java.net.http/jdk.internal.net.http.Exchange.establishExchange(Exchange.java:344)
+	at java.net.http/jdk.internal.net.http.Exchange.responseAsyncImpl0(Exchange.java:528)
+	at java.net.http/jdk.internal.net.http.Exchange.responseAsyncImpl(Exchange.java:381)
+	at java.net.http/jdk.internal.net.http.Exchange.responseAsync(Exchange.java:373)
+	at java.net.http/jdk.internal.net.http.MultiExchange.responseAsyncImpl(MultiExchange.java:408)
+	... 8 common frames omitted
+09:46:54.963 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+09:46:54.963 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 30000ms 후 WebSocket 재연결 시도
+09:46:54.963 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검: sessionId=170 coin=KRW-XRP 마지막체크=기록없음 (3분 초과, 연속 1회, WS구독=있음, REST강제갱신=PUBLISHED 체결 0초 전)
+09:46:54.965 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검: sessionId=170 coin=KRW-XRP 마지막체크=기록없음 (3분 초과, 연속 2회, WS구독=있음, REST강제갱신=PUBLISHED 체결 0초 전)
+09:46:54.966 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검: sessionId=170 coin=KRW-XRP 마지막체크=기록없음 (3분 초과, 연속 3회, WS구독=있음, REST강제갱신=PUBLISHED 체결 0초 전)
+09:46:54.966 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검: sessionId=170 coin=KRW-XRP 마지막체크=기록없음 (3분 초과, 연속 4회, WS구독=있음, REST강제갱신=PUBLISHED 체결 0초 전)
+09:46:54.967 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검: sessionId=170 coin=KRW-XRP 마지막체크=기록없음 (3분 초과, 연속 5회, WS구독=있음, REST강제갱신=PUBLISHED 체결 0초 전)
+09:46:54.970 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+09:46:54.972 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검: sessionId=171 coin=KRW-XRP 마지막체크=기록없음 (3분 초과, 연속 1회, WS구독=있음, REST강제갱신=PUBLISHED 체결 0초 전)
+09:46:54.972 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검: sessionId=171 coin=KRW-XRP 마지막체크=기록없음 (3분 초과, 연속 2회, WS구독=있음, REST강제갱신=PUBLISHED 체결 0초 전)
+09:46:54.975 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+09:46:54.980 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+09:46:54.986 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+09:46:54.991 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+09:46:54.994 [Test worker] ERROR c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검 세션 강제 복구 실패 ? 조회·변환 예외(원문 생략)
+09:46:54.994 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검: sessionId=175 coin=KRW-XRP 마지막체크=기록없음 (3분 초과, 연속 1회, WS구독=있음, REST강제갱신=FAILED 체결 시각 없음)
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

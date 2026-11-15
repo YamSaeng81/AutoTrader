@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="DataController 통합 테스트" tests="11" skipped="0" failures="1" errors="0" timestamp="2026-11-15T00:45:22" hostname="DESKTOP-SF1KUQ5" time="0.185">
+  <properties/>
+  <testcase name="POST /api/v1/data/collect — 모든 필수 필드 정상 요청 시 202 Accepted" classname="com.cryptoautotrader.api.controller.DataControllerIntegrationTest" time="0.023"/>
+  <testcase name="POST /api/v1/data/collect — endDate 누락 시 400" classname="com.cryptoautotrader.api.controller.DataControllerIntegrationTest" time="0.009"/>
+  <testcase name="데이터 요약 조회 — 200 OK, 빈 배열 반환" classname="com.cryptoautotrader.api.controller.DataControllerIntegrationTest" time="0.022"/>
+  <testcase name="수집 현황 조회 — DB 비어있을 때 EMPTY 상태 반환" classname="com.cryptoautotrader.api.controller.DataControllerIntegrationTest" time="0.021"/>
+  <testcase name="POST /api/v1/data/collect — startDate 누락 시 400" classname="com.cryptoautotrader.api.controller.DataControllerIntegrationTest" time="0.034"/>
+  <testcase name="수집 현황 조회 — 200 OK, 필수 필드 포함" classname="com.cryptoautotrader.api.controller.DataControllerIntegrationTest" time="0.009"/>
+  <testcase name="POST /api/v1/data/collect — timeframe 누락 시 400" classname="com.cryptoautotrader.api.controller.DataControllerIntegrationTest" time="0.008"/>
+  <testcase name="GET /api/v1/data/candles — coinPair 파라미터 없으면 400" classname="com.cryptoautotrader.api.controller.DataControllerIntegrationTest" time="0.01"/>
+  <testcase name="POST /api/v1/data/collect — coinPair 누락 시 400" classname="com.cryptoautotrader.api.controller.DataControllerIntegrationTest" time="0.009"/>
+  <testcase name="GET /api/v1/data/candles — DB 비어있을 때 빈 배열 반환" classname="com.cryptoautotrader.api.controller.DataControllerIntegrationTest" time="0.023"/>
+  <testcase name="executionError" classname="com.cryptoautotrader.api.controller.DataControllerIntegrationTest" time="0.002">
+    <failure message="java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [task-2] UpbitRestClient.getCandles:84 &lt;- UpbitCandleCollector.fetchCandles:49 &lt;- DataCollectionService.collectSingle:124]" type="java.lang.AssertionError">java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [task-2] UpbitRestClient.getCandles:84 &lt;- UpbitCandleCollector.fetchCandles:49 &lt;- DataCollectionService.collectSingle:124]
+	at com.cryptoautotrader.api.support.NetworkIsolationExtension.afterAll(NetworkIsolationExtension.java:47)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <system-out><![CDATA[09:45:22.980 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.controller.DataControllerIntegrationTest
+09:45:22.991 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+09:45:23.014 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+09:45:23.018 [Test worker] WARN  c.c.a.c.GlobalExceptionHandler - 유효성 검사 실패: endDate: must not be null
+09:45:23.024 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+09:45:23.047 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+09:45:23.092 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+09:45:23.096 [Test worker] WARN  c.c.a.c.GlobalExceptionHandler - 유효성 검사 실패: startDate: must not be null
+09:45:23.101 [task-2] ERROR c.c.e.upbit.UpbitCandleCollector - 캔들 수집 실패: [NET-GUARD] 시험 외부 연결 차단: resolve api.upbit.com
+java.lang.SecurityException: [NET-GUARD] 시험 외부 연결 차단: resolve api.upbit.com
+	at java.net.http/jdk.internal.net.http.HttpClientImpl.send(HttpClientImpl.java:566)
+	at java.net.http/jdk.internal.net.http.HttpClientFacade.send(HttpClientFacade.java:123)
+	at com.cryptoautotrader.exchange.upbit.UpbitRestClient.getCandles(UpbitRestClient.java:84)
+	at com.cryptoautotrader.exchange.upbit.UpbitCandleCollector.fetchCandles(UpbitCandleCollector.java:49)
+	at com.cryptoautotrader.api.service.DataCollectionService.collectSingle(DataCollectionService.java:124)
+	at com.cryptoautotrader.api.service.DataCollectionService.collectCandles(DataCollectionService.java:33)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at org.springframework.aop.interceptor.AsyncExecutionInterceptor.lambda$invoke$0(AsyncExecutionInterceptor.java:113)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.lang.SecurityException: [NET-GUARD] 시험 외부 연결 차단: resolve api.upbit.com
+	at com.cryptoautotrader.api.support.NetworkIsolationGuard$Guard.inspect(NetworkIsolationGuard.java:231)
+	at com.cryptoautotrader.api.support.NetworkIsolationGuard$Guard.checkPermission(NetworkIsolationGuard.java:187)
+	at java.base/java.lang.SecurityManager.checkConnect(SecurityManager.java:916)
+	at java.base/java.net.InetAddress.getAllByName0(InetAddress.java:1480)
+	at java.base/java.net.InetAddress.getAllByName(InetAddress.java:1384)
+	at java.base/java.net.InetAddress.getAllByName(InetAddress.java:1305)
+	at java.base/java.net.InetAddress.getByName(InetAddress.java:1255)
+	at java.base/java.net.InetSocketAddress.<init>(InetSocketAddress.java:229)
+	at java.net.http/jdk.internal.net.http.HttpRequestImpl.lambda$getAddress$5(HttpRequestImpl.java:390)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:318)
+	at java.net.http/jdk.internal.net.http.HttpRequestImpl.getAddress(HttpRequestImpl.java:391)
+	at java.net.http/jdk.internal.net.http.Http2Connection.keyFor(Http2Connection.java:538)
+	at java.net.http/jdk.internal.net.http.Http2ClientImpl.getConnectionFor(Http2ClientImpl.java:96)
+	at java.net.http/jdk.internal.net.http.ExchangeImpl.get(ExchangeImpl.java:93)
+	at java.net.http/jdk.internal.net.http.Exchange.establishExchange(Exchange.java:344)
+	at java.net.http/jdk.internal.net.http.Exchange.responseAsyncImpl0(Exchange.java:528)
+	at java.net.http/jdk.internal.net.http.Exchange.responseAsyncImpl(Exchange.java:381)
+	at java.net.http/jdk.internal.net.http.Exchange.responseAsync(Exchange.java:373)
+	at java.net.http/jdk.internal.net.http.MultiExchange.responseAsyncImpl(MultiExchange.java:408)
+	at java.net.http/jdk.internal.net.http.MultiExchange.lambda$responseAsync0$2(MultiExchange.java:341)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1150)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.net.http/jdk.internal.net.http.HttpClientImpl$DelegatingExecutor.execute(HttpClientImpl.java:158)
+	at java.base/java.util.concurrent.CompletableFuture.completeAsync(CompletableFuture.java:2673)
+	at java.net.http/jdk.internal.net.http.MultiExchange.responseAsync(MultiExchange.java:294)
+	at java.net.http/jdk.internal.net.http.HttpClientImpl.sendAsync(HttpClientImpl.java:657)
+	at java.net.http/jdk.internal.net.http.HttpClientImpl.send(HttpClientImpl.java:553)
+	... 18 common frames omitted
+09:45:23.102 [task-2] ERROR c.c.a.service.DataCollectionService - 캔들 수집 실패: KRW-BTC ? 캔들 데이터 수집 실패
+java.lang.RuntimeException: 캔들 데이터 수집 실패
+	at com.cryptoautotrader.exchange.upbit.UpbitCandleCollector.fetchCandles(UpbitCandleCollector.java:81)
+	at com.cryptoautotrader.api.service.DataCollectionService.collectSingle(DataCollectionService.java:124)
+	at com.cryptoautotrader.api.service.DataCollectionService.collectCandles(DataCollectionService.java:33)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at org.springframework.aop.interceptor.AsyncExecutionInterceptor.lambda$invoke$0(AsyncExecutionInterceptor.java:113)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.lang.SecurityException: [NET-GUARD] 시험 외부 연결 차단: resolve api.upbit.com
+	at java.net.http/jdk.internal.net.http.HttpClientImpl.send(HttpClientImpl.java:566)
+	at java.net.http/jdk.internal.net.http.HttpClientFacade.send(HttpClientFacade.java:123)
+	at com.cryptoautotrader.exchange.upbit.UpbitRestClient.getCandles(UpbitRestClient.java:84)
+	at com.cryptoautotrader.exchange.upbit.UpbitCandleCollector.fetchCandles(UpbitCandleCollector.java:49)
+	... 15 common frames omitted
+Caused by: java.lang.SecurityException: [NET-GUARD] 시험 외부 연결 차단: resolve api.upbit.com
+	at com.cryptoautotrader.api.support.NetworkIsolationGuard$Guard.inspect(NetworkIsolationGuard.java:231)
+	at com.cryptoautotrader.api.support.NetworkIsolationGuard$Guard.checkPermission(NetworkIsolationGuard.java:187)
+	at java.base/java.lang.SecurityManager.checkConnect(SecurityManager.java:916)
+	at java.base/java.net.InetAddress.getAllByName0(InetAddress.java:1480)
+	at java.base/java.net.InetAddress.getAllByName(InetAddress.java:1384)
+	at java.base/java.net.InetAddress.getAllByName(InetAddress.java:1305)
+	at java.base/java.net.InetAddress.getByName(InetAddress.java:1255)
+	at java.base/java.net.InetSocketAddress.<init>(InetSocketAddress.java:229)
+	at java.net.http/jdk.internal.net.http.HttpRequestImpl.lambda$getAddress$5(HttpRequestImpl.java:390)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:318)
+	at java.net.http/jdk.internal.net.http.HttpRequestImpl.getAddress(HttpRequestImpl.java:391)
+	at java.net.http/jdk.internal.net.http.Http2Connection.keyFor(Http2Connection.java:538)
+	at java.net.http/jdk.internal.net.http.Http2ClientImpl.getConnectionFor(Http2ClientImpl.java:96)
+	at java.net.http/jdk.internal.net.http.ExchangeImpl.get(ExchangeImpl.java:93)
+	at java.net.http/jdk.internal.net.http.Exchange.establishExchange(Exchange.java:344)
+	at java.net.http/jdk.internal.net.http.Exchange.responseAsyncImpl0(Exchange.java:528)
+	at java.net.http/jdk.internal.net.http.Exchange.responseAsyncImpl(Exchange.java:381)
+	at java.net.http/jdk.internal.net.http.Exchange.responseAsync(Exchange.java:373)
+	at java.net.http/jdk.internal.net.http.MultiExchange.responseAsyncImpl(MultiExchange.java:408)
+	at java.net.http/jdk.internal.net.http.MultiExchange.lambda$responseAsync0$2(MultiExchange.java:341)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1150)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.net.http/jdk.internal.net.http.HttpClientImpl$DelegatingExecutor.execute(HttpClientImpl.java:158)
+	at java.base/java.util.concurrent.CompletableFuture.completeAsync(CompletableFuture.java:2673)
+	at java.net.http/jdk.internal.net.http.MultiExchange.responseAsync(MultiExchange.java:294)
+	at java.net.http/jdk.internal.net.http.HttpClientImpl.sendAsync(HttpClientImpl.java:657)
+	at java.net.http/jdk.internal.net.http.HttpClientImpl.send(HttpClientImpl.java:553)
+	... 18 common frames omitted
+09:45:23.105 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+09:45:23.114 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+09:45:23.117 [Test worker] WARN  c.c.a.c.GlobalExceptionHandler - 유효성 검사 실패: timeframe: must not be blank
+09:45:23.122 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+09:45:23.127 [Test worker] WARN  c.c.a.c.GlobalExceptionHandler - 필수 파라미터 누락: Required request parameter 'coinPair' for method parameter type String is not present
+09:45:23.134 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+09:45:23.138 [Test worker] WARN  c.c.a.c.GlobalExceptionHandler - 유효성 검사 실패: coinPair: must not be blank
+09:45:23.144 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

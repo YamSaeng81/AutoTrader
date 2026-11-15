@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="N15 승인 실행 만료 — E=D+W 이상 새 예약·매수 의도 없음" tests="10" skipped="0" failures="3" errors="0" timestamp="2026-11-15T00:56:10" hostname="DESKTOP-SF1KUQ5" time="0.563">
+  <properties/>
+  <testcase name="접수 EARLY" classname="com.cryptoautotrader.api.service.N15EntryExpiryTest" time="0.063"/>
+  <testcase name="접수 LATE" classname="com.cryptoautotrader.api.service.N15EntryExpiryTest" time="0.071"/>
+  <testcase name="② DYNAMIC: E−1ms 진입, E 만료 — 예약·의도·거래소 0, 원래 신호에 만료 사유" classname="com.cryptoautotrader.api.service.N15EntryExpiryTest" time="0.026">
+    <failure message="org.opentest4j.AssertionFailedError: &#13;&#10;expected: null&#13;&#10; but was: &quot;승인 차례에 BTC_MARKET_GUARD 판정 불가 — BTC 캔들 판정 불가(최신 완료 봉 없음 — 마지막 완료 봉 2026-11-14T23:55:10.824701700Z, 필요 2026-11-15T00:00:00Z 이후(4분 늦음)) — 급락 여부를 모른다&quot;" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: 
+expected: null
+ but was: &quot;승인 차례에 BTC_MARKET_GUARD 판정 불가 — BTC 캔들 판정 불가(최신 완료 봉 없음 — 마지막 완료 봉 2026-11-14T23:55:10.824701700Z, 필요 2026-11-15T00:00:00Z 이후(4분 늦음)) — 급락 여부를 모른다&quot;
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base@17.0.12/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base@17.0.12/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)
+	at app//com.cryptoautotrader.api.service.N15EntryExpiryTest.dynamicBoundary(N15EntryExpiryTest.java:434)
+	at java.base@17.0.12/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="접수 EARLY" classname="com.cryptoautotrader.api.service.N15EntryExpiryTest" time="0.104"/>
+  <testcase name="접수 LATE" classname="com.cryptoautotrader.api.service.N15EntryExpiryTest" time="0.099"/>
+  <testcase name="⑥ 정의 W=min(T/2,5분)·D=C+W·E=D+W, H1 09:00→09:05→09:10, M1·M5 는 E=다음 마감 — M5 E−1ms 콜백, E 콜백 없음" classname="com.cryptoautotrader.api.service.N15EntryExpiryTest" time="0.01"/>
+  <testcase name="LIVE 접수 EARLY" classname="com.cryptoautotrader.api.service.N15EntryExpiryTest" time="0.074">
+    <failure message="java.lang.AssertionError: &#13;&#10;Expecting actual:&#13;&#10;  &quot;승인 차례에 BTC_MARKET_GUARD 판정 불가 — BTC 캔들 판정 불가(최신 완료 봉 없음 — 마지막 완료 봉 2026-11-14T23:55:11.106561600Z, 필요 2026-11-15T00:00:00Z 이후(4분 늦음)) — 급락 여부를 모른다&quot;&#13;&#10;to contain:&#13;&#10;  &quot;ENTRY_EXPIRED&quot; " type="java.lang.AssertionError">java.lang.AssertionError: 
+Expecting actual:
+  &quot;승인 차례에 BTC_MARKET_GUARD 판정 불가 — BTC 캔들 판정 불가(최신 완료 봉 없음 — 마지막 완료 봉 2026-11-14T23:55:11.106561600Z, 필요 2026-11-15T00:00:00Z 이후(4분 늦음)) — 급락 여부를 모른다&quot;
+to contain:
+  &quot;ENTRY_EXPIRED&quot; 
+	at com.cryptoautotrader.api.service.N15EntryExpiryTest.ownGateCrossesExpiry(N15EntryExpiryTest.java:529)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="LIVE 접수 LATE" classname="com.cryptoautotrader.api.service.N15EntryExpiryTest" time="0.05">
+    <failure message="java.lang.AssertionError: &#13;&#10;Expecting actual:&#13;&#10;  &quot;승인 차례에 BTC_MARKET_GUARD 판정 불가 — BTC 캔들 판정 불가(최신 완료 봉 없음 — 마지막 완료 봉 2026-11-14T23:55:11.169955100Z, 필요 2026-11-15T00:00:00Z 이후(4분 늦음)) — 급락 여부를 모른다&quot;&#13;&#10;to contain:&#13;&#10;  &quot;ENTRY_EXPIRED&quot; " type="java.lang.AssertionError">java.lang.AssertionError: 
+Expecting actual:
+  &quot;승인 차례에 BTC_MARKET_GUARD 판정 불가 — BTC 캔들 판정 불가(최신 완료 봉 없음 — 마지막 완료 봉 2026-11-14T23:55:11.169955100Z, 필요 2026-11-15T00:00:00Z 이후(4분 늦음)) — 급락 여부를 모른다&quot;
+to contain:
+  &quot;ENTRY_EXPIRED&quot; 
+	at com.cryptoautotrader.api.service.N15EntryExpiryTest.ownGateCrossesExpiry(N15EntryExpiryTest.java:529)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="접수 EARLY" classname="com.cryptoautotrader.api.service.N15EntryExpiryTest" time="0.033"/>
+  <testcase name="접수 LATE" classname="com.cryptoautotrader.api.service.N15EntryExpiryTest" time="0.023"/>
+  <system-out><![CDATA[09:56:10.683 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.N15EntryExpiryTest
+09:56:10.687 [Test worker] INFO  o.a.c.c.C.[Tomcat-2].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+09:56:10.738 [pool-17-thread-2] WARN  c.c.a.s.CapitalReservationService - [공유 풀] 승인하지 않는다 (sessionId=176, 사유=ENTRY_EXPIRED): 승인 실행 만료(만료 2026-11-15T00:10:00Z, 잠금 뒤 판정 2026-11-15T00:10:00Z) ? 새 예약·매수 의도 없음 ? ? 거래소 거절을 기다리지 않는다
+09:56:10.738 [pool-17-thread-2] WARN  c.c.api.service.LiveTradingService - 매수 예약이 거절돼 롤백했다 (sessionId=176, KRW-CRO, 사유=ENTRY_EXPIRED): 승인 실행 만료(만료 2026-11-15T00:10:00Z, 잠금 뒤 판정 2026-11-15T00:10:00Z) ? 새 예약·매수 의도 없음
+[N15E ⑤] 접수 EARLY 2026-11-15T00:00:01Z · 잠금 대기 관측 true · 대기 중 시계 E → [KRW-CRO=예약 거절(ENTRY_EXPIRED): 승인 실행 만료(만료 2026-11-15T00:10:00Z, 잠금 뒤 판정 2026-11-15T00:10:00Z) ? 새 예약·매수 의도 없음] · 매수 의도 0 · 포지션 0 · 가용 20000.00 · 신호 사유 예약 거절(ENTRY_EXPIRED): 승인 실행 만료(만료 2026-11-15T00:10:00Z, 잠금 뒤 판정 2026-11-15T00:10:00Z) ? 새 예약·매수 의도 없음
+09:56:10.751 [Test worker] INFO  o.a.c.c.C.[Tomcat-2].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+09:56:10.815 [pool-18-thread-2] WARN  c.c.a.s.CapitalReservationService - [공유 풀] 승인하지 않는다 (sessionId=177, 사유=ENTRY_EXPIRED): 승인 실행 만료(만료 2026-11-15T00:10:00Z, 잠금 뒤 판정 2026-11-15T00:10:00Z) ? 새 예약·매수 의도 없음 ? ? 거래소 거절을 기다리지 않는다
+09:56:10.815 [pool-18-thread-2] WARN  c.c.api.service.LiveTradingService - 매수 예약이 거절돼 롤백했다 (sessionId=177, KRW-CRO, 사유=ENTRY_EXPIRED): 승인 실행 만료(만료 2026-11-15T00:10:00Z, 잠금 뒤 판정 2026-11-15T00:10:00Z) ? 새 예약·매수 의도 없음
+[N15E ⑤] 접수 LATE 2026-11-15T00:04:59.999Z · 잠금 대기 관측 true · 대기 중 시계 E → [KRW-CRO=예약 거절(ENTRY_EXPIRED): 승인 실행 만료(만료 2026-11-15T00:10:00Z, 잠금 뒤 판정 2026-11-15T00:10:00Z) ? 새 예약·매수 의도 없음] · 매수 의도 0 · 포지션 0 · 가용 20000.00 · 신호 사유 예약 거절(ENTRY_EXPIRED): 승인 실행 만료(만료 2026-11-15T00:10:00Z, 잠금 뒤 판정 2026-11-15T00:10:00Z) ? 새 예약·매수 의도 없음
+09:56:10.823 [Test worker] INFO  o.a.c.c.C.[Tomcat-2].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+09:56:10.830 [Test worker] WARN  c.c.a.service.WatchlistFilterService - [Watchlist] KRW 마켓 목록 없음
+09:56:10.830 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 공용 유니버스 비어 있음 ? 직전 목록 유지 (id=131, 1종목)
+09:56:10.835 [Test worker] ERROR c.c.api.service.CandleFreshnessGuard - ? [캔들 최신성] BTC 급락 관문 H1 판정 불가 (DYNAMIC) ? 이 관문을 요구하는 신규 진입을 막는다: BTC 캔들 판정 불가(최신 완료 봉 없음 ? 마지막 완료 봉 2026-11-14T23:55:10.824701700Z, 필요 2026-11-15T00:00:00Z 이후(4분 늦음)) ? 급락 여부를 모른다
+[N15E ②] DYNAMIC KRW-IOTA E 2026-11-15T01:05:10.824701700Z · 처리·판정 2026-11-15T01:05:10.823701700Z → [KRW-IOTA=승인 차례에 BTC_MARKET_GUARD 판정 불가 ? BTC 캔들 판정 불가(최신 완료 봉 없음 ? 마지막 완료 봉 2026-11-14T23:55:10.824701700Z, 필요 2026-11-15T00:00:00Z 이후(4분 늦음)) ? 급락 여부를 모른다] · 매수 의도 0 · 열린 포지션 0 · 가용 10000.00 · 거래소 호출 0 · 신호 실행 false 사유 승인 차례에 BTC_MARKET_GUARD 판정 불가 ? BTC 캔들 판정 불가(최신 완료 봉 없음 ? 마지막 완료 봉 2026-11-14T23:55:10.824701700Z, 필요 2026-11-15T00:00:00Z 이후(4분 늦음)) ? 급락 여부를 모른다
+09:56:10.850 [Test worker] INFO  o.a.c.c.C.[Tomcat-2].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+09:56:10.866 [Test worker] WARN  c.c.api.service.CandleFreshnessGuard - [캔들 최신성] BTC 급락 관문 H1 판정 재개 (LIVE): 종전 2026-11-15T00:56:10.835483600Z BTC 캔들 판정 불가(최신 완료 봉 없음 ? 마지막 완료 봉 2026-11-14T23:55:10.824701700Z, 필요 2026-11-15T00:00:00Z 이후(4분 늦음)) ? 급락 여부를 모른다
+09:56:10.879 [order-exec-1] ERROR o.s.a.i.SimpleAsyncUncaughtExceptionHandler - Unexpected exception occurred invoking async method: public void com.cryptoautotrader.api.service.OrderExecutionEngine.submitPreparedOrder(java.lang.Long,com.cryptoautotrader.api.dto.OrderRequest)
+java.lang.NullPointerException: Cannot invoke "com.cryptoautotrader.exchange.upbit.UpbitOrderClient$ExchangeResult.response()" because "exchangeResult" is null
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.recordSubmitOutcome(OrderExecutionEngine.java:1124)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.lambda$callExchangeAndRecord$11(OrderExecutionEngine.java:1039)
+	at org.springframework.transaction.support.TransactionTemplate.execute(TransactionTemplate.java:140)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.callExchangeAndRecord(OrderExecutionEngine.java:1038)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.submitPreparedOrder(OrderExecutionEngine.java:670)
+	at jdk.internal.reflect.GeneratedMethodAccessor102.invoke(Unknown Source)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at org.springframework.aop.interceptor.AsyncExecutionInterceptor.lambda$invoke$0(AsyncExecutionInterceptor.java:113)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+[N15E ①] 접수 EARLY 2026-11-15T00:00:01Z · KRW-INJ D 2026-11-15T00:05:00Z · E 2026-11-15T00:10:00Z · 처리·판정 2026-11-15T00:05:00.001Z (E 대비 -299999ms) → [KRW-INJ=진입] · 매수 의도 1 · 열린 포지션 1 · 가용 15000.00 · 거래소 호출 1 · 신호 실행 true 사유 null
+09:56:10.908 [order-exec-2] ERROR o.s.a.i.SimpleAsyncUncaughtExceptionHandler - Unexpected exception occurred invoking async method: public void com.cryptoautotrader.api.service.OrderExecutionEngine.submitPreparedOrder(java.lang.Long,com.cryptoautotrader.api.dto.OrderRequest)
+java.lang.NullPointerException: Cannot invoke "com.cryptoautotrader.exchange.upbit.UpbitOrderClient$ExchangeResult.response()" because "exchangeResult" is null
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.recordSubmitOutcome(OrderExecutionEngine.java:1124)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.lambda$callExchangeAndRecord$11(OrderExecutionEngine.java:1039)
+	at org.springframework.transaction.support.TransactionTemplate.execute(TransactionTemplate.java:140)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.callExchangeAndRecord(OrderExecutionEngine.java:1038)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.submitPreparedOrder(OrderExecutionEngine.java:670)
+	at jdk.internal.reflect.GeneratedMethodAccessor102.invoke(Unknown Source)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at org.springframework.aop.interceptor.AsyncExecutionInterceptor.lambda$invoke$0(AsyncExecutionInterceptor.java:113)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+[N15E ①] 접수 EARLY 2026-11-15T00:00:01Z · KRW-CRO D 2026-11-15T00:05:00Z · E 2026-11-15T00:10:00Z · 처리·판정 2026-11-15T00:09:59.999Z (E 대비 -1ms) → [KRW-CRO=진입] · 매수 의도 1 · 열린 포지션 1 · 가용 15000.00 · 거래소 호출 1 · 신호 실행 true 사유 null
+09:56:10.922 [Test worker] WARN  c.c.api.service.EntryPriorityRounds - [진입 우선순위] 1위 KRW-IOTA LIVE#180 → 승인 실행 만료(H1 2026-11-14T23:00:00Z 만료 2026-11-15T00:10:00Z, 판정 2026-11-15T00:10:00Z) ? 새 예약·매수 의도 없음
+[N15E ①] 접수 EARLY 2026-11-15T00:00:01Z · KRW-IOTA D 2026-11-15T00:05:00Z · E 2026-11-15T00:10:00Z · 처리·판정 2026-11-15T00:10:00Z (E 대비 0ms) → [KRW-IOTA=승인 실행 만료(H1 2026-11-14T23:00:00Z 만료 2026-11-15T00:10:00Z, 판정 2026-11-15T00:10:00Z) ? 새 예약·매수 의도 없음] · 매수 의도 0 · 열린 포지션 0 · 가용 20000.00 · 거래소 호출 0 · 신호 실행 false 사유 승인 실행 만료(H1 2026-11-14T23:00:00Z 만료 2026-11-15T00:10:00Z, 판정 2026-11-15T00:10:00Z) ? 새 예약·매수 의도 없음
+09:56:10.940 [Test worker] WARN  c.c.api.service.EntryPriorityRounds - [진입 우선순위] 1위 KRW-ONG LIVE#181 → 승인 실행 만료(H1 2026-11-14T23:00:00Z 만료 2026-11-15T00:10:00Z, 판정 2026-11-15T00:10:00.001Z) ? 새 예약·매수 의도 없음
+[N15E ①] 접수 EARLY 2026-11-15T00:00:01Z · KRW-ONG D 2026-11-15T00:05:00Z · E 2026-11-15T00:10:00Z · 처리·판정 2026-11-15T00:10:00.001Z (E 대비 1ms) → [KRW-ONG=승인 실행 만료(H1 2026-11-14T23:00:00Z 만료 2026-11-15T00:10:00Z, 판정 2026-11-15T00:10:00.001Z) ? 새 예약·매수 의도 없음] · 매수 의도 0 · 열린 포지션 0 · 가용 20000.00 · 거래소 호출 0 · 신호 실행 false 사유 승인 실행 만료(H1 2026-11-14T23:00:00Z 만료 2026-11-15T00:10:00Z, 판정 2026-11-15T00:10:00.001Z) ? 새 예약·매수 의도 없음
+[N15E ①] 확정 주문 KRW-INJ #256 E+10분 뒤 상태 SUBMITTING · 예약액 5000.00000000 → 5000.00000000 · 세션 가용 15000.00
+[N15E ①] 확정 주문 KRW-CRO #257 E+10분 뒤 상태 SUBMITTING · 예약액 5000.00000000 → 5000.00000000 · 세션 가용 15000.00
+09:56:10.956 [Test worker] INFO  o.a.c.c.C.[Tomcat-2].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[N15E ①] 접수 LATE 2026-11-15T00:04:59.999Z · KRW-INJ D 2026-11-15T00:05:00Z · E 2026-11-15T00:10:00Z · 처리·판정 2026-11-15T00:05:00.001Z (E 대비 -299999ms) → [KRW-INJ=진입] · 매수 의도 1 · 열린 포지션 1 · 가용 15000.00 · 거래소 호출 1 · 신호 실행 true 사유 null
+09:56:10.987 [order-exec-1] ERROR o.s.a.i.SimpleAsyncUncaughtExceptionHandler - Unexpected exception occurred invoking async method: public void com.cryptoautotrader.api.service.OrderExecutionEngine.submitPreparedOrder(java.lang.Long,com.cryptoautotrader.api.dto.OrderRequest)
+java.lang.NullPointerException: Cannot invoke "com.cryptoautotrader.exchange.upbit.UpbitOrderClient$ExchangeResult.response()" because "exchangeResult" is null
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.recordSubmitOutcome(OrderExecutionEngine.java:1124)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.lambda$callExchangeAndRecord$11(OrderExecutionEngine.java:1039)
+	at org.springframework.transaction.support.TransactionTemplate.execute(TransactionTemplate.java:140)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.callExchangeAndRecord(OrderExecutionEngine.java:1038)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.submitPreparedOrder(OrderExecutionEngine.java:670)
+	at jdk.internal.reflect.GeneratedMethodAccessor102.invoke(Unknown Source)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at org.springframework.aop.interceptor.AsyncExecutionInterceptor.lambda$invoke$0(AsyncExecutionInterceptor.java:113)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+[N15E ①] 접수 LATE 2026-11-15T00:04:59.999Z · KRW-CRO D 2026-11-15T00:05:00Z · E 2026-11-15T00:10:00Z · 처리·판정 2026-11-15T00:09:59.999Z (E 대비 -1ms) → [KRW-CRO=진입] · 매수 의도 1 · 열린 포지션 1 · 가용 15000.00 · 거래소 호출 1 · 신호 실행 true 사유 null
+09:56:11.012 [order-exec-2] ERROR o.s.a.i.SimpleAsyncUncaughtExceptionHandler - Unexpected exception occurred invoking async method: public void com.cryptoautotrader.api.service.OrderExecutionEngine.submitPreparedOrder(java.lang.Long,com.cryptoautotrader.api.dto.OrderRequest)
+java.lang.NullPointerException: Cannot invoke "com.cryptoautotrader.exchange.upbit.UpbitOrderClient$ExchangeResult.response()" because "exchangeResult" is null
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.recordSubmitOutcome(OrderExecutionEngine.java:1124)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.lambda$callExchangeAndRecord$11(OrderExecutionEngine.java:1039)
+	at org.springframework.transaction.support.TransactionTemplate.execute(TransactionTemplate.java:140)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.callExchangeAndRecord(OrderExecutionEngine.java:1038)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.submitPreparedOrder(OrderExecutionEngine.java:670)
+	at jdk.internal.reflect.GeneratedMethodAccessor102.invoke(Unknown Source)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at org.springframework.aop.interceptor.AsyncExecutionInterceptor.lambda$invoke$0(AsyncExecutionInterceptor.java:113)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+09:56:11.025 [Test worker] WARN  c.c.api.service.EntryPriorityRounds - [진입 우선순위] 1위 KRW-IOTA LIVE#184 → 승인 실행 만료(H1 2026-11-14T23:00:00Z 만료 2026-11-15T00:10:00Z, 판정 2026-11-15T00:10:00Z) ? 새 예약·매수 의도 없음
+[N15E ①] 접수 LATE 2026-11-15T00:04:59.999Z · KRW-IOTA D 2026-11-15T00:05:00Z · E 2026-11-15T00:10:00Z · 처리·판정 2026-11-15T00:10:00Z (E 대비 0ms) → [KRW-IOTA=승인 실행 만료(H1 2026-11-14T23:00:00Z 만료 2026-11-15T00:10:00Z, 판정 2026-11-15T00:10:00Z) ? 새 예약·매수 의도 없음] · 매수 의도 0 · 열린 포지션 0 · 가용 20000.00 · 거래소 호출 0 · 신호 실행 false 사유 승인 실행 만료(H1 2026-11-14T23:00:00Z 만료 2026-11-15T00:10:00Z, 판정 2026-11-15T00:10:00Z) ? 새 예약·매수 의도 없음
+09:56:11.042 [Test worker] WARN  c.c.api.service.EntryPriorityRounds - [진입 우선순위] 1위 KRW-ONG LIVE#185 → 승인 실행 만료(H1 2026-11-14T23:00:00Z 만료 2026-11-15T00:10:00Z, 판정 2026-11-15T00:10:00.001Z) ? 새 예약·매수 의도 없음
+[N15E ①] 접수 LATE 2026-11-15T00:04:59.999Z · KRW-ONG D 2026-11-15T00:05:00Z · E 2026-11-15T00:10:00Z · 처리·판정 2026-11-15T00:10:00.001Z (E 대비 1ms) → [KRW-ONG=승인 실행 만료(H1 2026-11-14T23:00:00Z 만료 2026-11-15T00:10:00Z, 판정 2026-11-15T00:10:00.001Z) ? 새 예약·매수 의도 없음] · 매수 의도 0 · 열린 포지션 0 · 가용 20000.00 · 거래소 호출 0 · 신호 실행 false 사유 승인 실행 만료(H1 2026-11-14T23:00:00Z 만료 2026-11-15T00:10:00Z, 판정 2026-11-15T00:10:00.001Z) ? 새 예약·매수 의도 없음
+[N15E ①] 확정 주문 KRW-INJ #258 E+10분 뒤 상태 SUBMITTING · 예약액 5000.00000000 → 5000.00000000 · 세션 가용 15000.00
+[N15E ①] 확정 주문 KRW-CRO #259 E+10분 뒤 상태 SUBMITTING · 예약액 5000.00000000 → 5000.00000000 · 세션 가용 15000.00
+09:56:11.056 [Test worker] INFO  o.a.c.c.C.[Tomcat-2].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[N15E ⑥] M1 C 2026-12-01T00:01:00Z · W PT30S · D 2026-12-01T00:01:30Z · E 2026-12-01T00:02:00Z
+[N15E ⑥] M5 C 2026-12-01T00:05:00Z · W PT2M30S · D 2026-12-01T00:07:30Z · E 2026-12-01T00:10:00Z
+[N15E ⑥] M15 C 2026-12-01T00:15:00Z · W PT5M · D 2026-12-01T00:20:00Z · E 2026-12-01T00:25:00Z
+[N15E ⑥] H1 C 2026-12-01T01:00:00Z · W PT5M · D 2026-12-01T01:05:00Z · E 2026-12-01T01:10:00Z
+[N15E ⑥] H4 C 2026-12-01T04:00:00Z · W PT5M · D 2026-12-01T04:05:00Z · E 2026-12-01T04:10:00Z
+[N15E ⑥] D1 C 2026-12-02T00:00:00Z · W PT5M · D 2026-12-02T00:05:00Z · E 2026-12-02T00:10:00Z
+09:56:11.059 [Test worker] WARN  c.c.api.service.EntryPriorityRounds - [진입 우선순위] 1위 KRW-IOTA LIVE#-15202 → 승인 실행 만료(M5 2027-02-01T00:05:00Z 만료 2027-02-01T00:15:00Z, 판정 2027-02-01T00:15:00Z) ? 새 예약·매수 의도 없음
+[N15E ⑥] M5 E?1ms [KRW-IOTA=시험(주문 없음)] 콜백 1 · M5 E [KRW-IOTA=승인 실행 만료(M5 2027-02-01T00:05:00Z 만료 2027-02-01T00:15:00Z, 판정 2027-02-01T00:15:00Z) ? 새 예약·매수 의도 없음] 콜백 0
+09:56:11.067 [Test worker] INFO  o.a.c.c.C.[Tomcat-2].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+09:56:11.096 [Test worker] WARN  c.c.a.s.CapitalReservationService - [공유 풀] 승인하지 않는다 (sessionId=186, 사유=ENTRY_EXPIRED): 승인 실행 만료(만료 2026-11-15T00:10:00Z, 잠금 뒤 판정 2026-11-15T00:10:00Z) ? 새 예약·매수 의도 없음 ? ? 거래소 거절을 기다리지 않는다
+09:56:11.096 [Test worker] WARN  c.c.api.service.LiveTradingService - 매수 예약이 거절돼 롤백했다 (sessionId=186, KRW-CRO, 사유=ENTRY_EXPIRED): 승인 실행 만료(만료 2026-11-15T00:10:00Z, 잠금 뒤 판정 2026-11-15T00:10:00Z) ? 새 예약·매수 의도 없음
+[N15E ④] LIVE 접수 EARLY 2026-11-15T00:00:01Z · 콜백 직전 E?1ms · 관문 안에서 E → [KRW-CRO=예약 거절(ENTRY_EXPIRED): 승인 실행 만료(만료 2026-11-15T00:10:00Z, 잠금 뒤 판정 2026-11-15T00:10:00Z) ? 새 예약·매수 의도 없음] · 매수 의도 0 · 포지션 0 · 가용 20000.00 · 거래소 0 · 신호 사유 예약 거절(ENTRY_EXPIRED): 승인 실행 만료(만료 2026-11-15T00:10:00Z, 잠금 뒤 판정 2026-11-15T00:10:00Z) ? 새 예약·매수 의도 없음
+09:56:11.114 [Test worker] WARN  c.c.a.service.WatchlistFilterService - [Watchlist] KRW 마켓 목록 없음
+09:56:11.114 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 공용 유니버스 비어 있음 ? 직전 목록 유지 (id=132, 1종목)
+09:56:11.120 [Test worker] ERROR c.c.api.service.CandleFreshnessGuard - ? [캔들 최신성] BTC 급락 관문 H1 판정 불가 (DYNAMIC) ? 이 관문을 요구하는 신규 진입을 막는다: BTC 캔들 판정 불가(최신 완료 봉 없음 ? 마지막 완료 봉 2026-11-14T23:55:11.106561600Z, 필요 2026-11-15T00:00:00Z 이후(4분 늦음)) ? 급락 여부를 모른다
+[N15E ④] DYNAMIC 콜백 직전 E?1ms · 관문 안에서 E → [KRW-IOTA=승인 차례에 BTC_MARKET_GUARD 판정 불가 ? BTC 캔들 판정 불가(최신 완료 봉 없음 ? 마지막 완료 봉 2026-11-14T23:55:11.106561600Z, 필요 2026-11-15T00:00:00Z 이후(4분 늦음)) ? 급락 여부를 모른다] · 매수 의도 0 · 열린 포지션 0 · 가용 10000.00 · 거래소 0 · 신호 사유 승인 차례에 BTC_MARKET_GUARD 판정 불가 ? BTC 캔들 판정 불가(최신 완료 봉 없음 ? 마지막 완료 봉 2026-11-14T23:55:11.106561600Z, 필요 2026-11-15T00:00:00Z 이후(4분 늦음)) ? 급락 여부를 모른다
+09:56:11.143 [Test worker] INFO  o.a.c.c.C.[Tomcat-2].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+09:56:11.159 [Test worker] WARN  c.c.api.service.CandleFreshnessGuard - [캔들 최신성] BTC 급락 관문 H1 판정 재개 (LIVE): 종전 2026-11-15T00:56:11.120715800Z BTC 캔들 판정 불가(최신 완료 봉 없음 ? 마지막 완료 봉 2026-11-14T23:55:11.106561600Z, 필요 2026-11-15T00:00:00Z 이후(4분 늦음)) ? 급락 여부를 모른다
+09:56:11.167 [Test worker] WARN  c.c.a.s.CapitalReservationService - [공유 풀] 승인하지 않는다 (sessionId=187, 사유=ENTRY_EXPIRED): 승인 실행 만료(만료 2026-11-15T00:10:00Z, 잠금 뒤 판정 2026-11-15T00:10:00Z) ? 새 예약·매수 의도 없음 ? ? 거래소 거절을 기다리지 않는다
+09:56:11.167 [Test worker] WARN  c.c.api.service.LiveTradingService - 매수 예약이 거절돼 롤백했다 (sessionId=187, KRW-CRO, 사유=ENTRY_EXPIRED): 승인 실행 만료(만료 2026-11-15T00:10:00Z, 잠금 뒤 판정 2026-11-15T00:10:00Z) ? 새 예약·매수 의도 없음
+[N15E ④] LIVE 접수 LATE 2026-11-15T00:04:59.999Z · 콜백 직전 E?1ms · 관문 안에서 E → [KRW-CRO=예약 거절(ENTRY_EXPIRED): 승인 실행 만료(만료 2026-11-15T00:10:00Z, 잠금 뒤 판정 2026-11-15T00:10:00Z) ? 새 예약·매수 의도 없음] · 매수 의도 0 · 포지션 0 · 가용 20000.00 · 거래소 0 · 신호 사유 예약 거절(ENTRY_EXPIRED): 승인 실행 만료(만료 2026-11-15T00:10:00Z, 잠금 뒤 판정 2026-11-15T00:10:00Z) ? 새 예약·매수 의도 없음
+09:56:11.177 [Test worker] WARN  c.c.a.service.WatchlistFilterService - [Watchlist] KRW 마켓 목록 없음
+09:56:11.177 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 공용 유니버스 비어 있음 ? 직전 목록 유지 (id=133, 1종목)
+09:56:11.182 [Test worker] ERROR c.c.api.service.CandleFreshnessGuard - ? [캔들 최신성] BTC 급락 관문 H1 판정 불가 (DYNAMIC) ? 이 관문을 요구하는 신규 진입을 막는다: BTC 캔들 판정 불가(최신 완료 봉 없음 ? 마지막 완료 봉 2026-11-14T23:55:11.169955100Z, 필요 2026-11-15T00:00:00Z 이후(4분 늦음)) ? 급락 여부를 모른다
+[N15E ④] DYNAMIC 콜백 직전 E?1ms · 관문 안에서 E → [KRW-IOTA=승인 차례에 BTC_MARKET_GUARD 판정 불가 ? BTC 캔들 판정 불가(최신 완료 봉 없음 ? 마지막 완료 봉 2026-11-14T23:55:11.169955100Z, 필요 2026-11-15T00:00:00Z 이후(4분 늦음)) ? 급락 여부를 모른다] · 매수 의도 0 · 열린 포지션 0 · 가용 10000.00 · 거래소 0 · 신호 사유 승인 차례에 BTC_MARKET_GUARD 판정 불가 ? BTC 캔들 판정 불가(최신 완료 봉 없음 ? 마지막 완료 봉 2026-11-14T23:55:11.169955100Z, 필요 2026-11-15T00:00:00Z 이후(4분 늦음)) ? 급락 여부를 모른다
+09:56:11.194 [Test worker] INFO  o.a.c.c.C.[Tomcat-2].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+09:56:11.207 [Test worker] WARN  c.c.api.service.CandleFreshnessGuard - [캔들 최신성] BTC 급락 관문 H1 판정 재개 (LIVE): 종전 2026-11-15T00:56:11.182478200Z BTC 캔들 판정 불가(최신 완료 봉 없음 ? 마지막 완료 봉 2026-11-14T23:55:11.169955100Z, 필요 2026-11-15T00:00:00Z 이후(4분 늦음)) ? 급락 여부를 모른다
+09:56:11.210 [Test worker] WARN  c.c.api.service.EntryPriorityRounds - [진입 우선순위] 2위 KRW-CRO LIVE#188 → 승인 실행 만료(H1 2026-11-14T23:00:00Z 만료 2026-11-15T00:10:00Z, 판정 2026-11-15T00:10:00Z) ? 새 예약·매수 의도 없음
+[N15E ③] 접수 EARLY 2026-11-15T00:00:01Z · 처리 시작 D+1ms · 1위 콜백 뒤 시계 2026-11-15T00:10:00Z → [KRW-IOTA=N15 지연 후보(주문 없음), KRW-CRO=승인 실행 만료(H1 2026-11-14T23:00:00Z 만료 2026-11-15T00:10:00Z, 판정 2026-11-15T00:10:00Z) ? 새 예약·매수 의도 없음] · CRO 매수 의도 0 · 신호 사유 승인 실행 만료(H1 2026-11-14T23:00:00Z 만료 2026-11-15T00:10:00Z, 판정 2026-11-15T00:10:00Z) ? 새 예약·매수 의도 없음
+09:56:11.227 [Test worker] INFO  o.a.c.c.C.[Tomcat-2].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+09:56:11.243 [Test worker] WARN  c.c.api.service.EntryPriorityRounds - [진입 우선순위] 2위 KRW-CRO LIVE#189 → 승인 실행 만료(H1 2026-11-14T23:00:00Z 만료 2026-11-15T00:10:00Z, 판정 2026-11-15T00:10:00Z) ? 새 예약·매수 의도 없음
+[N15E ③] 접수 LATE 2026-11-15T00:04:59.999Z · 처리 시작 D+1ms · 1위 콜백 뒤 시계 2026-11-15T00:10:00Z → [KRW-IOTA=N15 지연 후보(주문 없음), KRW-CRO=승인 실행 만료(H1 2026-11-14T23:00:00Z 만료 2026-11-15T00:10:00Z, 판정 2026-11-15T00:10:00Z) ? 새 예약·매수 의도 없음] · CRO 매수 의도 0 · 신호 사유 승인 실행 만료(H1 2026-11-14T23:00:00Z 만료 2026-11-15T00:10:00Z, 판정 2026-11-15T00:10:00Z) ? 새 예약·매수 의도 없음
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,126 @@
+From b297690517d90edbfe053f99a9093ce342394c36 Mon Sep 17 00:00:00 2001
+From: YamSaeng81 <manicstr81@gmail.com>
+Date: Sun, 15 Nov 2026 09:25:21 +0900
+Subject: [PATCH 4/7] =?UTF-8?q?=EC=8B=9C=ED=97=98=20=EC=99=B8=EB=B6=80=20?=
+ =?UTF-8?q?=EC=97=B0=EA=B2=B0=20=EA=B0=90=EC=8B=9C:=20=EC=9E=90=EA=B8=B0?=
+ =?UTF-8?q?=20=EC=9D=B8=ED=84=B0=ED=8E=98=EC=9D=B4=EC=8A=A4=20=EC=A3=BC?=
+ =?UTF-8?q?=EC=86=8C=20=EC=97=B0=EA=B2=B0=20=ED=97=88=EC=9A=A9=C2=B7?=
+ =?UTF-8?q?=EB=B3=84=EB=8F=84=20=EC=A7=91=EA=B3=84(=EC=8B=9C=ED=97=98?=
+ =?UTF-8?q?=EB=A7=8C,=20=EC=B4=9D=EA=B4=84=20v1.166=20=C2=A73-3)?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+관련 19클래스 실행(25abb9c4)에서 DailySma20LiveOrderPathTest 가 감시에 걸렸다. 원문은 Tomcat 종료의 unlockAccept 가
+자기 서버 소켓에 붙는 연결로, 대상이 이 기계 인터페이스 주소(Tailscale IPv6)였다 — 기계 밖 연결이 아닌 감시 오분류.
+설치 전에 NetworkInterface 주소를 모아 그 주소로의 연결은 허용하고 allowed_own_interface_connections 로 따로 센다.
+단언 실패는 두 실행 모두 0이었다.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ .../support/NetworkIsolationExtension.java    |  3 ++
+ .../api/support/NetworkIsolationGuard.java    | 42 ++++++++++++++++++-
+ 2 files changed, 43 insertions(+), 2 deletions(-)
+
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/support/NetworkIsolationExtension.java b/web-api/src/test/java/com/cryptoautotrader/api/support/NetworkIsolationExtension.java
+index 8f308c59..171b798f 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/support/NetworkIsolationExtension.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/support/NetworkIsolationExtension.java
+@@ -59,10 +59,13 @@ public class NetworkIsolationExtension implements BeforeAllCallback, AfterAllCal
+                     + "\nclasses_checked=" + CLASSES.get()
+                     + "\nblocked_external_attempts=" + all.size()
+                     + "\nallowed_jndi_nameserver_probes=" + NetworkIsolationGuard.probes().size()
++                    + "\nallowed_own_interface_connections=" + NetworkIsolationGuard.selfConnections().size()
+                     + "\nrestored_security_manager=" + System.getSecurityManager()
+                     + "\n" + String.join("\n", all)
+                     + (NetworkIsolationGuard.probes().isEmpty() ? "" : "\n--- 허용한 권한 확인(패킷 없음)\n"
+                             + String.join("\n", NetworkIsolationGuard.probes()))
++                    + (NetworkIsolationGuard.selfConnections().isEmpty() ? "" : "\n--- 허용한 자기 인터페이스 연결(기계 안)\n"
++                            + String.join("\n", NetworkIsolationGuard.selfConnections()))
+                     + "\n";
+             System.out.println("[NET-GUARD] 요약\n" + summary);
+             try {
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/support/NetworkIsolationGuard.java b/web-api/src/test/java/com/cryptoautotrader/api/support/NetworkIsolationGuard.java
+index b09f99cc..19554b15 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/support/NetworkIsolationGuard.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/support/NetworkIsolationGuard.java
+@@ -15,7 +15,7 @@ import java.util.concurrent.ForkJoinPool;
+  * <p>종전 {@link OutboundNetworkGuard}(기본 {@code ProxySelector} 교체)는 선택기를 묻지 않는 원시 소켓·NIO 직접 연결과 설치 전에 만든
+  * HttpClient 를 잡지 못했고, 차단 건수를 단언하지 않았다. 이 감시는 JDK 17 의 {@link SecurityManager} 로 <b>모든</b> 자바 소켓 연결
+  * ({@code Socket}·{@code SocketChannel}·HttpClient·WebSocket·JDBC)과 호스트 이름 해석이 거치는 {@link SocketPermission} 검사만 본다.
+- * 루프백(127.0.0.0/8·::1·localhost)과 이 기계 자신의 이름 해석은 허용한다(로컬 PG·H2·루프백 대역 서버). 그 밖의 대상은 <b>기록하고
++ * 루프백(127.0.0.0/8·::1·localhost)·이 기계 인터페이스 주소(따로 집계)와 이 기계 자신의 이름 해석은 허용한다(로컬 PG·H2·루프백 대역 서버). 그 밖의 대상은 <b>기록하고
+  * {@link SecurityException} 으로 막는다</b> — 실제로 나가지 않는다. 클래스 단위 실패 처리는 {@link NetworkIsolationExtension} 이 한다.</p>
+  *
+  * <p>소켓 이외의 권한 검사는 아무것도 막지 않는다(이전 관리자가 있으면 그대로 위임). 설치 직전에 공용 ForkJoinPool 을 먼저 초기화해
+@@ -32,6 +32,9 @@ public final class NetworkIsolationGuard {
+     private static volatile boolean installed;
+     private static volatile SecurityManager previous;
+     private static volatile Set<String> ownNames = Set.of();
++    /** 이 기계 네트워크 인터페이스에 붙은 주소 — 그 주소로의 연결은 기계 밖으로 나가지 않는다(예: Tomcat 종료의 unlockAccept 자기 연결). */
++    private static volatile Set<String> ownAddresses = Set.of();
++    private static final List<String> SELF = new ArrayList<>();
+     private static volatile String disabledReason;
+ 
+     private NetworkIsolationGuard() { }
+@@ -54,6 +57,19 @@ public final class NetworkIsolationGuard {
+             // 자기 이름을 모르면 그 해석은 기록된다 — 실제로 필요한지 결과로 드러난다
+         }
+         ownNames = Set.copyOf(names);
++        java.util.Set<String> addrs = new java.util.HashSet<>();
++        try {
++            for (java.net.NetworkInterface nif : java.util.Collections.list(java.net.NetworkInterface.getNetworkInterfaces())) {
++                for (InetAddress a : java.util.Collections.list(nif.getInetAddresses())) {
++                    String h = a.getHostAddress();
++                    int pct = h.indexOf('%');
++                    addrs.add((pct >= 0 ? h.substring(0, pct) : h).toLowerCase(Locale.ROOT));
++                }
++            }
++        } catch (Exception ignored) {
++            // 목록을 못 얻으면 자기 주소 연결은 기록된다
++        }
++        ownAddresses = Set.copyOf(addrs);
+         previous = System.getSecurityManager();
+         System.setSecurityManager(new Guard());
+         installed = true;
+@@ -107,6 +123,21 @@ public final class NetworkIsolationGuard {
+         return colon >= 0 ? name.substring(0, colon) : name;
+     }
+ 
++    static boolean isOwnAddress(String rawHost) {
++        String host = rawHost.toLowerCase(Locale.ROOT);
++        if (host.startsWith("[") && host.endsWith("]")) host = host.substring(1, host.length() - 1);
++        int pct = host.indexOf('%');
++        if (pct >= 0) host = host.substring(0, pct);
++        return ownAddresses.contains(host);
++    }
++
++    /** 이 기계 인터페이스 주소로의 연결(기계 안) — 허용하고 따로 센 목록. */
++    public static List<String> selfConnections() {
++        synchronized (SELF) {
++            return List.copyOf(SELF);
++        }
++    }
++
+     /** 감시가 있을 때만 생기는 JNDI 이름 서버 권한 확인(패킷 없음) — 차단하지 않고 따로 센 목록. */
+     public static List<String> probes() {
+         synchronized (PROBES) {
+@@ -174,7 +205,14 @@ public final class NetworkIsolationGuard {
+             if (Boolean.TRUE.equals(busy.get())) return;
+             busy.set(Boolean.TRUE);
+             try {
+-                if (isLocal(hostOf(sp.getName()))) return;
++                String host = hostOf(sp.getName());
++                if (isLocal(host)) return;
++                if (isOwnAddress(host)) {
++                    synchronized (SELF) {
++                        SELF.add(actions + " " + sp.getName() + " [" + Thread.currentThread().getName() + "] " + origin());
++                    }
++                    return;
++                }
+                 if (isJndiNameServerProbe()) {
+                     // JDK DnsContextFactory.filterNameServers 는 관리자가 있을 때만 이름 서버마다 checkConnect 를 부른다(패킷 없음).
+                     // 관리자가 없으면 목록을 그대로 돌려주므로, 막지 않아야 감시가 없을 때와 같은 동작이 된다. 따로 센다.
+-- 
+2.51.1.windows.1
+

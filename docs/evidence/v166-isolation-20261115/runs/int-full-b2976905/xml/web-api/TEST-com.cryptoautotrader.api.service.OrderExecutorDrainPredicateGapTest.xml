@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="orderExecutor 대기 조건 공백 — 놀고 있는 작업자 경로에서 비워짐 ≠ 완료" tests="4" skipped="0" failures="1" errors="0" timestamp="2026-11-15T00:47:25" hostname="DESKTOP-SF1KUQ5" time="0.014">
+  <properties/>
+  <testcase name="② 작업자가 없어 새 작업자가 첫 작업으로 받으면 — 옛 조건은 거짓이다(단독 실행이 통과한 이유)" classname="com.cryptoautotrader.api.service.OrderExecutorDrainPredicateGapTest" time="0.006"/>
+  <testcase name="③ 같은 창에서 submit() 의 Future 는 완료가 아니다 — 보완한 대기는 이 신호를 기다린다" classname="com.cryptoautotrader.api.service.OrderExecutorDrainPredicateGapTest" time="0.007"/>
+  <testcase name="① 놀고 있는 작업자가 꺼낸 뒤·실행 전 — 옛 조건은 비워짐이라 답하지만 작업은 실행 전이다" classname="com.cryptoautotrader.api.service.OrderExecutorDrainPredicateGapTest" time="0.001"/>
+  <testcase name="executionError" classname="com.cryptoautotrader.api.service.OrderExecutorDrainPredicateGapTest" time="0.0">
+    <failure message="java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-812-Worker-0] (JDK 프레임만)]" type="java.lang.AssertionError">java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 1건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-812-Worker-0] (JDK 프레임만)]
+	at com.cryptoautotrader.api.support.NetworkIsolationExtension.afterAll(NetworkIsolationExtension.java:47)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <system-out><![CDATA[[② 새 작업자·실행 전] drained=false executed=false queue=0 active=1 tasks=1 completed=0
+09:47:25.659 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+09:47:25.662 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.lang.SecurityException: [NET-GUARD] 시험 외부 연결 차단: resolve api.upbit.com
+java.util.concurrent.CompletionException: java.lang.SecurityException: [NET-GUARD] 시험 외부 연결 차단: resolve api.upbit.com
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.uniComposeStage(CompletableFuture.java:1189)
+	at java.base/java.util.concurrent.CompletableFuture.thenCompose(CompletableFuture.java:2309)
+	at java.net.http/jdk.internal.net.http.MultiExchange.responseAsyncImpl(MultiExchange.java:453)
+	at java.net.http/jdk.internal.net.http.MultiExchange.lambda$responseAsync0$2(MultiExchange.java:341)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1150)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+	at java.base/jdk.internal.misc.InnocuousThread.run(InnocuousThread.java:162)
+Caused by: java.lang.SecurityException: [NET-GUARD] 시험 외부 연결 차단: resolve api.upbit.com
+	at com.cryptoautotrader.api.support.NetworkIsolationGuard$Guard.inspect(NetworkIsolationGuard.java:231)
+	at com.cryptoautotrader.api.support.NetworkIsolationGuard$Guard.checkPermission(NetworkIsolationGuard.java:187)
+	at java.base/java.lang.SecurityManager.checkConnect(SecurityManager.java:916)
+	at java.base/java.net.InetAddress.getAllByName0(InetAddress.java:1480)
+	at java.base/java.net.InetAddress.getAllByName(InetAddress.java:1384)
+	at java.base/java.net.InetAddress.getAllByName(InetAddress.java:1305)
+	at java.base/java.net.InetAddress.getByName(InetAddress.java:1255)
+	at java.base/java.net.InetSocketAddress.<init>(InetSocketAddress.java:229)
+	at java.net.http/jdk.internal.net.http.HttpRequestImpl.lambda$getAddress$5(HttpRequestImpl.java:390)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:318)
+	at java.net.http/jdk.internal.net.http.HttpRequestImpl.getAddress(HttpRequestImpl.java:391)
+	at java.net.http/jdk.internal.net.http.Http1Exchange.<init>(Http1Exchange.java:198)
+	at java.net.http/jdk.internal.net.http.ExchangeImpl.createHttp1Exchange(ExchangeImpl.java:161)
+	at java.net.http/jdk.internal.net.http.ExchangeImpl.get(ExchangeImpl.java:89)
+	at java.net.http/jdk.internal.net.http.Exchange.establishExchange(Exchange.java:344)
+	at java.net.http/jdk.internal.net.http.Exchange.responseAsyncImpl0(Exchange.java:528)
+	at java.net.http/jdk.internal.net.http.Exchange.responseAsyncImpl(Exchange.java:381)
+	at java.net.http/jdk.internal.net.http.Exchange.responseAsync(Exchange.java:373)
+	at java.net.http/jdk.internal.net.http.MultiExchange.responseAsyncImpl(MultiExchange.java:408)
+	... 8 common frames omitted
+09:47:25.662 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+09:47:25.662 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 8000ms 후 WebSocket 재연결 시도
+[③ 꺼낸 뒤·실행 전] oldPredicate=true future.isDone=false executed=false
+[① 꺼낸 뒤·실행 전] drained=true executed=false queue=0 active=0 tasks=0 completed=0
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

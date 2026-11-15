@@ -1,0 +1,178 @@
+From eed5b396bac3d7e1f6ee0dfb701815fa0e63ff03 Mon Sep 17 00:00:00 2001
+From: YamSaeng81 <manicstr81@gmail.com>
+Date: Sun, 15 Nov 2026 10:00:02 +0900
+Subject: [PATCH 5/7] =?UTF-8?q?=EC=A0=84=EC=B2=B4=20=ED=9A=8C=EA=B7=80?=
+ =?UTF-8?q?=EC=97=90=EC=84=9C=20=EC=9E=85=EC=A6=9D=EB=90=9C=20WS=20?=
+ =?UTF-8?q?=EC=B2=AB=20=EC=97=B0=EA=B2=B0=20=EC=B6=9C=EC=B2=98=20=EA=B2=A9?=
+ =?UTF-8?q?=EB=A6=AC=2011=ED=81=B4=EB=9E=98=EC=8A=A4(=EC=8B=9C=ED=97=98?=
+ =?UTF-8?q?=EB=A7=8C,=20=EC=B4=9D=EA=B4=84=20v1.166=20=C2=A73-2=20?=
+ =?UTF-8?q?=ED=9B=84=EC=86=8D)?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+b2976905 전체 회귀의 감시 기록에서 [Test worker]/[market-data] 스레드가 실제 Upbit WebSocket 첫 연결을 연 13클래스 중
+N15 두 클래스(별도 커밋)를 뺀 11클래스에 UpbitWebSocketClient @MockBean. 재연결 82건은 이 컨텍스트들의 재연결이 뒤 클래스
+중에 난 것(귀속 근사). 기존 단언 불변.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ .../cryptoautotrader/api/service/BtcGateSupplyEndToEndTest.java | 2 ++
+ .../cryptoautotrader/api/service/BtcGateUnknownEntryTest.java   | 2 ++
+ .../api/service/DynamicBuyCompletesConsistentlyTest.java        | 2 ++
+ .../api/service/DynamicBuyExternalSubmissionBoundaryTest.java   | 2 ++
+ .../api/service/DynamicBuyOuterWriteOrderingTest.java           | 2 ++
+ .../cryptoautotrader/api/service/DynamicPaperTradingTest.java   | 2 ++
+ .../api/service/DynamicScanTransitionGuardTest.java             | 2 ++
+ .../api/service/DynamicSlWatchdogNoiseTest.java                 | 2 ++
+ .../cryptoautotrader/api/service/EntryPriorityEndToEndTest.java | 2 ++
+ .../api/service/RealtimeProtectionSaturationTest.java           | 2 ++
+ .../api/service/RealtimeThrottleCrossingTest.java               | 2 ++
+ 11 files changed, 22 insertions(+)
+
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/BtcGateSupplyEndToEndTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/BtcGateSupplyEndToEndTest.java
+index 8442bfcc..34b8da86 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/BtcGateSupplyEndToEndTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/BtcGateSupplyEndToEndTest.java
+@@ -73,6 +73,8 @@ class BtcGateSupplyEndToEndTest extends IntegrationTestBase {
+     @Autowired private JdbcTemplate jdbc;
+     @Autowired private com.cryptoautotrader.api.repository.MarketDataCacheRepository cacheRepository;
+ 
++    /** 외부 연결 격리 (총괄 v1.166 §3-2 후속, 2026-11-15, 시험만) — 전체 회귀(b2976905)에서 이 클래스의 시험 스레드가 실제 Upbit WebSocket 첫 연결을 열었다(근거 v166 int-full-b2976905·ws-origin). WS 재연결·구독 자체는 시험 대상이 아니다. 기존 단언은 그대로다. */
++    @MockBean private com.cryptoautotrader.exchange.upbit.UpbitWebSocketClient upbitWebSocketClient;
+     @MockBean private UpbitRestClient upbitRestClient;
+     @MockBean private com.cryptoautotrader.exchange.upbit.UpbitOrderClient upbitOrderClient;
+     @MockBean private TelegramNotificationService telegramService;
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/BtcGateUnknownEntryTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/BtcGateUnknownEntryTest.java
+index ac8aefca..59fd2ceb 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/BtcGateUnknownEntryTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/BtcGateUnknownEntryTest.java
+@@ -66,6 +66,8 @@ class BtcGateUnknownEntryTest extends IntegrationTestBase {
+     @Autowired private JdbcTemplate jdbc;
+     @Autowired private com.cryptoautotrader.api.repository.MarketDataCacheRepository cacheRepository;
+ 
++    /** 외부 연결 격리 (총괄 v1.166 §3-2 후속, 2026-11-15, 시험만) — 전체 회귀(b2976905)에서 이 클래스의 시험 스레드가 실제 Upbit WebSocket 첫 연결을 열었다(근거 v166 int-full-b2976905·ws-origin). WS 재연결·구독 자체는 시험 대상이 아니다. 기존 단언은 그대로다. */
++    @MockBean private com.cryptoautotrader.exchange.upbit.UpbitWebSocketClient upbitWebSocketClient;
+     @MockBean private MarketDataSyncService marketDataSyncService;
+     @MockBean private UpbitRestClient upbitRestClient;
+     @MockBean private com.cryptoautotrader.exchange.upbit.UpbitOrderClient upbitOrderClient;
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicBuyCompletesConsistentlyTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicBuyCompletesConsistentlyTest.java
+index 116001e0..39054d23 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicBuyCompletesConsistentlyTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicBuyCompletesConsistentlyTest.java
+@@ -100,6 +100,8 @@ class DynamicBuyCompletesConsistentlyTest extends IntegrationTestBase {
+      * 🔴 거래소 경계만 대역 (2026-10-12 변경). 종전에는 {@code OrderExecutionEngine} 을 대역으로 뒀지만
+      * 이제 <b>차감·슬롯·의도가 그 엔진의 예약 경계 안에서</b> 일어나므로 엔진은 실제 빈을 쓴다.
+      */
++    /** 외부 연결 격리 (총괄 v1.166 §3-2 후속, 2026-11-15, 시험만) — 전체 회귀(b2976905)에서 이 클래스의 시험 스레드가 실제 Upbit WebSocket 첫 연결을 열었다(근거 v166 int-full-b2976905·ws-origin). WS 재연결·구독 자체는 시험 대상이 아니다. 기존 단언은 그대로다. */
++    @MockBean private com.cryptoautotrader.exchange.upbit.UpbitWebSocketClient upbitWebSocketClient;
+     @MockBean
+     private com.cryptoautotrader.exchange.upbit.UpbitOrderClient upbitOrderClient;
+ 
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicBuyExternalSubmissionBoundaryTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicBuyExternalSubmissionBoundaryTest.java
+index 8a61b42b..49f938c3 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicBuyExternalSubmissionBoundaryTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicBuyExternalSubmissionBoundaryTest.java
+@@ -67,6 +67,8 @@ class DynamicBuyExternalSubmissionBoundaryTest extends IntegrationTestBase {
+     private PlatformTransactionManager txManager;
+ 
+     /** 🔴 최종 외부 경계만 대역. {@code OrderExecutionEngine} 은 실제 빈을 쓴다. */
++    /** 외부 연결 격리 (총괄 v1.166 §3-2 후속, 2026-11-15, 시험만) — 전체 회귀(b2976905)에서 이 클래스의 시험 스레드가 실제 Upbit WebSocket 첫 연결을 열었다(근거 v166 int-full-b2976905·ws-origin). WS 재연결·구독 자체는 시험 대상이 아니다. 기존 단언은 그대로다. */
++    @MockBean private com.cryptoautotrader.exchange.upbit.UpbitWebSocketClient upbitWebSocketClient;
+     @MockBean
+     private UpbitOrderClient upbitOrderClient;
+ 
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicBuyOuterWriteOrderingTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicBuyOuterWriteOrderingTest.java
+index 144f7fc6..9d2260e0 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicBuyOuterWriteOrderingTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicBuyOuterWriteOrderingTest.java
+@@ -100,6 +100,8 @@ class DynamicBuyOuterWriteOrderingTest extends IntegrationTestBase {
+      * 대역으로 뒀는데, 이제 <b>예약(차감)이 그 엔진 안에서</b> 일어나므로 엔진을 대역으로 두면 관측할
+      * 대상이 사라진다.
+      */
++    /** 외부 연결 격리 (총괄 v1.166 §3-2 후속, 2026-11-15, 시험만) — 전체 회귀(b2976905)에서 이 클래스의 시험 스레드가 실제 Upbit WebSocket 첫 연결을 열었다(근거 v166 int-full-b2976905·ws-origin). WS 재연결·구독 자체는 시험 대상이 아니다. 기존 단언은 그대로다. */
++    @MockBean private com.cryptoautotrader.exchange.upbit.UpbitWebSocketClient upbitWebSocketClient;
+     @MockBean
+     private com.cryptoautotrader.exchange.upbit.UpbitOrderClient upbitOrderClient;
+ 
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicPaperTradingTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicPaperTradingTest.java
+index 8623b0c9..e0ca1296 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicPaperTradingTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicPaperTradingTest.java
+@@ -66,6 +66,8 @@ class DynamicPaperTradingTest extends IntegrationTestBase {
+     @Autowired
+     private OrderRepository orderRepository;
+ 
++    /** 외부 연결 격리 (총괄 v1.166 §3-2 후속, 2026-11-15, 시험만) — 전체 회귀(b2976905)에서 이 클래스의 시험 스레드가 실제 Upbit WebSocket 첫 연결을 열었다(근거 v166 int-full-b2976905·ws-origin). WS 재연결·구독 자체는 시험 대상이 아니다. 기존 단언은 그대로다. */
++    @MockBean private com.cryptoautotrader.exchange.upbit.UpbitWebSocketClient upbitWebSocketClient;
+     @MockBean
+     private OrderExecutionEngine orderExecutionEngine;
+ 
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicScanTransitionGuardTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicScanTransitionGuardTest.java
+index 5bbf6bd5..bdbedd44 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicScanTransitionGuardTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicScanTransitionGuardTest.java
+@@ -45,6 +45,8 @@ class DynamicScanTransitionGuardTest extends IntegrationTestBase {
+     @Autowired
+     private PositionRepository positionRepository;
+ 
++    /** 외부 연결 격리 (총괄 v1.166 §3-2 후속, 2026-11-15, 시험만) — 전체 회귀(b2976905)에서 이 클래스의 시험 스레드가 실제 Upbit WebSocket 첫 연결을 열었다(근거 v166 int-full-b2976905·ws-origin). WS 재연결·구독 자체는 시험 대상이 아니다. 기존 단언은 그대로다. */
++    @MockBean private com.cryptoautotrader.exchange.upbit.UpbitWebSocketClient upbitWebSocketClient;
+     @MockBean
+     private UpbitRestClient upbitRestClient;
+ 
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicSlWatchdogNoiseTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicSlWatchdogNoiseTest.java
+index f4bf15d5..9e39b71a 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicSlWatchdogNoiseTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicSlWatchdogNoiseTest.java
+@@ -52,6 +52,8 @@ class DynamicSlWatchdogNoiseTest extends IntegrationTestBase {
+     @Autowired private DynamicSessionRepository sessionRepo;
+     @Autowired private PositionRepository positionRepository;
+ 
++    /** 외부 연결 격리 (총괄 v1.166 §3-2 후속, 2026-11-15, 시험만) — 전체 회귀(b2976905)에서 이 클래스의 시험 스레드가 실제 Upbit WebSocket 첫 연결을 열었다(근거 v166 int-full-b2976905·ws-origin). WS 재연결·구독 자체는 시험 대상이 아니다. 기존 단언은 그대로다. */
++    @MockBean private com.cryptoautotrader.exchange.upbit.UpbitWebSocketClient upbitWebSocketClient;
+     @MockBean private TelegramNotificationService telegramService;
+     @MockBean private UpbitRestClient upbitRestClient;
+ 
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/EntryPriorityEndToEndTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/EntryPriorityEndToEndTest.java
+index 37bc4322..ccae7a60 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/EntryPriorityEndToEndTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/EntryPriorityEndToEndTest.java
+@@ -67,6 +67,8 @@ class EntryPriorityEndToEndTest extends IntegrationTestBase {
+     @Autowired private OrderRepository orderRepository;
+     @Autowired private JdbcTemplate jdbc;
+ 
++    /** 외부 연결 격리 (총괄 v1.166 §3-2 후속, 2026-11-15, 시험만) — 전체 회귀(b2976905)에서 이 클래스의 시험 스레드가 실제 Upbit WebSocket 첫 연결을 열었다(근거 v166 int-full-b2976905·ws-origin). WS 재연결·구독 자체는 시험 대상이 아니다. 기존 단언은 그대로다. */
++    @MockBean private com.cryptoautotrader.exchange.upbit.UpbitWebSocketClient upbitWebSocketClient;
+     @MockBean private MarketDataSyncService marketDataSyncService;
+     @MockBean private UpbitRestClient upbitRestClient;
+     @MockBean private com.cryptoautotrader.exchange.upbit.UpbitOrderClient upbitOrderClient;
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/RealtimeProtectionSaturationTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/RealtimeProtectionSaturationTest.java
+index 55c626d8..a4f422e9 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/RealtimeProtectionSaturationTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/RealtimeProtectionSaturationTest.java
+@@ -75,6 +75,8 @@ class RealtimeProtectionSaturationTest extends IntegrationTestBase {
+     @Autowired @Qualifier("orderExecutor") private ThreadPoolTaskExecutor orderExecutor;
+     @Autowired @Qualifier("marketDataExecutor") private ThreadPoolTaskExecutor marketDataExecutor;
+ 
++    /** 외부 연결 격리 (총괄 v1.166 §3-2 후속, 2026-11-15, 시험만) — 전체 회귀(b2976905)에서 이 클래스의 시험 스레드가 실제 Upbit WebSocket 첫 연결을 열었다(근거 v166 int-full-b2976905·ws-origin). WS 재연결·구독 자체는 시험 대상이 아니다. 기존 단언은 그대로다. */
++    @MockBean private com.cryptoautotrader.exchange.upbit.UpbitWebSocketClient upbitWebSocketClient;
+     @MockBean private UpbitOrderClient upbitOrderClient;
+     @MockBean private UpbitRestClient upbitRestClient;
+ 
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/RealtimeThrottleCrossingTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/RealtimeThrottleCrossingTest.java
+index 402586d1..894449ce 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/RealtimeThrottleCrossingTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/RealtimeThrottleCrossingTest.java
+@@ -65,6 +65,8 @@ class RealtimeThrottleCrossingTest extends IntegrationTestBase {
+     @Autowired @Qualifier("orderExecutor") private ThreadPoolTaskExecutor orderExecutor;
+     @Autowired @Qualifier("marketDataExecutor") private ThreadPoolTaskExecutor marketDataExecutor;
+ 
++    /** 외부 연결 격리 (총괄 v1.166 §3-2 후속, 2026-11-15, 시험만) — 전체 회귀(b2976905)에서 이 클래스의 시험 스레드가 실제 Upbit WebSocket 첫 연결을 열었다(근거 v166 int-full-b2976905·ws-origin). WS 재연결·구독 자체는 시험 대상이 아니다. 기존 단언은 그대로다. */
++    @MockBean private com.cryptoautotrader.exchange.upbit.UpbitWebSocketClient upbitWebSocketClient;
+     @MockBean private UpbitOrderClient upbitOrderClient;
+     @MockBean private UpbitRestClient upbitRestClient;
+ 
+-- 
+2.51.1.windows.1
+

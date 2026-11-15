@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="N01 거래소 DOWN → UP — 제한시험(SMA20)은 재개하지 않고 최초 started_at 을 보존한다" tests="5" skipped="0" failures="1" errors="0" timestamp="2026-11-13T07:43:07" hostname="DESKTOP-SF1KUQ5" time="0.372">
+  <properties/>
+  <testcase name="보유 없이 DOWN → UP — 제한시험은 비상정지 유지·started_at 보존, 주문 0" classname="com.cryptoautotrader.api.service.LimitedTestExchangeRecoveryTest" time="0.053"/>
+  <testcase name="보유 중 DOWN → UP → 반복 UP → DOWN·UP — 비상정지 유지, 최초 started_at·종료 시각 보존, 추가 매수 0, 청산 매도 1회" classname="com.cryptoautotrader.api.service.LimitedTestExchangeRecoveryTest" time="0.167"/>
+  <testcase name="수동 시작 — 보유 중 DOWN 비상정지(매도 접수·대기) 뒤 수동 시작 거절·불변, CREATED 이지만 started_at 이 있으면 거절" classname="com.cryptoautotrader.api.service.LimitedTestExchangeRecoveryTest" time="0.081"/>
+  <testcase name="수동 시작 — CREATED·started_at 없음은 최초 시작으로 허용, 정지 뒤 다시 부르면 거절·불변, 일반 전략의 정지 세션은 그대로 시작된다" classname="com.cryptoautotrader.api.service.LimitedTestExchangeRecoveryTest" time="0.067"/>
+  <testcase name="executionError" classname="com.cryptoautotrader.api.service.LimitedTestExchangeRecoveryTest" time="0.0">
+    <failure message="java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 4건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-16-Worker-0] (앱 프레임 없음), resolve api.upbit.com [HttpClient-17-Worker-0] (앱 프레임 없음), resolve api.upbit.com [HttpClient-18-Worker-0] (앱 프레임 없음), resolve api.upbit.com [HttpClient-19-Worker-0] (앱 프레임 없음)]" type="java.lang.AssertionError">java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 4건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-16-Worker-0] (앱 프레임 없음), resolve api.upbit.com [HttpClient-17-Worker-0] (앱 프레임 없음), resolve api.upbit.com [HttpClient-18-Worker-0] (앱 프레임 없음), resolve api.upbit.com [HttpClient-19-Worker-0] (앱 프레임 없음)]
+	at com.cryptoautotrader.api.support.NetworkIsolationExtension.afterAll(NetworkIsolationExtension.java:47)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <system-out><![CDATA[16:43:07.619 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.LimitedTestExchangeRecoveryTest
+16:43:07.625 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+16:43:07.634 [Test worker] ERROR c.c.a.service.ExchangeHealthMonitor - 거래소 DOWN 감지 ? ExchangeDownEvent 발행 (Upbit API 연속 0회 연결 실패)
+16:43:07.636 [Test worker] ERROR c.c.api.service.LiveTradingService - 거래소 DOWN 이벤트 수신 -- 모든 실전매매 세션을 비상 정지합니다.
+16:43:07.639 [Test worker] ERROR c.c.api.service.LiveTradingService - 전체 비상 정지 실행! (dryRun=false)
+16:43:07.655 [Test worker] ERROR c.c.api.service.LiveTradingService - 전체 비상 정지 완료: 1개 세션 정지 (dryRun=false)
+16:43:07.660 [market-data-2] WARN  c.c.api.service.LiveTradingService - 거래소 복구 ? 세션 #6 (DAILY_SMA20) 는 제한시험이다 ? 자동 재시작하지 않는다(EMERGENCY_STOPPED·started_at 2026-11-03T07:43:07Z 유지)
+16:43:07.679 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+16:43:07.686 [Test worker] ERROR c.c.a.service.ExchangeHealthMonitor - 거래소 DOWN 감지 ? ExchangeDownEvent 발행 (Upbit API 연속 0회 연결 실패)
+16:43:07.686 [Test worker] ERROR c.c.api.service.LiveTradingService - 거래소 DOWN 이벤트 수신 -- 모든 실전매매 세션을 비상 정지합니다.
+16:43:07.691 [Test worker] ERROR c.c.api.service.LiveTradingService - 전체 비상 정지 실행! (dryRun=false)
+16:43:07.722 [Test worker] ERROR c.c.api.service.LiveTradingService - 전체 비상 정지 완료: 2개 세션 정지 (dryRun=false)
+16:43:07.756 [market-data-1] WARN  c.c.api.service.LiveTradingService - 거래소 복구 ? 세션 #7 (DAILY_SMA20) 는 제한시험이다 ? 자동 재시작하지 않는다(EMERGENCY_STOPPED·started_at 2026-11-10T07:43:07Z 유지)
+16:43:07.765 [market-data-1] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+16:43:07.769 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.lang.SecurityException: [NET-GUARD] 시험 외부 연결 차단: resolve api.upbit.com
+java.util.concurrent.CompletionException: java.lang.SecurityException: [NET-GUARD] 시험 외부 연결 차단: resolve api.upbit.com
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.uniComposeStage(CompletableFuture.java:1189)
+	at java.base/java.util.concurrent.CompletableFuture.thenCompose(CompletableFuture.java:2309)
+	at java.net.http/jdk.internal.net.http.MultiExchange.responseAsyncImpl(MultiExchange.java:453)
+	at java.net.http/jdk.internal.net.http.MultiExchange.lambda$responseAsync0$2(MultiExchange.java:341)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1150)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+	at java.base/jdk.internal.misc.InnocuousThread.run(InnocuousThread.java:162)
+Caused by: java.lang.SecurityException: [NET-GUARD] 시험 외부 연결 차단: resolve api.upbit.com
+	at com.cryptoautotrader.api.support.NetworkIsolationGuard$Guard.inspect(NetworkIsolationGuard.java:156)
+	at com.cryptoautotrader.api.support.NetworkIsolationGuard$Guard.checkPermission(NetworkIsolationGuard.java:127)
+	at java.base/java.lang.SecurityManager.checkConnect(SecurityManager.java:916)
+	at java.base/java.net.InetAddress.getAllByName0(InetAddress.java:1480)
+	at java.base/java.net.InetAddress.getAllByName(InetAddress.java:1384)
+	at java.base/java.net.InetAddress.getAllByName(InetAddress.java:1305)
+	at java.base/java.net.InetAddress.getByName(InetAddress.java:1255)
+	at java.base/java.net.InetSocketAddress.<init>(InetSocketAddress.java:229)
+	at java.net.http/jdk.internal.net.http.HttpRequestImpl.lambda$getAddress$5(HttpRequestImpl.java:390)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:318)
+	at java.net.http/jdk.internal.net.http.HttpRequestImpl.getAddress(HttpRequestImpl.java:391)
+	at java.net.http/jdk.internal.net.http.Http1Exchange.<init>(Http1Exchange.java:198)
+	at java.net.http/jdk.internal.net.http.ExchangeImpl.createHttp1Exchange(ExchangeImpl.java:161)
+	at java.net.http/jdk.internal.net.http.ExchangeImpl.get(ExchangeImpl.java:89)
+	at java.net.http/jdk.internal.net.http.Exchange.establishExchange(Exchange.java:344)
+	at java.net.http/jdk.internal.net.http.Exchange.responseAsyncImpl0(Exchange.java:528)
+	at java.net.http/jdk.internal.net.http.Exchange.responseAsyncImpl(Exchange.java:381)
+	at java.net.http/jdk.internal.net.http.Exchange.responseAsync(Exchange.java:373)
+	at java.net.http/jdk.internal.net.http.MultiExchange.responseAsyncImpl(MultiExchange.java:408)
+	... 8 common frames omitted
+16:43:07.770 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+16:43:07.770 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 4000ms 후 WebSocket 재연결 시도
+16:43:07.779 [Test worker] ERROR c.c.a.service.ExchangeHealthMonitor - 거래소 DOWN 감지 ? ExchangeDownEvent 발행 (Upbit API 연속 0회 연결 실패)
+16:43:07.779 [Test worker] ERROR c.c.api.service.LiveTradingService - 거래소 DOWN 이벤트 수신 -- 모든 실전매매 세션을 비상 정지합니다.
+16:43:07.783 [Test worker] ERROR c.c.api.service.LiveTradingService - 전체 비상 정지 실행! (dryRun=false)
+16:43:07.798 [Test worker] ERROR c.c.api.service.LiveTradingService - 전체 비상 정지 완료: 1개 세션 정지 (dryRun=false)
+16:43:07.800 [Test worker] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+16:43:07.801 [Test worker] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 종료 (scheduler 유지 ? 재연결 가능)
+16:43:07.818 [market-data-1] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+16:43:07.822 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.lang.SecurityException: [NET-GUARD] 시험 외부 연결 차단: resolve api.upbit.com
+java.util.concurrent.CompletionException: java.lang.SecurityException: [NET-GUARD] 시험 외부 연결 차단: resolve api.upbit.com
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.uniComposeStage(CompletableFuture.java:1189)
+	at java.base/java.util.concurrent.CompletableFuture.thenCompose(CompletableFuture.java:2309)
+	at java.net.http/jdk.internal.net.http.MultiExchange.responseAsyncImpl(MultiExchange.java:453)
+	at java.net.http/jdk.internal.net.http.MultiExchange.lambda$responseAsync0$2(MultiExchange.java:341)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1150)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+	at java.base/jdk.internal.misc.InnocuousThread.run(InnocuousThread.java:162)
+Caused by: java.lang.SecurityException: [NET-GUARD] 시험 외부 연결 차단: resolve api.upbit.com
+	at com.cryptoautotrader.api.support.NetworkIsolationGuard$Guard.inspect(NetworkIsolationGuard.java:156)
+	at com.cryptoautotrader.api.support.NetworkIsolationGuard$Guard.checkPermission(NetworkIsolationGuard.java:127)
+	at java.base/java.lang.SecurityManager.checkConnect(SecurityManager.java:916)
+	at java.base/java.net.InetAddress.getAllByName0(InetAddress.java:1480)
+	at java.base/java.net.InetAddress.getAllByName(InetAddress.java:1384)
+	at java.base/java.net.InetAddress.getAllByName(InetAddress.java:1305)
+	at java.base/java.net.InetAddress.getByName(InetAddress.java:1255)
+	at java.base/java.net.InetSocketAddress.<init>(InetSocketAddress.java:229)
+	at java.net.http/jdk.internal.net.http.HttpRequestImpl.lambda$getAddress$5(HttpRequestImpl.java:390)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:318)
+	at java.net.http/jdk.internal.net.http.HttpRequestImpl.getAddress(HttpRequestImpl.java:391)
+	at java.net.http/jdk.internal.net.http.Http1Exchange.<init>(Http1Exchange.java:198)
+	at java.net.http/jdk.internal.net.http.ExchangeImpl.createHttp1Exchange(ExchangeImpl.java:161)
+	at java.net.http/jdk.internal.net.http.ExchangeImpl.get(ExchangeImpl.java:89)
+	at java.net.http/jdk.internal.net.http.Exchange.establishExchange(Exchange.java:344)
+	at java.net.http/jdk.internal.net.http.Exchange.responseAsyncImpl0(Exchange.java:528)
+	at java.net.http/jdk.internal.net.http.Exchange.responseAsyncImpl(Exchange.java:381)
+	at java.net.http/jdk.internal.net.http.Exchange.responseAsync(Exchange.java:373)
+	at java.net.http/jdk.internal.net.http.MultiExchange.responseAsyncImpl(MultiExchange.java:408)
+	... 8 common frames omitted
+16:43:07.822 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+16:43:07.822 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 8000ms 후 WebSocket 재연결 시도
+16:43:07.847 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+16:43:07.856 [Test worker] ERROR c.c.a.service.ExchangeHealthMonitor - 거래소 DOWN 감지 ? ExchangeDownEvent 발행 (Upbit API 연속 0회 연결 실패)
+16:43:07.856 [Test worker] ERROR c.c.api.service.LiveTradingService - 거래소 DOWN 이벤트 수신 -- 모든 실전매매 세션을 비상 정지합니다.
+16:43:07.859 [Test worker] ERROR c.c.api.service.LiveTradingService - 전체 비상 정지 실행! (dryRun=false)
+16:43:07.872 [Test worker] ERROR c.c.api.service.LiveTradingService - 전체 비상 정지 완료: 1개 세션 정지 (dryRun=false)
+16:43:07.873 [Test worker] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+16:43:07.874 [Test worker] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 종료 (scheduler 유지 ? 재연결 가능)
+16:43:07.882 [Test worker] WARN  c.c.api.service.LiveTradingService - 제한시험 세션 #9 (DAILY_SMA20) 재시작 거절 ? 상태 EMERGENCY_STOPPED·started_at 2026-11-10T07:43:07Z (최초 시작만 허용)
+16:43:07.892 [market-data-2] WARN  c.c.api.service.LiveTradingService - 거래소 복구 ? 세션 #9 (DAILY_SMA20) 는 제한시험이다 ? 자동 재시작하지 않는다(EMERGENCY_STOPPED·started_at 2026-11-10T07:43:07Z 유지)
+16:43:07.897 [Test worker] WARN  c.c.api.service.LiveTradingService - 제한시험 세션 #9 (DAILY_SMA20) 재시작 거절 ? 상태 EMERGENCY_STOPPED·started_at 2026-11-10T07:43:07Z (최초 시작만 허용)
+16:43:07.906 [Test worker] WARN  c.c.api.service.LiveTradingService - 제한시험 세션 #10 (DAILY_SMA20) 재시작 거절 ? 상태 CREATED·started_at 2026-11-10T07:43:07Z (최초 시작만 허용)
+16:43:07.929 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+16:43:07.943 [Test worker] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+16:43:07.948 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.lang.SecurityException: [NET-GUARD] 시험 외부 연결 차단: resolve api.upbit.com
+java.util.concurrent.CompletionException: java.lang.SecurityException: [NET-GUARD] 시험 외부 연결 차단: resolve api.upbit.com
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.uniComposeStage(CompletableFuture.java:1189)
+	at java.base/java.util.concurrent.CompletableFuture.thenCompose(CompletableFuture.java:2309)
+	at java.net.http/jdk.internal.net.http.MultiExchange.responseAsyncImpl(MultiExchange.java:453)
+	at java.net.http/jdk.internal.net.http.MultiExchange.lambda$responseAsync0$2(MultiExchange.java:341)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1150)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+	at java.base/jdk.internal.misc.InnocuousThread.run(InnocuousThread.java:162)
+Caused by: java.lang.SecurityException: [NET-GUARD] 시험 외부 연결 차단: resolve api.upbit.com
+	at com.cryptoautotrader.api.support.NetworkIsolationGuard$Guard.inspect(NetworkIsolationGuard.java:156)
+	at com.cryptoautotrader.api.support.NetworkIsolationGuard$Guard.checkPermission(NetworkIsolationGuard.java:127)
+	at java.base/java.lang.SecurityManager.checkConnect(SecurityManager.java:916)
+	at java.base/java.net.InetAddress.getAllByName0(InetAddress.java:1480)
+	at java.base/java.net.InetAddress.getAllByName(InetAddress.java:1384)
+	at java.base/java.net.InetAddress.getAllByName(InetAddress.java:1305)
+	at java.base/java.net.InetAddress.getByName(InetAddress.java:1255)
+	at java.base/java.net.InetSocketAddress.<init>(InetSocketAddress.java:229)
+	at java.net.http/jdk.internal.net.http.HttpRequestImpl.lambda$getAddress$5(HttpRequestImpl.java:390)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:318)
+	at java.net.http/jdk.internal.net.http.HttpRequestImpl.getAddress(HttpRequestImpl.java:391)
+	at java.net.http/jdk.internal.net.http.Http1Exchange.<init>(Http1Exchange.java:198)
+	at java.net.http/jdk.internal.net.http.ExchangeImpl.createHttp1Exchange(ExchangeImpl.java:161)
+	at java.net.http/jdk.internal.net.http.ExchangeImpl.get(ExchangeImpl.java:89)
+	at java.net.http/jdk.internal.net.http.Exchange.establishExchange(Exchange.java:344)
+	at java.net.http/jdk.internal.net.http.Exchange.responseAsyncImpl0(Exchange.java:528)
+	at java.net.http/jdk.internal.net.http.Exchange.responseAsyncImpl(Exchange.java:381)
+	at java.net.http/jdk.internal.net.http.Exchange.responseAsync(Exchange.java:373)
+	at java.net.http/jdk.internal.net.http.MultiExchange.responseAsyncImpl(MultiExchange.java:408)
+	... 8 common frames omitted
+16:43:07.949 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+16:43:07.949 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 16000ms 후 WebSocket 재연결 시도
+16:43:07.958 [Test worker] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+16:43:07.959 [Test worker] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 종료 (scheduler 유지 ? 재연결 가능)
+16:43:07.963 [Test worker] WARN  c.c.api.service.LiveTradingService - 제한시험 세션 #11 (DAILY_SMA20) 재시작 거절 ? 상태 STOPPED·started_at 2026-11-13T07:43:07.941416Z (최초 시작만 허용)
+16:43:07.981 [Test worker] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+16:43:07.985 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.lang.SecurityException: [NET-GUARD] 시험 외부 연결 차단: resolve api.upbit.com
+java.util.concurrent.CompletionException: java.lang.SecurityException: [NET-GUARD] 시험 외부 연결 차단: resolve api.upbit.com
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.uniComposeStage(CompletableFuture.java:1189)
+	at java.base/java.util.concurrent.CompletableFuture.thenCompose(CompletableFuture.java:2309)
+	at java.net.http/jdk.internal.net.http.MultiExchange.responseAsyncImpl(MultiExchange.java:453)
+	at java.net.http/jdk.internal.net.http.MultiExchange.lambda$responseAsync0$2(MultiExchange.java:341)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1150)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+	at java.base/jdk.internal.misc.InnocuousThread.run(InnocuousThread.java:162)
+Caused by: java.lang.SecurityException: [NET-GUARD] 시험 외부 연결 차단: resolve api.upbit.com
+	at com.cryptoautotrader.api.support.NetworkIsolationGuard$Guard.inspect(NetworkIsolationGuard.java:156)
+	at com.cryptoautotrader.api.support.NetworkIsolationGuard$Guard.checkPermission(NetworkIsolationGuard.java:127)
+	at java.base/java.lang.SecurityManager.checkConnect(SecurityManager.java:916)
+	at java.base/java.net.InetAddress.getAllByName0(InetAddress.java:1480)
+	at java.base/java.net.InetAddress.getAllByName(InetAddress.java:1384)
+	at java.base/java.net.InetAddress.getAllByName(InetAddress.java:1305)
+	at java.base/java.net.InetAddress.getByName(InetAddress.java:1255)
+	at java.base/java.net.InetSocketAddress.<init>(InetSocketAddress.java:229)
+	at java.net.http/jdk.internal.net.http.HttpRequestImpl.lambda$getAddress$5(HttpRequestImpl.java:390)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:318)
+	at java.net.http/jdk.internal.net.http.HttpRequestImpl.getAddress(HttpRequestImpl.java:391)
+	at java.net.http/jdk.internal.net.http.Http1Exchange.<init>(Http1Exchange.java:198)
+	at java.net.http/jdk.internal.net.http.ExchangeImpl.createHttp1Exchange(ExchangeImpl.java:161)
+	at java.net.http/jdk.internal.net.http.ExchangeImpl.get(ExchangeImpl.java:89)
+	at java.net.http/jdk.internal.net.http.Exchange.establishExchange(Exchange.java:344)
+	at java.net.http/jdk.internal.net.http.Exchange.responseAsyncImpl0(Exchange.java:528)
+	at java.net.http/jdk.internal.net.http.Exchange.responseAsyncImpl(Exchange.java:381)
+	at java.net.http/jdk.internal.net.http.Exchange.responseAsync(Exchange.java:373)
+	at java.net.http/jdk.internal.net.http.MultiExchange.responseAsyncImpl(MultiExchange.java:408)
+	... 8 common frames omitted
+16:43:07.987 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+16:43:07.987 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 30000ms 후 WebSocket 재연결 시도
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

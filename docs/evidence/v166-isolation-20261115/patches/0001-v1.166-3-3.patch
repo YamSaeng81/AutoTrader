@@ -1,0 +1,393 @@
+From bdc92b64311e19882c113920d6d4718e8bbc79a6 Mon Sep 17 00:00:00 2001
+From: YamSaeng81 <manicstr81@gmail.com>
+Date: Sun, 15 Nov 2026 09:12:49 +0900
+Subject: [PATCH 1/7] =?UTF-8?q?=EC=8B=9C=ED=97=98=20=EC=99=B8=EB=B6=80=20?=
+ =?UTF-8?q?=EC=97=B0=EA=B2=B0=20=EA=B0=90=EC=8B=9C=C2=B7=EC=A7=84=EB=8B=A8?=
+ =?UTF-8?q?=20=EC=A0=84=EC=97=AD=20=EC=83=81=ED=83=9C=20=EB=B3=B5=EC=9B=90?=
+ =?UTF-8?q?(=EC=8B=9C=ED=97=98=EB=A7=8C,=20=EC=B4=9D=EA=B4=84=20v1.166=20?=
+ =?UTF-8?q?=C2=A73-3)?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- NetworkIsolationGuard: JDK17 SecurityManager 로 모든 SocketPermission(connect·resolve) 검사. 루프백·미지정 주소·자기 이름만 허용,
+  그 밖은 기록 후 SecurityException 차단. 소켓 외 권한은 막지 않음. 설치 전 ForkJoinPool 공용 풀 초기화.
+  JNDI DnsContextFactory.filterNameServers 의 권한 확인(관리자 있을 때만, 패킷 없음)은 허용·별도 집계 — 감시 없을 때와 같은 동작.
+- NetworkIsolationExtension: 확장 자동 감지로 모든 Jupiter 클래스. 엔진 등록 때(컨텍스트·HttpClient 생성 전) 설치,
+  클래스 끝에 새 차단이 있으면 실패, 루트 저장소 종료 때 요약(NET-GUARD-summary.txt)·원래 관리자로 복원. TEST_NET_GUARD=off 로만 끔.
+- OutboundNetworkGuard.uninstall, G1SubmitBoundaryDiagTest @AfterAll 로 추가 스레드 접두·시작 문·기본 선택기 복원.
+제품·빌드 입력 변경 없음.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ .../api/service/G1SubmitBoundaryDiagTest.java |   8 +
+ .../support/NetworkIsolationExtension.java    |  77 +++++++
+ .../api/support/NetworkIsolationGuard.java    | 196 ++++++++++++++++++
+ .../api/support/OutboundNetworkGuard.java     |  12 +-
+ .../org.junit.jupiter.api.extension.Extension |   1 +
+ .../test/resources/junit-platform.properties  |   2 +
+ 6 files changed, 295 insertions(+), 1 deletion(-)
+ create mode 100644 web-api/src/test/java/com/cryptoautotrader/api/support/NetworkIsolationExtension.java
+ create mode 100644 web-api/src/test/java/com/cryptoautotrader/api/support/NetworkIsolationGuard.java
+ create mode 100644 web-api/src/test/resources/META-INF/services/org.junit.jupiter.api.extension.Extension
+ create mode 100644 web-api/src/test/resources/junit-platform.properties
+
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/G1SubmitBoundaryDiagTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/G1SubmitBoundaryDiagTest.java
+index 9988997e..1fe3adef 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/G1SubmitBoundaryDiagTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/G1SubmitBoundaryDiagTest.java
+@@ -141,6 +141,14 @@ class G1SubmitBoundaryDiagTest extends IntegrationTestBase {
+                 .thenAnswer(inv -> report(inv.getArgument(0), null, "wait"));
+     }
+ 
++    /** 전역 상태 복원 (총괄 v1.166 §3-3, 2026-11-13) — 추가 스레드 접두·시작 문·기본 선택기를 이 클래스 전으로 되돌린다. 예외 때도 JUnit 이 부른다. */
++    @org.junit.jupiter.api.AfterAll
++    static void restoreGlobals() {
++        OrderFlowObservation.orderStartGate = null;
++        OrderFlowObservation.EXTRA_THREAD_PREFIXES.removeAll(java.util.List.of("market-data-", "Test worker", "g1-stop"));
++        OutboundNetworkGuard.uninstall();
++    }
++
+     @AfterEach
+     void cleanUp() {
+         OrderFlowObservation.orderStartGate = null;
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/support/NetworkIsolationExtension.java b/web-api/src/test/java/com/cryptoautotrader/api/support/NetworkIsolationExtension.java
+new file mode 100644
+index 00000000..8f308c59
+--- /dev/null
++++ b/web-api/src/test/java/com/cryptoautotrader/api/support/NetworkIsolationExtension.java
+@@ -0,0 +1,77 @@
++package com.cryptoautotrader.api.support;
++
++import org.junit.jupiter.api.extension.AfterAllCallback;
++import org.junit.jupiter.api.extension.BeforeAllCallback;
++import org.junit.jupiter.api.extension.ExtensionContext;
++
++import java.io.IOException;
++import java.nio.charset.StandardCharsets;
++import java.nio.file.Files;
++import java.nio.file.Path;
++import java.util.List;
++import java.util.concurrent.atomic.AtomicInteger;
++
++/**
++ * 🔒 {@link NetworkIsolationGuard} 의 설치·복원과 클래스 단위 실패 — <b>시험 전용</b> (총괄 v1.166 §3-3, 2026-11-13).
++ *
++ * <p>{@code junit-platform.properties} 의 확장 자동 감지로 모든 Jupiter 클래스에 붙는다. 엔진이 확장을 등록할 때(첫 시험 클래스·
++ * 어떤 스프링 컨텍스트·HttpClient 생성보다 먼저) 정적 초기화에서 감시를 설치하고, 루트 저장소가 닫힐 때(모든 시험 뒤, 예외 때도)
++ * 요약을 쓰고 원래 보안 관리자로 되돌린다.</p>
++ *
++ * <p>클래스가 끝날 때 앞 확인 뒤 새로 막힌 시도가 있으면 그 클래스를 실패시킨다. 캐시된 컨텍스트의 비동기 작업이 다음 클래스 중에
++ * 연결하면 그 클래스에 귀속되므로 귀속은 근사다 — 시도 원문에 스레드와 앱 호출 위치를 남긴다.</p>
++ */
++public class NetworkIsolationExtension implements BeforeAllCallback, AfterAllCallback {
++
++    static {
++        NetworkIsolationGuard.installIfEnabled();
++    }
++
++    private static final AtomicInteger CURSOR = new AtomicInteger();
++    private static final AtomicInteger CLASSES = new AtomicInteger();
++
++    @Override
++    public void beforeAll(ExtensionContext context) {
++        context.getRoot().getStore(ExtensionContext.Namespace.GLOBAL)
++                .getOrComputeIfAbsent(NetworkIsolationExtension.class.getName() + ".restore", k -> new Restore(),
++                        ExtensionContext.Store.CloseableResource.class);
++    }
++
++    @Override
++    public void afterAll(ExtensionContext context) {
++        if (context.getParent().map(p -> p.getParent().isPresent()).orElse(false)) return; // @Nested 는 바깥 클래스가 확인한다
++        CLASSES.incrementAndGet();
++        int now = NetworkIsolationGuard.count();
++        List<String> fresh = NetworkIsolationGuard.since(CURSOR.getAndSet(now));
++        if (!fresh.isEmpty()) {
++            throw new AssertionError("[NET-GUARD] 예상하지 않은 외부 연결 " + fresh.size() + "건(차단됨, 귀속은 근사): " + fresh);
++        }
++    }
++
++    private static final class Restore implements ExtensionContext.Store.CloseableResource {
++        @Override
++        public void close() {
++            boolean wasInstalled = NetworkIsolationGuard.isInstalled();
++            List<String> all = NetworkIsolationGuard.since(0);
++            NetworkIsolationGuard.uninstall();
++            String summary = "installed_during_run=" + wasInstalled
++                    + "\ndisabled_reason=" + NetworkIsolationGuard.disabledReason()
++                    + "\nclasses_checked=" + CLASSES.get()
++                    + "\nblocked_external_attempts=" + all.size()
++                    + "\nallowed_jndi_nameserver_probes=" + NetworkIsolationGuard.probes().size()
++                    + "\nrestored_security_manager=" + System.getSecurityManager()
++                    + "\n" + String.join("\n", all)
++                    + (NetworkIsolationGuard.probes().isEmpty() ? "" : "\n--- 허용한 권한 확인(패킷 없음)\n"
++                            + String.join("\n", NetworkIsolationGuard.probes()))
++                    + "\n";
++            System.out.println("[NET-GUARD] 요약\n" + summary);
++            try {
++                Path dir = Path.of("build", "test-results", "test");
++                Files.createDirectories(dir);
++                Files.writeString(dir.resolve("NET-GUARD-summary.txt"), summary, StandardCharsets.UTF_8);
++            } catch (IOException e) {
++                System.out.println("[NET-GUARD] 요약 파일 기록 실패: " + e);
++            }
++        }
++    }
++}
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/support/NetworkIsolationGuard.java b/web-api/src/test/java/com/cryptoautotrader/api/support/NetworkIsolationGuard.java
+new file mode 100644
+index 00000000..b09f99cc
+--- /dev/null
++++ b/web-api/src/test/java/com/cryptoautotrader/api/support/NetworkIsolationGuard.java
+@@ -0,0 +1,196 @@
++package com.cryptoautotrader.api.support;
++
++import java.net.InetAddress;
++import java.net.SocketPermission;
++import java.security.Permission;
++import java.util.ArrayList;
++import java.util.List;
++import java.util.Locale;
++import java.util.Set;
++import java.util.concurrent.ForkJoinPool;
++
++/**
++ * 🔒 시험 외부 연결 감시 — <b>시험 전용</b> (총괄 v1.166 §3-2·3, 2026-11-13).
++ *
++ * <p>종전 {@link OutboundNetworkGuard}(기본 {@code ProxySelector} 교체)는 선택기를 묻지 않는 원시 소켓·NIO 직접 연결과 설치 전에 만든
++ * HttpClient 를 잡지 못했고, 차단 건수를 단언하지 않았다. 이 감시는 JDK 17 의 {@link SecurityManager} 로 <b>모든</b> 자바 소켓 연결
++ * ({@code Socket}·{@code SocketChannel}·HttpClient·WebSocket·JDBC)과 호스트 이름 해석이 거치는 {@link SocketPermission} 검사만 본다.
++ * 루프백(127.0.0.0/8·::1·localhost)과 이 기계 자신의 이름 해석은 허용한다(로컬 PG·H2·루프백 대역 서버). 그 밖의 대상은 <b>기록하고
++ * {@link SecurityException} 으로 막는다</b> — 실제로 나가지 않는다. 클래스 단위 실패 처리는 {@link NetworkIsolationExtension} 이 한다.</p>
++ *
++ * <p>소켓 이외의 권한 검사는 아무것도 막지 않는다(이전 관리자가 있으면 그대로 위임). 설치 직전에 공용 ForkJoinPool 을 먼저 초기화해
++ * 관리자 유무에 따라 바뀌는 작업자 공장(Innocuous)이 쓰이지 않게 한다. 실행 끝에 {@link #uninstall()} 이 원래 관리자로 되돌린다.</p>
++ *
++ * <p>기본은 켜짐. {@code TEST_NET_GUARD=off} 일 때만 설치하지 않는다(감시 자체를 의심할 때의 대조용).</p>
++ */
++public final class NetworkIsolationGuard {
++
++    public static final String ENV = "TEST_NET_GUARD";
++
++    private static final List<String> ATTEMPTS = new ArrayList<>();
++    private static final List<String> PROBES = new ArrayList<>();
++    private static volatile boolean installed;
++    private static volatile SecurityManager previous;
++    private static volatile Set<String> ownNames = Set.of();
++    private static volatile String disabledReason;
++
++    private NetworkIsolationGuard() { }
++
++    /** 환경 변수가 {@code off} 가 아니면 설치한다. 이미 설치됐으면 아무것도 하지 않는다. */
++    public static synchronized void installIfEnabled() {
++        if (installed) return;
++        if ("off".equalsIgnoreCase(System.getenv(ENV))) {
++            disabledReason = ENV + "=off";
++            return;
++        }
++        // 관리자 설치 전에 공용 풀을 초기화한다 — 클래스 초기화 때 관리자가 있으면 Innocuous 작업자(문맥 로더·ThreadLocal 정리)가 된다.
++        ForkJoinPool.commonPool();
++        java.util.Set<String> names = new java.util.HashSet<>();
++        try {
++            InetAddress self = InetAddress.getLocalHost();
++            names.add(self.getHostName().toLowerCase(Locale.ROOT));
++            names.add(self.getCanonicalHostName().toLowerCase(Locale.ROOT));
++        } catch (Exception ignored) {
++            // 자기 이름을 모르면 그 해석은 기록된다 — 실제로 필요한지 결과로 드러난다
++        }
++        ownNames = Set.copyOf(names);
++        previous = System.getSecurityManager();
++        System.setSecurityManager(new Guard());
++        installed = true;
++    }
++
++    /** 원래 보안 관리자로 되돌린다(보통 null). */
++    public static synchronized void uninstall() {
++        if (!installed) return;
++        if (System.getSecurityManager() instanceof Guard) {
++            System.setSecurityManager(previous);
++        }
++        installed = false;
++    }
++
++    public static boolean isInstalled() {
++        return installed && System.getSecurityManager() instanceof Guard;
++    }
++
++    public static String disabledReason() {
++        return disabledReason;
++    }
++
++    public static int count() {
++        synchronized (ATTEMPTS) {
++            return ATTEMPTS.size();
++        }
++    }
++
++    public static List<String> since(int from) {
++        synchronized (ATTEMPTS) {
++            return List.copyOf(ATTEMPTS.subList(Math.min(from, ATTEMPTS.size()), ATTEMPTS.size()));
++        }
++    }
++
++    static boolean isLocal(String rawHost) {
++        String host = rawHost.toLowerCase(Locale.ROOT);
++        if (host.startsWith("[") && host.endsWith("]")) host = host.substring(1, host.length() - 1);
++        return host.isEmpty() || host.equals("localhost") || host.startsWith("127.") || host.equals("::1")
++                || host.equals("0:0:0:0:0:0:0:1") || host.equals("0.0.0.0")
++                // 미지정 주소(::) — 로컬 서버 바인드 때 해석 검사로 온다. 바깥으로 나가는 대상이 아니다
++                || host.equals("::") || host.equals("0:0:0:0:0:0:0:0") || ownNames.contains(host);
++    }
++
++    /** {@code SocketPermission} 이름(host, host:port, [v6]:port)에서 호스트만 뽑는다. */
++    static String hostOf(String name) {
++        if (name.startsWith("[")) {
++            int end = name.indexOf(']');
++            return end > 0 ? name.substring(0, end + 1) : name;
++        }
++        int colon = name.indexOf(':');
++        return colon >= 0 ? name.substring(0, colon) : name;
++    }
++
++    /** 감시가 있을 때만 생기는 JNDI 이름 서버 권한 확인(패킷 없음) — 차단하지 않고 따로 센 목록. */
++    public static List<String> probes() {
++        synchronized (PROBES) {
++            return List.copyOf(PROBES);
++        }
++    }
++
++    private static boolean isJndiNameServerProbe() {
++        for (StackTraceElement e : new Throwable().getStackTrace()) {
++            if ("com.sun.jndi.dns.DnsContextFactory".equals(e.getClassName()) && "filterNameServers".equals(e.getMethodName())) {
++                return true;
++            }
++        }
++        return false;
++    }
++
++    private static String origin() {
++        StringBuilder sb = new StringBuilder();
++        int shown = 0;
++        for (StackTraceElement e : new Throwable().getStackTrace()) {
++            String c = e.getClassName();
++            if (c.startsWith("com.cryptoautotrader") && !c.contains("NetworkIsolation")) {
++                if (shown++ > 0) sb.append(" <- ");
++                sb.append(c.substring(c.lastIndexOf('.') + 1)).append('.').append(e.getMethodName()).append(':').append(e.getLineNumber());
++                if (shown == 3) break;
++            }
++        }
++        if (shown > 0) return sb.toString();
++        // 앱 프레임이 없으면 JDK 밖의 첫 라이브러리 프레임을 남긴다 — 어느 구성요소가 연결했는지 귀속하려고
++        for (StackTraceElement e : new Throwable().getStackTrace()) {
++            String c = e.getClassName();
++            if (c.startsWith("java.") || c.startsWith("javax.") || c.startsWith("jdk.") || c.startsWith("sun.")
++                    || c.startsWith("com.sun.") || c.contains("NetworkIsolation")) continue;
++            if (shown++ > 0) sb.append(" <- ");
++            sb.append(c).append('.').append(e.getMethodName()).append(':').append(e.getLineNumber());
++            if (shown == 4) break;
++        }
++        return shown == 0 ? "(JDK 프레임만)" : "(앱 프레임 없음) " + sb;
++    }
++
++    private static final class Guard extends SecurityManager {
++        private final ThreadLocal<Boolean> busy = new ThreadLocal<>();
++
++        @Override
++        public void checkPermission(Permission perm) {
++            if (perm instanceof SocketPermission sp) {
++                inspect(sp);
++            } else if (previous != null) {
++                previous.checkPermission(perm);
++            }
++        }
++
++        @Override
++        public void checkPermission(Permission perm, Object context) {
++            if (perm instanceof SocketPermission sp) {
++                inspect(sp);
++            } else if (previous != null) {
++                previous.checkPermission(perm, context);
++            }
++        }
++
++        private void inspect(SocketPermission sp) {
++            String actions = sp.getActions();
++            if (!actions.contains("connect") && !actions.contains("resolve")) return; // listen·accept = 로컬 서버
++            if (Boolean.TRUE.equals(busy.get())) return;
++            busy.set(Boolean.TRUE);
++            try {
++                if (isLocal(hostOf(sp.getName()))) return;
++                if (isJndiNameServerProbe()) {
++                    // JDK DnsContextFactory.filterNameServers 는 관리자가 있을 때만 이름 서버마다 checkConnect 를 부른다(패킷 없음).
++                    // 관리자가 없으면 목록을 그대로 돌려주므로, 막지 않아야 감시가 없을 때와 같은 동작이 된다. 따로 센다.
++                    synchronized (PROBES) {
++                        PROBES.add(actions + " " + sp.getName() + " [" + Thread.currentThread().getName() + "]");
++                    }
++                    return;
++                }
++                String entry = actions + " " + sp.getName() + " [" + Thread.currentThread().getName() + "] " + origin();
++                synchronized (ATTEMPTS) {
++                    ATTEMPTS.add(entry);
++                }
++            } finally {
++                busy.remove();
++            }
++            throw new SecurityException("[NET-GUARD] 시험 외부 연결 차단: " + actions + " " + sp.getName());
++        }
++    }
++}
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/support/OutboundNetworkGuard.java b/web-api/src/test/java/com/cryptoautotrader/api/support/OutboundNetworkGuard.java
+index 4b3be51e..291945a9 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/support/OutboundNetworkGuard.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/support/OutboundNetworkGuard.java
+@@ -24,6 +24,8 @@ public final class OutboundNetworkGuard {
+ 
+     private static final List<String> ATTEMPTS = new ArrayList<>();
+     private static volatile boolean installed;
++    private static volatile ProxySelector original;
++    private static volatile ProxySelector mine;
+ 
+     private OutboundNetworkGuard() { }
+ 
+@@ -39,7 +41,8 @@ public final class OutboundNetworkGuard {
+     public static synchronized void install() {
+         if (installed) return;
+         ProxySelector original = ProxySelector.getDefault();
+-        ProxySelector.setDefault(new ProxySelector() {
++        OutboundNetworkGuard.original = original;
++        ProxySelector.setDefault(mine = new ProxySelector() {
+             @Override
+             public List<Proxy> select(URI uri) {
+                 String host = uri.getHost();
+@@ -62,6 +65,13 @@ public final class OutboundNetworkGuard {
+         installed = true;
+     }
+ 
++    /** 원래 기본 선택기로 되돌린다 — 진단 클래스가 끝날 때 부른다(총괄 v1.166 §3-3, 뒤 클래스 동작 불변). */
++    public static synchronized void uninstall() {
++        if (!installed) return;
++        if (ProxySelector.getDefault() == mine) ProxySelector.setDefault(original);
++        installed = false;
++    }
++
+     public static List<String> attempts() {
+         synchronized (ATTEMPTS) {
+             return List.copyOf(ATTEMPTS);
+diff --git a/web-api/src/test/resources/META-INF/services/org.junit.jupiter.api.extension.Extension b/web-api/src/test/resources/META-INF/services/org.junit.jupiter.api.extension.Extension
+new file mode 100644
+index 00000000..9e8f02e5
+--- /dev/null
++++ b/web-api/src/test/resources/META-INF/services/org.junit.jupiter.api.extension.Extension
+@@ -0,0 +1 @@
++com.cryptoautotrader.api.support.NetworkIsolationExtension
+diff --git a/web-api/src/test/resources/junit-platform.properties b/web-api/src/test/resources/junit-platform.properties
+new file mode 100644
+index 00000000..1aa55fe3
+--- /dev/null
++++ b/web-api/src/test/resources/junit-platform.properties
+@@ -0,0 +1,2 @@
++# 시험 외부 연결 감시(총괄 v1.166 §3-3): NetworkIsolationExtension 을 모든 Jupiter 클래스에 자동 등록한다.
++junit.jupiter.extensions.autodetection.enabled=true
+-- 
+2.51.1.windows.1
+
