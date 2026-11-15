@@ -20,6 +20,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.mockito.Mockito;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -79,6 +81,13 @@ import static org.mockito.Mockito.when;
  * <p>🔴 2026-11-12 (총괄 v1.156 §124): 종전 "실제 현재 − 61분 − 초 오프셋 + 829ms" 비정시 봉과 초 오프셋 회차 격리를 걷었다.
  * LIVE 입력(①③)은 정시 격자 봉·회차 키에 접수 시각 두 위치(C+1s·D−1ms)를 시험 시계로 고정하고, 독립 입력마다 새 회차 상태를 쓴다
  * ({@link N15GridRounds}). DYNAMIC 입력(②④)은 제품이 실제 시각을 보므로 실제 시각 기준 자료에 새 회차 상태만 쓴다. 단언은 그대로다.</p>
+ *
+ * <p>🔴 2026-11-13 (총괄 v1.166 §3-4, 시험만): 위 DYNAMIC 전제는 v1.158 뒤로 맞지 않는다 — 후보의 DYNAMIC 은 닫힌 봉·최신성·조회 상한·BTC 관문·
+ * 접수 시각을 모두 판단 시계({@link EntryClock})로 본다. 옛 입력(봉 = 실제 현재 − 61분, 접수 = 실제 현재)은 E = 실제 현재 + 9분이라, 실제 현재가
+ * 정시 직전(:53~정각)이면 승인 시각 E−1ms 가 다음 정시를 넘어 BTC 관문이 "최신 완료 봉 없음"으로 잠금 전에 거절했다(②④ 실패,
+ * g1 근거 n15pg-orig-nogate-1555). 이제 DYNAMIC 도 LIVE 와 같은 정시 격자 봉(BTC 포함)·접수 C+1s·승인 E−1ms·E 를 시험 시계 하나로 만든다.
+ * ⑤ 가 W = :52·:53·:55·:59·정각·:07 을 시험 시계로 고정해 옛 입력의 시각 의존과 격자 입력의 정상 진입을 결정적으로 재현한다. 제품 시계 접점은
+ * 추가하지 않았다. 대조군의 {@code createOrder} 는 고유 주문번호의 접수 응답 대역을 돌려준다(종전 null → 비동기 결과 저장 NPE).</p>
  */
 @EnabledIfEnvironmentVariable(named = "N15_PG_URL", matches = ".+")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE, properties = {
@@ -177,6 +186,17 @@ class N15PgLockWaitExpiryTest {
         poolLossGuard.setEnabledSetting(true);
         rounds.setForcedForTest(true);
         doReturn(com.cryptoautotrader.core.risk.RiskCheckResult.approve()).when(riskManagementService).checkRisk();
+        // v1.166 §3-4: 정상 진입 대조군의 주문 접수 응답 — 종전 대역 미설정(null)으로 비동기 결과 저장에서 NPE 3건이 났다. 체결은 가정하지 않는다(wait).
+        Mockito.doAnswer(inv -> {
+            com.cryptoautotrader.exchange.upbit.dto.OrderResponse o = new com.cryptoautotrader.exchange.upbit.dto.OrderResponse();
+            o.setUuid("n15pg-" + UUID.randomUUID());
+            o.setMarket(inv.getArgument(0));
+            o.setSide(inv.getArgument(1));
+            o.setOrdType(inv.getArgument(4));
+            o.setState("wait");
+            o.setExecutedVolume(BigDecimal.ZERO);
+            return new com.cryptoautotrader.exchange.upbit.UpbitOrderClient.ExchangeResult(o, "{}");
+        }).when(upbitOrderClient).createOrder(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
         limits.setMaxConcurrentPositions((int) positionRepository.countPoolSlots(-1L) + 8);
         limits.setPerPositionCapKrw(new BigDecimal("20000"));
         limits.setTotalCapKrw(positionRepository.sumPoolExposureKrw(-1L).add(new BigDecimal("1000000")));
@@ -289,16 +309,17 @@ class N15PgLockWaitExpiryTest {
      * DYNAMIC 은 제품이 실제 시각으로 접수한다({@code intake} 무시).
      */
     private Instant enqueue(EntryPriorityRounds r, String kind, Long id, String coin, Instant lastOpen, N15GridRounds.Intake intake) {
+        return enqueueAt(r, kind, id, coin, lastOpen, intake.at(new EntryPriorityRounds.RoundKey("H1", lastOpen)), intake.name());
+    }
+
+    /** v1.166: LIVE·DYNAMIC 모두 시험 시계의 접수 시각 {@code at} 으로 접수한다(⑤ 의 옛 입력 재현만 임의 시각). */
+    private Instant enqueueAt(EntryPriorityRounds r, String kind, Long id, String coin, Instant lastOpen, Instant at, String label) {
         List<Candle> cs = candles(lastOpen);
         insertCandleData(coin, cs);
         when(marketDataSyncService.fetchWithCache(eq(coin), anyString(), anyInt())).thenReturn(cs);
         EntryPriorityRounds.RoundKey round = new EntryPriorityRounds.RoundKey("H1", lastOpen);
-        if ("LIVE".equals(kind)) {
-            fake.set(intake.at(round));
-            System.out.println("[N15PG] LIVE " + coin + " 접수 " + intake + " " + intake.at(round));
-        } else {
-            fake.set(Instant.now());
-        }
+        fake.set(at);
+        System.out.println("[N15PG] " + kind + " " + coin + " 접수 " + label + " " + at);
         if ("LIVE".equals(kind)) {
             Object target = AopTestUtils.getUltimateTargetObject(liveTradingService);
             ReflectionTestUtils.invokeMethod(target, "evaluateAndExecuteSession",
@@ -465,9 +486,15 @@ class N15PgLockWaitExpiryTest {
         return last;
     }
 
-    /** DYNAMIC 실제 시각 기준 자료(비정시 — {@link N15GridRounds#dynamicLastOpen}). DYNAMIC 은 캔들을 조회 대역으로만 읽는다(BTC 포함). */
+    /**
+     * DYNAMIC 정시 격자 자료 (v1.166 §3-4) — LIVE 와 같은 L(실제 현재 정시 − 1시간). DYNAMIC 은 캔들을 조회 대역으로만 읽고(BTC 포함)
+     * 최신성·BTC 관문을 판단 시계로 보므로, 접수 C+1s·승인 E−1ms 의 시험 시계와 같은 기준이 된다. 실제 현재의 분과 무관하다.
+     */
     private Instant dynamicData() {
-        Instant last = N15GridRounds.dynamicLastOpen();
+        return dynamicGridAt(N15GridRounds.gridLastOpen());
+    }
+
+    private Instant dynamicGridAt(Instant last) {
         when(marketDataSyncService.fetchWithCache(anyString(), anyString(), anyInt())).thenReturn(candles(last));
         return last;
     }
@@ -490,7 +517,7 @@ class N15PgLockWaitExpiryTest {
     void dynamicSessionRowLockWaitCrossesExpiry() throws Exception {
         Instant base = dynamicData();
         Long id = dynamic("KRW-IOTA").getId();
-        Run r = runWithHeldLock("DYNAMIC", id, "KRW-IOTA", base, null, SESSION_LOCK, id, "dynamic_session", "refresh", true);
+        Run r = runWithHeldLock("DYNAMIC", id, "KRW-IOTA", base, N15GridRounds.Intake.EARLY, SESSION_LOCK, id, "dynamic_session", "refresh", true);
         assertExpired("②", "DYNAMIC", id, "KRW-IOTA", r, "10000", "차감 직전");
     }
 
@@ -509,7 +536,52 @@ class N15PgLockWaitExpiryTest {
     void controlDynamicSessionRowLockWaitEnters() throws Exception {
         Instant base = dynamicData();
         Long id = dynamic("KRW-IOTA").getId();
-        Run r = runWithHeldLock("DYNAMIC", id, "KRW-IOTA", base, null, SESSION_LOCK, id, "dynamic_session", "refresh", false);
+        Run r = runWithHeldLock("DYNAMIC", id, "KRW-IOTA", base, N15GridRounds.Intake.EARLY, SESSION_LOCK, id, "dynamic_session", "refresh", false);
         assertEntered("④", "DYNAMIC", id, "KRW-IOTA", r, "2000");
+    }
+
+    /**
+     * ⑤ v1.166 §3-4 시각 의존 재현 — 실제 실행 시각을 고르지 않고 "벽시계" W 를 시험 시계로 고정한다(H = 실제 현재 정시 − 1시간, W = H + 분).
+     * 옛 입력: 봉 = W − 61분(비정시), 접수 = W, 승인 = E−1ms(E = 봉 + 70분 = W + 9분). 격자 입력: L = W 의 정시 − 1시간, 접수 C+1s, 승인 E−1ms.
+     * 잠금은 쥐지 않는다(잠금 대기는 ②④ 가 본다). 옛 입력의 거절 조건은 E−1ms − GRACE(2분) ≥ 다음 정시, 곧 W > H+53분이다. :53:00 은 경계라 진입,
+     * 실제 실패 관측 시각과 같은 :53:37·:55·:59·정각은 승인 차례 BTC 관문 "최신 완료 봉 없음"으로 거절, :52·:07 은 진입 — 종전 ②④ 실패 창
+     * (g1 근거: 15:53:37·15:54·15:55 실패, 15:52:29·16:07 통과)과 같다. 격자 입력은 모든 W 에서 진입한다.
+     */
+    @ParameterizedTest(name = "W = H+{0}분{1}초 → 옛 입력 진입={2}")
+    @CsvSource({"52,0,true", "53,0,true", "53,37,false", "55,0,false", "59,0,false", "60,0,false", "67,0,true"})
+    @DisplayName("⑤ 시각 의존 재현 — 옛 DYNAMIC 입력(봉 W−61분·접수 W)은 정시 직전 W 에서 승인 BTC 최신성 거절, 같은 W 의 격자 입력은 정상 진입")
+    void dynamicInputClockDependence(int minute, int second, boolean oldEnters) {
+        Instant w = N15GridRounds.gridLastOpen().plus(minute, ChronoUnit.MINUTES).plusSeconds(second);
+
+        Instant oldLast = w.minus(61, ChronoUnit.MINUTES);
+        dynamicGridAt(oldLast);
+        Long oldId = dynamic("KRW-IOTA").getId();
+        EntryPriorityRounds r1 = isolate();
+        Instant e1 = enqueueAt(r1, "DYNAMIC", oldId, "KRW-IOTA", oldLast, w, "옛 입력 W");
+        fake.set(e1.minusMillis(1));
+        List<EntryPriorityRounds.Outcome> o1 = r1.processDue(e1.minusMillis(1));
+        System.out.println("[N15PG] ⑤ W=" + w + " 옛 입력 봉 " + oldLast + " E " + e1 + " → " + reasons(o1));
+
+        Instant gridLast = w.truncatedTo(ChronoUnit.HOURS).minus(1, ChronoUnit.HOURS);
+        dynamicGridAt(gridLast);
+        Long newId = dynamic("KRW-CRO").getId();   // 다른 코인 — 옛 입력이 진입한 경우의 교차 세션 노출 거절과 섞이지 않게
+        EntryPriorityRounds r2 = isolate();
+        Instant e2 = enqueue(r2, "DYNAMIC", newId, "KRW-CRO", gridLast, N15GridRounds.Intake.EARLY);
+        fake.set(e2.minusMillis(1));
+        List<EntryPriorityRounds.Outcome> o2 = r2.processDue(e2.minusMillis(1));
+        System.out.println("[N15PG] ⑤ W=" + w + " 격자 입력 L " + gridLast + " E " + e2 + " → " + reasons(o2));
+
+        assertThat(o1).hasSize(1);
+        if (oldEnters) {
+            assertThat(o1.get(0).reason()).as("⑤ 옛 입력 W=H+" + minute + ":" + second + " 진입").isNull();
+        } else {
+            assertThat(o1.get(0).reason()).as("⑤ 옛 입력 W=H+" + minute + ":" + second + " 승인 BTC 최신성 거절")
+                    .contains("BTC_MARKET_GUARD 판정 불가").contains("최신 완료 봉 없음");
+            assertThat(buys("DYNAMIC", oldId)).as("⑤ 옛 입력 매수 의도 0").isEmpty();
+        }
+        assertThat(o2).hasSize(1);
+        assertThat(o2.get(0).reason()).as("⑤ 격자 입력 W=H+" + minute + ":" + second + " 정상 진입").isNull();
+        assertThat(buys("DYNAMIC", newId)).as("⑤ 격자 입력 매수 의도 1").hasSize(1);
+        assertThat(funds("DYNAMIC", newId)).as("⑤ 격자 입력 차감").isEqualByComparingTo("2000");
     }
 }
