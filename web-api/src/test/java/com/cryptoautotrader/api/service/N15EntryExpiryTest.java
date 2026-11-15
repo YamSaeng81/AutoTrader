@@ -98,6 +98,8 @@ class N15EntryExpiryTest extends IntegrationTestBase {
     @Autowired private JdbcTemplate jdbc;
     @Autowired private com.cryptoautotrader.api.repository.MarketDataCacheRepository candleDataRepository;
 
+    /** 외부 연결 격리 (총괄 v1.166 §3-2 후속, 2026-11-15, 시험만) — 전체 회귀(b2976905)에서 이 클래스의 시험 스레드가 실제 Upbit WebSocket 첫 연결을 열었다(근거 v166 int-full-b2976905·ws-origin). WS 재연결·구독 자체는 시험 대상이 아니다. 기존 단언은 그대로다. */
+    @MockBean private com.cryptoautotrader.exchange.upbit.UpbitWebSocketClient upbitWebSocketClient;
     @MockBean private MarketDataSyncService marketDataSyncService;
     @MockBean private UpbitRestClient upbitRestClient;
     @MockBean private com.cryptoautotrader.exchange.upbit.UpbitOrderClient upbitOrderClient;
@@ -244,9 +246,9 @@ class N15EntryExpiryTest extends IntegrationTestBase {
         return last;
     }
 
-    /** DYNAMIC 실제 시각 기준 자료(비정시 — {@link N15GridRounds#dynamicLastOpen}). DYNAMIC 은 캔들을 조회 대역으로만 읽는다(BTC 포함). */
+    /** DYNAMIC 정시 격자 자료 — LIVE 와 같은 L. DYNAMIC 은 캔들을 조회 대역으로만 읽는다(BTC 포함). v1.166 §3-4 후속(2026-11-15, 시험만): 후보 DYNAMIC 은 최신성·BTC 관문·접수를 판단 시계로 본다 — 옛 비정시 자료(실제 현재 − 61분)와 실제 시각 접수는 실제 현재가 정시 직전(:53 초과~정각)이면 승인 E−1ms 에서 BTC "최신 완료 봉 없음"이 됐다(v166 affected46-wip, 00:56 UTC 실행). N15PgLockWaitExpiryTest ⑤ 가 같은 원인을 시험 시계로 결정적으로 재현한다. LIVE 와 같은 정시 격자·접수 C+1s 로 만든다. 기대는 그대로다. */
     private Instant dynamicData() {
-        Instant last = N15GridRounds.dynamicLastOpen();
+        Instant last = N15GridRounds.gridLastOpen();
         when(marketDataSyncService.fetchWithCache(anyString(), anyString(), anyInt())).thenReturn(candles(last));
         return last;
     }
@@ -417,7 +419,7 @@ class N15EntryExpiryTest extends IntegrationTestBase {
             Instant e = expiryOf(round);
             Instant at = i == 0 ? e.minusMillis(1) : e;
             DynamicSessionEntity d = dynamic(coin);
-            fake.set(Instant.now());
+            fake.set(N15GridRounds.Intake.EARLY.at(round));   // v1.166: 판단 시계의 접수 C+1s(옛: 실제 현재)
             evaluateDynamic(d);
             assertThat(r.openRounds()).as(coin + " 접수").isEqualTo(1);
             fake.set(at);
@@ -511,7 +513,7 @@ class N15EntryExpiryTest extends IntegrationTestBase {
         Instant dynOpen = market("KRW-IOTA", dynBase);
         Instant eDyn = expiryOf(new EntryPriorityRounds.RoundKey("H1", dynOpen));
         DynamicSessionEntity d = dynamic("KRW-IOTA");
-        fake.set(Instant.now());
+        fake.set(N15GridRounds.Intake.EARLY.at(new EntryPriorityRounds.RoundKey("H1", dynOpen)));   // v1.166: 판단 시계의 접수 C+1s(옛: 실제 현재)
         evaluateDynamic(d);
         assertThat(rD.openRounds()).as("DYNAMIC 접수").isEqualTo(1);
         doAnswer(inv -> {
