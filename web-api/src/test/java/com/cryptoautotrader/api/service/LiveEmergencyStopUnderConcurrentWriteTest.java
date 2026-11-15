@@ -52,6 +52,10 @@ class LiveEmergencyStopUnderConcurrentWriteTest extends IntegrationTestBase {
     @SpyBean private PositionStateTransition positionStateTransition;
     @SpyBean private RiskManagementService riskManagementService;
     @MockBean private UpbitOrderClient upbitOrderClient;
+    /** 외부 연결 격리 (총괄 v1.166 §3-2, 2026-11-13, 시험만) — 이 클래스는 세션 시작·복구의 부수효과로 구독 갱신(connect)을 부를 뿐
+     *  WS 재연결·구독 자체를 시험하지 않는다. 대역이 없으면 실제 Upbit WebSocket 에 연결을 시도했다(g1 근거 final-rel19-nogate,
+     *  v166 음성 대조 guard-neg-6cls). 실시세 틱이 시험 세션에 들어올 수도 있었다. 기존 단언은 그대로다. */
+    @MockBean private com.cryptoautotrader.exchange.upbit.UpbitWebSocketClient upbitWebSocketClient;
 
     @Autowired private LiveTradingSessionRepository sessionRepository;
     @Autowired private PositionRepository positionRepository;
