@@ -1,0 +1,56 @@
+> Task :strategy-lib:compileJava UP-TO-DATE
+> Task :strategy-lib:processResources NO-SOURCE
+> Task :strategy-lib:classes UP-TO-DATE
+> Task :strategy-lib:jar UP-TO-DATE
+> Task :core-engine:compileJava UP-TO-DATE
+> Task :core-engine:processResources NO-SOURCE
+> Task :core-engine:classes UP-TO-DATE
+> Task :core-engine:jar UP-TO-DATE
+> Task :exchange-adapter:compileJava UP-TO-DATE
+> Task :exchange-adapter:processResources NO-SOURCE
+> Task :exchange-adapter:classes UP-TO-DATE
+> Task :exchange-adapter:jar UP-TO-DATE
+> Task :web-api:compileJava
+> Task :web-api:processResources UP-TO-DATE
+> Task :web-api:classes
+> Task :web-api:compileTestJava
+> Task :web-api:processTestResources UP-TO-DATE
+> Task :web-api:testClasses
+WARNING: A terminally deprecated method in java.lang.System has been called
+WARNING: System::setSecurityManager has been called by com.cryptoautotrader.api.support.NetworkIsolationGuard (file:/D:/tmp/race-b987d7a7/web-api/build/classes/java/test/)
+WARNING: Please consider reporting this to the maintainers of com.cryptoautotrader.api.support.NetworkIsolationGuard
+WARNING: System::setSecurityManager will be removed in a future release
+Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+
+> Task :web-api:test
+
+제출 결과와 미해결 제출 해소의 커밋 순서 경합 (v1.167) > C ? 제출 결과 뒤 조회 '찾음' 으로 재개해도 응답 원문·제출 시각을 덮지 않고 SUBMITTED 전이를 두 번 남기지 않는다 FAILED
+    org.opentest4j.AssertionFailedError at SubmitPollRaceTest.java:337
+
+제출 결과와 미해결 제출 해소의 커밋 순서 경합 (v1.167) > B ? 폴러의 UNKNOWN 이 먼저 커밋되면 제출 결과가 SUBMITTED·주문번호를 붙이고 불명 사유를 해제한다 FAILED
+    org.opentest4j.AssertionFailedError at SubmitPollRaceTest.java:302
+
+제출 결과와 미해결 제출 해소의 커밋 순서 경합 (v1.167) > A ? 폴러가 SUBMITTING 을 읽은 뒤 제출 결과가 커밋되면, 조회 '없음' 이 SUBMITTED·주문번호를 덮지 않는다 FAILED
+    org.opentest4j.AssertionFailedError at SubmitPollRaceTest.java:273
+
+15:44:50.530 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+15:44:50.530 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+15:44:50.532 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+15:44:50.534 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+15:44:50.536 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+
+> Task :web-api:test FAILED
+
+5 tests completed, 3 failed
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':web-api:test'.
+> There were failing tests. See the report at: file:///D:/tmp/race-b987d7a7/web-api/build/reports/tests/test/index.html
+
+* Try:
+> Run with --scan to get full insights.
+
+BUILD FAILED in 25s
+11 actionable tasks: 3 executed, 8 up-to-date

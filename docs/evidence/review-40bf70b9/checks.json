@@ -1,0 +1,698 @@
+{
+  "reviewed_main": "40bf70b9305cc8385508cf19382e4cafb98bb653",
+  "manifests": {
+    "v166-isolation-20261115": {
+      "count": 595,
+      "worktree_mismatch": [],
+      "blob_mismatch": []
+    },
+    "g1-submit-boundary-20261113": {
+      "count": 236,
+      "worktree_mismatch": [],
+      "blob_mismatch": []
+    },
+    "review-6f27b35d": {
+      "count": 3,
+      "worktree_mismatch": [],
+      "blob_mismatch": []
+    }
+  },
+  "runs": {
+    "guard-neg-6cls": {
+      "xml_files": 6,
+      "modules": {
+        "web-api": {
+          "tests": 48,
+          "failures": 6,
+          "errors": 0,
+          "skipped": 0,
+          "passed": 42
+        }
+      },
+      "failures": [
+        {
+          "xml": "xml/TEST-com.cryptoautotrader.api.service.ExchangeRecoveryRestartTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 8\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [connect,resolve 168.126.63.1:53 [Test worker] (\uc571 \ud504\ub808\uc784 \uc5c6\uc74c), connect,resolve 168.126.63.2:53 [Test worker] (\uc571 \ud504\ub808\uc784"
+        },
+        {
+          "xml": "xml/TEST-com.cryptoautotrader.api.service.LimitedTestExchangeRecoveryTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 4\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-16-Worker-0] (\uc571 \ud504\ub808\uc784 \uc5c6\uc74c), resolve api.upbit.com [HttpClient-17-Worker-0] (\uc571 \ud504"
+        },
+        {
+          "xml": "xml/TEST-com.cryptoautotrader.api.service.LiveEmergencyStopUnderConcurrentWriteTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 3\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-20-Worker-0] (\uc571 \ud504\ub808\uc784 \uc5c6\uc74c), resolve [0:0:0:0:0:0:0:0] [Test worker] (\uc571 \ud504\ub808\uc784 \uc5c6\uc74c),"
+        },
+        {
+          "xml": "xml/TEST-com.cryptoautotrader.api.service.N17RestInvalidPriceTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 4\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-34-Worker-0] (\uc571 \ud504\ub808\uc784 \uc5c6\uc74c), resolve [0:0:0:0:0:0:0:0] [Test worker] (\uc571 \ud504\ub808\uc784 \uc5c6\uc74c),"
+        },
+        {
+          "xml": "xml/TEST-com.cryptoautotrader.api.service.SlWatchdogFreshnessTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 2\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-47-Worker-0] (\uc571 \ud504\ub808\uc784 \uc5c6\uc74c), resolve api.upbit.com [HttpClient-48-Worker-0] (\uc571 \ud504"
+        },
+        {
+          "xml": "xml/TEST-com.cryptoautotrader.api.service.StaleRealtimeExitTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 5\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-49-Worker-0] (\uc571 \ud504\ub808\uc784 \uc5c6\uc74c), resolve api.upbit.com [HttpClient-50-Worker-0] (\uc571 \ud504"
+        }
+      ],
+      "metadata": {
+        "meta.txt": "HEAD 3f9cc926d5bcd08d67a9d8541e859d91110a3677\n?? web-api/src/test/java/com/cryptoautotrader/api/support/NetworkIsolationExtension.java\n?? web-api/src/test/java/com/cryptoautotrader/api/support/NetworkIsolationGuard.java\n?? web-api/src/test/resources/META-INF/services/\n?? web-api/src/test/resources/junit-platform.properties\nworktree_diff_sha256 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\ngate_ms=off\nclasses=ExchangeRecoveryRestartTest LimitedTestExchangeRecoveryTest LiveEmergencyStopUnderConcurrentWriteTest N17RestInvalidPriceTest SlWatchdogFreshnessTest StaleRealtimeExitTest\nstart 2026-11-13 16:42:46    \nend 2026-11-13 16:43:17     rc=1\n"
+      },
+      "network_guards": {
+        "xml/NET-GUARD-summary.txt": [
+          "installed_during_run=true",
+          "disabled_reason=null",
+          "classes_checked=6",
+          "blocked_external_attempts=26",
+          "restored_security_manager=null",
+          "connect,resolve 168.126.63.1:53 [Test worker] (\uc571 \ud504\ub808\uc784 \uc5c6\uc74c)",
+          "connect,resolve 168.126.63.2:53 [Test worker] (\uc571 \ud504\ub808\uc784 \uc5c6\uc74c)"
+        ]
+      }
+    },
+    "iso-6cls": {
+      "xml_files": 6,
+      "modules": {
+        "web-api": {
+          "tests": 42,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "passed": 42
+        }
+      },
+      "failures": [],
+      "metadata": {
+        "meta.txt": "HEAD 3f9cc926d5bcd08d67a9d8541e859d91110a3677\n M web-api/src/test/java/com/cryptoautotrader/api/service/ExchangeRecoveryRestartTest.java\n M web-api/src/test/java/com/cryptoautotrader/api/service/G1SubmitBoundaryDiagTest.java\n M web-api/src/test/java/com/cryptoautotrader/api/service/LimitedTestExchangeRecoveryTest.java\n M web-api/src/test/java/com/cryptoautotrader/api/service/LiveEmergencyStopUnderConcurrentWriteTest.java\n M web-api/src/test/java/com/cryptoautotrader/api/service/N17RestInvalidPriceTest.java\n M web-api/src/test/java/com/cryptoautotrader/api/service/SlWatchdogFreshnessTest.java\n M web-api/src/test/java/com/cryptoautotrader/api/service/StaleRealtimeExitTest.java\n M web-api/src/test/java/com/cryptoautotrader/api/support/OutboundNetworkGuard.java\n?? web-api/src/test/java/com/cryptoautotrader/api/support/NetworkIsolationExtension.java\n?? web-api/src/test/java/com/cryptoautotrader/api/support/NetworkIsolationGuard.java\n?? web-api/src/test/resources/META-INF/services/\n?? web-api/src/test/resources/junit-platform.properties\nworktree_diff_sha256 d15f8deb3548ccccb6125fc3610aac6284dccd75a8066291f612c18a7ce88021\ngate_ms=off\nclasses=ExchangeRecoveryRestartTest LimitedTestExchangeRecoveryTest LiveEmergencyStopUnderConcurrentWriteTest N17RestInvalidPriceTest SlWatchdogFreshnessTest StaleRealtimeExitTest\nstart 2026-11-15 09:11:54    \nend 2026-11-15 09:12:35     rc=0\n"
+      },
+      "network_guards": {
+        "xml/NET-GUARD-summary.txt": [
+          "installed_during_run=true",
+          "disabled_reason=null",
+          "classes_checked=6",
+          "blocked_external_attempts=0",
+          "allowed_jndi_nameserver_probes=3",
+          "restored_security_manager=null",
+          ""
+        ]
+      }
+    },
+    "n15pg-off-b2976905": {
+      "xml_files": 1,
+      "modules": {
+        "web-api": {
+          "tests": 13,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "passed": 13
+        }
+      },
+      "failures": [],
+      "metadata": {
+        "meta.txt": "HEAD b297690517d90edbfe053f99a9093ce342394c36\nworktree_diff_sha256 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\ngate_ms=off\nclasses=N15PgLockWaitExpiryTest\nstart 2026-11-15 09:28:30    \nend 2026-11-15 09:29:00     rc=0\ndb=v166_n15pg_3677\n"
+      },
+      "network_guards": {
+        "xml/NET-GUARD-summary.txt": [
+          "installed_during_run=true",
+          "disabled_reason=null",
+          "classes_checked=1",
+          "blocked_external_attempts=0",
+          "allowed_jndi_nameserver_probes=3",
+          "allowed_own_interface_connections=0",
+          "restored_security_manager=null"
+        ]
+      }
+    },
+    "n15pg-fix2-500": {
+      "xml_files": 1,
+      "modules": {
+        "web-api": {
+          "tests": 13,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "passed": 13
+        }
+      },
+      "failures": [],
+      "metadata": {
+        "meta.txt": "HEAD 8d5e41db47aabd299bf5ca22372bea00f5fc7af7\n M web-api/src/test/java/com/cryptoautotrader/api/service/N15PgLockWaitExpiryTest.java\nworktree_diff_sha256 377de08047d12328db50c5a478c5007a0ef43d0f5000d1dfe83e05def7b15971\ngate_ms=500\nclasses=N15PgLockWaitExpiryTest\nstart 2026-11-15 09:19:28    \nend 2026-11-15 09:20:17     rc=0\ndb=v166_n15pg_20700\n"
+      },
+      "network_guards": {
+        "xml/NET-GUARD-summary.txt": [
+          "installed_during_run=true",
+          "disabled_reason=null",
+          "classes_checked=1",
+          "blocked_external_attempts=0",
+          "allowed_jndi_nameserver_probes=3",
+          "restored_security_manager=null",
+          ""
+        ]
+      }
+    },
+    "rel19-gateoff-b2976905": {
+      "xml_files": 19,
+      "modules": {
+        "web-api": {
+          "tests": 235,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 5,
+          "passed": 230
+        }
+      },
+      "failures": [],
+      "metadata": {
+        "meta.txt": "HEAD b297690517d90edbfe053f99a9093ce342394c36\nworktree_diff_sha256 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\ngate_ms=off\nclasses=CancelConfirmAndLateFillCleanupTest ClaimAndUnknownTrackingTest DailySma20LiveOrderPathTest ExchangeRecoveryRestartTest IntentPrecommitAndOnceOnlyTest LateOrderSubmissionAfterStopTest LimitedTestExchangeRecoveryTest LiveEmergencyStopUnderConcurrentWriteTest LiveStopUnderConcurrentWriteTest N15PgLockWaitExpiryTest N16InvalidPriceReproTest N17RestInvalidPriceTest N19RestFallbackItemDefenseTest O1O3LogContractTest SlWatchdogFreshnessTest StaleRealtimeExitTest StopVersusInFlightExitRaceTest SubmitResponseUnknownTest G1SubmitBoundaryDiagTest\nstart 2026-11-15 09:25:29    \nend 2026-11-15 09:26:43     rc=0\n"
+      },
+      "network_guards": {
+        "xml/NET-GUARD-summary.txt": [
+          "installed_during_run=true",
+          "disabled_reason=null",
+          "classes_checked=18",
+          "blocked_external_attempts=0",
+          "allowed_jndi_nameserver_probes=3",
+          "allowed_own_interface_connections=3",
+          "restored_security_manager=null"
+        ]
+      }
+    },
+    "rel19-gate50-b2976905": {
+      "xml_files": 19,
+      "modules": {
+        "web-api": {
+          "tests": 235,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 17,
+          "passed": 218
+        }
+      },
+      "failures": [],
+      "metadata": {
+        "meta.txt": "HEAD b297690517d90edbfe053f99a9093ce342394c36\nworktree_diff_sha256 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\ngate_ms=50\nclasses=CancelConfirmAndLateFillCleanupTest ClaimAndUnknownTrackingTest DailySma20LiveOrderPathTest ExchangeRecoveryRestartTest IntentPrecommitAndOnceOnlyTest LateOrderSubmissionAfterStopTest LimitedTestExchangeRecoveryTest LiveEmergencyStopUnderConcurrentWriteTest LiveStopUnderConcurrentWriteTest N15PgLockWaitExpiryTest N16InvalidPriceReproTest N17RestInvalidPriceTest N19RestFallbackItemDefenseTest O1O3LogContractTest SlWatchdogFreshnessTest StaleRealtimeExitTest StopVersusInFlightExitRaceTest SubmitResponseUnknownTest G1SubmitBoundaryDiagTest\nstart 2026-11-15 09:26:44    \nend 2026-11-15 09:28:29     rc=0\n"
+      },
+      "network_guards": {
+        "xml/NET-GUARD-summary.txt": [
+          "installed_during_run=true",
+          "disabled_reason=null",
+          "classes_checked=18",
+          "blocked_external_attempts=0",
+          "allowed_jndi_nameserver_probes=3",
+          "allowed_own_interface_connections=3",
+          "restored_security_manager=null"
+        ]
+      }
+    },
+    "int-full-b2976905": {
+      "xml_files": 278,
+      "modules": {
+        "core-engine": {
+          "tests": 298,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 7,
+          "passed": 291
+        },
+        "exchange-adapter": {
+          "tests": 11,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "passed": 11
+        },
+        "strategy-lib": {
+          "tests": 113,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "passed": 113
+        },
+        "web-api": {
+          "tests": 1413,
+          "failures": 47,
+          "errors": 0,
+          "skipped": 72,
+          "passed": 1294
+        }
+      },
+      "failures": [
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.controller.DataControllerIntegrationTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 1\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [task-2] UpbitRestClient.getCandles:84 <- UpbitCandleCollector.fetchCandles:49 <- DataCo"
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.service.BtcGateSupplyEndToEndTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 1\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-405-Worker-0] (JDK \ud504\ub808\uc784\ub9cc)]"
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.service.BtcGateUnknownEntryTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 2\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-406-Worker-0] (JDK \ud504\ub808\uc784\ub9cc), resolve api.upbit.com [HttpClient-418-Worker-0] (J"
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.service.CancelConfirmAndLateFillCleanupTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 7\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-419-Worker-0] (JDK \ud504\ub808\uc784\ub9cc), resolve api.upbit.com [HttpClient-420-Worker-0] (J"
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.service.ConcurrentEntryCapTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 1\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-481-Worker-0] (JDK \ud504\ub808\uc784\ub9cc)]"
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.service.ConcurrentFillSettlementTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 1\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-482-Worker-0] (JDK \ud504\ub808\uc784\ub9cc)]"
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicBuyCompletesConsistentlyTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 1\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-530-Worker-0] (JDK \ud504\ub808\uc784\ub9cc)]"
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicBuyExternalSubmissionBoundaryTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 3\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-532-Worker-0] (JDK \ud504\ub808\uc784\ub9cc), resolve api.upbit.com [HttpClient-545-Worker-0] (J"
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicBuyOuterWriteOrderingTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 3\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-547-Worker-0] (JDK \ud504\ub808\uc784\ub9cc), resolve api.upbit.com [HttpClient-559-Worker-0] (J"
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicCircuitBreakerTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 2\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-563-Worker-0] (JDK \ud504\ub808\uc784\ub9cc), resolve api.upbit.com [HttpClient-564-Worker-0] (J"
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicFillAccountingTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 2\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-591-Worker-0] (JDK \ud504\ub808\uc784\ub9cc), resolve api.upbit.com [HttpClient-592-Worker-0] (J"
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicJudgeClockTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 1\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-593-Worker-0] (JDK \ud504\ub808\uc784\ub9cc)]"
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicPaperTradingTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 1\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-621-Worker-0] (JDK \ud504\ub808\uc784\ub9cc)]"
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicPoolReservationTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 1\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-622-Worker-0] (JDK \ud504\ub808\uc784\ub9cc)]"
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicScanTransitionGuardTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 4\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-623-Worker-0] (JDK \ud504\ub808\uc784\ub9cc), resolve api.upbit.com [HttpClient-636-Worker-0] (J"
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicSessionRowLockContentionTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 3\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-639-Worker-0] (JDK \ud504\ub808\uc784\ub9cc), resolve api.upbit.com [HttpClient-640-Worker-0] (J"
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicSlWatchdogNoiseTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 1\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-642-Worker-0] (JDK \ud504\ub808\uc784\ub9cc)]"
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.service.EngineParityTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 1\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-643-Worker-0] (JDK \ud504\ub808\uc784\ub9cc)]"
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.service.EntryPriorityEndToEndTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 1\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-644-Worker-0] (JDK \ud504\ub808\uc784\ub9cc)]"
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.service.EntryPriorityRoundsTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 2\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-659-Worker-0] (JDK \ud504\ub808\uc784\ub9cc), resolve api.upbit.com [HttpClient-660-Worker-0] (J"
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.service.ExchangeRecoveryRestartTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 3\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-664-Worker-0] (JDK \ud504\ub808\uc784\ub9cc), resolve api.upbit.com [HttpClient-678-Worker-0] (J"
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.service.LateOrderSubmissionAfterStopTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 2\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-718-Worker-0] (JDK \ud504\ub808\uc784\ub9cc), resolve api.upbit.com [HttpClient-719-Worker-0] (J"
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.service.LiveStopUnderConcurrentWriteTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 1\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-746-Worker-0] (JDK \ud504\ub808\uc784\ub9cc)]"
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.service.N15EntryExpiryTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 1\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-760-Worker-0] (JDK \ud504\ub808\uc784\ub9cc)]"
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.service.N15FinalApprovalBoundaryTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 1\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-772-Worker-0] (JDK \ud504\ub808\uc784\ub9cc)]"
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.service.N17RestInvalidPriceTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 1\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-773-Worker-0] (JDK \ud504\ub808\uc784\ub9cc)]"
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 2\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-785-Worker-0] (JDK \ud504\ub808\uc784\ub9cc), resolve api.upbit.com [HttpClient-786-Worker-0] (J"
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.service.O1O3LogContractTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 3\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-809-Worker-0] (JDK \ud504\ub808\uc784\ub9cc), resolve api.upbit.com [HttpClient-810-Worker-0] (J"
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.service.OrderExecutorDrainPredicateGapTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 1\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-812-Worker-0] (JDK \ud504\ub808\uc784\ub9cc)]"
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.service.OrderSubmitAfterCommitTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 2\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-813-Worker-0] (JDK \ud504\ub808\uc784\ub9cc), resolve api.upbit.com [HttpClient-814-Worker-0] (J"
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.service.PaperStopUnderConcurrentWriteTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 1\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-829-Worker-0] (JDK \ud504\ub808\uc784\ub9cc)]"
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.service.R5RealCashflowRiskTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 1\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-830-Worker-0] (JDK \ud504\ub808\uc784\ub9cc)]"
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.service.RateLimiterEmergencyStopTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 2\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-842-Worker-0] (JDK \ud504\ub808\uc784\ub9cc), resolve api.upbit.com [HttpClient-843-Worker-0] (J"
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 8\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-855-Worker-0] (JDK \ud504\ub808\uc784\ub9cc), resolve api.upbit.com [HttpClient-856-Worker-0] (J"
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 1\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-863-Worker-0] (JDK \ud504\ub808\uc784\ub9cc)]"
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.service.SchedulerProfileCleanupTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 19\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-874-Worker-0] (JDK \ud504\ub808\uc784\ub9cc), resolve api.upbit.com [HttpClient-877-Worker-0] ("
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.service.SharedLoopRoundsActiveTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 2\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-912-Worker-0] (JDK \ud504\ub808\uc784\ub9cc), resolve api.upbit.com [HttpClient-914-Worker-0] (J"
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.service.SharedMarketDataExecutorSaturationTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 1\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-918-Worker-0] (JDK \ud504\ub808\uc784\ub9cc)]"
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.service.SharedPaperLoopIsolationTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 1\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-931-Worker-0] (JDK \ud504\ub808\uc784\ub9cc)]"
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.service.Sma20LiveAlignedGapsTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 2\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-943-Worker-0] (JDK \ud504\ub808\uc784\ub9cc), resolve api.upbit.com [HttpClient-955-Worker-0] (J"
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.service.Sma20LiveAlignedPaperSameInputTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 4\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-956-Worker-0] (JDK \ud504\ub808\uc784\ub9cc), resolve api.upbit.com [HttpClient-957-Worker-0] (J"
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.service.StaleRealtimeExitTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 1\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-994-Worker-0] (JDK \ud504\ub808\uc784\ub9cc)]"
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.service.TelegramQueueSaturationTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 2\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-1041-Worker-0] (JDK \ud504\ub808\uc784\ub9cc), resolve api.upbit.com [HttpClient-1042-Worker-0] "
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.service.TelegramTestIsolationTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 1\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-1067-Worker-0] (JDK \ud504\ub808\uc784\ub9cc)]"
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.service.WalkForwardGateTimeframeTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 1\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-1082-Worker-0] (JDK \ud504\ub808\uc784\ub9cc)]"
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.service.WsFallbackTest.xml",
+          "case": "executionError",
+          "message": "java.lang.AssertionError: [NET-GUARD] \uc608\uc0c1\ud558\uc9c0 \uc54a\uc740 \uc678\ubd80 \uc5f0\uacb0 1\uac74(\ucc28\ub2e8\ub428, \uadc0\uc18d\uc740 \uadfc\uc0ac): [resolve api.upbit.com [HttpClient-1088-Worker-0] (JDK \ud504\ub808\uc784\ub9cc)]"
+        },
+        {
+          "xml": "xml/web-api/TEST-com.cryptoautotrader.api.support.ExecutorBarrierTest.xml",
+          "case": "waitsThroughTheGapWindowAndCompletesAfterTask()",
+          "message": "org.opentest4j.AssertionFailedError: [\uc61b \uc870\uac74\uc740 \uc774 \ucc3d\uc5d0\uc11c \ucc38] \r\nExpecting value to be true but was false"
+        }
+      ],
+      "metadata": {},
+      "network_guards": {
+        "xml/web-api/NET-GUARD-summary.txt": [
+          "installed_during_run=true",
+          "disabled_reason=null",
+          "classes_checked=188",
+          "blocked_external_attempts=104",
+          "allowed_jndi_nameserver_probes=3",
+          "allowed_own_interface_connections=63",
+          "restored_security_manager=null"
+        ]
+      }
+    },
+    "affected46-b987d7a7": {
+      "xml_files": 47,
+      "modules": {
+        "web-api": {
+          "tests": 376,
+          "failures": 1,
+          "errors": 0,
+          "skipped": 0,
+          "passed": 375
+        }
+      },
+      "failures": [
+        {
+          "xml": "xml/TEST-com.cryptoautotrader.api.service.SchedulerProfileCleanupTest.xml",
+          "case": "DYNAMIC",
+          "message": "org.opentest4j.AssertionFailedError: [scheduler \ud504\ub85c\ud544\uc5d0\uc11c @Scheduled \uc815\ub9ac \uc791\uc5c5\uc774 60\ucd08 \uc548\uc5d0 \ub300\uae30 \ud589\uc744 \uac00\uc838\uac00\uc57c \ud55c\ub2e4] \r\nExpecting value to be true but was false"
+        }
+      ],
+      "metadata": {
+        "meta.txt": "HEAD b987d7a79f4ff9220420d5377356507bec9464d6\nworktree_diff_sha256 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\ngate_ms=off\nclasses=BtcGateSupplyEndToEndTest BtcGateUnknownEntryTest CancelConfirmAndLateFillCleanupTest ConcurrentEntryCapTest ConcurrentFillSettlementTest DataControllerIntegrationTest DynamicBuyCompletesConsistentlyTest DynamicBuyExternalSubmissionBoundaryTest DynamicBuyOuterWriteOrderingTest DynamicCircuitBreakerTest DynamicFillAccountingTest DynamicJudgeClockTest DynamicPaperTradingTest DynamicPoolReservationTest DynamicScanTransitionGuardTest DynamicSessionRowLockContentionTest DynamicSlWatchdogNoiseTest EngineParityTest EntryPriorityEndToEndTest EntryPriorityRoundsTest ExchangeRecoveryRestartTest LateOrderSubmissionAfterStopTest LiveStopUnderConcurrentWriteTest N15EntryExpiryTest N15FinalApprovalBoundaryTest N17RestInvalidPriceTest N19RestFallbackItemDefenseTest O1O3LogContractTest OrderExecutorDrainPredicateGapTest OrderSubmitAfterCommitTest PaperStopUnderConcurrentWriteTest R5RealCashflowRiskTest RateLimiterEmergencyStopTest RealtimeProtectionSaturationTest RealtimeThrottleCrossingTest SchedulerProfileCleanupTest SharedLoopRoundsActiveTest SharedMarketDataExecutorSaturationTest SharedPaperLoopIsolationTest Sma20LiveAlignedGapsTest Sma20LiveAlignedPaperSameInputTest StaleRealtimeExitTest TelegramQueueSaturationTest TelegramTestIsolationTest WalkForwardGateTimeframeTest WsFallbackTest\nstart 2026-11-15 10:00:09    \nend 2026-11-15 10:04:24     rc=1\n"
+      },
+      "network_guards": {
+        "xml/NET-GUARD-summary.txt": [
+          "installed_during_run=true",
+          "disabled_reason=null",
+          "classes_checked=46",
+          "blocked_external_attempts=0",
+          "allowed_jndi_nameserver_probes=3",
+          "allowed_own_interface_connections=21",
+          "restored_security_manager=null"
+        ]
+      }
+    }
+  },
+  "methods": {
+    "public void pollActiveOrders()": {
+      "sha256": {
+        "b5cd1d0": "4e878a2d30d26da9741f5bc332142086438410a9d285fdd0fe3e78e9d1634d3a",
+        "88f06345": "4e878a2d30d26da9741f5bc332142086438410a9d285fdd0fe3e78e9d1634d3a",
+        "b987d7a7": "4e878a2d30d26da9741f5bc332142086438410a9d285fdd0fe3e78e9d1634d3a"
+      },
+      "identical": true,
+      "first_lines": {
+        "b5cd1d0": 1789,
+        "88f06345": 1847,
+        "b987d7a7": 1847
+      }
+    },
+    "private Boolean resolveUnresolvedSubmissionInTx(Long orderId)": {
+      "sha256": {
+        "b5cd1d0": "1b28ab4ae8949858e0c32f1756e9a58b6b0b33e85fd8d0c93c20cd901b782f99",
+        "88f06345": "1b28ab4ae8949858e0c32f1756e9a58b6b0b33e85fd8d0c93c20cd901b782f99",
+        "b987d7a7": "1b28ab4ae8949858e0c32f1756e9a58b6b0b33e85fd8d0c93c20cd901b782f99"
+      },
+      "identical": true,
+      "first_lines": {
+        "b5cd1d0": 1948,
+        "88f06345": 2006,
+        "b987d7a7": 2006
+      }
+    },
+    "private void transitionState(OrderEntity order, String newState, String failedReason)": {
+      "sha256": {
+        "b5cd1d0": "0f727eea40ca9d621c16ad35cbfd6214c311c57ad0644a0d5c74aaa0e9beb8bc",
+        "88f06345": "0f727eea40ca9d621c16ad35cbfd6214c311c57ad0644a0d5c74aaa0e9beb8bc",
+        "b987d7a7": "0f727eea40ca9d621c16ad35cbfd6214c311c57ad0644a0d5c74aaa0e9beb8bc"
+      },
+      "identical": true,
+      "first_lines": {
+        "b5cd1d0": 2535,
+        "88f06345": 2593,
+        "b987d7a7": 2593
+      }
+    },
+    "private boolean claimOwned(Long orderId, OrderRequest request)": {
+      "sha256": {
+        "b5cd1d0": "afeee54308954b74f70cd91a70ea553c9ed45f842a440ba33fae0bdd9928a003",
+        "88f06345": "afeee54308954b74f70cd91a70ea553c9ed45f842a440ba33fae0bdd9928a003",
+        "b987d7a7": "afeee54308954b74f70cd91a70ea553c9ed45f842a440ba33fae0bdd9928a003"
+      },
+      "identical": true,
+      "first_lines": {
+        "b5cd1d0": 414,
+        "88f06345": 423,
+        "b987d7a7": 423
+      }
+    }
+  },
+  "refs": {
+    "HEAD": "40bf70b9305cc8385508cf19382e4cafb98bb653",
+    "origin/main": "40bf70b9305cc8385508cf19382e4cafb98bb653",
+    "integration/v158": "88f06345af31888c2c8669ebe8ad00ca02cfd6d8",
+    "test/v166-isolation-3f9cc926": "b987d7a79f4ff9220420d5377356507bec9464d6",
+    "origin/test/v166-isolation-3f9cc926": "b987d7a79f4ff9220420d5377356507bec9464d6"
+  },
+  "source_flags": {
+    "order_entity_version_annotation": false,
+    "existing_attach_found_submission": true,
+    "claim_clears_dispatching": true
+  },
+  "test_paths_since_88": [
+    "web-api/src/test/java/com/cryptoautotrader/api/controller/DataControllerIntegrationTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/BtcGateSupplyEndToEndTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/BtcGateUnknownEntryTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/CancelConfirmAndLateFillCleanupTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/ClaimAndUnknownTrackingTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/DailySma20LiveOrderPathTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/DynamicBuyCompletesConsistentlyTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/DynamicBuyExternalSubmissionBoundaryTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/DynamicBuyOuterWriteOrderingTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/DynamicPaperTradingTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/DynamicScanTransitionGuardTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/DynamicSlWatchdogNoiseTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/EntryPriorityEndToEndTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/ExchangeRecoveryRestartTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/G1SubmitBoundaryDiagTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/IntentPrecommitAndOnceOnlyTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/LateOrderSubmissionAfterStopTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/LimitedTestExchangeRecoveryTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/LiveEmergencyStopUnderConcurrentWriteTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/LiveStopUnderConcurrentWriteTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/N15EntryExpiryTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/N15FinalApprovalBoundaryTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/N15PgLockWaitExpiryTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/N16InvalidPriceReproTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/N17RestInvalidPriceTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/N19RestFallbackItemDefenseTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/RealtimeProtectionSaturationTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/RealtimeThrottleCrossingTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/SchedulerProfileCleanupTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/SlWatchdogFreshnessTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/StaleRealtimeExitTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/StopVersusInFlightExitRaceTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/SubmitResponseUnknownTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/support/DrainGapGate.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/support/NetworkIsolationExtension.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/support/NetworkIsolationGuard.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/support/OrderFlowObservation.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/support/OutboundNetworkGuard.java",
+    "web-api/src/test/resources/META-INF/services/org.junit.jupiter.api.extension.Extension",
+    "web-api/src/test/resources/META-INF/spring.factories",
+    "web-api/src/test/resources/junit-platform.properties"
+  ],
+  "test_paths_since_3f": [
+    "web-api/src/test/java/com/cryptoautotrader/api/controller/DataControllerIntegrationTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/BtcGateSupplyEndToEndTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/BtcGateUnknownEntryTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/DynamicBuyCompletesConsistentlyTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/DynamicBuyExternalSubmissionBoundaryTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/DynamicBuyOuterWriteOrderingTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/DynamicPaperTradingTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/DynamicScanTransitionGuardTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/DynamicSlWatchdogNoiseTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/EntryPriorityEndToEndTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/ExchangeRecoveryRestartTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/G1SubmitBoundaryDiagTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/LimitedTestExchangeRecoveryTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/LiveEmergencyStopUnderConcurrentWriteTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/N15EntryExpiryTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/N15FinalApprovalBoundaryTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/N15PgLockWaitExpiryTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/N17RestInvalidPriceTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/RealtimeProtectionSaturationTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/RealtimeThrottleCrossingTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/SchedulerProfileCleanupTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/SlWatchdogFreshnessTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/StaleRealtimeExitTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/support/NetworkIsolationExtension.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/support/NetworkIsolationGuard.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/support/OutboundNetworkGuard.java",
+    "web-api/src/test/resources/META-INF/services/org.junit.jupiter.api.extension.Extension",
+    "web-api/src/test/resources/junit-platform.properties"
+  ],
+  "scheduler_excerpt": [
+    "[\uad00\uce21 \uc815\ub9ac\uc2dc\ud5d8] \uc8fc\ubb38 ID=359 SIDE=SELL STATE=UNKNOWN FAILURE_CODE=- CLIENT_ORDER_ID=cat-4b5559e2-1894-4e77-9ded-a36acac3116e EXCHANGE_ORDER_ID=- CREATED_AT=2026-11-15 10:03:02.90516 INTENT_COMMITTED_AT=2026-11-15 10:03:02.90516 CLAIMED_AT=2026-11-15 10:03:02.907246 SUBMITTED_AT=- UNKNOWN_REASON=\uc2dd\ubcc4\uc790\ub85c \uc870\ud68c\ub418\uc9c0 \uc54a\uc74c ? \ubbf8\uc811\uc218\ub85c \ub2e8\uc815\ud558\uc9c0 \uc54a\ub294\ub2e4 (\uc2dc\ub3c4 10\ud68c)",
+    "[\uad00\uce21 \uc815\ub9ac\uc2dc\ud5d8]   \uac70\ub798\ub85c\uadf8 ID=579 EVENT_TYPE=STATE_CHANGE OLD_STATE=SUBMITTING NEW_STATE=SUBMITTED CREATED_AT=2026-11-15 10:03:02.909269",
+    "[\uad00\uce21 \uc815\ub9ac\uc2dc\ud5d8]   \uac70\ub798\ub85c\uadf8 ID=580 EVENT_TYPE=STATE_CHANGE OLD_STATE=SUBMITTING NEW_STATE=UNKNOWN CREATED_AT=2026-11-15 10:03:02.911261",
+    "[\uad00\uce21 \uc815\ub9ac\uc2dc\ud5d8] #225 +7.723s 2026-11-15T01:03:02.909269Z [order-exec-2] SQL_W tx=? EM@4729f701 CH@2040cbca task=2 insert into trade_log (created_at,detail_json,event_type,new_state,old_state,order_id,id) values (?,? format json,?,?,?,?,default)",
+    "[\uad00\uce21 \uc815\ub9ac\uc2dc\ud5d8] #226 +7.724s 2026-11-15T01:03:02.909269Z [order-exec-2] SQL_W tx=? EM@4729f701 CH@2040cbca task=2 update \"order\" set applied_executed_funds=?,applied_paid_fee=?,cancel_checked_at=?,cancel_confirmed_at=?,cancel_requested_at=?,cancelled_at=?,claimed_at=?,clien\u2026",
+    "[\uad00\uce21 \uc815\ub9ac\uc2dc\ud5d8] #227 +7.724s 2026-11-15T01:03:02.909269Z [order-exec-2] TX_COMMIT tx=? EM@4729f701 CH@2040cbca task=2 \ucee4\ubc0b tx=? EM@4729f701 CH@2040cbca",
+    "[\uad00\uce21 \uc815\ub9ac\uc2dc\ud5d8] #228 +7.724s 2026-11-15T01:03:02.909269Z [order-exec-2] EXEC_END tx=- task=2 ",
+    "[\uad00\uce21 \uc815\ub9ac\uc2dc\ud5d8] #230 +7.725s 2026-11-15T01:03:02.911261Z [scheduler-7] SQL_W tx=? EM@5d2b0c6 CH@1af58477 insert into trade_log (created_at,detail_json,event_type,new_state,old_state,order_id,id) values (?,? format json,?,?,?,?,default)",
+    "[\uad00\uce21 \uc815\ub9ac\uc2dc\ud5d8] #231 +7.726s 2026-11-15T01:03:02.911261Z [scheduler-7] SQL_W tx=? EM@5d2b0c6 CH@1af58477 update \"order\" set applied_executed_funds=?,applied_paid_fee=?,cancel_checked_at=?,cancel_confirmed_at=?,cancel_requested_at=?,cancelled_at=?,claimed_at=?,clien\u2026",
+    "[\uad00\uce21 \uc815\ub9ac\uc2dc\ud5d8] #232 +7.726s 2026-11-15T01:03:02.911261Z [scheduler-7] TX_COMMIT tx=? EM@5d2b0c6 CH@1af58477 \ucee4\ubc0b tx=? EM@5d2b0c6 CH@1af58477"
+  ],
+  "documents": {
+    "lines": {
+      "docs/START_HERE.md": 36,
+      "docs/LIMITED_LIVE_TEST_PLAN.md": 132,
+      "docs/CURRENT_HANDOFF.md": 34,
+      "docs/LIVE_READINESS.md": 49,
+      "docs/NOVEMBER_LIVE_UPGRADE.md": 58,
+      "docs/PROGRESS.md": 54,
+      "docs/README.md": 41,
+      "docs/evidence/review-40bf70b9/README.md": 50
+    },
+    "links": 111,
+    "broken_links": [],
+    "foreign_characters": [],
+    "night_rule_unchanged": true,
+    "recent_progress_items": 5
+  }
+}

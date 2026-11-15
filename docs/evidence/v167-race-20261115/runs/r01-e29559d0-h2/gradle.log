@@ -1,0 +1,90 @@
+Starting a Gradle Daemon, 1 busy Daemon could not be reused, use --status for details
+> Task :strategy-lib:compileJava
+> Task :strategy-lib:processResources NO-SOURCE
+> Task :strategy-lib:classes
+> Task :strategy-lib:jar
+> Task :core-engine:compileJava
+> Task :core-engine:processResources NO-SOURCE
+> Task :core-engine:classes
+> Task :core-engine:jar
+> Task :exchange-adapter:compileJava
+> Task :exchange-adapter:processResources NO-SOURCE
+> Task :exchange-adapter:classes
+> Task :exchange-adapter:jar
+> Task :web-api:compileJava
+> Task :web-api:processResources
+> Task :web-api:classes
+
+> Task :web-api:compileTestJava
+D:\tmp\race-b987d7a7\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationExtension.java:63: warning: [removal] getSecurityManager() in System has been deprecated and marked for removal
+                    + "\nrestored_security_manager=" + System.getSecurityManager()
+                                                             ^
+D:\tmp\race-b987d7a7\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationGuard.java:33: warning: [removal] SecurityManager in java.lang has been deprecated and marked for removal
+    private static volatile SecurityManager previous;
+                            ^
+D:\tmp\race-b987d7a7\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationGuard.java:73: warning: [removal] getSecurityManager() in System has been deprecated and marked for removal
+        previous = System.getSecurityManager();
+                         ^
+D:\tmp\race-b987d7a7\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationGuard.java:74: warning: [removal] setSecurityManager(SecurityManager) in System has been deprecated and marked for removal
+        System.setSecurityManager(new Guard());
+              ^
+D:\tmp\race-b987d7a7\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationGuard.java:81: warning: [removal] getSecurityManager() in System has been deprecated and marked for removal
+        if (System.getSecurityManager() instanceof Guard) {
+                  ^
+D:\tmp\race-b987d7a7\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationGuard.java:82: warning: [removal] setSecurityManager(SecurityManager) in System has been deprecated and marked for removal
+            System.setSecurityManager(previous);
+                  ^
+D:\tmp\race-b987d7a7\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationGuard.java:88: warning: [removal] getSecurityManager() in System has been deprecated and marked for removal
+        return installed && System.getSecurityManager() instanceof Guard;
+                                  ^
+D:\tmp\race-b987d7a7\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationGuard.java:181: warning: [removal] SecurityManager in java.lang has been deprecated and marked for removal
+    private static final class Guard extends SecurityManager {
+                                             ^
+8 warnings
+
+> Task :web-api:processTestResources
+> Task :web-api:testClasses
+WARNING: A terminally deprecated method in java.lang.System has been called
+WARNING: System::setSecurityManager has been called by com.cryptoautotrader.api.support.NetworkIsolationGuard (file:/D:/tmp/race-b987d7a7/web-api/build/classes/java/test/)
+WARNING: Please consider reporting this to the maintainers of com.cryptoautotrader.api.support.NetworkIsolationGuard
+WARNING: System::setSecurityManager will be removed in a future release
+Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+
+> Task :web-api:test
+
+제출 결과와 미해결 제출 해소의 커밋 순서 경합 (v1.167) > D ? 제출 결과와 체결·정산이 반영된 뒤 폴러가 재개해도 FILLED·체결량·정산값·포지션·잔액을 덮지 않는다 FAILED
+    org.opentest4j.AssertionFailedError at SubmitPollRaceTest.java:368
+
+제출 결과와 미해결 제출 해소의 커밋 순서 경합 (v1.167) > C ? 제출 결과 뒤 조회 '찾음' 으로 재개해도 응답 원문·제출 시각을 덮지 않고 SUBMITTED 전이를 두 번 남기지 않는다 FAILED
+    org.opentest4j.AssertionFailedError at SubmitPollRaceTest.java:334
+
+제출 결과와 미해결 제출 해소의 커밋 순서 경합 (v1.167) > B ? 폴러의 UNKNOWN 이 먼저 커밋되면 제출 결과가 SUBMITTED·주문번호를 붙이고 불명 사유를 해제한다 FAILED
+    org.opentest4j.AssertionFailedError at SubmitPollRaceTest.java:299
+
+제출 결과와 미해결 제출 해소의 커밋 순서 경합 (v1.167) > A ? 폴러가 SUBMITTING 을 읽은 뒤 제출 결과가 커밋되면, 조회 '없음' 이 SUBMITTED·주문번호를 덮지 않는다 FAILED
+    org.opentest4j.AssertionFailedError at SubmitPollRaceTest.java:268
+
+제출 결과와 미해결 제출 해소의 커밋 순서 경합 (v1.167) > E ? 폴러가 식별자로 찾아 체결을 반영한 뒤 제출 호출이 통신 오류로 끝나도 FILLED 를 UNKNOWN 으로 바꾸지 않는다 FAILED
+    org.opentest4j.AssertionFailedError at SubmitPollRaceTest.java:394
+
+15:42:38.008 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+15:42:38.008 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+15:42:38.011 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+15:42:38.013 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+15:42:38.014 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+
+> Task :web-api:test FAILED
+
+5 tests completed, 5 failed
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':web-api:test'.
+> There were failing tests. See the report at: file:///D:/tmp/race-b987d7a7/web-api/build/reports/tests/test/index.html
+
+* Try:
+> Run with --scan to get full insights.
+
+BUILD FAILED in 44s
+11 actionable tasks: 11 executed

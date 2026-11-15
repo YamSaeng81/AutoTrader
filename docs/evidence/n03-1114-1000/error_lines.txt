@@ -1,0 +1,27 @@
+backend-1  | 15:00:33.889 [scheduler-3] ERROR c.c.e.upbit.UpbitCandleCollector - 캔들 수집 실패: request timed out
+backend-1  | 15:00:33.889 [scheduler-3] ERROR c.c.a.service.MarketDataSyncService - 시장 데이터 동기화 실패: KRW-LINK M15 - 캔들 데이터 수집 실패
+backend-1  | 15:00:48.894 [scheduler-3] ERROR c.c.e.upbit.UpbitCandleCollector - 캔들 수집 실패: request timed out
+backend-1  | 15:00:48.894 [scheduler-3] ERROR c.c.a.service.MarketDataSyncService - 시장 데이터 동기화 실패: KRW-SOL M15 - 캔들 데이터 수집 실패
+backend-1  | 15:01:03.898 [scheduler-3] ERROR c.c.e.upbit.UpbitCandleCollector - 캔들 수집 실패: request timed out
+backend-1  | 15:01:03.898 [scheduler-3] ERROR c.c.a.service.MarketDataSyncService - 시장 데이터 동기화 실패: KRW-ETH M15 - 캔들 데이터 수집 실패
+backend-1  | 15:01:18.900 [scheduler-3] ERROR c.c.e.upbit.UpbitCandleCollector - 캔들 수집 실패: request timed out
+backend-1  | 15:01:18.900 [scheduler-3] ERROR c.c.a.service.MarketDataSyncService - 시장 데이터 동기화 실패: KRW-XRP M15 - 캔들 데이터 수집 실패
+backend-1  | 15:05:05.957 [scheduler-2] ERROR c.c.exchange.upbit.UpbitOrderClient - 계좌 조회 실패: Connection reset
+backend-1  | 15:29:59.758 [scheduler-7] ERROR c.c.a.news.source.CryptoPanicSource - [CryptoPanicSource] 수집 실패: Connection reset
+backend-1  | 15:29:59.765 [scheduler-7] ERROR c.c.a.news.source.UpbitNoticeSource - [UpbitNoticeSource] 수집 실패: Connection reset
+backend-1  | 15:59:59.914 [scheduler-5] ERROR c.c.api.news.source.RssNewsSource - [RssNewsSource] 수집 실패 — sourceId=tokenpost_rss: Connection reset
+backend-1  | 16:00:00.052 [scheduler-5] ERROR c.c.a.n.s.CoinGeckoTrendingSource - [CoinGeckoTrendingSource] 수집 실패: Connection reset
+backend-1  | 16:00:15.057 [scheduler-5] ERROR c.c.api.news.source.RssNewsSource - [RssNewsSource] 수집 실패 — sourceId=coindesk_rss: request timed out
+backend-1  | 16:00:15.762 [scheduler-5] ERROR c.c.api.news.source.RssNewsSource - [RssNewsSource] 수집 실패 — sourceId=bloomberg_rss: Connection reset
+backend-1  | 16:00:19.433 [scheduler-5] ERROR c.c.api.news.source.RssNewsSource - [RssNewsSource] 수집 실패 — sourceId=blockmedia_rss: Connection reset
+backend-1  | 19:10:01.411 [task-4] ERROR c.c.exchange.upbit.UpbitRestClient - Upbit API 오류: status=404, url=https://api.upbit.com/v1/candles/minutes/60?market=KRW-BLAST&count=200&to=2026-10-31T15:00:00, body={"error":{"name":404,"message":"Code not found"}}
+backend-1  | 19:10:01.411 [task-4] ERROR c.c.e.upbit.UpbitCandleCollector - 캔들 수집 실패: Upbit API 호출 실패: 404 (https://api.upbit.com/v1/candles/minutes/60?market=KRW-BLAST&count=200&to=2026-10-31T15:00:00)
+backend-1  | 19:10:01.411 [task-4] ERROR c.c.a.service.DataCollectionService - 캔들 수집 실패: KRW-BLAST — 캔들 데이터 수집 실패
+backend-1  | 19:10:46.410 [task-1] ERROR c.c.exchange.upbit.UpbitRestClient - Upbit API 오류: status=404, url=https://api.upbit.com/v1/candles/minutes/60?market=KRW-BLAST&count=200&to=2026-11-07T15:00:00, body={"error":{"name":404,"message":"Code not found"}}
+backend-1  | 19:10:46.410 [task-1] ERROR c.c.e.upbit.UpbitCandleCollector - 캔들 수집 실패: Upbit API 호출 실패: 404 (https://api.upbit.com/v1/candles/minutes/60?market=KRW-BLAST&count=200&to=2026-11-07T15:00:00)
+backend-1  | 19:10:46.410 [task-1] ERROR c.c.a.service.DataCollectionService - 캔들 수집 실패: KRW-BLAST — 캔들 데이터 수집 실패
+backend-1  | 19:11:31.413 [task-2] ERROR c.c.exchange.upbit.UpbitRestClient - Upbit API 오류: status=404, url=https://api.upbit.com/v1/candles/minutes/60?market=KRW-BLAST&count=200&to=2026-11-13T15:00:00, body={"error":{"name":404,"message":"Code not found"}}
+backend-1  | 19:11:31.413 [task-2] ERROR c.c.e.upbit.UpbitCandleCollector - 캔들 수집 실패: Upbit API 호출 실패: 404 (https://api.upbit.com/v1/candles/minutes/60?market=KRW-BLAST&count=200&to=2026-11-13T15:00:00)
+backend-1  | 19:11:31.413 [task-2] ERROR c.c.a.service.DataCollectionService - 캔들 수집 실패: KRW-BLAST — 캔들 데이터 수집 실패
+backend-1  | 19:37:46.651 [telegram-1] ERROR c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 중 오류(응답 미수신): Connection reset
+backend-1  | 20:00:02.410 [scheduler-7] ERROR c.c.api.llm.provider.ClaudeProvider - [ClaudeProvider] 요청 실패

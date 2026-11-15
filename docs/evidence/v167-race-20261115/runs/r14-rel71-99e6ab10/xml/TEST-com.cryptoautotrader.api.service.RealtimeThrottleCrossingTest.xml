@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="v1.155 §4-2 실시간 점검 간격 — 보호 가격 첫 통과 시세 (LIVE/DYNAMIC 직접 처리기)" tests="21" skipped="0" failures="0" errors="0" timestamp="2026-11-15T06:58:58" hostname="DESKTOP-SF1KUQ5" time="3.0">
+  <properties/>
+  <testcase name="D2 DYNAMIC 익절 — 익절가 330, 329 점검 뒤 5초 간격 안(4초)의 331(첫 통과): 점검·익절 1" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.012"/>
+  <testcase name="P6 LIVE 같은 코인 두 보호선(백분율 5%·절대 280) — 285.00025 점검 없음, 284 백분율 손절, 279 절대 손절: 매도 2" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.517"/>
+  <testcase name="P10 LIVE 반올림 경계 — 286 뒤 간격 안 285.0001(반올림 −5.0000%): 점검·손절 1" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.019"/>
+  <testcase name="P2 LIVE 백분율 손절(절대가 없음) — 286→285.00025→284(간격 안): 중간 미발동 시세는 점검하지 않고 284 점검·손절 1, 뒤 283 중복 0" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.018"/>
+  <testcase name="P3 DYNAMIC 절대 손절가 285 대조 — 같은 입력: 중간 점검 없음, 284 점검·손절 1" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.402"/>
+  <testcase name="P4 LIVE 절대 손절가 285 대조 — 같은 입력: 중간 점검 없음, 284 점검·손절 1" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.023"/>
+  <testcase name="L2 평상시 경로 경계 — 286 점검 뒤 정확히 5초 경과의 284: 수정 전후 모두 점검·손절 1" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.024"/>
+  <testcase name="P8 LIVE 백분율 — 0·낡은 280·285.00025 뒤 284: 앞 셋 점검·매도 없음, 284 점검·손절 1" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.008"/>
+  <testcase name="L7 비가격·낡은 시세 — 286 뒤 간격 안의 0·낡은(10분 전) 280 은 점검·매도·통과 기억 없음, 다음 유효 284 는 첫 통과로 점검" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.502"/>
+  <testcase name="L3 급등락 경로 — 310·290(급락 점검) 뒤 1초 간격 안(0.5초)의 280(첫 통과): 점검·손절 1" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.02"/>
+  <testcase name="P7 DYNAMIC 백분율 — 0·낡은 280·285.00025 뒤 284: 앞 셋 점검·매도 없음, 284 점검·손절 1" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.018"/>
+  <testcase name="L4 급등락 경로 경계 — 290 급락 점검 뒤 정확히 1초 경과의 280: 수정 전후 모두 점검·손절 1" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.403"/>
+  <testcase name="D4 DYNAMIC 단순 반복 — 손절가 위 290 세 번(간격 안): 첫 번만 점검, 매도 0" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.006"/>
+  <testcase name="D1 DYNAMIC 손절 — 286 점검 뒤 5초 간격 안(4초)의 284(첫 통과): 점검·손절 1" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.017"/>
+  <testcase name="P1 DYNAMIC 백분율 손절(절대가 없음) — 286→285.00025→284(간격 안): 중간 미발동 시세는 점검하지 않고 284 점검·손절 1, 뒤 283 중복 0" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.025"/>
+  <testcase name="P5 DYNAMIC 같은 코인 두 보호선(백분율 5%·절대 280) — 285.00025 점검 없음, 284 백분율 손절, 279 절대 손절: 매도 2" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.509"/>
+  <testcase name="P9 DYNAMIC 반올림 경계 — 286 뒤 간격 안 285.0001(반올림 −5.0000%): 점검·손절 1" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.02"/>
+  <testcase name="D3 DYNAMIC 경계 — 286 점검 뒤 정확히 5초 경과의 284: 수정 전후 모두 점검·손절 1" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.018"/>
+  <testcase name="L1 평상시 경로 — 286 점검 뒤 5초 간격 안(4초)의 284(손절가 285 첫 통과): 점검·손절 1" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.403"/>
+  <testcase name="L6 첫 통과 뒤 계속 아래 — 284(첫 통과) 뒤 283·282 는 간격 안이면 점검하지 않는다(유계), 매도 1(중복 없음)" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.024"/>
+  <testcase name="L5 단순 반복 — 손절가 위 290 세 번(간격 안): 첫 번만 점검, 매도 0 — 수정 전후 같다" classname="com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest" time="0.004"/>
+  <system-out><![CDATA[15:58:58.150 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest
+15:58:58.152 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[THR155] D2 | DYNAMIC | 331 점검=true | 상태=CLOSING 매도=1
+15:58:58.162 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+15:58:58.166 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=334, KRW-T2X32500, 손익=-5.333300%
+15:58:58.169 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=335, KRW-T2X32500, 손익=-7.000000%
+[THR155] P6 | LIVE | 286=[true, true] | 285.00025=[false, false] | 284=[true, true] | 284뒤 매도=1 | 279=[false, true] | 백분율 포지션=CLOSING | 상태=CLOSING 매도=2
+15:58:58.680 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+15:58:58.682 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=336, KRW-T3X35200, 손익=-5.000000%
+[THR155] P10 | LIVE | 285.0001 점검=true | 상태=CLOSING 매도=1
+15:58:58.699 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+15:58:58.702 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=337, KRW-T4X45700, 손익=-5.333300%
+[THR155] P2 | LIVE | 286 점검=true | 285.00025 점검=false | 그때 매도=0 | 284 점검=true | 그때 매도=1 | 283 점검=false | 상태=CLOSING 매도=1
+15:58:58.718 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+15:58:58.721 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-T5X81500 @ 284 pnl=-5.333300% (id=197)
+[THR155] P3 | DYNAMIC | 285.00025 점검=false | 284 점검=true | 상태=CLOSING 매도=1
+15:58:59.120 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+15:58:59.123 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=338, KRW-T6X14400, 손익=-5.333300%
+[THR155] P4 | LIVE | 285.00025 점검=false | 284 점검=true | 상태=CLOSING 매도=1
+15:58:59.145 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+15:58:59.147 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=339, KRW-T7X75300, 손익=-5.333300%
+[THR155] L2 | LIVE | 284 점검=true | 상태=CLOSING 매도=1
+15:58:59.168 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+15:58:59.171 [Test worker] WARN  c.c.api.service.LiveTradingService - 가격이 아닌 실시간 시세 무시: KRW-T8X54500 0 관측 2026-11-15T06:58:59.170474Z 출처 WS_TRADE
+15:58:59.171 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=340, KRW-T8X54500, 손익=-5.333300%
+[THR155] P8 | LIVE | 0=false | 낡은280=false | 285.00025=false | 앞 매도=0 | 284=true | 상태=CLOSING 매도=1
+15:58:59.177 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+15:58:59.178 [Test worker] WARN  c.c.api.service.LiveTradingService - 가격이 아닌 실시간 시세 무시: KRW-T9X86700 0 관측 2026-11-15T06:58:59.178996900Z 출처 WS_TRADE
+15:58:59.179 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=341, KRW-T9X86700, 손익=-5.333300%
+[THR155] L7 | LIVE | 0 점검=false | 낡은 280 점검=false | 무효 뒤 매도=0 | 284 점검=true | 상태=CLOSING 매도=1
+15:58:59.680 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+15:58:59.682 [Test worker] WARN  c.c.api.service.LiveTradingService - 급락 감지 (sessionId=342, KRW-T10X23100): 손익=-3.333300% ? SL 유지 285.00000000 (조임 없음)
+15:58:59.682 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=342, KRW-T10X23100, 손익=-6.666700%
+[THR155] L3 | LIVE | 290 점검=true | 280 점검=true | 상태=CLOSING 매도=1
+15:58:59.700 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+15:58:59.702 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 가격이 아닌 실시간 시세 무시: KRW-T11X69300 0 관측 2026-11-15T06:58:59.702988800Z 출처 WS_TRADE
+15:58:59.703 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-T11X69300 @ 284 pnl=-5.333300% (id=198)
+[THR155] P7 | DYNAMIC | 0=false | 낡은280=false | 285.00025=false | 앞 매도=0 | 284=true | 상태=CLOSING 매도=1
+15:58:59.718 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+15:58:59.721 [Test worker] WARN  c.c.api.service.LiveTradingService - 급락 감지 (sessionId=343, KRW-T12X21100): 손익=-3.333300% ? SL 유지 285.00000000 (조임 없음)
+15:58:59.721 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=343, KRW-T12X21100, 손익=-6.666700%
+[THR155] L4 | LIVE | 280 점검=true | 상태=CLOSING 매도=1
+15:59:00.121 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[THR155] D4 | DYNAMIC | 점검=true,false,false | 상태=OPEN 매도=0
+15:59:00.127 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+15:59:00.129 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-T14X87600 @ 284 pnl=-5.333300% (id=200)
+[THR155] D1 | DYNAMIC | 284 점검=true | 상태=CLOSING 매도=1
+15:59:00.145 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+15:59:00.147 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-T15X10600 @ 284 pnl=-5.333300% (id=201)
+[THR155] P1 | DYNAMIC | 286 점검=true | 285.00025 점검=false | 그때 매도=0 | 284 점검=true | 그때 매도=1 | 283 점검=false | 상태=CLOSING 매도=1
+15:59:00.170 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+15:59:00.172 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-T16X36600 @ 284 pnl=-5.333300% (id=202)
+15:59:00.176 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-T16X36600 @ 279 pnl=-7.000000% (id=203)
+[THR155] P5 | DYNAMIC | 286=[true, true] | 285.00025=[false, false] | 284=[true, true] | 284뒤 매도=1 | 279=[false, true] | 백분율 포지션=CLOSING | 상태=CLOSING 매도=2
+15:59:00.680 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+15:59:00.682 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-T17X81400 @ 285.0001 pnl=-5.000000% (id=204)
+[THR155] P9 | DYNAMIC | 285.0001 점검=true | 상태=CLOSING 매도=1
+15:59:00.701 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+15:59:00.702 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-T18X37900 @ 284 pnl=-5.333300% (id=205)
+[THR155] D3 | DYNAMIC | 284 점검=true | 상태=CLOSING 매도=1
+15:59:00.719 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+15:59:00.721 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=344, KRW-T19X18800, 손익=-5.333300%
+[THR155] L1 | LIVE | 286 점검=true | 284 점검=true | 상태=CLOSING 매도=1
+15:59:01.122 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+15:59:01.124 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=345, KRW-T20X13800, 손익=-5.333300%
+[THR155] L6 | LIVE | 점검=true,false,false | 상태=CLOSING 매도=1
+15:59:01.147 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[THR155] L5 | LIVE | 점검=true,false,false | 상태=OPEN 매도=0
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

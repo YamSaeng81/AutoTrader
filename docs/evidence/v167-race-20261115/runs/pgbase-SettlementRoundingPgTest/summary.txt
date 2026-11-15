@@ -1,0 +1,13 @@
+잔액 반영 두 자리 규칙 — 실제 정산 코드 (로컬 PostgreSQL)	17	실패1	오류0	건너뜀0
+합계	17	실패1	오류0	건너뜀0
+FAIL 잔액 반영 두 자리 규칙 — 실제 정산 코드 (로컬 PostgreSQL) :: executionError :: java.lang.AssertionError: [NET-GUARD] 예상하지 않은 외부 연결 2건(차단됨, 귀속은 근사): [resolve api.upbit.com [HttpClient-13-Worker-0] (JDK 프레임만), resolve api.upbit.com [HttpClient-14-Worker-0] (JDK 프레임만)]
+외부WS연결·구독줄=2
+--- NET-GUARD
+installed_during_run=true
+disabled_reason=null
+classes_checked=1
+blocked_external_attempts=2
+allowed_jndi_nameserver_probes=3
+allowed_own_interface_connections=0
+restored_security_manager=null
+resolve api.upbit.com [HttpClient-13-Worker-0] (JDK 프레임만)
