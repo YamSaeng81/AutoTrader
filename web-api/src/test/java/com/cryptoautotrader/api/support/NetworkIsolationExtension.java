@@ -59,10 +59,13 @@ public class NetworkIsolationExtension implements BeforeAllCallback, AfterAllCal
                     + "\nclasses_checked=" + CLASSES.get()
                     + "\nblocked_external_attempts=" + all.size()
                     + "\nallowed_jndi_nameserver_probes=" + NetworkIsolationGuard.probes().size()
+                    + "\nallowed_own_interface_connections=" + NetworkIsolationGuard.selfConnections().size()
                     + "\nrestored_security_manager=" + System.getSecurityManager()
                     + "\n" + String.join("\n", all)
                     + (NetworkIsolationGuard.probes().isEmpty() ? "" : "\n--- 허용한 권한 확인(패킷 없음)\n"
                             + String.join("\n", NetworkIsolationGuard.probes()))
+                    + (NetworkIsolationGuard.selfConnections().isEmpty() ? "" : "\n--- 허용한 자기 인터페이스 연결(기계 안)\n"
+                            + String.join("\n", NetworkIsolationGuard.selfConnections()))
                     + "\n";
             System.out.println("[NET-GUARD] 요약\n" + summary);
             try {
