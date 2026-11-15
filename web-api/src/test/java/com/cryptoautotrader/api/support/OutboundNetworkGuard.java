@@ -24,6 +24,8 @@ public final class OutboundNetworkGuard {
 
     private static final List<String> ATTEMPTS = new ArrayList<>();
     private static volatile boolean installed;
+    private static volatile ProxySelector original;
+    private static volatile ProxySelector mine;
 
     private OutboundNetworkGuard() { }
 
@@ -39,7 +41,8 @@ public final class OutboundNetworkGuard {
     public static synchronized void install() {
         if (installed) return;
         ProxySelector original = ProxySelector.getDefault();
-        ProxySelector.setDefault(new ProxySelector() {
+        OutboundNetworkGuard.original = original;
+        ProxySelector.setDefault(mine = new ProxySelector() {
             @Override
             public List<Proxy> select(URI uri) {
                 String host = uri.getHost();
@@ -60,6 +63,13 @@ public final class OutboundNetworkGuard {
             }
         });
         installed = true;
+    }
+
+    /** 원래 기본 선택기로 되돌린다 — 진단 클래스가 끝날 때 부른다(총괄 v1.166 §3-3, 뒤 클래스 동작 불변). */
+    public static synchronized void uninstall() {
+        if (!installed) return;
+        if (ProxySelector.getDefault() == mine) ProxySelector.setDefault(original);
+        installed = false;
     }
 
     public static List<String> attempts() {

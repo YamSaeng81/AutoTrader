@@ -141,6 +141,14 @@ class G1SubmitBoundaryDiagTest extends IntegrationTestBase {
                 .thenAnswer(inv -> report(inv.getArgument(0), null, "wait"));
     }
 
+    /** 전역 상태 복원 (총괄 v1.166 §3-3, 2026-11-13) — 추가 스레드 접두·시작 문·기본 선택기를 이 클래스 전으로 되돌린다. 예외 때도 JUnit 이 부른다. */
+    @org.junit.jupiter.api.AfterAll
+    static void restoreGlobals() {
+        OrderFlowObservation.orderStartGate = null;
+        OrderFlowObservation.EXTRA_THREAD_PREFIXES.removeAll(java.util.List.of("market-data-", "Test worker", "g1-stop"));
+        OutboundNetworkGuard.uninstall();
+    }
+
     @AfterEach
     void cleanUp() {
         OrderFlowObservation.orderStartGate = null;
