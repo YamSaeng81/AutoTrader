@@ -103,6 +103,8 @@ class N15EntryExpiryTest extends IntegrationTestBase {
     static final List<String> TRACE = java.util.Collections.synchronizedList(new ArrayList<>());
     @Autowired private PlatformTransactionManager txManager;
     @Autowired private JdbcTemplate jdbc;
+    @Autowired @org.springframework.beans.factory.annotation.Qualifier("orderExecutor")
+    private org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor orderExecutor;
     @Autowired private com.cryptoautotrader.api.repository.MarketDataCacheRepository candleDataRepository;
 
     /** 외부 연결 격리 (총괄 v1.166 §3-2 후속, 2026-11-15, 시험만) — 전체 회귀(b2976905)에서 이 클래스의 시험 스레드가 실제 Upbit WebSocket 첫 연결을 열었다(근거 v166 int-full-b2976905·ws-origin). WS 재연결·구독 자체는 시험 대상이 아니다. 기존 단언은 그대로다. */
@@ -170,6 +172,18 @@ class N15EntryExpiryTest extends IntegrationTestBase {
         limits.setTotalCapKrw(positionRepository.sumPoolExposureKrw(-1L).add(new BigDecimal("1000000")));
         fake.fakeFor(Thread.currentThread());
         wireClock(fake);
+        // v1.169 §2 보완(시험만): 확정 주문의 비동기 제출은 거래소 접수(wait)로 답한다 — 대역이 null 을 돌려주면 접수 기록에서 끝나고(NPE·행 없음 반환)
+        //    고유 주문번호가 없어 어느 사례의 호출인지 가릴 수 없었다. 응답마다 새 uuid.
+        when(upbitOrderClient.createOrder(anyString(), anyString(), any(), any(), anyString(), anyString()))
+                .thenAnswer(inv -> {
+                    com.cryptoautotrader.exchange.upbit.dto.OrderResponse r = new com.cryptoautotrader.exchange.upbit.dto.OrderResponse();
+                    r.setUuid("n15e-" + UUID.randomUUID());
+                    r.setSide(inv.getArgument(1));
+                    r.setOrdType(inv.getArgument(4));
+                    r.setState("wait");
+                    r.setMarket(inv.getArgument(0));
+                    return new com.cryptoautotrader.exchange.upbit.UpbitOrderClient.ExchangeResult(r, "{}");
+                });
         N15GridRounds.assertNoBackgroundScheduler(ctx);
         if (PIN) {
             org.mockito.Mockito.doAnswer(inv -> {
@@ -189,6 +203,10 @@ class N15EntryExpiryTest extends IntegrationTestBase {
 
     @AfterEach
     void tearDown() throws Exception {
+        // v1.169 §2 보완(시험만): 이 사례가 넘긴 비동기 제출이 실제로 끝난 뒤 정리한다 — 기다리지 않으면 claim·사본 읽기를 마친 제출이
+        //    정리(주문 행 삭제)와 대역 초기화 뒤 다음 사례에서 createOrder 를 불러 그 사례의 거래소 호출 수를 오염시킨다(N15PIN 고정 재현:
+        //    ① LATE KRW-CRO 주문의 호출이 ④ LATE 에 1로 잡힘, 자연 관측 p-1115-205003·p-1115-225010). 시간 초과는 실패다. 기대값·단언은 그대로다.
+        com.cryptoautotrader.api.support.ExecutorBarrier.awaitPriorTasks(orderExecutor.getThreadPoolExecutor(), 15_000);
         for (int i = isolated.size() - 1; i >= 0; i--) isolated.get(i).close();
         isolated.clear();
         wireClock(null);
