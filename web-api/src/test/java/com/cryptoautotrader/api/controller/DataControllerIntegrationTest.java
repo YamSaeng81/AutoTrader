@@ -24,6 +24,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("DataController 통합 테스트")
 class DataControllerIntegrationTest extends IntegrationTestBase {
 
+    /**
+     * 외부 연결 격리 (총괄 v1.166 §3-2 후속, 2026-11-15, 시험만) — 202 요청이 비동기 수집(DataCollectionService → UpbitCandleCollector)을 시작해
+     * 실제 api.upbit.com 봉 조회를 했다(전체 회귀 b2976905 감시 기록). 제품 collectSingle 은 {@code new UpbitRestClient()} 를 직접 만들어
+     * 빈 대역이 닿지 않으므로(affected46-wip 에서 확인) 한 단계 위 수집 서비스 빈을 대역으로 둔다. 이 클래스는 요청 검증·응답 코드만 본다.
+     * 기존 단언은 그대로다.
+     */
+    @org.springframework.boot.test.mock.mockito.MockBean
+    private com.cryptoautotrader.api.service.DataCollectionService dataCollectionService;
+
     // ── GET /api/v1/data/status ───────────────────────────────────────
 
     @Test

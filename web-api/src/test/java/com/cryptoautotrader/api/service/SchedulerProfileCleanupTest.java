@@ -63,7 +63,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @ActiveProfiles("scheduler")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-@Import(OrderFlowObservation.Config.class)
+@Import({OrderFlowObservation.Config.class, SchedulerProfileCleanupTest.LoopbackHealth.class})
 @TestPropertySource(properties =
         "spring.jpa.properties.hibernate.session_factory.statement_inspector="
                 + "com.cryptoautotrader.api.support.OrderFlowObservation$Inspector")
@@ -86,6 +86,56 @@ class SchedulerProfileCleanupTest extends IntegrationTestBase {
     @MockBean private UpbitRestClient upbitRestClient;
 
     private final List<Long> liveSessions = new ArrayList<>();
+
+    /**
+     * 외부 연결 격리 (총괄 v1.166 §3-2 후속, 2026-11-15, 시험만) — scheduler 프로필은 30초 주기 거래소 상태 확인(@Scheduled checkHealth)을 켠다.
+     * 전체 회귀(b2976905)에서 이 클래스 중 실제 api.upbit.com 호출 2회가 감시에 막혀 연속 실패 2/3까지 갔다(3회면 DOWN·비상 정지로 시험 동작이
+     * 바뀐다). 기존 시험 접점 {@code healthCheckUriForTest} 로 루프백 200 응답(정상 거래소와 같은 UP)을 쓴다. 첫 주기(초기 10초) 전, 빈 초기화
+     * 콜백 전(프록시 전 원 객체)에 바꾸고, 컨텍스트 종료 때 서버를 닫는다. 정리 작업·60초 기준·단언은 그대로다.
+     */
+    @org.springframework.boot.test.context.TestConfiguration(proxyBeanMethods = false)
+    static class LoopbackHealth {
+        private static com.sun.net.httpserver.HttpServer server;
+
+        static synchronized java.net.URI uri() {
+            if (server == null) {
+                try {
+                    server = com.sun.net.httpserver.HttpServer.create(new java.net.InetSocketAddress("127.0.0.1", 0), 0);
+                } catch (java.io.IOException e) {
+                    throw new IllegalStateException(e);
+                }
+                server.createContext("/", ex -> {
+                    byte[] body = "[]".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+                    ex.sendResponseHeaders(200, body.length);
+                    ex.getResponseBody().write(body);
+                    ex.close();
+                });
+                server.start();
+            }
+            return java.net.URI.create("http://127.0.0.1:" + server.getAddress().getPort() + "/v1/market/all");
+        }
+
+        static synchronized void stop() {
+            if (server != null) server.stop(0);
+            server = null;
+        }
+
+        @org.springframework.context.annotation.Bean
+        static org.springframework.beans.factory.config.BeanPostProcessor loopbackHealthCheck() {
+            return new org.springframework.beans.factory.config.BeanPostProcessor() {
+                @Override
+                public Object postProcessBeforeInitialization(Object bean, String beanName) {
+                    if (bean instanceof ExchangeHealthMonitor m) m.healthCheckUriForTest(uri());
+                    return bean;
+                }
+            };
+        }
+
+        @org.springframework.context.annotation.Bean
+        org.springframework.beans.factory.DisposableBean loopbackHealthStop() {
+            return LoopbackHealth::stop;
+        }
+    }
     private final List<Long> dynamicSessions = new ArrayList<>();
 
     @BeforeEach
