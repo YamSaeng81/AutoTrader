@@ -270,7 +270,7 @@ class SubmitPollRaceTest extends IntegrationTestBase {
         assertThat(o.getSubmittedAt()).as("제출 시각이 남아야 한다").isEqualTo(committed.getSubmittedAt());
         assertThat(o.getResponseJson()).as("응답 원문이 남아야 한다").isEqualTo(rawBody("uuid-race-a"));
         assertThat(transitions(id)).as("거래로그: 실제 전이만 남는다")
-                .containsExactly("INTENT_READY→SUBMITTING", "SUBMITTING→SUBMITTED");
+                .containsExactly("null→INTENT_READY", "INTENT_READY→SUBMITTING", "SUBMITTING→SUBMITTED");
         verifySubmittedOnce();
     }
 
@@ -299,7 +299,7 @@ class SubmitPollRaceTest extends IntegrationTestBase {
         assertThat(o.getUnknownReason()).as("주문번호를 확보했으므로 '조회되지 않음' 사유를 남기지 않는다").isNull();
         assertThat(o.getUnknownProbeCount()).as("조회 메타는 보존한다").isEqualTo(1);
         assertThat(transitions(id)).as("거래로그: 실제 이전/다음 상태")
-                .containsExactly("INTENT_READY→SUBMITTING", "SUBMITTING→UNKNOWN", "UNKNOWN→SUBMITTED");
+                .containsExactly("null→INTENT_READY", "INTENT_READY→SUBMITTING", "SUBMITTING→UNKNOWN", "UNKNOWN→SUBMITTED");
         verifySubmittedOnce();
     }
 
@@ -334,7 +334,7 @@ class SubmitPollRaceTest extends IntegrationTestBase {
         assertThat(o.getResponseJson()).as("🔴 제출 응답 원문을 낡은 엔티티의 null 로 덮지 않는다").isEqualTo(rawBody("uuid-race-c"));
         assertThat(o.getSubmittedAt()).as("제출 시각을 바꾸지 않는다").isEqualTo(committed.getSubmittedAt());
         assertThat(transitions(id)).as("SUBMITTED 전이는 한 번")
-                .containsExactly("INTENT_READY→SUBMITTING", "SUBMITTING→SUBMITTED");
+                .containsExactly("null→INTENT_READY", "INTENT_READY→SUBMITTING", "SUBMITTING→SUBMITTED");
         verifySubmittedOnce();
     }
 
