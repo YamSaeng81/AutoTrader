@@ -152,6 +152,7 @@ class Sma20LivePaperSameInputTest extends AbstractSma20SameInputFixture {
     @Test
     @DisplayName("S04a 승인 실행 만료 E 직전(E−1ms) — LIVE 진입, PAPER 는 이미 평가 시각에 진입")
     void s04aBeforeExpiry() {
+        useAlignedRound();   // v1.168 §3-3: 정시 봉·판단 시계 C+1초 접수 — 실제 분 :53~:00 에서 E−1ms 최신성이 깨지던 자료 결함 보완
         insertCache(BTC, uptrend(lastOpen));
         LiveTradingSessionEntity l = live(BTC);
         VirtualBalanceEntity p = paper(BTC);
