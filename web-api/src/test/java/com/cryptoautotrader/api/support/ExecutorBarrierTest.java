@@ -24,6 +24,8 @@ class ExecutorBarrierTest {
         final CountDownLatch dequeued = new CountDownLatch(1);
         final CountDownLatch allow = new CountDownLatch(1);
         final AtomicBoolean gateOnce = new AtomicBoolean(true);
+        /** 코어 작업자가 runWorker 에 들어가 대기열에서 기다리기 시작했다는 신호(총괄 v1.167 §4-5, ExecutorBarrierPremiseProbeTest). */
+        final CountDownLatch inTake = new CountDownLatch(2);
 
         Gated() {
             setCorePoolSize(2);
@@ -38,6 +40,7 @@ class ExecutorBarrierTest {
             return new LinkedBlockingQueue<>(queueCapacity) {
                 @Override
                 public Runnable take() throws InterruptedException {
+                    inTake.countDown();
                     Runnable r = super.take();
                     if (gateOnce.compareAndSet(true, false)) {   // 첫 작업만 붙잡는다(장벽 작업은 그대로)
                         dequeued.countDown();
@@ -56,11 +59,17 @@ class ExecutorBarrierTest {
         try {
             ThreadPoolExecutor pool = ex.getThreadPoolExecutor();
             pool.prestartAllCoreThreads();
+            // 🔴 (총괄 v1.167 §4-5, 시험만) 시작됐지만 아직 runWorker 전인 작업자는 상태 -1 이라 getActiveCount·getTaskCount 에
+            //    1 로 세진다 — 붐비는 전체 회귀에서 둘째 작업자가 그 상태면 아래 옛 조건이 거짓이 된다(b2976905 전체 회귀 1회 실패,
+            //    기전은 ExecutorBarrierPremiseProbeTest 가 결정적으로 재현). 두 코어 작업자가 대기열에 들어간 것을 신호로 확인한다.
+            assertThat(ex.inTake.await(5, TimeUnit.SECONDS)).as("코어 작업자 2개가 대기열에서 기다린다").isTrue();
             AtomicBoolean executed = new AtomicBoolean(false);
             ex.execute(() -> executed.set(true));
             assertThat(ex.dequeued.await(5, TimeUnit.SECONDS)).isTrue();
             boolean oldPredicate = pool.getQueue().isEmpty() && pool.getActiveCount() == 0
                     && pool.getTaskCount() == pool.getCompletedTaskCount();
+            String poolState = "pool=" + pool.getPoolSize() + " active=" + pool.getActiveCount() + " queue=" + pool.getQueue().size()
+                    + " task=" + pool.getTaskCount() + " completed=" + pool.getCompletedTaskCount();
             Future<?> barrier = caller.submit(() -> ExecutorBarrier.awaitPriorTasks(pool, 10_000));
             boolean barrierDoneInWindow;
             try {
@@ -70,7 +79,7 @@ class ExecutorBarrierTest {
                 barrierDoneInWindow = false;
             }
             System.out.println("[장벽] 창 안: 옛 조건=" + oldPredicate + " 장벽 성립=" + barrierDoneInWindow + " 실행=" + executed.get());
-            assertThat(oldPredicate).as("옛 조건은 이 창에서 참").isTrue();
+            assertThat(oldPredicate).as("옛 조건은 이 창에서 참 (" + poolState + ")").isTrue();
             assertThat(barrierDoneInWindow).as("장벽은 작업이 끝나기 전에 성립하지 않는다").isFalse();
             ex.allow.countDown();
             barrier.get(10, TimeUnit.SECONDS);
