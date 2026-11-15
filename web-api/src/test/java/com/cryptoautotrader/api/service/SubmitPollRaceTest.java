@@ -483,6 +483,140 @@ class SubmitPollRaceTest extends IntegrationTestBase {
         verifySubmittedOnce();
     }
 
+    // ── 사례 H — 수동 조정 뒤 늦은 제출 응답 (총괄 v1.168 §3-2) ─────
+
+    @Autowired private UnknownOrderAdjustmentService adjustmentService;
+    @Autowired private com.cryptoautotrader.api.repository.OrderSettlementDiscrepancyRepository discrepancyRepository;
+    @Autowired private javax.sql.DataSource dataSource;
+    @Autowired private org.springframework.transaction.PlatformTransactionManager txManager;
+    @org.springframework.boot.test.mock.mockito.SpyBean private UnknownOrderAdjustmentService adjustmentSpy;
+    @MockBean private TelegramNotificationService telegram;
+
+    /** {@code recordLaterObservation}(REQUIRES_NEW) 한 번의 관측 — 스레드·소요·예외·반환 직후 별도 연결에서 본 관측값. */
+    record LaterCall(String thread, long elapsedMs, Throwable error, String txName, AtomicReference<String> committedObservation) { }
+
+    /** 별도 연결(자동 커밋)로 읽는다 — 호출자 트랜잭션이 아직 열려 있을 때 이 값이 보이면 안쪽이 따로 커밋된 것이다. */
+    private String observationViaSeparateConnection(Long orderId) throws java.sql.SQLException {
+        try (java.sql.Connection c = dataSource.getConnection();
+             java.sql.PreparedStatement ps = c.prepareStatement("SELECT later_observation FROM order_manual_adjustment WHERE order_id = ?")) {
+            c.setAutoCommit(true);
+            ps.setLong(1, orderId);
+            try (java.sql.ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getString(1) : null;
+            }
+        }
+    }
+
+    private BigDecimal availableKrw(Fixture f) {
+        return "DYNAMIC".equals(f.kind()) ? dynamicRepo.findById(f.sessionId()).orElseThrow().getAvailableKrw()
+                : sessionRepository.findById(f.sessionId()).orElseThrow().getAvailableKrw();
+    }
+
+    @ParameterizedTest(name = "{0} 매수")
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"LIVE", "DYNAMIC"})
+    @DisplayName("H — 폴러 UNKNOWN·수동 조정이 커밋된 뒤 제출 응답이 도착하면 UNKNOWN 유지·관측만 기록하고, 반복 응답은 다시 반영하지 않는다")
+    void lateSubmitResponseAfterManualAdjustment(String kind) throws Exception {
+        Fixture f = fixture(kind, "BUY");
+        CreateGate create = new CreateGate();
+        String uuid = "uuid-race-h-" + kind;
+        stubCreate(create, uuid, false);
+        stubIdentifierQuery(null, null);
+
+        List<LaterCall> calls = java.util.Collections.synchronizedList(new ArrayList<>());
+        Mockito.doAnswer(inv -> {
+            // 대역이 트랜잭션 프록시 안쪽이면 여기서 REQUIRES_NEW 가 이미 열려 있다 — 그 커밋 직후(제출 결과 트랜잭션은 아직 열림)
+            // 별도 연결로 읽는다. 바깥이면 호출 반환 뒤(안쪽 커밋 뒤) 읽는다. 어느 쪽이든 제출 스레드가 호출자로 돌아가기 전이다.
+            String txName = org.springframework.transaction.support.TransactionSynchronizationManager.getCurrentTransactionName();
+            boolean inner = txName != null && txName.endsWith("recordLaterObservation");
+            AtomicReference<String> seen = new AtomicReference<>("(읽지 않음)");
+            Long orderId = inv.getArgument(0);
+            if (inner) {
+                org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
+                        new org.springframework.transaction.support.TransactionSynchronization() {
+                            @Override
+                            public void afterCommit() {
+                                try {
+                                    seen.set(observationViaSeparateConnection(orderId));
+                                } catch (java.sql.SQLException e) {
+                                    seen.set("읽기 실패: " + e);
+                                }
+                            }
+                        });
+            }
+            long t0 = System.nanoTime();
+            Throwable err = null;
+            try {
+                inv.callRealMethod();
+            } catch (Throwable e) {
+                err = e;
+            }
+            if (!inner) seen.set(observationViaSeparateConnection(orderId));
+            calls.add(new LaterCall(Thread.currentThread().getName(), (System.nanoTime() - t0) / 1_000_000, err, txName, seen));
+            if (err != null) throw err;
+            return null;
+        }).when(adjustmentSpy).recordLaterObservation(Mockito.anyLong(), Mockito.any(), Mockito.any(), Mockito.anyString(), Mockito.any());
+
+        Long id = submitAndPark(f, create);
+        AtomicReference<Throwable> failure = new AtomicReference<>();
+        join(startResolver(id, failure), failure);
+        assertThat(reload(id).getState()).as("전제: 폴러의 UNKNOWN 이 먼저 커밋됐다").isEqualTo("UNKNOWN");
+        BigDecimal before = availableKrw(f);
+
+        // 사람이 장기 불명으로 보고 3,000 을 돌려준다(30분 경과 시각으로 기록 — MIN_AGE 전제).
+        adjustmentService.record(id, "시험 운영자", "거래소 주문 내역에 없음 확인(시험)", "시험 근거",
+                new BigDecimal("3000"), "늦게 접수됐으면 같은 3,000 이 두 번 잡힌다", Instant.now().plus(java.time.Duration.ofMinutes(31)));
+        BigDecimal adjusted = availableKrw(f);
+        assertThat(adjusted).as("전제: 조정이 3,000 을 한 번 돌려줬다").isEqualByComparingTo(before.add(new BigDecimal("3000")));
+        OrderEntity atAdjust = reload(id);
+
+        create.release.countDown();       // 늦은 제출 응답 도착 → recordSubmitOutcome 의 수동 조정 분기
+        awaitSubmitThreadDone();
+
+        assertThat(calls).as("제출 스레드가 늦은 관측을 한 번 불렀다").hasSize(1);
+        LaterCall first = calls.get(0);
+        assertThat(first.error()).as("REQUIRES_NEW 관측 기록 예외 없음 (스레드 %s, %dms)", first.thread(), first.elapsedMs()).isNull();
+        System.out.println("[CASE-H] " + kind + " recordLaterObservation thread=" + first.thread() + " elapsedMs=" + first.elapsedMs()
+                + " txName=" + first.txName() + " seenBeforeCallerCommit=" + first.committedObservation().get());
+        assertThat(first.thread()).as("제출 스레드에서 불렸다").startsWith("order-");
+        assertThat(first.committedObservation().get()).as("🔴 제출 결과 트랜잭션이 끝나기 전에 별도 연결에서 관측이 보인다 — 안쪽이 따로 커밋됐다")
+                .contains("제출 응답 늦게 도착").contains(uuid);
+        assertThat(first.elapsedMs()).as("행 잠금 자기 대기 없음(lock_timeout 10s 미만)").isLessThan(5_000);
+
+        OrderEntity o = reload(id);
+        assertThat(o.getState()).as("🔴 수동 조정한 불명 주문은 UNKNOWN 유지").isEqualTo("UNKNOWN");
+        assertThat(o.getExchangeOrderId()).as("자동 추적에 넘기지 않는다(폴러의 같은 분기와 같음)").isNull();
+        assertThat(o.getFilledQuantity()).isEqualTo(atAdjust.getFilledQuantity());
+        assertThat(o.getSettlementVersion()).as("정산값 보존").isEqualTo(atAdjust.getSettlementVersion());
+        assertThat(o.getAppliedExecutedFunds()).isNull();
+        assertThat(o.getFeeSource()).isEqualTo(atAdjust.getFeeSource());
+        assertThat(availableKrw(f)).as("🔴 이미 돌려준 자금을 다시 움직이지 않는다").isEqualByComparingTo(adjusted);
+        assertThat(positionRepository.findById(f.positionId()).orElseThrow().getSize()).isEqualByComparingTo("0");
+        assertThat(transitions(id)).as("거래로그: UNKNOWN 뒤 전이 없음")
+                .containsExactly("null→INTENT_READY", "INTENT_READY→SUBMITTING", "SUBMITTING→UNKNOWN");
+        UnknownOrderAdjustmentService.Adjustment a = adjustmentService.find(id);
+        assertThat(a.laterObservation()).contains("제출 응답 늦게 도착").contains(uuid);
+        assertThat(discrepancyRepository.findByOrderIdOrderByDetectedAtDesc(id)).as("불일치 이력 1건")
+                .hasSize(1).allSatisfy(d -> assertThat(d.getKind()).isEqualTo(UnknownOrderAdjustmentService.DISCREPANCY_KIND));
+        Mockito.verify(telegram, Mockito.times(1)).notifyRiskLimitBreached(Mockito.contains("#" + id));
+
+        // 같은 응답이 한 번 더 도착한다(재전달) — 같은 제출 결과 경로를 같은 트랜잭션 경계로 다시 부른다.
+        Object engine = org.springframework.test.util.AopTestUtils.getUltimateTargetObject(orderExecutionEngine);
+        new org.springframework.transaction.support.TransactionTemplate(txManager).executeWithoutResult(st ->
+                org.springframework.test.util.ReflectionTestUtils.invokeMethod(engine, "recordSubmitOutcome", id,
+                        new UpbitOrderClient.ExchangeResult(response(uuid, "wait"), rawBody(uuid))));
+        assertThat(calls).hasSize(2);
+        assertThat(calls.get(1).error()).isNull();
+        assertThat(discrepancyRepository.findByOrderIdOrderByDetectedAtDesc(id)).as("🔴 반복 응답은 불일치를 다시 쌓지 않는다").hasSize(1);
+        Mockito.verify(telegram, Mockito.times(1)).notifyRiskLimitBreached(Mockito.anyString());
+        assertThat(reload(id).getState()).isEqualTo("UNKNOWN");
+        assertThat(availableKrw(f)).isEqualByComparingTo(adjusted);
+        assertThat(adjustmentService.find(id).laterObservedAt()).as("같은 관측은 시각도 다시 쓰지 않는다").isEqualTo(a.laterObservedAt());
+        verifySubmittedOnce();
+
+        discrepancyRepository.findByOrderIdOrderByDetectedAtDesc(id).forEach(discrepancyRepository::delete);
+        new org.springframework.jdbc.core.JdbcTemplate(dataSource).update("DELETE FROM order_manual_adjustment WHERE order_id = ?", id);
+    }
+
     private String snapshot(Fixture f, Long id) {
         OrderEntity o = reload(id);
         PositionEntity p = positionRepository.findById(f.positionId()).orElseThrow();
