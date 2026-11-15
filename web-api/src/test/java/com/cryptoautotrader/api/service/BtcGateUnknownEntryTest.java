@@ -252,7 +252,9 @@ class BtcGateUnknownEntryTest extends IntegrationTestBase {
     @DisplayName("승인 시점: 평가 때 최신이던 BTC 캔들이 승인 전에 사라지면 LIVE·DYNAMIC 모두 '판정 불가' 로 거절, 다시 오면 승인")
     void approvalTime() {
         rounds.setForcedForTest(true);
-        Instant lastOpen = freshLastOpen();
+        // v1.168 §3-3: 같은 컨텍스트의 앞 클래스(B01RealNextSellBarTest)가 같은 초에 처리한 키와 겹치면 접수가 "회차 마감 뒤 도착" 으로
+        // 거절됐다(탐침 p-1115-221620 등 6회 중 3회). JVM 등록부에서 겹치지 않는 키를 받는다 — 봉·관문 기대는 그대로다.
+        Instant lastOpen = com.cryptoautotrader.api.support.TestRoundKeys.claim(freshLastOpen());
         List<Candle> cs = candles(lastOpen);
         insertCache("KRW-CRO", cs);
         insertCache("KRW-BTC", cs);

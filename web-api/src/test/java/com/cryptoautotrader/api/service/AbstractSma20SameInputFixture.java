@@ -124,20 +124,16 @@ abstract class AbstractSma20SameInputFixture extends IntegrationTestBase {
     private static final java.util.concurrent.atomic.AtomicReference<Instant> LAST_ROUND =
             new java.util.concurrent.atomic.AtomicReference<>(Instant.MAX);
 
-    /** 이 JVM 에서 나눠 준 회차 키(봉 시작) — 정시 회차({@link #useAlignedRound})가 처리된 키와 겹치지 않게 한다. */
-    private static final java.util.Set<Instant> USED_ROUNDS = java.util.concurrent.ConcurrentHashMap.newKeySet();
-
     /**
      * 🔴 정시 회차 (총괄 v1.168 §3-3, 2026-11-15). 기본 자료는 마지막 봉을 실제 현재 −61분(정시 아님)에 둔다. 판단 시계를 그 회차의
      * E(= 봉 시작 + 70분 = 실제 현재 + 9분) 근처로 옮기는 사례는, 실제 분이 :53~:59·:00 일 때 최신성 기준(판단 시각 − 2분의 정시 − 1시간)이
      * 다음 정시로 넘어가 "최신 완료 봉 없음" 으로 거절됐다(탐침 p-1115-2053~2100 12회 연속, 그 밖 분은 통과). 운영의 봉은 정시다 — 이 회차는
      * 마지막 봉을 <b>직전 완료 정시 봉</b>에 두고, 판단 시계를 그 회차의 접수 C+1초에 고정한다(평가·접수·PAPER 평가가 같은 시계를 본다).
-     * 승인 시각은 사례가 정한다. 같은 JVM 에서 이미 나눠 준 키와 겹치면 1ms 씩 옮긴다(정시 격자에서 ms 만 다르다 — 최신성·마감 시각 판정은 같다).
+     * 승인 시각은 사례가 정한다. 같은 JVM 에서 이미 나눠 준 키와 겹치면 1ms 씩 옮긴다({@code TestRoundKeys})(정시 격자에서 ms 만 다르다 — 최신성·마감 시각 판정은 같다).
      */
     protected void useAlignedRound() {
-        Instant bar = Instant.now().truncatedTo(ChronoUnit.HOURS).minus(1, ChronoUnit.HOURS);
-        while (!USED_ROUNDS.add(bar)) bar = bar.plusMillis(1);
-        lastOpen = bar;
+        lastOpen = com.cryptoautotrader.api.support.TestRoundKeys.claim(
+                Instant.now().truncatedTo(ChronoUnit.HOURS).minus(1, ChronoUnit.HOURS));
         useCloseHour(lastOpen);
         entryClock.setForTest(Clock.fixed(lastOpen.plus(1, ChronoUnit.HOURS).plusSeconds(1), ZoneOffset.UTC));
     }
@@ -165,8 +161,10 @@ abstract class AbstractSma20SameInputFixture extends IntegrationTestBase {
         //    탐침: 이 값 재설정만으로 A~H+S 666/666). 키는 처리된 같은 키만 거절되므로, 유일성은 지키되 앞으로 1ms 씩만 움직인다 —
         //    지금 −61분 근처(마감 뒤·유예 안)를 벗어나지 않는다.
         Instant base = Instant.now().minus(61, ChronoUnit.MINUTES).truncatedTo(ChronoUnit.SECONDS);
-        lastOpen = LAST_ROUND.updateAndGet(prev -> prev.equals(Instant.MAX) || base.isAfter(prev) ? base : prev.plusMillis(1));
-        USED_ROUNDS.add(lastOpen);
+        // v1.168 §3-3: 같은 컨텍스트의 다른 시험 클래스(BtcGateUnknownEntryTest 등)와 키가 겹치지 않게 JVM 등록부에서 받는다
+        lastOpen = com.cryptoautotrader.api.support.TestRoundKeys.claim(
+                LAST_ROUND.updateAndGet(prev -> prev.equals(Instant.MAX) || base.isAfter(prev) ? base : prev.plusMillis(1)));
+        LAST_ROUND.set(lastOpen);
         useCloseHour(lastOpen);
         clearRealtimeThrottle();
     }
