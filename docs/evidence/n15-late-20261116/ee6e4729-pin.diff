@@ -1,0 +1,67 @@
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/N15EntryExpiryTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/N15EntryExpiryTest.java
+index d9233379..f918858a 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/N15EntryExpiryTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/N15EntryExpiryTest.java
+@@ -93,7 +93,14 @@ class N15EntryExpiryTest extends IntegrationTestBase {
+     @Autowired private LiveTradingSessionRepository liveRepo;
+     @Autowired private DynamicSessionRepository dynamicRepo;
+     @Autowired private PositionRepository positionRepository;
+-    @Autowired private OrderRepository orderRepository;
++    @SpyBean private OrderRepository orderRepository;   // 조사 가지(v1.169 §2): 제출 직전 사본 읽기를 정리 경계 너머로 고정
++
++    /** 조사 전용(v1.169 §2) — N15PIN=1 이면 ① LATE 의 KRW-CRO 확정 주문 제출을 "claim 커밋·사본 읽기 뒤, createOrder 전" 에 붙잡아 ① 정리·대역 초기화 뒤 ④ LATE 에서 놓는다(최대 3초 — 정리가 완료를 기다리면 그 안에서 스스로 풀린다). */
++    static final boolean PIN = "1".equals(System.getenv("N15PIN"));
++    static final java.util.concurrent.CountDownLatch HOLD = new java.util.concurrent.CountDownLatch(1);
++    static volatile Long pinSession;
++    static volatile String pinIdentifier;
++    static final List<String> TRACE = java.util.Collections.synchronizedList(new ArrayList<>());
+     @Autowired private PlatformTransactionManager txManager;
+     @Autowired private JdbcTemplate jdbc;
+     @Autowired private com.cryptoautotrader.api.repository.MarketDataCacheRepository candleDataRepository;
+@@ -164,6 +171,20 @@ class N15EntryExpiryTest extends IntegrationTestBase {
+         fake.fakeFor(Thread.currentThread());
+         wireClock(fake);
+         N15GridRounds.assertNoBackgroundScheduler(ctx);
++        if (PIN) {
++            org.mockito.Mockito.doAnswer(inv -> {
++                @SuppressWarnings("unchecked") java.util.Optional<OrderEntity> r = (java.util.Optional<OrderEntity>) org.mockito.Mockito.mockingDetails(orderRepository).getMockCreationSettings().getDefaultAnswer().answer(inv);   // 스프링 SpyBean 의 위임 기본 응답(JPA 대리 객체)
++                Long sid = pinSession;
++                if (sid != null && Thread.currentThread().getName().startsWith("order-exec") && r.isPresent()
++                        && sid.equals(r.get().getSessionId()) && "SUBMITTING".equals(r.get().getState()) && HOLD.getCount() > 0) {
++                    pinIdentifier = r.get().getClientOrderId();
++                    TRACE.add(Instant.now() + " 붙잡음 " + Thread.currentThread().getName() + " 주문#" + r.get().getId() + " 세션" + sid + " 식별자 " + pinIdentifier);
++                    boolean released = HOLD.await(3, java.util.concurrent.TimeUnit.SECONDS);
++                    TRACE.add(Instant.now() + " 놓음(" + released + ") 사본 그대로 createOrder 로 진행 — 주문 행 지금 " + (orderRepository.existsById(r.get().getId()) ? "있음" : "없음(정리됨)"));
++                }
++                return r;
++            }).when(orderRepository).findById(any());
++        }
+     }
+ 
+     @AfterEach
+@@ -359,6 +380,7 @@ class N15EntryExpiryTest extends IntegrationTestBase {
+             };
+             boolean allowed = i < 2;
+             LiveTradingSessionEntity s = live(coin);
++            if (PIN && intake == N15GridRounds.Intake.LATE && "KRW-CRO".equals(coin)) pinSession = s.getId();
+             fake.set(intake.at(round));
+             evaluateLive(s);
+             assertThat(r.openRounds()).as(coin + " 접수").isEqualTo(1);
+@@ -504,6 +526,17 @@ class N15EntryExpiryTest extends IntegrationTestBase {
+         assertThat(buys("LIVE", l.getId())).isEmpty();
+         assertThat(positionRepository.findBySessionKindAndSessionId("LIVE", l.getId())).as("예약 트랜잭션 롤백 — 슬롯 0").isEmpty();
+         assertThat(liveFunds(l.getId())).isEqualByComparingTo("20000");
++        if (PIN && intake == N15GridRounds.Intake.LATE) {
++            int before = exchangeCalls("KRW-CRO");
++            TRACE.add(Instant.now() + " ④ LATE 판정 직전 — 놓기 전 거래소 호출 " + before + " · 붙잡힌 식별자 " + pinIdentifier);
++            HOLD.countDown();
++            long until = System.currentTimeMillis() + 3000;
++            while (exchangeCalls("KRW-CRO") == before && System.currentTimeMillis() < until) Thread.onSpinWait();
++            try { Thread.sleep(200); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); }
++            org.mockito.Mockito.mockingDetails(upbitOrderClient).getInvocations().forEach(i -> TRACE.add(Instant.now() + " ④ LATE 대역 호출 "
++                    + i.getMethod().getName() + " " + java.util.Arrays.toString(i.getArguments()) + " 식별자 일치 " + java.util.Arrays.asList(i.getArguments()).contains(pinIdentifier)));
++            TRACE.forEach(t -> System.out.println("[N15PIN] " + t));
++        }
+         assertThat(exchangeCalls("KRW-CRO")).isZero();
+         assertThat((String) sigL[1]).contains("ENTRY_EXPIRED");
+ 
