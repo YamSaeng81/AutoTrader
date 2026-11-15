@@ -1,3 +1,17 @@
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/N15EntryExpiryTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/N15EntryExpiryTest.java
+index d9233379..5a0403d2 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/N15EntryExpiryTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/N15EntryExpiryTest.java
+@@ -504,6 +504,9 @@ class N15EntryExpiryTest extends IntegrationTestBase {
+         assertThat(buys("LIVE", l.getId())).isEmpty();
+         assertThat(positionRepository.findBySessionKindAndSessionId("LIVE", l.getId())).as("예약 트랜잭션 롤백 — 슬롯 0").isEmpty();
+         assertThat(liveFunds(l.getId())).isEqualByComparingTo("20000");
++        // 탐침 전용(v1.168, 미커밋): ④ LATE 의 거래소 호출 1 원인 — 대역 호출마다 인자·호출 위치·시각
++        org.mockito.Mockito.mockingDetails(upbitOrderClient).getInvocations().forEach(i -> System.out.println("[N15PROBE] " + intake + " "
++                + java.time.Instant.now() + " " + i.getMethod().getName() + " " + java.util.Arrays.toString(i.getArguments()) + " " + i.getLocation()));
+         assertThat(exchangeCalls("KRW-CRO")).isZero();
+         assertThat((String) sigL[1]).contains("ENTRY_EXPIRED");
+ 
 diff --git a/web-api/src/test/resources/META-INF/services/org.junit.jupiter.api.extension.Extension b/web-api/src/test/resources/META-INF/services/org.junit.jupiter.api.extension.Extension
 index 9e8f02e5..b6beeb2f 100644
 --- a/web-api/src/test/resources/META-INF/services/org.junit.jupiter.api.extension.Extension
