@@ -1,0 +1,104 @@
+{
+  "status": "생성 초안 — 확인 SQL 전(ab_complete.py v4.1 로 완성)",
+  "tool_version": "v4.1",
+  "protocol_sha256": "8d787fe9d8c6d6bec00a588e38c6d638a97be9faf3709875b1670d71eae5d3db",
+  "code_sha": "0e1d2a021ab2f3c759a9b2be9c4f09430f93c80d",
+  "t0": "2026-11-16T23:15:00+00:00",
+  "db_verified": false,
+  "reconcile_ok": true,
+  "reconcile_source": "DB 메타 조회(meta_after.sql, 열 제한·522~587 제외) — API 목록 아님",
+  "db_source": "로컬 격리 컨테이너 v152-pg / DB ab41b (docker exec psql, 생성기 메타 조회)",
+  "preflight_max_id": 1,
+  "meta_after_sha256": "3e8241c3744267d754f99e84b6be12b46447a37436e686a0011dd54fe6eaa901",
+  "created_at_source": "POST 응답 data.startedAt 원문(정밀도 보존)",
+  "stored_started_at_source": "생성 뒤 DB 메타 조회(meta_after.sql)의 같은 ID started_at 원문",
+  "precision_contract": "round_half_up(나노초→마이크로초)(post_started_at_raw) == db_meta_started_at",
+  "sessions": [
+    {
+      "pair_id": "P1",
+      "arm": "A",
+      "session_id": "2",
+      "created_at": "2026-11-16T23:07:05.586068100Z",
+      "post_started_at_raw": "2026-11-16T23:07:05.586068100Z",
+      "db_meta_started_at": "2026-11-16 23:07:05.586068+00",
+      "ruleset_hash": null,
+      "stored": null
+    },
+    {
+      "pair_id": "P1",
+      "arm": "B",
+      "session_id": "3",
+      "created_at": "2026-11-16T23:07:05.666675600Z",
+      "post_started_at_raw": "2026-11-16T23:07:05.666675600Z",
+      "db_meta_started_at": "2026-11-16 23:07:05.666676+00",
+      "ruleset_hash": null,
+      "stored": null
+    },
+    {
+      "pair_id": "P2",
+      "arm": "A",
+      "session_id": "4",
+      "created_at": "2026-11-16T23:07:05.702748100Z",
+      "post_started_at_raw": "2026-11-16T23:07:05.702748100Z",
+      "db_meta_started_at": "2026-11-16 23:07:05.702748+00",
+      "ruleset_hash": null,
+      "stored": null
+    },
+    {
+      "pair_id": "P2",
+      "arm": "B",
+      "session_id": "5",
+      "created_at": "2026-11-16T23:07:05.734580700Z",
+      "post_started_at_raw": "2026-11-16T23:07:05.734580700Z",
+      "db_meta_started_at": "2026-11-16 23:07:05.734581+00",
+      "ruleset_hash": null,
+      "stored": null
+    },
+    {
+      "pair_id": "P3",
+      "arm": "A",
+      "session_id": "6",
+      "created_at": "2026-11-16T23:07:05.756910600Z",
+      "post_started_at_raw": "2026-11-16T23:07:05.756910600Z",
+      "db_meta_started_at": "2026-11-16 23:07:05.756911+00",
+      "ruleset_hash": null,
+      "stored": null
+    },
+    {
+      "pair_id": "P3",
+      "arm": "B",
+      "session_id": "7",
+      "created_at": "2026-11-16T23:07:05.797606700Z",
+      "post_started_at_raw": "2026-11-16T23:07:05.797606700Z",
+      "db_meta_started_at": "2026-11-16 23:07:05.797607+00",
+      "ruleset_hash": null,
+      "stored": null
+    },
+    {
+      "pair_id": "P4",
+      "arm": "A",
+      "session_id": "8",
+      "created_at": "2026-11-16T23:07:05.839045100Z",
+      "post_started_at_raw": "2026-11-16T23:07:05.839045100Z",
+      "db_meta_started_at": "2026-11-16 23:07:05.839045+00",
+      "ruleset_hash": null,
+      "stored": null
+    },
+    {
+      "pair_id": "P4",
+      "arm": "B",
+      "session_id": "9",
+      "created_at": "2026-11-16T23:07:05.869165800Z",
+      "post_started_at_raw": "2026-11-16T23:07:05.869165800Z",
+      "db_meta_started_at": "2026-11-16 23:07:05.869166+00",
+      "ruleset_hash": null,
+      "stored": null
+    }
+  ],
+  "checks": {
+    "reconcile_problems": [],
+    "created_at_not_before_t0": [],
+    "precision_contract_failed": [],
+    "other_new_ids": []
+  }
+}

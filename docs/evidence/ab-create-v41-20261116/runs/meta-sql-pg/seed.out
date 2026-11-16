@@ -1,0 +1,12 @@
+SELECT 1
+INSERT 0 5
+ id  | status  |      strategy_name      | coin_pair | timeframe 
+-----+---------+-------------------------+-----------+-----------
+   1 | STOPPED |                         |           | 
+ 530 | RUNNING | COMPOSITE_MEANREV_BB    | KRW-BTC   | M15
+ 587 | RUNNING | COMPOSITE_MTF_CONFIRMED | KRW-ETH   | M15
+ 588 | RUNNING | COMPOSITE_MEANREV_BB    | KRW-BTC   | M15
+ 600 | RUNNING | COMPOSITE_MTF_MOMENTUM  | KRW-XRP   | M15
+ 601 | STOPPED | COMPOSITE_MEANREV_BB    | KRW-ETH   | M15
+(6 rows)
+

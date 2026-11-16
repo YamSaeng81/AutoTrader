@@ -1,0 +1,10 @@
+15:00:49.110 [scheduler-7] ERROR c.c.e.upbit.UpbitCandleCollector - 캔들 수집 실패: request timed out
+15:00:49.116 [scheduler-7] ERROR c.c.a.service.MarketDataSyncService - 시장 데이터 동기화 실패: KRW-IOTA H1 - 캔들 데이터 수집 실패
+15:01:04.121 [scheduler-7] ERROR c.c.e.upbit.UpbitCandleCollector - 캔들 수집 실패: request timed out
+15:01:04.122 [scheduler-7] ERROR c.c.a.service.MarketDataSyncService - 시장 데이터 동기화 실패: KRW-WAVES H1 - 캔들 데이터 수집 실패
+15:01:19.127 [scheduler-7] ERROR c.c.e.upbit.UpbitCandleCollector - 캔들 수집 실패: request timed out
+15:01:19.127 [scheduler-7] ERROR c.c.a.service.MarketDataSyncService - 시장 데이터 동기화 실패: KRW-CRO H1 - 캔들 데이터 수집 실패
+15:50:47.393 [scheduler-8] ERROR c.c.a.news.source.CryptoPanicSource - [CryptoPanicSource] 수집 실패: Connection reset
+19:26:31.698 [telegram-1] ERROR c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 중 오류(응답 미수신): Connection reset
+20:00:02.452 [scheduler-5] ERROR c.c.api.llm.provider.ClaudeProvider - [ClaudeProvider] 요청 실패
+20:00:02.453 [scheduler-5] WARN  c.c.api.llm.LlmTaskRouter - [LlmTaskRouter] 응답 실패 — task=REPORT_NARRATION provider=CLAUDE error=Connection reset

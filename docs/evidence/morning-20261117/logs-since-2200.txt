@@ -1,0 +1,38 @@
+Connection closed by 221.151.55.13 port 1822
+[shim] 접속 실패 재시도 1
+Connection closed by 221.151.55.13 port 1822
+[shim] 접속 실패 재시도 2
+Connection closed by 221.151.55.13 port 1822
+[shim] 접속 실패 재시도 3
+Connection closed by 221.151.55.13 port 1822
+[shim] 접속 실패 재시도 4
+Connection closed by 221.151.55.13 port 1822
+[shim] 접속 실패 재시도 5
+kex_exchange_identification: read: Connection reset by peer
+Connection reset by 221.151.55.13 port 1822
+[shim] 접속 실패 재시도 6
+Connection closed by 221.151.55.13 port 1822
+[shim] 접속 실패 재시도 7
+Connection closed by 221.151.55.13 port 1822
+[shim] 접속 실패 재시도 8
+로그 줄 18410
+13:00:22.309
+23:01:46.073
+ERROR 21
+      4  ERROR c.c.exchange.upbit.UpbitRestClient - Upbit API 오류: status=N, url=https://api.upbit.com/vN/candl
+      4  ERROR c.c.e.upbit.UpbitCandleCollector - 캔들 수집 실패: Upbit API 호출 실패: N (https://api.upbit.com/vN/can
+      4  ERROR c.c.a.service.DataCollectionService - 캔들 수집 실패: KRW-BLAST — 캔들 데이터 수집 실패
+      3  ERROR c.c.e.upbit.UpbitCandleCollector - 캔들 수집 실패: request timed out
+      1  ERROR c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 중 오류(응답 미수신): Connection reset
+      1  ERROR c.c.a.service.MarketDataSyncService - 시장 데이터 동기화 실패: KRW-WAVES HN - 캔들 데이터 수집 실패
+      1  ERROR c.c.a.service.MarketDataSyncService - 시장 데이터 동기화 실패: KRW-IOTA HN - 캔들 데이터 수집 실패
+      1  ERROR c.c.a.service.MarketDataSyncService - 시장 데이터 동기화 실패: KRW-CRO HN - 캔들 데이터 수집 실패
+      1  ERROR c.c.api.llm.provider.ClaudeProvider - [ClaudeProvider] 요청 실패
+      1  ERROR c.c.a.news.source.CryptoPanicSource - [CryptoPanicSource] 수집 실패: Connection reset
+Hikari 누수 0 · 획득 실패 0
+OutOfMemory 0 · Started 0
+캔들 판정 불가 0
+N17 0 · N19 0 · N20 0 · N20회차오류 0
+뉴스 미완료 20
+     19 sourceId=cryptopanic 결과=FAILED 종류=HTTP_403
+      1 sourceId=cryptopanic 결과=FAILED 종류=IOException

@@ -1,0 +1,40 @@
+test_existing_output_rejected_and_untouched (test_ab_v41.Arms.test_existing_output_rejected_and_untouched) ... ok
+test_normal_eight_arms_and_aggregator_accepts (test_ab_v41.Arms.test_normal_eight_arms_and_aggregator_accepts) ... ok
+test_other_db_output_rejected (test_ab_v41.Arms.test_other_db_output_rejected) ... ok
+test_rejections_write_nothing (test_ab_v41.Arms.test_rejections_write_nothing) ... ok
+test_same_input_same_bytes (test_ab_v41.Arms.test_same_input_same_bytes) ... ok
+test_created_at_must_equal_post_raw (test_ab_v41.Complete.test_created_at_must_equal_post_raw) ... ok
+test_db_without_timezone_rejected (test_ab_v41.Complete.test_db_without_timezone_rejected) ... ok
+test_draft_precision_contract_broken_rejected (test_ab_v41.Complete.test_draft_precision_contract_broken_rejected) ... ok
+test_empty_db_source_rejected (test_ab_v41.Complete.test_empty_db_source_rejected) ... ok
+test_existing_output_not_overwritten (test_ab_v41.Complete.test_existing_output_not_overwritten) ... ok
+test_missing_field_rejected (test_ab_v41.Complete.test_missing_field_rejected) ... ok
+test_normal_with_notation_difference_completes (test_ab_v41.Complete.test_normal_with_notation_difference_completes) ... ok
+test_old_v3_draft_rejected_not_filled (test_ab_v41.Complete.test_old_v3_draft_rejected_not_filled) ... ok
+test_one_row_off_by_one_micro_rejected (test_ab_v41.Complete.test_one_row_off_by_one_micro_rejected) ... ok
+test_other_db_same_ids_rejected_no_file (test_ab_v41.Complete.test_other_db_same_ids_rejected_no_file) ... ok
+test_v3_rejections_kept (test_ab_v41.Complete.test_v3_rejections_kept) ... ok
+test_one_stored_time_off_fails_reconcile (test_ab_v41.CreatorV41.test_one_stored_time_off_fails_reconcile) ... ok
+test_raw_post_and_db_meta_preserved (test_ab_v41.CreatorV41.test_raw_post_and_db_meta_preserved) ... ok
+test_parse_notation_equivalence (test_ab_v41.Precision.test_parse_notation_equivalence) ... ok
+test_parse_rejects_no_timezone_and_garbage (test_ab_v41.Precision.test_parse_rejects_no_timezone_and_garbage) ... ok
+test_round_half_up_boundaries (test_ab_v41.Precision.test_round_half_up_boundaries) ... ok
+test_arms_rejects_v4_complete (test_ab_v41.SourceMixV41.test_arms_rejects_v4_complete) ... ok
+test_missing_reconcile_source_or_db_source_rejected (test_ab_v41.SourceMixV41.test_missing_reconcile_source_or_db_source_rejected) ... ok
+test_mixed_source_keys_rejected (test_ab_v41.SourceMixV41.test_mixed_source_keys_rejected) ... ok
+test_reconcile_not_ok_rejected (test_ab_v41.SourceMixV41.test_reconcile_not_ok_rejected) ... ok
+test_v4_draft_rejected (test_ab_v41.SourceMixV41.test_v4_draft_rejected) ... FAIL
+
+======================================================================
+FAIL: test_v4_draft_rejected (test_ab_v41.SourceMixV41.test_v4_draft_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v41-20261116\tool\test_ab_v41.py", line 366, in test_v4_draft_rejected
+    self.assertIn("v4.1 이 아니다", out)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'v4.1 이 아니다' not found in '{"rejected": "초안의 DB 메타 대조가 성공이 아니다 — 완성하지 않는다"}\n'
+
+----------------------------------------------------------------------
+Ran 26 tests in 0.382s
+
+FAILED (failures=1)
