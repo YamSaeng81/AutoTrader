@@ -1,0 +1,121 @@
+== x02 UF2 뒤 U되돌림(정상 명시 복구) — backend latest=새판 → 되돌림, frontend 재생성
+PASS x02 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS x02 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS x02 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS x02 U3 — 종료 0 · '✅ U3(deploy) 통과' · checkout 1
+PASS x02 UF2 — 종료 0 · '✅ UF2 통과' · checkout 1
+PASS x02 U되돌림 — 종료 0 · 'b5cd1d0 (#27 이미지) 로 복귀' · checkout 2
+PASS x02 — 판정 = 실행 판정 backend=�
+PASS x02 — frontend 재생성 .Image·manifest = sha256:837db515e0eb8b9cb
+PASS x02 — backend 재생성 .Image·manifest = sha256:52e12428a60df5413
+PASS x02 — backend latest·보존 태그 = #27 대상 = sha256:52e12428a60df5413
+PASS x02 — frontend 이미지 이름·보존 태그 = 837db515 = sha256:837db515e0eb8b9cb
+PASS x02 U3(rb) — 종료 0 · '✅ U3(rollback) 통과' · checkout 2
+== x03 U1 통과 뒤 U1되돌림(정상) — 두 이름 새판 → 보존 대상으로, 재기동 없음
+PASS x03 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS x03 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS x03 U1되돌림 — 종료 0 · '↩ U1-되돌림 끝' · checkout 2
+PASS x03 — 이름 판정 = 이름 출처 판정 bac
+PASS x03 — backend latest·보존 태그 = #27 대상 = sha256:52e12428a60df5413
+PASS x03 — frontend 이미지 이름·보존 태그 = 837db515 = sha256:837db515e0eb8b9cb
+PASS x03 — backend 실행 컨테이너 그대로 = 743dfebac8c062011d7711bb
+PASS x03 — frontend 실행 컨테이너 그대로 = 9a63d15ab1106830ca5d4d59
+PASS x03 — up 0 = 0
+== x04 클래스 변조 jar → JARM 멈춤 → U1되돌림(backend=새판·frontend=원판, 단계 보존태그)
+PASS x04 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS x04 U1 — 종료 1 · '새 jar 항목 내용이 후보 0e1d2a02(제품 입력 99e6ab10) 목록(JARM)과 다름' · checkout 1
+PASS x04 U1되돌림 — 종료 0 · '↩ U1-되돌림 끝' · checkout 2
+PASS x04 — 이름 판정 = 이름 출처 판정 bac
+PASS x04 — backend latest·보존 태그 = #27 대상 = sha256:52e12428a60df5413
+PASS x04 — frontend 이미지 이름·보존 태그 = 837db515 = sha256:837db515e0eb8b9cb
+== f02 frontend 빌드 실패(이름 그대로) → U1되돌림 backend 만
+PASS f02 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS f02 U1 — 종료 1 · 'frontend 빌드 실패' · checkout 1
+PASS f02 U1되돌림 — 종료 0 · '↩ U1-되돌림 끝' · checkout 2
+PASS f02 — backend latest·보존 태그 = #27 대상 = sha256:52e12428a60df5413
+PASS f02 — frontend 이미지 이름·보존 태그 = 837db515 = sha256:837db515e0eb8b9cb
+PASS f02 — frontend 실행 컨테이너 그대로 = 9a63d15ab1106830ca5d4d59
+PASS f02 — 계획 = 되돌릴 이미지 이�
+== f03 빌드시작 뒤 frontend 이름이 바뀐 채 빌드 실패(새 대응 기록 없음) → U1되돌림이 출처 미확인으로 바꾸기 전 멈춤
+PASS f03 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS f03 U1 — 종료 1 · 'frontend 빌드 실패' · checkout 1
+PASS f03 — 새 frontend 대응 기록 없음 = 없음
+PASS f03 U1되돌림 — 종료 1 · 'frontend 이미지 이름이 U0 원판·U1 이번 빌드 기록(image-fe-new-chain) 어느 것도 아님' · checkout 1
+PASS f03 — 변경 명령 0 = 0
+PASS f03 — HEAD 그대로(NEW) = 0e1d2a021ab2f3c759a9b2be
+PASS f03 — 이름 그대로(backend 새·frontend 바뀐 값) = sha256:b7befd922fc90df90
+== q01 빌드시작 + 제3의 frontend(빌드 실패 뒤 이름이 무관한 대상) → 멈춤 · 총괄 R2a 분기
+PASS q01 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS q01 U1 — 종료 1 · 'frontend 빌드 실패' · checkout 1
+PASS q01 U1되돌림 — 종료 1 · 'frontend 이미지 이름이 U0 원판·U1 이번 빌드 기록(image-fe-new-chain) 어느 것도 아님' · checkout 1
+PASS q01 — 변경 명령 0 = 0
+PASS q01 — 제3 frontend 그대로 = sha256:8c61b894ccdde3e9a
+== q02 U1 통과 뒤 backend latest = 제3 → U1되돌림 멈춤
+PASS q02 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS q02 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS q02 U1되돌림 — 종료 1 · 'backend latest 가 U0 원판·U1 이번 빌드 기록(image-new-chain) 어느 것도 아님' · checkout 1
+PASS q02 — 변경 명령 0 = 0
+PASS q02 — 제3 latest 그대로 = sha256:403239087e8c42c7a
+== q03·q07 U1 통과 뒤 backend latest(이번 빌드판) 대응 조회 실패 — save(q03)·API(q07) → U1되돌림 조회 불명 멈춤
+PASS q03 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS q03 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS q03 U1되돌림 — 종료 1 · 'backend latest 대응 조회 불명 — 원판·새판으로 추정하지 않는다' · checkout 1
+PASS q03 — 변경 명령 0 = 0
+PASS q03 — HEAD 그대로(NEW) = 0e1d2a021ab2f3c759a9b2be
+PASS q07 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS q07 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS q07 U1되돌림 — 종료 1 · 'backend latest 대응 조회 불명 — 원판·새판으로 추정하지 않는다' · checkout 1
+PASS q07 — 변경 명령 0 = 0
+PASS q07 — HEAD 그대로(NEW) = 0e1d2a021ab2f3c759a9b2be
+== q04 U2 뒤 backend latest = 제3 → U되돌림 바꾸기 전 멈춤(총괄 R2b 분기)
+PASS q04 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS q04 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS q04 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS q04 U3 — 종료 0 · '✅ U3(deploy) 통과' · checkout 1
+PASS q04 U되돌림 — 종료 1 · 'backend latest 가 U0 원판·U1 이번 빌드판 어느 것도 아님(제3의 대상)' · checkout 1
+PASS q04 — 변경 명령 0 = 0
+PASS q04 — 제3 latest 그대로 = sha256:3e0830eeff3d5bcd3
+PASS q04 — 관문 실행 안 함 = 없음
+== q05 U3 뒤(UF2 전) frontend 이름 대응 조회 실패(API) → U되돌림 멈춤 · q06 제3 latest + 조회 실패(save) → 조회 불명 멈춤
+PASS q05 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS q05 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS q05 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS q05 U3 — 종료 0 · '✅ U3(deploy) 통과' · checkout 1
+PASS q05 U되돌림 — 종료 1 · 'frontend 이미지 이름 대응 조회 불명' · checkout 1
+PASS q05 — 변경 명령 0 = 0
+PASS q06 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS q06 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS q06 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS q06 U3 — 종료 0 · '✅ U3(deploy) 통과' · checkout 1
+PASS q06 U되돌림 — 종료 1 · 'backend latest 대응 조회 불명' · checkout 1
+PASS q06 — 변경 명령 0 = 0
+== q08 U2 뒤 backend latest 가 이미 원판(#27)으로 돌아가 있음 → U되돌림이 태그를 쓰지 않고 재생성·복귀
+PASS q08 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS q08 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS q08 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS q08 U3 — 종료 0 · '✅ U3(deploy) 통과' · checkout 1
+PASS q08 U되돌림 — 종료 0 · 'b5cd1d0 (#27 이미지) 로 복귀' · checkout 2
+PASS q08 — backend latest 판정 원판 = backend latest 원판
+PASS q08 — 이번 U되돌림의 docker tag 는 frontend 이름 1회뿐 = 1 0
+PASS q08 — backend 재생성 .Image·manifest = sha256:52e12428a60df5413
+== r01 UF2 응답 500 → U되돌림 frontend 복구 · r02 frontend 교체 전 U되돌림(이름만)
+PASS r01 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS r01 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS r01 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS r01 U3 — 종료 0 · '✅ U3(deploy) 통과' · checkout 1
+PASS r01 UF2 — 종료 1 · 'frontend 되돌림 필요: / 응답 500' · checkout 1
+PASS r01 U되돌림 — 종료 0 · 'b5cd1d0 (#27 이미지) 로 복귀' · checkout 2
+PASS r01 — frontend 재생성 .Image·manifest = sha256:837db515e0eb8b9cb
+PASS r01 — backend latest·보존 태그 = #27 대상 = sha256:52e12428a60df5413
+PASS r01 — frontend 이미지 이름·보존 태그 = 837db515 = sha256:837db515e0eb8b9cb
+PASS r02 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS r02 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS r02 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS r02 U3 — 종료 0 · '✅ U3(deploy) 통과' · checkout 1
+PASS r02 U되돌림 — 종료 0 · 'b5cd1d0 (#27 이미지) 로 복귀' · checkout 2
+PASS r02 — frontend 실행 컨테이너 그대로 = 9a63d15ab1106830ca5d4d59
+PASS r02 — backend latest·보존 태그 = #27 대상 = sha256:52e12428a60df5413
+PASS r02 — frontend 이미지 이름·보존 태그 = 837db515 = sha256:837db515e0eb8b9cb
+PASS r02 — frontend 재생성 0 = 0
+PASS 전체 — 금지 명령 기록 줄 수 합 = 0
+== 결과(b): PASS 108 · FAIL 0

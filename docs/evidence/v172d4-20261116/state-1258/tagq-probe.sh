@@ -1,0 +1,3 @@
+# 11-16 12:58 KST 읽기 전용 조회(운영 변경 없음) — Docker Engine API v1.56 의 이미지 조회 응답 형식(있음 200·없음 404·소켓 실패)을 확인한다
+# 실행: ssh -o BatchMode=yes cat-prod '<아래 원문>' — 출력은 tagq-probe-read.txt
+date "+%F %T %Z"; for r in autotrader-frontend:b5cd1d0 autotrader-backend:b5cd1d0 autotrader-frontend:latest; do printf "== %s\n" "$r"; curl -s -o /tmp/.tq.$$ -w "code=%{http_code} rc=" --unix-socket /var/run/docker.sock "http://localhost/v1.56/images/$r/json"; echo $?; head -c 160 /tmp/.tq.$$; echo; rm -f /tmp/.tq.$$; done; printf "== 소켓 없음 흉내\n"; curl -s -o /dev/null -w "code=%{http_code}" --unix-socket /var/run/nonexist.sock http://localhost/v1.56/images/x/json; echo " rc=$?"

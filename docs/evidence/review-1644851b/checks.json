@@ -1,0 +1,150 @@
+{
+  "source": "1644851bb90e21626eeee8820a030bf767728c76",
+  "scope": "local static files, bash -n, isolated shell branches only",
+  "evidence": {
+    "v171d4-20261116": {
+      "files": 60,
+      "mismatches": 0
+    },
+    "review-b6afaddd": {
+      "files": 5,
+      "mismatches": 0
+    }
+  },
+  "management_source_match": {
+    "START_HERE.md": {
+      "bytes_match": true,
+      "lf_text_match": true
+    },
+    "LIMITED_LIVE_TEST_PLAN.md": {
+      "bytes_match": false,
+      "lf_text_match": true
+    },
+    "CURRENT_HANDOFF.md": {
+      "bytes_match": false,
+      "lf_text_match": true
+    },
+    "LIVE_READINESS.md": {
+      "bytes_match": true,
+      "lf_text_match": true
+    },
+    "NOVEMBER_LIVE_UPGRADE.md": {
+      "bytes_match": true,
+      "lf_text_match": true
+    },
+    "PROGRESS.md": {
+      "bytes_match": false,
+      "lf_text_match": true
+    },
+    "README.md": {
+      "bytes_match": true,
+      "lf_text_match": true
+    }
+  },
+  "blocks": {
+    "U0": {
+      "sha256": "6fd5b7f4fc0614c5b8ae979d3cfc80fbf00976bbac76141d08b8313a3db87ef1",
+      "bash_n": 0
+    },
+    "U1": {
+      "sha256": "d9f038555445b410c45b104c1eec61bda1fcf62d69f90e60315bfba8dd33973e",
+      "bash_n": 0
+    },
+    "U1되돌림": {
+      "sha256": "e5ff25c7e97298b3736bdd06a0aac873a853a6c614f904dfc42f319c5eb3d7da",
+      "bash_n": 0
+    },
+    "U2": {
+      "sha256": "ae0b2d774ec09c1059df5955fdc169d54cc9409cf100e2e3656c43e1ca1ba905",
+      "bash_n": 0
+    },
+    "U3": {
+      "sha256": "e50069bd22aecfb1b8a510067afba49dec82e10b18bc4e0590df4f9b14028093",
+      "bash_n": 0
+    },
+    "U4": {
+      "sha256": "7a4b4cf26478e2931ec92918941612537b3413c07365478d08bd0de738a2e30a",
+      "bash_n": 0
+    },
+    "UF2": {
+      "sha256": "18cfcd27e805aa0ea3c6861228bbf48576e0a1de656cbe6d1646ea73dd74a8ce",
+      "bash_n": 0
+    },
+    "U되돌림": {
+      "sha256": "84ecc373a8a3cb29bf44785f95ce46526570caa4d26ccb8be10f7f6baffe766c",
+      "bash_n": 0
+    },
+    "U뒤관측": {
+      "sha256": "9afe1f91358a07bd54ec7701ef0fc817bb62c158b6926c5e82fc586db05b98b0",
+      "bash_n": 0
+    },
+    "U변수": {
+      "sha256": "ede1ac55cc49c4b2eef49686e9915132dfa2a25f1c4dc904f4a129fda965a7bc",
+      "bash_n": 0
+    },
+    "F": {
+      "sha256": "b7e3fc2c1753c2ac8f2c8f99aee56dc05b013cbce2045ca25c30d95dbe0353b6",
+      "bash_n": 0
+    },
+    "G": {
+      "sha256": "4d7ff02a94194fc17e11ed062b4c0fdb80a395aa282c941e7b624be95851c822",
+      "bash_n": 0
+    }
+  },
+  "embedded_tool_sha256": "fddd5d1cae1b85e2a002d30afe24044869b79c4983c6cc46fe3363a0aba354f6",
+  "real_image_blobs": {
+    "52e12428": {
+      "manifest": "sha256:ca440b8403c4a65ce39c3a49f0e480c5ca5e9630380cdbcfe4daf6405fc6c628",
+      "config": "sha256:0344757e24e4567d56ff735560eb8564eab131933613b6deee663ead91e43e9b",
+      "hashes_match": true
+    },
+    "837db515": {
+      "manifest": "sha256:fa5c9ba849c3ee1e48540004105ea18df6d8d25df1bf490a6eeac425413e3ad6",
+      "config": "sha256:80ce755066587ea4eadad00e823b9f4aaa5e9696897aa3a4ebcf12cf6d11d946",
+      "hashes_match": true
+    }
+  },
+  "submitted_r2": {
+    "pass_lines": 203,
+    "fail_lines": 0,
+    "summaries": [
+      "== 결과: PASS 47 · FAIL 0",
+      "== 결과: PASS 52 · FAIL 0",
+      "== 결과: PASS 55 · FAIL 0",
+      "== 결과: PASS 49 · FAIL 0"
+    ],
+    "utf8_replacement_characters": 8
+  },
+  "archive": {
+    "included_files": 10445,
+    "source_hash_rows": 11814,
+    "omitted_from_archive": 1369,
+    "included_mismatches": 0
+  },
+  "branch_models": [
+    {
+      "name": "R1: both backup inspections fail with daemon error, tags still written",
+      "rc": 0,
+      "output": "MUTATION tag old-be autotrader-backend:b5cd1d0\nMUTATION tag old-fe autotrader-frontend:b5cd1d0\n",
+      "snippet_sha256": "a4a39d084c920348059f90b77ad1b6c8fa4ce37fab52b033f3a4283b1230e8d2"
+    },
+    {
+      "name": "R2a: build-start plus unrelated third frontend passes rollback plan",
+      "rc": 0,
+      "output": "third-unrelated-target\nREACHED_ROLLBACK_PLAN\n",
+      "snippet_sha256": "6156148ad103bf3dae51aa93581887d4dfaf31100b323bb5a9307621d7d288d8"
+    },
+    {
+      "name": "R2b: explicit rollback mutates backend latest without checking current target",
+      "rc": 0,
+      "output": "MUTATION tag old-be autotrader-backend:latest\nMUTATION up -d --no-build --no-deps --force-recreate backend\n",
+      "snippet_sha256": "9d8f17d56f5e8f46a4fc14c11f31b0a4b2905f18150c0631f9cba55719ba6ff9"
+    },
+    {
+      "name": "R3: P0 log exists but news DB query fails before log read",
+      "rc": 1,
+      "output": "STOP 뉴스 설정 조회 실패 — 1분 뒤 U3 를 다시\n",
+      "snippet_sha256": "264404cadffcacfcdfc048814992e5cbf111561e27522d7e116c4a769039cfa2"
+    }
+  ]
+}

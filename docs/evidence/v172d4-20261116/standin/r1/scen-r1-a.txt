@@ -1,0 +1,71 @@
+== UT 함수 단위 — same3 0/1/2 · tagkeep 0/1/2/3 · namecls 원판/새판/제3/불명(U변수 원문 정의, rchain·tagq 만 대역 함수)
+PASS ut UT — 종료 0 · 'UT 결과 15/15' · checkout 0
+== x01 정상 전 구간 — 운영과 같은 시작 상태(backend 보존 태그 있음·같음 → 다시 쓰지 않음, frontend 보존 태그 404 → 만든다)
+PASS x01 U0 — 종료 0 · '보존 태그 autotrader-backend:b5cd1d0 있음 — #27 backend 대응과 같음' · checkout 0
+PASS x01 — U0 frontend 보존 태그 404 판정 줄 = 1
+PASS x01 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS x01 — U1 보존 태그 판정 = 보존 태그 판정 bac
+PASS x01 — backend 보존 태그 다시 쓰지 않음 = 0
+PASS x01 — frontend 보존 태그 1회 생성 = 1
+PASS x01 — JARM = JARM b65879533e1ba1c552f
+PASS x01 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS x01 U3 — 종료 0 · '✅ U3(deploy) 통과' · checkout 1
+PASS x01 UF2 — 종료 0 · '✅ UF2 통과' · checkout 1
+PASS x01 — U3 P0 1차 검사 기록 = 있음
+PASS x01 U4 — 종료 0 · '✅ U4 통과' · checkout 1
+PASS x01 U뒤관측 — 종료 0 · '' · checkout 1
+PASS x01 — U4·U뒤관측 P0 1차 검사 기록 = 있음 1
+PASS x01 — start_66.py sha256 = 68d441ce0ed66d0a654d9ec7
+PASS x01 — imgchain.py = ICSUM = fddd5d1cae1b85e2a002d30a
+== k01 두 보존 태그 모두 명시적 부재(404) → U0 통과 · U1 이 두 개를 만든다
+PASS k01 U0 — 종료 0 · '보존 태그 autotrader-backend:b5cd1d0 없음(API 404 확인) — U1 이 만든다' · checkout 0
+PASS k01 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+FAIL k01 — 판정 = 보존 태그 판정 backend=1 (기대 보존 태그 판정 backend=1 frontend=1)
+PASS k01 — 만든 태그 = sha256:52e12428a60df5413
+== k02 U0 backend 보존 태그 조회 rc7 → U0 멈춤(ok-U0 없음)
+PASS k02 U0 — 종료 1 · '보존 태그 autotrader-backend:b5cd1d0 조회 불명(권한·daemon·API·형식) — 없음으로 보지 않는다' · checkout 0
+PASS k02 — ok-U0 = 없음
+PASS k02f U0 — 종료 1 · '보존 태그 autotrader-frontend:b5cd1d0 조회 불명' · checkout 0
+== k03~k07 U1 태그 조회 불명 → 바꾸기 전 멈춤(tag·build·up·checkout 0)
+PASS k03 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS k03 U1 — 종료 1 · 'autotrader-frontend:b5cd1d0 태그 조회 불명' · checkout 0
+PASS k03 — 변경 명령 0 = 0
+PASS k03 — 태그 그대로(backend 보존=#27·frontend 보존 없음) = sha256:52e12428a60df5413
+PASS k04 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS k04 U1 — 종료 1 · 'autotrader-backend:b5cd1d0 태그 조회 불명' · checkout 0
+PASS k04 — 변경 명령 0 = 0
+PASS k04 — 태그 그대로(backend 보존=#27·frontend 보존 없음) = sha256:52e12428a60df5413
+PASS k05 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS k05 U1 — 종료 1 · 'autotrader-backend:b5cd1d0 태그 조회 불명' · checkout 0
+PASS k05 — 변경 명령 0 = 0
+PASS k05 — 태그 그대로(backend 보존=#27·frontend 보존 없음) = sha256:52e12428a60df5413
+PASS k06 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS k06 U1 — 종료 1 · 'autotrader-backend:b5cd1d0 태그 조회 불명' · checkout 0
+PASS k06 — 변경 명령 0 = 0
+PASS k06 — 태그 그대로(backend 보존=#27·frontend 보존 없음) = sha256:52e12428a60df5413
+PASS k07 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS k07 U1 — 종료 1 · 'autotrader-frontend:b5cd1d0 태그 조회 불명' · checkout 0
+PASS k07 — 변경 명령 0 = 0
+PASS k07 — 태그 그대로(backend 보존=#27·frontend 보존 없음) = sha256:52e12428a60df5413
+FAIL k05 — 두 태그 판정 기록(둘 다 3) = 보존 태그 판정 backend=3 (기대 보존 태그 판정 backend=3 frontend=3)
+== k08 U1 backend 보존 태그가 다른 대상 → 멈춤 · k10 다른 대상 + 조회 rc7 → 멈춤, 덮어쓰지 않음(o02 와 대조)
+PASS k08 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS k08 U1 — 종료 1 · 'autotrader-frontend:b5cd1d0 태그가 이미 다른 이미지를 가리킨다' · checkout 0
+PASS k08 — 변경 명령 0 = 0
+FAIL k08 — 판정 frontend=2 = 보존 태그 판정 backend=0 (기대 보존 태그 판정 backend=0 frontend=2)
+PASS k10 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS k10 U1 — 종료 1 · 'autotrader-backend:b5cd1d0 태그 조회 불명' · checkout 0
+PASS k10 — 다른 대상 보존 태그 그대로 = sha256:d9298a10d1b073583
+PASS k10 — 변경 명령 0 = 0
+== 판 혼합·기록 폴더 거부
+PASS x07 U0 — 종료 1 · '변수 순서 — F 변수 → G 변수 → v1.172 통합 후보 초안 D4 U 변수' · checkout 0
+FAIL x08 U0 — 종료 0(기대 1) · '변수 순서 — F 변수 → G 변수 → v1.171 통합 후보 초안 D4 U 변수' · checkout 0(기대 0)
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+✅ U0 통과 — 30분 안에 U1(매시 :14~:24 는 피한다)
+[대역 끝] rc=0 · 가짜 시각 13:30:00
+PASS x09 U0 — 종료 1 · '변수 순서 — F 변수 → G 변수 → v1.172 통합 후보 초안 D4 U 변수' · checkout 0
+PASS x10 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS x10 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS x10 U2 — 종료 1 · 'U 변수가 v1.172 통합 후보 초안 D4 판이 아님' · checkout 1
+PASS 전체 — 금지 명령 기록 줄 수 합 = 0
+== 결과(a): PASS 56 · FAIL 4

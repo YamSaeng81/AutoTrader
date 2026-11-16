@@ -1,0 +1,91 @@
+== p01 P0 + 이미지 조회 실패 → P0 · p02 이미지 조회 실패만 → 대응 멈춤
+PASS p01 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS p01 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS p01 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS p01 U3 — 종료 1 · '🔴 P0 — 연결 획득 시간 초과 줄이 있다' · checkout 1
+PASS p02 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS p02 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS p02 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS p02 U3 — 종료 1 · '실행 이미지가 기대 대상·manifest·config 와 다름 또는 조회 실패' · checkout 1
+== p03 P0 + 뉴스 설정 SQL 실패 동시 → P0 로 멈춤(총괄 R3 분기) · p06 뉴스 SQL 실패만 → P0 1차 검사 뒤 뉴스 멈춤
+PASS p03 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS p03 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS p03 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS p03 U3 — 종료 1 · '🔴 P0 — 연결 획득 시간 초과 줄이 있다' · checkout 1
+PASS p03 — P0 1차 검사 기록 = 있음
+PASS p03 — 뉴스 SQL 앞에서 멈춤(news-deploy 없음) = 없음
+PASS p03 — 변경 명령 0 = 0
+PASS p06 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS p06 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS p06 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS p06 U3 — 종료 1 · '뉴스 설정 조회 실패 — 1분 뒤 U3 를 다시' · checkout 1
+PASS p06 — P0 1차 검사 기록 = 있음
+== p04 로그 조회 실패 · p05 빈 로그 → P0 검사 미완료로 멈춤(0 으로 보지 않음)
+PASS p04 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS p04 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS p04 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS p04 U3 — 종료 1 · '🔴 P0 검사 미완료 — 기동 구간 로그를 확보하지 못함' · checkout 1
+PASS p04 — ok-U3 없음 = 없음
+PASS p05 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS p05 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS p05 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS p05 U3 — 종료 1 · '🔴 P0 검사 미완료 — 기동 구간 로그가 비었다' · checkout 1
+== p07 U4: P0 + 뉴스 SQL 실패 → P0 · p08 U뒤관측: P0 + 이미지·뉴스 조회 실패 → P0 · p10 U4 로그 실패 → 미완료
+PASS p07 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS p07 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS p07 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS p07 U3 — 종료 0 · '✅ U3(deploy) 통과' · checkout 1
+PASS p07 UF2 — 종료 0 · '✅ UF2 통과' · checkout 1
+PASS p07 U4 — 종료 1 · '🔴 P0 — 연결 획득 시간 초과 줄이 있다' · checkout 1
+PASS p07 — 뉴스 SQL 앞에서 멈춤 = 없음
+PASS p08 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS p08 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS p08 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS p08 U3 — 종료 0 · '✅ U3(deploy) 통과' · checkout 1
+PASS p08 UF2 — 종료 0 · '✅ UF2 통과' · checkout 1
+PASS p08 U4 — 종료 0 · '✅ U4 통과' · checkout 1
+PASS p08 U뒤관측 — 종료 1 · '🔴 P0 — 연결 획득 시간 초과 줄이 있다' · checkout 1
+PASS p10 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS p10 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS p10 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS p10 U3 — 종료 0 · '✅ U3(deploy) 통과' · checkout 1
+PASS p10 UF2 — 종료 0 · '✅ UF2 통과' · checkout 1
+PASS p10 U4 — 종료 1 · '🔴 P0 검사 미완료 — 기동 구간 로그를 확보하지 못함' · checkout 1
+== p09 U되돌림 뒤 U3(rollback): P0 + 뉴스 SQL 실패 → P0
+PASS p09 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS p09 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS p09 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS p09 U3 — 종료 0 · '✅ U3(deploy) 통과' · checkout 1
+PASS p09 U되돌림 — 종료 0 · 'b5cd1d0 (#27 이미지) 로 복귀' · checkout 2
+PASS p09 U3(rb) — 종료 1 · '🔴 P0 — 연결 획득 시간 초과 줄이 있다' · checkout 2
+== 영향 회귀 — i06 U0 다른 대상 보존 태그 · t01 latest 변경 → U2 멈춤 · i07 API 실패 → U1 변경 0
+PASS i06 U0 — 종료 1 · '보존 태그 autotrader-backend:b5cd1d0 조회 불명' · checkout 0
+PASS i06b U0 — 종료 1 · '보존 태그 autotrader-backend:b5cd1d0 이 이미 다른 이미지를 가리킨다' · checkout 0
+PASS t01 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS t01 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS t01 U2 — 종료 1 · 'latest 가 image-new 와 다름' · checkout 1
+PASS t01 — up 0 = 0
+PASS i07 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS i07 U1 — 종료 1 · '(아직 바꾼 것 없음, U1-되돌림 하지 않는다)' · checkout 0
+PASS i07 — 변경 명령 0 = 0
+== 옛 V171D4 원문(1644851b)을 같은 장치로 — 총괄이 지적한 세 공백 재현
+PASS o02 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS o02 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS o02 — R1 재현: 조회 실패를 부재로 보고 다른 대상 보존 태그를 덮어씀 = sha256:52e12428a60df5413
+PASS o03 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS o03 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS o03 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS o03 U3 — 종료 0 · '✅ U3(deploy) 통과' · checkout 1
+PASS o03 U되돌림 — 종료 0 · 'b5cd1d0 (#27 이미지) 로 복귀' · checkout 2
+PASS o03 — R2b 재현: 제3 latest 를 확인 없이 덮어씀 = sha256:52e12428a60df5413
+PASS o04 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS o04 U1 — 종료 1 · 'frontend 빌드 실패' · checkout 1
+PASS o04 U1되돌림 — 종료 0 · '↩ U1-되돌림 끝' · checkout 2
+PASS o04 — R2a 재현: 빌드시작 + 제3 frontend 를 복구 계획에 넣고 덮어씀 = sha256:837db515e0eb8b9cb
+PASS o05 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS o05 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS o05 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS o05 U3 — 종료 1 · '뉴스 설정 조회 실패' · checkout 1
+PASS o05 — R3 재현: P0 로그 검사 미도달 = 없음 없음
+PASS 전체 — 금지 명령 기록 줄 수 합 = 0
+== 결과(c): PASS 83 · FAIL 0

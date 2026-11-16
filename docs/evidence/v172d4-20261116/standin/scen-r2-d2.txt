@@ -1,0 +1,82 @@
+== p11 U뒤관측: 첫 로그 정상 → 두 번째 로그에 P0 → 즉시 멈춤(postlog 지적 분기)
+PASS p11 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS p11 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS p11 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS p11 U3 — 종료 0 · '✅ U3(deploy) 통과' · checkout 1
+PASS p11 UF2 — 종료 0 · '✅ UF2 통과' · checkout 1
+PASS p11 U4 — 종료 0 · '✅ U4 통과' · checkout 1
+PASS p11 U뒤관측 — 종료 1 · '🔴 P0 — 연결 획득 시간 초과 줄이 있다(두 번째 로그)' · checkout 1
+PASS p11 — 첫 로그 검사 기록 있음·첫 검사 P0 멈춤 없음 = 1 0
+PASS p11 — 뒤 관측 미진행(newsobs 기록 없음) = 0
+== p12 U뒤관측: 첫 로그 정상 → 두 번째 holdobs 판정 실패(종료 2) → 검사 미완료로 멈춤 · p16 두 번째 로그 조회 실패 → 멈춤
+PASS p12 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS p12 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS p12 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS p12 U3 — 종료 0 · '✅ U3(deploy) 통과' · checkout 1
+PASS p12 UF2 — 종료 0 · '✅ UF2 통과' · checkout 1
+PASS p12 U4 — 종료 0 · '✅ U4 통과' · checkout 1
+PASS p12 U뒤관측 — 종료 1 · '🔴 P0 검사 미완료 — 두 번째 로그 holdobs 종료 2(판정 실패)' · checkout 1
+PASS p16 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS p16 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS p16 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS p16 U3 — 종료 0 · '✅ U3(deploy) 통과' · checkout 1
+PASS p16 UF2 — 종료 0 · '✅ UF2 통과' · checkout 1
+PASS p16 U4 — 종료 0 · '✅ U4 통과' · checkout 1
+PASS p16 U뒤관측 — 종료 1 · '🔴 P0 검사 미완료 — 두 번째 로그를 확보하지 못함' · checkout 1
+== p13 U3·p14 U4: 첫 로그 정상 → 두 번째 holdobs 판정 실패 → 멈춤 · p15 U3 첫 로그 정상 → 두 번째 로그 P0 → 멈춤
+PASS p13 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS p13 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS p13 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS p13 U3 — 종료 1 · '🔴 P0 검사 미완료 — 두 번째 로그 holdobs 종료 2(판정 실패)' · checkout 1
+PASS p13 — ok-U3 없음 = 없음
+PASS p14 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS p14 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS p14 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS p14 U3 — 종료 0 · '✅ U3(deploy) 통과' · checkout 1
+PASS p14 UF2 — 종료 0 · '✅ UF2 통과' · checkout 1
+PASS p14 U4 — 종료 1 · '🔴 P0 검사 미완료 — 두 번째 로그 holdobs 종료 2(판정 실패)' · checkout 1
+PASS p14 — ok-U4 없음 = 없음
+PASS p15 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS p15 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS p15 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS p15 U3 — 종료 1 · '🔴 P0 — 연결 획득 시간 초과 줄이 있다' · checkout 1
+PASS p15 — 첫 로그 검사 기록 있음 = 있음
+== R3 사례(바뀐 블록으로 다시) — p03 U3 P0+뉴스 실패 · p06 뉴스만 · p07 U4 P0+뉴스 · p08 U뒤관측 첫 로그 P0+조회 실패 · p09 U3 rollback · p10 U4 로그 실패
+PASS p03 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS p03 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS p03 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS p03 U3 — 종료 1 · '🔴 P0 — 연결 획득 시간 초과 줄이 있다' · checkout 1
+PASS p03 — 뉴스 SQL 앞에서 멈춤 = 없음
+PASS p06 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS p06 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS p06 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS p06 U3 — 종료 1 · '뉴스 설정 조회 실패 — 1분 뒤 U3 를 다시' · checkout 1
+PASS p06 — P0 1차 검사 기록 = 있음
+PASS p07 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS p07 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS p07 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS p07 U3 — 종료 0 · '✅ U3(deploy) 통과' · checkout 1
+PASS p07 UF2 — 종료 0 · '✅ UF2 통과' · checkout 1
+PASS p07 U4 — 종료 1 · '🔴 P0 — 연결 획득 시간 초과 줄이 있다' · checkout 1
+PASS p07 — 뉴스 SQL 앞에서 멈춤 = 없음
+PASS p08 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS p08 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS p08 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS p08 U3 — 종료 0 · '✅ U3(deploy) 통과' · checkout 1
+PASS p08 UF2 — 종료 0 · '✅ UF2 통과' · checkout 1
+PASS p08 U4 — 종료 0 · '✅ U4 통과' · checkout 1
+PASS p08 U뒤관측 — 종료 1 · '🔴 P0 — 연결 획득 시간 초과 줄이 있다. 즉시 보고' · checkout 1
+PASS p09 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS p09 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS p09 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS p09 U3 — 종료 0 · '✅ U3(deploy) 통과' · checkout 1
+PASS p09 U되돌림 — 종료 0 · 'b5cd1d0 (#27 이미지) 로 복귀' · checkout 2
+PASS p09 U3(rb) — 종료 1 · '🔴 P0 — 연결 획득 시간 초과 줄이 있다' · checkout 2
+PASS p10 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS p10 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS p10 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS p10 U3 — 종료 0 · '✅ U3(deploy) 통과' · checkout 1
+PASS p10 UF2 — 종료 0 · '✅ UF2 통과' · checkout 1
+PASS p10 U4 — 종료 1 · '🔴 P0 검사 미완료 — 기동 구간 로그를 확보하지 못함' · checkout 1
+PASS 전체 — 금지 명령 기록 줄 수 합 = 0
+== 결과(d2): PASS 77 · FAIL 0

@@ -1,0 +1,19 @@
+PASS 정상 rc0 — 종료 0 · ssh 호출 1
+PASS 원격 원문 = F+G+U변수+U0, 마지막 문자 ')'
+PASS 같은 출력 이름 다시 → 덮어쓰지 않음 — 종료 2 · ssh 호출 0
+PASS 원격 rc1 그대로 — 종료 1 · ssh 호출 1
+PASS ssh 실패 rc255 그대로 — 종료 255 · ssh 호출 1
+PASS 시도 꼬리 2 — 종료 0 · ssh 호출 1
+PASS 모드 잘못 — 종료 2 · ssh 호출 0
+PASS 블록 이름 잘못 — 종료 2 · ssh 호출 0
+PASS 블록 1바이트 변조 — 종료 2 · ssh 호출 0
+PASS 출처 40자 아님 — 종료 2 · ssh 호출 0
+PASS 옛 V171D4 U변수 섞임 — 종료 2 · ssh 호출 0
+PASS 복구 뒤 정상 — 종료 0 · ssh 호출 1
+== 종료값 기록
+2026-11-16 13:29:44 U0 deploy rc=0 out-U0-deploy.txt
+2026-11-16 13:29:45 U1 deploy rc=1 out-U1-deploy.txt
+2026-11-16 13:29:46 U2 deploy rc=255 out-U2-deploy.txt
+2026-11-16 13:29:46 U0 deploy 2 rc=0 out-U0-deploy-2.txt
+2026-11-16 13:29:48 U1 deploy 6 rc=0 out-U1-deploy-6.txt
+== 결과: PASS 12 · FAIL 0

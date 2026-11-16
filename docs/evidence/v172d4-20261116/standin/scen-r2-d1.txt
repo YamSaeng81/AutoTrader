@@ -1,0 +1,26 @@
+== x01 정상 전 구간(U3·U4·U뒤관측 새 해시)
+PASS x01 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS x01 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS x01 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS x01 U3 — 종료 0 · '✅ U3(deploy) 통과' · checkout 1
+PASS x01 UF2 — 종료 0 · '✅ UF2 통과' · checkout 1
+PASS x01 U4 — 종료 0 · '✅ U4 통과' · checkout 1
+PASS x01 U뒤관측 — 종료 0 · '' · checkout 1
+PASS x01 — U3·U4 P0 1차 검사 기록 = 있음 있음
+PASS x01 — U뒤관측 두 검사 기록 = 2
+PASS x01 — start_66.py sha256 = 68d441ce0ed66d0a654d9ec7
+== r1 시나리오 쪽 실수 재확인 — k01·k05·k08 판정 줄 전체(5필드), x08 새 U변수 + 옛 V171D4 블록
+PASS k01 U0 — 종료 0 · '보존 태그 autotrader-backend:b5cd1d0 없음(API 404 확인) — U1 이 만든다' · checkout 0
+PASS k01 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS k01 — 판정 = 보존 태그 판정 bac
+PASS k05 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS k05 U1 — 종료 1 · 'autotrader-backend:b5cd1d0 태그 조회 불명' · checkout 0
+PASS k05 — 변경 명령 0 = 0
+PASS k05 — 두 태그 판정 기록(둘 다 3) = 보존 태그 판정 bac
+PASS k08 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS k08 U1 — 종료 1 · 'autotrader-frontend:b5cd1d0 태그가 이미 다른 이미지를 가리킨다' · checkout 0
+PASS k08 — 변경 명령 0 = 0
+PASS k08 — 판정 frontend=2 = 보존 태그 판정 bac
+PASS x08 U0 — 종료 1 · '변수 순서 — F 변수 → G 변수 → v1.171 통합 후보 초안 D4 U 변수' · checkout 0
+PASS 전체 — 금지 명령 기록 줄 수 합 = 0
+== 결과(d1): PASS 23 · FAIL 0
