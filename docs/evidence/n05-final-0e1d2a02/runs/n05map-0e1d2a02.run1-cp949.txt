@@ -1,0 +1,41 @@
+# 후보판 88f06345 → 운영 0e1d2a02
+파일 web-api/src/main/java/com/cryptoautotrader/api/service/DynamicSessionBalanceUpdater.java · 블롭 61773e741699 → 61773e741699 · 같음 · 줄 202 → 202
+파일 web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java · 블롭 972555bd7667 → 972555bd7667 · 같음 · 줄 3798 → 3798
+파일 web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java · 블롭 a69fb8fdcce1 → a69fb8fdcce1 · 같음 · 줄 3763 → 3763
+파일 web-api/src/main/java/com/cryptoautotrader/api/service/OrderExecutionEngine.java · 블롭 ebd2b2ba2c2e → 033eeed22367 · 다름 · 줄 2647 → 2697
+파일 web-api/src/main/java/com/cryptoautotrader/api/controller/PaperTradingController.java · 블롭 8258b4acd0d8 → 8258b4acd0d8 · 같음 · 줄 418 → 418
+파일 web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java · 블롭 3dd197450bb4 → 3dd197450bb4 · 같음 · 줄 2107 → 2107
+파일 web-api/src/main/java/com/cryptoautotrader/api/service/RealtimeProtectionDispatcher.java · 블롭 05d2914cb70d → 05d2914cb70d · 같음 · 줄 204 → 204
+파일 web-api/src/main/java/com/cryptoautotrader/api/service/RiskManagementService.java · 블롭 c047489b4fec → c047489b4fec · 같음 · 줄 569 → 569
+파일 web-api/src/main/java/com/cryptoautotrader/api/service/SessionBalanceUpdater.java · 블롭 52a50277a956 → 52a50277a956 · 같음 · 줄 138 → 138
+| 번호 | 위치(후보판) | 위치(운영) | 이동 | 토큰 | 운영 줄 원문(앞 110자) |
+|---|---|---|---|---|---|
+| K14 | `OEE:597` | `OEE:597` | +0 | markClosingWithSellIntent | `public ClosingSellIntent markClosingWithSellIntent(Long positionId, Instant now, ExitReason reason, OrderReque` |
+| K14 | `LTS:1757` | `LTS:1757` | +0 | markClosingWithSellIntent | `if (!orderExecutionEngine.markClosingWithSellIntent(pos.getId(), Instant.now(), exitReason, order).marked()) {` |
+| K14 | `DTS:2020` | `DTS:2020` | +0 | markClosingWithSellIntent | `if (!orderExecutionEngine.markClosingWithSellIntent(pos.getId(), Instant.now(), exitReason, order).marked()) {` |
+| K14 | `LTS:1822` | `LTS:1822` | +0 | markClosingWithSellIntent | `if (!orderExecutionEngine.markClosingWithSellIntent(pos.getId(), Instant.now(),` |
+| K14 | `DTS:2558` | `DTS:2558` | +0 | markClosingWithSellIntent | `if (!orderExecutionEngine.markClosingWithSellIntent(pos.getId(), Instant.now(),` |
+| K14 | `LTS:2142` | `LTS:2142` | +0 | markClosingWithSellIntent | `if (!orderExecutionEngine.markClosingWithSellIntent(posId, attemptAt, ExitReason.FORCED_STOP, sellOrder).marke` |
+| K14 | `DTS:2753` | `DTS:2753` | +0 | markClosingWithSellIntent | `if (!orderExecutionEngine.markClosingWithSellIntent(posId, attemptAt, ExitReason.FORCED_STOP, order).marked())` |
+| K15 | `OEE:563` | `OEE:563` | +0 | 없음:submitPreparedOrderAfterCommit | `if (!TransactionSynchronizationManager.isSynchronizationActive()) {` |
+| K15 | `OEE:664` | `OEE:664` | +0 | 없음:submitPreparedOrder | `@Async("orderExecutor")` |
+| K16 | `OEE:1847` | `OEE:1884` | +37 | pollActiveOrders | `public void pollActiveOrders() {` |
+| K16 | `OEE:1964` | `OEE:2001` | +37 | resolveUnresolvedSubmission | `boolean resolveUnresolvedSubmission(Long orderId) {` |
+| K16 | `OEE:2022` | `OEE:2059` | +37 | - | `if (ownedHere && DISPATCHING.contains(order.getId())) {` |
+| K16 | `LTS:2833` | `LTS:2833` | +0 | - | `public void reconcileClosingPositions() {` |
+| K16 | `DTS:2835` | `DTS:2835` | +0 | - | `public void reconcileDynamicClosingPositions() {` |
+| K16 | `LTS:2035` | `LTS:2035` | +0 | - | `public void cleanupStoppedSessionPositions() {` |
+| K16 | `DTS:2646` | `DTS:2646` | +0 | - | `public void cleanupStoppedSessionPositions() {` |
+| K16 | `LTS:2469` | `LTS:2469` | +0 | - | `@EventListener(ApplicationReadyEvent.class)` |
+| K16 | `DTS:404` | `DTS:404` | +0 | - | `@EventListener(ApplicationReadyEvent.class)` |
+| K17 | `RPD:76` | `RPD:76` | +0 | onPrice | `public void onPrice(RealtimePriceEvent event) {` |
+| K17 | `RPD:85` | `RPD:85` | +0 | retryPending | `public void retryPending() {` |
+| K17 | `LTS:3393` | `LTS:3393` | +0 | - | `public void onRealtimePriceEvent(RealtimePriceEvent event) {` |
+| K17 | `DTS:3464` | `DTS:3464` | +0 | - | `public void onRealtimePriceEvent(RealtimePriceEvent event) {` |
+| K18 | `SBU:89` | `SBU:89` | +0 | - | `public LiveTradingSessionEntity applyWithin(Long sessionId,` |
+| K18 | `DSBU:61` | `DSBU:61` | +0 | - | `public DynamicSessionEntity applyWithin(Long sessionId, Consumer<DynamicSessionEntity> mutator) {` |
+| K18 | `LTS:2810` | `LTS:2810` | +0 | - | `private final Map<Long, Integer> phantomDetectionCount = new ConcurrentHashMap<>();` |
+| K19 | `RMS:211` | `RMS:211` | +0 | checkRealLossGuard | `public RiskCheckResult checkRealLossGuard() {` |
+| K20 | `PTS:344` | `PTS:344` | +0 | stopOnce | `private VirtualBalanceEntity stopOnce(Long sessionId) {` |
+| K20 | `PTS:331` | `PTS:331` | +0 | - | `private SessionValuation stopOnceWithCount(Long sessionId) {` |
+rc=1

@@ -2,7 +2,7 @@
 
 > 현재 상태와 남은 작업은 [현재 계획](LIMITED_LIVE_TEST_PLAN.md)을 먼저 읽는다. 이 문서는 명령 원문이다. **최종 원본 S는 미확정**이며, 이 문서 분리는 새로운 실행·배포 승인이 아니다.
 
-2026-11-12에 종전 계획서 §5-8의 F0~F6을 분리했다. **15개 bash 블록 본문은 바이트 단위로 같다.** 운영 HEAD·이미지·경로·START_DATE·SID·한도와 명령을 바꾸지 않았다. 기존 F1·N06 해시와 실제 운영 핀은 별도 변경 판정 전 유지한다.
+2026-11-12 분리 당시 종전 F 15블록을 그대로 보존했다. **v1.176에서 운영 반영을 수용해 F 변수·F1의 HEAD·이미지·기록 경로 핀을 갱신했다.** 나머지 원래 13블록과 추가 F5-3v는 같다. 새 해시와 복구 기준은 [운영 결과 수용](evidence/review-7fea1b89/README.md)에 있다. 최종 S는 11-30에 확정한다.
 
 ## 문서와 추출 도구의 연결
 
@@ -29,7 +29,7 @@ cd ~/crypto_trader/AutoTrader
 DC="docker compose -f docker-compose.prod.yml"; SID=203
 START_DATE=2026-12-01   # 시작 예정일(KST). 연기하면 이 줄을 문서에서 고쳐 커밋한 뒤 그 값으로 쓴다
 M=~/start-sid203; MS=~/maint-20261030-stage1; mkdir -p "$M"
-NEW=b5cd1d0d47ea68ffe6ff476b89cf9fca5bef1b88   # v1.141: O1·O3+N21 운영 결과 수용. 이전 값 1899b49f633f8aefdc66b15c42debdaba8b3852c(#26). v1.132: #26(11-06 13:36 KST) 결과 수용. 이전 값 ee509cf855ffb8ebc1ed31f1c2bbe772d0545ce8(#25). v1.129: #25(11-06 10:32 KST) 결과 수용. 이전 값 7a944723c2959898226c2ad80f6b079ab5678296(#24). v1.123: #24(11-05 19:41 KST) 결과 수용. 이전 값 1103f48505a1457029f6555547a87aa986535738(#23). v1.116: 개입 #23(2026-11-05 15:29 KST) 운영 결과 수용 뒤 기대 HEAD. 이전 값 fe01207f3f60e97e308925157f84a1bb2da04388(#22). 이전 값 6995c52259e3de4c7c922a32f9fb2aa9ddd49f00(#21). 이전 값 b1d7664db73222aec5d86f2e9137debef0ff4df3(#20). 이전 값 ea4490099f0fa6b614fe71102534b0ba84c0eb7f(#19). 이전 값 5bb0544926a694832e75234670bb8f99dfe33bb0(#18), cad393956e131c257195fcd08fcac18c83802788(#17), f0872e2547c918a7b5146f027d325bd441ddf0d7(#16), 82d15d42fa22bb7d0f24a8243ebc888a2a7f071c
+NEW=0e1d2a021ab2f3c759a9b2be9c4f09430f93c80d   # v1.176 운영 반영 수용. 이전 b5cd1d0, 판정 근거 review-7fea1b89
 PSQL="$DC exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader"
 sc() { $PSQL -At -F ' | ' -c "
   SELECT count(*) AS total,
@@ -79,10 +79,10 @@ done
 rm -f "$M/ok-F1" "$M/operator-confirm.txt"             # 이전 통과·확인으로 새 실패를 우회하지 않는다(사본은 위 폴더 보존)
 date '+%F %T %Z' | tee "$M/t-f1.txt"; date -u '+%Y-%m-%dT%H:%M:%SZ' > "$M/t-f1.utc"
 { git rev-parse HEAD; git status --porcelain --untracked-files=no; echo "(끝)"; } | tee "$M/git-f1.txt"
-[ "$(head -1 "$M/git-f1.txt")" = "$NEW" ] && [ "$(sed -n 2p "$M/git-f1.txt")" = "(끝)" ] || stop "HEAD 가 b5cd1d0 가 아니거나 추적 파일 변경 있음 — 보고"
+[ "$(head -1 "$M/git-f1.txt")" = "$NEW" ] && [ "$(sed -n 2p "$M/git-f1.txt")" = "(끝)" ] || stop "HEAD가 0e1d2a02가 아니거나 추적 파일 변경 있음 — 보고"
 svc | tee "$M/svc-f1.txt"
-IMGF1=sha256:52e12428a60df5413d6e495024220bbd4c8fa07830549556f0b47bbe6ad39055   # v1.141: O1·O3+N21 배포 이미지. 이전 기대 ~/maint-n20/image-new.txt(#26, 426a09a2…). v1.132: #26 배포 이미지. 이전 기대 ~/maint-n19/image-new.txt(#25, 200f2f57…). v1.129: #25 배포 이미지. 이전 기대 ~/maint-n17/image-new.txt(#24, e51b512a…). v1.123: #24 배포 이미지. 이전 기대 ~/maint-n15n16/image-new.txt(#23, 9818254c…). v1.116: #23 배포 이미지. 이전 기대 ~/maint-n13/image-new.txt(#22, 9cb5d84f…). 이전 기대 ~/maint-n12/image-new.txt(#21, 67294e80…). 이전 기대 ~/maint-n11/image-new.txt(#20, fd3ac351…). 이전 기대 ~/maint-n08/image-new.txt(#19, 61804654…). 이전 기대 ~/maint-n04/image-new.txt(#18, 39875d5f…), ~/maint-rounding/image-new.txt(#17, a747a8e6…)
-[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$IMGF1" ] && [ "$(cat ~/maint-o13n21/image-new.txt)" = "$IMGF1" ] || stop "backend 이미지가 O1·O3+N21 배포 이미지(52e12428…)와 다름 — 보고"
+IMGF1=sha256:2c5d84276cdbf01f718077e3d2d0475f6af5982d7afb95082750fcebe7f5979f   # v1.176 V172D4 운영 이미지, ~/maint-v172/image-new.txt
+[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$IMGF1" ] && [ "$(cat ~/maint-v172/image-new.txt)" = "$IMGF1" ] || stop "backend 이미지가 V172D4 배포 이미지(2c5d8427…)와 다름 — 보고"
 [ "$(cat ~/ops-scripts/SID_LEDGER_SHA)" = 8bfe8a9fa896f400b3fb6681fef021c99d6ba43b ] && [ "$(sha256sum < ~/ops-scripts/sid_ledger.sql | cut -d' ' -f1)" = 02a8585021fb2a1a52d9b3b56b60e957cb71b9ca3c11bf819595df15cf334f1c ] || stop "설치 장부가 8bfe8a9 판(02a85850…)이 아님 — 보고"
 # N18 제안: 정기 점검 설치판 대조(읽기 전용) — 누락·읽기 실패·불일치면 위 trap 의 당일 실패 표지로 끝나고 ok-F1 을 만들지 않는다. 설치·복구·chmod·수동 점검 실행으로 고치지 않는다
 INSX="$(printf 'INSTALLED_SHA c669ccdc6e248ce8e55e9a7ac7405197d266fa18\ndaily_check.sh ff0a5d7dbc9e250d364a7f32f80106454b6f4b939d37c578f8192e8206e7c1cc\ndaily_checks.sql 653b22bab04b68c50bf9daf2a54f2c281f9c57eaf6795076225ed39d62d48fa8')"
@@ -128,7 +128,7 @@ echo "== 경보 (#15 정비 전 기준선)"; cat "$MS/alerts-before.txt"
 touch "$M/ok-F1"; echo "✅ F1 기계 점검 통과 — 경보 네 갈래와 휴대폰 수신을 확인하고 운영자 확인 파일을 쓴 뒤 08:50 F2"
 )
 ```
-- 기대: `git-f1` = `1899b49f…` 다음 `(끝)` · 이미지 = #26 배포 이미지 전체 ID `sha256:426a09a20afc9e16cff8b7a569d4e04f18ed47cefb9242f44e3b9ea9666153a1`(실행 이미지와 `~/maint-n20/image-new.txt` 가 둘 다 이 값) · 설치 장부 `SID_LEDGER_SHA` `8bfe8a9f…`·sha256 `02a85850…` · 정기 점검 `INSTALLED_SHA=c669ccd…`·셸 `ff0a5d7d…`·SQL `653b22ba…`(install-f1.txt) · 공유 풀 네 값이 정확히 `STAGE_1` · `100000` · `20000` · `3` · `EG` = `EGS` · `203:CREATED` · 저장값 `t` · `available_krw` 20200·`started_at` 비어 있음 · 기준 행 = `BASEX` · 0 다섯 줄 · BTC 입력 `true|12-01 07:00|12-01 07:00|20/20`(08:30 무렵 실행 기준, v1.56) · `sc` `66 | 63 | 3 | -` · 거래소 `UP` · KRW 주문 가능 ≥ 20,200·묶인 KRW 0 · 경보 조회 완료 · 텔레그램 `200`. 멈추면 F2 로 가지 않고 그 출력을 보고한다 — 그날은 시작하지 않는다.
+- 기대: `git-f1` = `0e1d2a02…` 다음 `(끝)` · 이미지 = V172D4 전체 ID `sha256:2c5d84276cdbf01f718077e3d2d0475f6af5982d7afb95082750fcebe7f5979f`(실행 이미지와 `~/maint-v172/image-new.txt`가 둘 다 이 값) · 설치 장부 `SID_LEDGER_SHA` `8bfe8a9f…`·sha256 `02a85850…` · 정기 점검 `INSTALLED_SHA=c669ccd…`·셸 `ff0a5d7d…`·SQL `653b22ba…`(install-f1.txt) · 공유 풀 네 값이 정확히 `STAGE_1` · `100000` · `20000` · `3` · `EG` = `EGS` · `203:CREATED` · 저장값 `t` · `available_krw` 20200·`started_at` 비어 있음 · 기준 행 = `BASEX` · 0 다섯 줄 · BTC 입력 `true|12-01 07:00|12-01 07:00|20/20`(08:30 무렵 실행 기준, v1.56) · `sc` `66 | 63 | 3 | -` · 거래소 `UP` · KRW 주문 가능 ≥ 20,200·묶인 KRW 0 · 경보 조회 완료 · 텔레그램 `200`. 멈추면 F2 로 가지 않고 그 출력을 보고한다 — 그날은 시작하지 않는다.
 - 새 시도는 이전 F1 파일·통과 표지·운영자 확인을 `f1-attempts/`에 보존하고 기존 통과·확인을 무효화한다. 실패하면 날짜별 `f1-failed-YYYY-MM-DD`를 남기며 그날 F1·F2는 모두 거절한다. 이 표지를 지워 재시도하지 않는다. F2는 통과 표지가 최신 시도(`t-f1.txt`) 뒤에 만들어졌는지도 확인한다.
 - 경보는 `MS/alerts-before.txt` 와 네 갈래(기존 반복·새 경보·⚪·실행 누락)로 대조한다. KRW-BLAST 반복 밖의 🔴·⚪·실행 누락이 있으면 시작하지 않고 보고한다.
 - 운영자 확인 파일 — 경보 대조와 휴대폰 수신(이번 시험 메시지의 말풍선 시각)을 본 뒤에만, 빈칸을 직접 채워 만든다:

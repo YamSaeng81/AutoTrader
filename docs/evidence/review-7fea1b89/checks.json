@@ -1,0 +1,733 @@
+{
+  "source": "7fea1b89d040a13f4da6fd471646fbe8b50eec12",
+  "fixed_correction_source": "c584166bc3eebc217bba0b910a393933126fec08",
+  "count": 226,
+  "failed": 0,
+  "scope": "Local submitted bytes only. No production calls, DB calls, builds or product tests. Omitted server binaries not downloaded.",
+  "checks": {
+    "manifest_docs/evidence/v172run-20261116/": {
+      "ok": true,
+      "count": 45,
+      "mismatch": []
+    },
+    "manifest_docs/evidence/review-c584166b/": {
+      "ok": true,
+      "count": 4,
+      "mismatch": []
+    },
+    "head_origin_match_submission": {
+      "ok": true
+    },
+    "new_commit_docs_only": {
+      "ok": true,
+      "paths": [
+        "docs/CURRENT_HANDOFF.md",
+        "docs/LIMITED_LIVE_TEST_PLAN.md",
+        "docs/LIVE_READINESS.md",
+        "docs/NOVEMBER_LIVE_UPGRADE.md",
+        "docs/PROGRESS.md",
+        "docs/README.md",
+        "docs/START_HERE.md",
+        "docs/evidence/review-c584166b/.gitattributes",
+        "docs/evidence/review-c584166b/README.md",
+        "docs/evidence/review-c584166b/SHA256SUMS",
+        "docs/evidence/review-c584166b/audit_review.py",
+        "docs/evidence/review-c584166b/checks.json",
+        "docs/evidence/v172run-20261116/README.md",
+        "docs/evidence/v172run-20261116/SHA256SUMS",
+        "docs/evidence/v172run-20261116/blocks-u2c/blocks.json",
+        "docs/evidence/v172run-20261116/diag/extract-u2c-run.txt",
+        "docs/evidence/v172run-20261116/out/exit-codes.txt",
+        "docs/evidence/v172run-20261116/out/out-U2확인-deploy.txt",
+        "docs/evidence/v172run-20261116/out/out-U3-deploy.txt",
+        "docs/evidence/v172run-20261116/out/out-U4-deploy.txt",
+        "docs/evidence/v172run-20261116/out/out-UF2-deploy.txt",
+        "docs/evidence/v172run-20261116/out/out-U뒤관측-deploy.txt",
+        "docs/evidence/v172run-20261116/screen/fe-screen-1.sh",
+        "docs/evidence/v172run-20261116/screen/fe-screen-1.txt",
+        "docs/evidence/v172run-20261116/screen/fe-screen-2.sh",
+        "docs/evidence/v172run-20261116/screen/fe-screen-2.txt",
+        "docs/evidence/v172run-20261116/screen/fe-screen-noauth-1.txt",
+        "docs/evidence/v172run-20261116/server/maint-v172-nojar.tar.gz",
+        "docs/evidence/v172run-20261116/server/maint-v172.sha256"
+      ]
+    },
+    "original_output_preserved_U0": {
+      "ok": true
+    },
+    "original_output_preserved_U1": {
+      "ok": true
+    },
+    "original_output_preserved_U2": {
+      "ok": true
+    },
+    "extraction_source": {
+      "ok": true
+    },
+    "extracted_hash_F": {
+      "ok": true
+    },
+    "extracted_hash_G": {
+      "ok": true
+    },
+    "extracted_hash_U변수": {
+      "ok": true
+    },
+    "extracted_hash_U0": {
+      "ok": true
+    },
+    "extracted_hash_U1": {
+      "ok": true
+    },
+    "extracted_hash_U1되돌림": {
+      "ok": true
+    },
+    "extracted_hash_U2": {
+      "ok": true
+    },
+    "extracted_hash_U3": {
+      "ok": true
+    },
+    "extracted_hash_UF2": {
+      "ok": true
+    },
+    "extracted_hash_U4": {
+      "ok": true
+    },
+    "extracted_hash_U되돌림": {
+      "ok": true
+    },
+    "extracted_hash_U뒤관측": {
+      "ok": true
+    },
+    "extracted_hash_U2확인": {
+      "ok": true
+    },
+    "fixed_runner_unchanged": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/svc-deploy.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/n20obs-deploy.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/start_66.py.before": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/holdobs-after30.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/jar-manifest-sha.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/btc-deploy.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/n19-before.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/image-new-chain.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/jar-sha.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/fe-stage.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/errors-deploy.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/ledger-files-before.sha": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/ok-UF2": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/entry-before.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/v96-u2c-20261116-161400.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/image-new.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/holdobs-after30-p0.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/app-deploy-p0.log": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/ok-U0": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/n20obs-after30.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/news-err-before.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/errors-after30.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/tag-keep-u1.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/ok-U2": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/image-fe-new-chain.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/build-fe.log": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/t-apply.utc": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/n17obs-20261116-1621.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/errors-news-20261116-1621.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/app-deploy.log": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/app-after30.log": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/build.log": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/q-before.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/frontend-fe.log": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/svc-fe.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/n19obs-after30.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/freshness_snap.json.before": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/errors-news-deploy.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/app-u2c-20261116-161400.log": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/n19obs-20261116-1621.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/git-deploy.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/backend-start-u2c-20261116-161400.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/pgrep-u0.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/svc-before.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/crontab-before.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/pgrep-u0.err": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/syntax.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/holdobs-20261116-1621.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/httpobs-20261116-1621.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/httpobs-deploy.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/svc-pre-fe.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/fe-ref-before.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/image-fe-new.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/t-build.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/newsobs-after30.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/holdobs-deploy-p0.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/svc-u2c-20261116-161400.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/t-fe.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/news-20261116-1621.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/image-fe-before-chain.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/image-before-chain.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/n17obs-after30.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/entryobs-after30.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/errors-news-after30.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/newsobs-20261116-1621.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/holdobs-deploy.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/entryobs-deploy.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/hold-before.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/news-after30.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/ok-U4": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/news-deploy.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/alerts-before.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/preflight-loss.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/jar-manifest-new.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/maint_start.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/git-before.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/btc-before.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/image-fe-before.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/s-after30.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/maint_verify.py": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/n20obs-20261116-1621.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/svc-after30.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/holdobs-u2c-20261116-161400.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/news-before.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/obs-deploy.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/image-before.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/holdobs-20261116-1621-p0.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/timezone-before.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/q-after30.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/fe-http.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/n17-before.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/q-deploy.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/newsobs-deploy.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/obs-after30.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/errors-all-deploy.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/preflight-loss.sql": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/t-fe.utc": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/app-news-20261116-1621.log": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/n17obs-deploy.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/app-after30-p0.log": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/freshness_streak.json.before": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/t-after30.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/http-before.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/pgrep-u1.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/n19obs-deploy.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/btc-after30.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/ok-U3-deploy": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/s-deploy.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/t-deploy.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/entryobs-20261116-1621.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/errors-all-after30.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/t-before.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/pgrep-u1.err": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/jar-diff.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/s-before.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/app-20261116-1621-p0.log": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/n20-before.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/git-u2c-20261116-161400.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/imgchain.py": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/httpobs-after30.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/ok-U1": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/alerts-after30.txt": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/t-deploy.utc": {
+      "ok": true
+    },
+    "safe_archive_member_maint-v172/container-time-before.txt": {
+      "ok": true
+    },
+    "server_archive_124_of_127": {
+      "ok": true,
+      "included": 124,
+      "server_count": 127,
+      "omitted": [
+        "app-new.jar",
+        "app-old.jar",
+        "backend-before.log"
+      ],
+      "mismatch": []
+    },
+    "u2_confirmation_marker_preserves_original_failure": {
+      "ok": true
+    },
+    "required_completion_markers": {
+      "ok": true
+    },
+    "no_rollback_records": {
+      "ok": true
+    },
+    "tail_bytes_svc-deploy.txt": {
+      "ok": true
+    },
+    "tail_bytes_git-deploy.txt": {
+      "ok": true
+    },
+    "actual_git_head_clean": {
+      "ok": true
+    },
+    "image_record_image-new.txt": {
+      "ok": true
+    },
+    "image_record_image-fe-new.txt": {
+      "ok": true
+    },
+    "image_record_image-before.txt": {
+      "ok": true
+    },
+    "old_frontend_container_id_and_target_distinct": {
+      "ok": true
+    },
+    "jar_content_manifest_hash": {
+      "ok": true
+    },
+    "jar_name_diff_count": {
+      "ok": true
+    },
+    "image_chain_image-new-chain.txt": {
+      "ok": true
+    },
+    "image_chain_image-fe-new-chain.txt": {
+      "ok": true
+    },
+    "all_five_services": {
+      "ok": true
+    },
+    "three_other_services_unchanged": {
+      "ok": true
+    },
+    "backend_no_second_recreate": {
+      "ok": true
+    },
+    "frontend_replaced_once": {
+      "ok": true
+    },
+    "frontend_stage_replaced": {
+      "ok": true
+    },
+    "all_eight_actual_statuses": {
+      "ok": true
+    },
+    "actual_exit_U0": {
+      "ok": true
+    },
+    "actual_exit_U1": {
+      "ok": true
+    },
+    "actual_exit_U2": {
+      "ok": true
+    },
+    "actual_exit_U2확인": {
+      "ok": true
+    },
+    "continuation_source_U2확인": {
+      "ok": true
+    },
+    "actual_exit_U3": {
+      "ok": true
+    },
+    "continuation_source_U3": {
+      "ok": true
+    },
+    "actual_exit_UF2": {
+      "ok": true
+    },
+    "continuation_source_UF2": {
+      "ok": true
+    },
+    "actual_exit_U4": {
+      "ok": true
+    },
+    "continuation_source_U4": {
+      "ok": true
+    },
+    "actual_exit_U뒤관측": {
+      "ok": true
+    },
+    "continuation_source_U뒤관측": {
+      "ok": true
+    },
+    "history_count_content_actual": {
+      "ok": true
+    },
+    "two_second_start_delay_actual": {
+      "ok": true
+    },
+    "u3_late_deviation": {
+      "ok": true,
+      "seconds_after_window": 6503,
+      "seconds_after_start": 7103
+    },
+    "u3_immediate_after_confirmation": {
+      "ok": true
+    },
+    "u4_after_original_thirty_minimum": {
+      "ok": true
+    },
+    "nonempty_original_start_log_app-deploy-p0.log": {
+      "ok": true
+    },
+    "no_p0_leak_limit_app-deploy-p0.log": {
+      "ok": true
+    },
+    "three_known_404_errors_app-deploy-p0.log": {
+      "ok": true
+    },
+    "nonempty_original_start_log_app-deploy.log": {
+      "ok": true
+    },
+    "no_p0_leak_limit_app-deploy.log": {
+      "ok": true
+    },
+    "three_known_404_errors_app-deploy.log": {
+      "ok": true
+    },
+    "nonempty_original_start_log_app-after30.log": {
+      "ok": true
+    },
+    "no_p0_leak_limit_app-after30.log": {
+      "ok": true
+    },
+    "three_known_404_errors_app-after30.log": {
+      "ok": true
+    },
+    "nonempty_original_start_log_app-u2c-20261116-161400.log": {
+      "ok": true
+    },
+    "no_p0_leak_limit_app-u2c-20261116-161400.log": {
+      "ok": true
+    },
+    "three_known_404_errors_app-u2c-20261116-161400.log": {
+      "ok": true
+    },
+    "nonempty_original_start_log_app-news-20261116-1621.log": {
+      "ok": true
+    },
+    "no_p0_leak_limit_app-news-20261116-1621.log": {
+      "ok": true
+    },
+    "three_known_404_errors_app-news-20261116-1621.log": {
+      "ok": true
+    },
+    "nonempty_original_start_log_app-after30-p0.log": {
+      "ok": true
+    },
+    "no_p0_leak_limit_app-after30-p0.log": {
+      "ok": true
+    },
+    "three_known_404_errors_app-after30-p0.log": {
+      "ok": true
+    },
+    "nonempty_original_start_log_app-20261116-1621-p0.log": {
+      "ok": true
+    },
+    "no_p0_leak_limit_app-20261116-1621-p0.log": {
+      "ok": true
+    },
+    "three_known_404_errors_app-20261116-1621-p0.log": {
+      "ok": true
+    },
+    "latest_two_p0_log_bytes_equal": {
+      "ok": true
+    },
+    "cryptopanic_four_known_fixed_lines": {
+      "ok": true
+    },
+    "blast_existing_only": {
+      "ok": true
+    },
+    "second_p0_result_zero": {
+      "ok": true
+    },
+    "error_files_empty": {
+      "ok": true
+    },
+    "real_state_and_btc_U3": {
+      "ok": true
+    },
+    "real_state_and_btc_U4": {
+      "ok": true
+    },
+    "new_behaviour_unobserved": {
+      "ok": true
+    },
+    "six_pages_and_proxy_apis_200": {
+      "ok": true
+    },
+    "frontend_restart_zero_http_read": {
+      "ok": true
+    },
+    "sid203_created_capital": {
+      "ok": true
+    },
+    "blind_session_interim_metric_disclosed": {
+      "ok": true,
+      "finding": "Session 587 is in preregistered IDs 522-587. Interim return was printed. Record scope deviation, do not use it or query further returns."
+    },
+    "http_checks_do_not_claim_rendering": {
+      "ok": true
+    },
+    "runbook_sixteen_blocks_two_pin_changes": {
+      "ok": true
+    },
+    "runbook_new_head_pin": {
+      "ok": true
+    },
+    "runbook_new_image_and_record_pin": {
+      "ok": true
+    },
+    "updated_runbook_syntax_F 변수": {
+      "ok": true
+    },
+    "updated_runbook_syntax_F1": {
+      "ok": true
+    },
+    "f3_original_hash_preserved": {
+      "ok": true
+    }
+  }
+}

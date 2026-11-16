@@ -1,0 +1,16 @@
+BEGIN
+@@now
+          kst_now           
+----------------------------
+ 2026-11-16 16:59:58.056061
+(1 row)
+
+@@flyway_after_v95
+installed_rank,version,success,checksum
+@@strategy_type_enabled
+strategy_name,is_active
+@@strategy_timeframe_enabled
+ERROR:  relation "strategy_timeframe_enabled" does not exist
+LINE 1: ...tegy_name, timeframe, is_active, disabled_at FROM strategy_t...
+                                                             ^
+rc=3

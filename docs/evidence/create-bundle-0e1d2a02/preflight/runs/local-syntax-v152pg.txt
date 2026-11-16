@@ -1,0 +1,36 @@
+BEGIN
+@@now
+          kst_now           
+----------------------------
+ 2026-11-16 17:00:04.619062
+(1 row)
+
+@@flyway_after_v95
+installed_rank,version,success,checksum
+95,96,t,-424836241
+@@strategy_type_enabled
+strategy_name,is_active
+@@strategy_timeframe_enabled
+strategy_name,timeframe,is_active,disabled_at
+@@paper_status_counts
+status,prereg,count
+STOPPED,f,1
+@@paper_running_coin_tf
+coin_pair,timeframe,prereg,count
+@@dup_candidates
+id,status,strategy_name,coin_pair,timeframe,initial_capital,strategy_params
+@@paper_max_id
+ max_id 
+--------
+      1
+(1 row)
+
+@@live_running
+id,status,coin_pair,timeframe
+@@dynamic_running
+trading_mode,timeframe,count
+@@btc_h1_candles
+n,first_t,last_t
+0,,
+ROLLBACK
+rc=0

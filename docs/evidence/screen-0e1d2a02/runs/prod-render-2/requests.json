@@ -1,0 +1,226 @@
+[
+ {
+  "at": "2026-11-16T07:52:18.429Z",
+  "decision": "allow",
+  "method": "POST",
+  "path": "/api/auth/login",
+  "query": ""
+ },
+ {
+  "at": "2026-11-16T07:52:18.636Z",
+  "decision": "block",
+  "method": "GET",
+  "path": "/api/proxy/api/v1/trading/status",
+  "query": ""
+ },
+ {
+  "at": "2026-11-16T07:52:18.637Z",
+  "decision": "allow",
+  "method": "GET",
+  "path": "/api/proxy/api/v1/trading/sessions",
+  "query": ""
+ },
+ {
+  "at": "2026-11-16T07:52:18.637Z",
+  "decision": "block",
+  "method": "GET",
+  "path": "/api/proxy/api/v1/trading/health/exchange",
+  "query": ""
+ },
+ {
+  "at": "2026-11-16T07:52:18.637Z",
+  "decision": "block",
+  "method": "GET",
+  "path": "/api/proxy/api/v1/strategies",
+  "query": ""
+ },
+ {
+  "at": "2026-11-16T07:52:19.650Z",
+  "decision": "block",
+  "method": "GET",
+  "path": "/api/proxy/api/v1/trading/status",
+  "query": ""
+ },
+ {
+  "at": "2026-11-16T07:52:19.650Z",
+  "decision": "block",
+  "method": "GET",
+  "path": "/api/proxy/api/v1/trading/health/exchange",
+  "query": ""
+ },
+ {
+  "at": "2026-11-16T07:52:23.708Z",
+  "decision": "allow",
+  "method": "GET",
+  "path": "/api/proxy/api/v1/trading/sessions",
+  "query": ""
+ },
+ {
+  "at": "2026-11-16T07:52:24.654Z",
+  "decision": "block",
+  "method": "GET",
+  "path": "/api/proxy/api/v1/trading/status",
+  "query": ""
+ },
+ {
+  "at": "2026-11-16T07:52:25.667Z",
+  "decision": "block",
+  "method": "GET",
+  "path": "/api/proxy/api/v1/trading/status",
+  "query": ""
+ },
+ {
+  "at": "2026-11-16T07:52:26.596Z",
+  "decision": "allow",
+  "method": "GET",
+  "path": "/api/proxy/api/v1/trading/sessions/203",
+  "query": ""
+ },
+ {
+  "at": "2026-11-16T07:52:26.597Z",
+  "decision": "allow",
+  "method": "GET",
+  "path": "/api/proxy/api/v1/trading/sessions/203/positions",
+  "query": ""
+ },
+ {
+  "at": "2026-11-16T07:52:26.597Z",
+  "decision": "allow",
+  "method": "GET",
+  "path": "/api/proxy/api/v1/trading/sessions/203/orders",
+  "query": "?page=0&size=50"
+ },
+ {
+  "at": "2026-11-16T07:52:26.597Z",
+  "decision": "allow",
+  "method": "GET",
+  "path": "/api/proxy/api/v1/trading/sessions/203/chart",
+  "query": ""
+ },
+ {
+  "at": "2026-11-16T07:52:26.597Z",
+  "decision": "allow",
+  "method": "GET",
+  "path": "/api/proxy/api/v1/logs/strategy",
+  "query": "?page=0&size=20&sessionType=LIVE&sessionId=203"
+ },
+ {
+  "at": "2026-11-16T07:52:26.598Z",
+  "decision": "block",
+  "method": "GET",
+  "path": "/api/proxy/api/v1/account/summary",
+  "query": ""
+ },
+ {
+  "at": "2026-11-16T07:52:27.609Z",
+  "decision": "block",
+  "method": "GET",
+  "path": "/api/proxy/api/v1/account/summary",
+  "query": ""
+ },
+ {
+  "at": "2026-11-16T07:52:31.663Z",
+  "decision": "allow",
+  "method": "GET",
+  "path": "/api/proxy/api/v1/trading/sessions/203",
+  "query": ""
+ },
+ {
+  "at": "2026-11-16T07:52:31.663Z",
+  "decision": "allow",
+  "method": "GET",
+  "path": "/api/proxy/api/v1/trading/sessions/203/positions",
+  "query": ""
+ },
+ {
+  "at": "2026-11-16T07:52:32.672Z",
+  "decision": "allow",
+  "method": "GET",
+  "path": "/api/proxy/api/v1/dynamic-sessions",
+  "query": ""
+ },
+ {
+  "at": "2026-11-16T07:52:32.673Z",
+  "decision": "block",
+  "method": "GET",
+  "path": "/api/proxy/api/v1/strategies",
+  "query": ""
+ },
+ {
+  "at": "2026-11-16T07:52:37.722Z",
+  "decision": "allow",
+  "method": "GET",
+  "path": "/api/proxy/api/v1/dynamic-sessions",
+  "query": ""
+ },
+ {
+  "at": "2026-11-16T07:52:40.634Z",
+  "decision": "allow",
+  "method": "GET",
+  "path": "/api/proxy/api/v1/dynamic-sessions/93",
+  "query": ""
+ },
+ {
+  "at": "2026-11-16T07:52:40.634Z",
+  "decision": "allow",
+  "method": "GET",
+  "path": "/api/proxy/api/v1/dynamic-sessions/93/positions",
+  "query": ""
+ },
+ {
+  "at": "2026-11-16T07:52:45.698Z",
+  "decision": "allow",
+  "method": "GET",
+  "path": "/api/proxy/api/v1/dynamic-sessions/93",
+  "query": ""
+ },
+ {
+  "at": "2026-11-16T07:52:47.022Z",
+  "decision": "allow",
+  "method": "GET",
+  "path": "/api/proxy/api/v1/paper-trading/sessions/518",
+  "query": ""
+ },
+ {
+  "at": "2026-11-16T07:52:47.023Z",
+  "decision": "allow",
+  "method": "GET",
+  "path": "/api/proxy/api/v1/paper-trading/sessions/518/positions",
+  "query": "?status=ALL"
+ },
+ {
+  "at": "2026-11-16T07:52:47.023Z",
+  "decision": "allow",
+  "method": "GET",
+  "path": "/api/proxy/api/v1/paper-trading/sessions/518/orders",
+  "query": "?page=0"
+ },
+ {
+  "at": "2026-11-16T07:52:47.023Z",
+  "decision": "allow",
+  "method": "GET",
+  "path": "/api/proxy/api/v1/paper-trading/sessions/518/chart",
+  "query": ""
+ },
+ {
+  "at": "2026-11-16T07:52:47.024Z",
+  "decision": "allow",
+  "method": "GET",
+  "path": "/api/proxy/api/v1/logs/strategy",
+  "query": "?page=0&size=20&sessionType=PAPER&sessionId=518"
+ },
+ {
+  "at": "2026-11-16T07:52:52.098Z",
+  "decision": "allow",
+  "method": "GET",
+  "path": "/api/proxy/api/v1/paper-trading/sessions/518",
+  "query": ""
+ },
+ {
+  "at": "2026-11-16T07:52:52.098Z",
+  "decision": "allow",
+  "method": "GET",
+  "path": "/api/proxy/api/v1/paper-trading/sessions/518/positions",
+  "query": "?status=ALL"
+ }
+]
