@@ -1,0 +1,19 @@
+[로컬 시작] 2026-11-16 16:13:59 KST(이 PC 시계) 블록=U2확인 구분=deploy 출처=c584166b 판=V172D4+U2확인
+== U2확인 20261116-161400 — 원래 U2 배포 기록 2026-11-16 14:16:12 KST (UTC 2026-11-16T05:16:12Z) 그대로. P0 먼저: 배포 시각 뒤 backend 로그 보존 → 연결 획득 시간 초과 검사
+HOLD 기준선 질의 장기 대여 경고 0건(반환 0·반환 미관측 0) · 그 밖의 장기 대여 경고 0건 · 연결 획득 시간 초과 줄 0건
+시작 Catchup: 시작 05:16:30.823 · 완료 05:16:42.451 (로그 머리 시각 UTC)
+backend-1  | 05:16:20.343 [main] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "96 - paper aligned runtime state"
+backend-1  | 05:16:20.376 [main] INFO  o.f.core.internal.command.DbMigrate - Successfully applied 1 migration to schema "public", now at version v96 (execution time 00:00.017s)
+backend-1  | 05:16:30.483 [main] INFO  c.c.api.CryptoAutoTraderApplication - Started CryptoAutoTraderApplication in 15.435 seconds (process running for 16.124)
+backend 기동 2026-11-16T05:16:14.129686133Z · 재시작 0 · running · 배포 기록 뒤 2초
+V95 이후 이력(행수|내용): 1|96:true:-424836241
+backend sha256:2c5d84276cdbf01f718077e3d2d0475f6af5982d7afb95082750fcebe7f5979f 2026-11-16T05:16:14.129686133Z
+db sha256:b26180320dea45a27190318903f63cc2839f190315663a53b6429a937dd02196 2026-10-21T04:45:59.107498608Z
+redis sha256:8b81dd37ff027bec4e516d41acfbe9fe2460070dc6d4a4570a2ac5b9d59df065 2026-10-21T04:45:59.097312922Z
+db-backup sha256:b26180320dea45a27190318903f63cc2839f190315663a53b6429a937dd02196 2026-10-28T23:35:34.179563141Z
+frontend sha256:d825a9f5b00d3dac93ee154f32f91b5a1474248fefaa3651f0d0c3b0cc2f7f66 2026-10-21T04:45:59.089630967Z
+0e1d2a021ab2f3c759a9b2be9c4f09430f93c80d
+(끝)
+== U2 미실행 꼬리 완성 — 뒤 블록(U4 의 backend 재시작 대조)이 읽는 원래 이름 svc-deploy.txt·git-deploy.txt 를 위 확인 기록과 같은 바이트로 한 번 쓴다
+✅ U2확인 통과 — ok-U2 기록. 바로 U3(기동 5~10분 창을 넘겼으면 지연 편차로 보고, 새 모의 세션을 만들지 않는다)
+[로컬 끝] 2026-11-16 16:14:30 KST rc=0

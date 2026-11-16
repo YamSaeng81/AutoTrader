@@ -1,0 +1,25 @@
+== 화면 확인 2026-11-16 16:20:52 KST (서버 시계)
+frontend 컨테이너 이미지 sha256:9d7f123ad6afd75b46d954b7c7031267df5afb3bf6e99660d5a53a3c5d43798e 2026-11-16T07:15:16.447837224Z 0
+로그인 POST /api/auth/login → 200 · 쿠키 1개
+-- 인증 없는 요청(로그인 이동 기대)
+/ → 307 http://localhost:3000/login
+/login → 200
+-- 목록 /paper-trading
+페이지 /paper-trading → 200 38949 · 오류 문자열 0
+API /api/v1/paper-trading/sessions → 200 · success=True · 420건 · 상태 {'RUNNING': 76, 'STOPPED': 344}
+-- 상세 /paper-trading/587
+페이지 /paper-trading/587 → 200 39589 · 오류 문자열 0
+API /api/v1/paper-trading/sessions/587 → 200 · success=True · id=587 status=RUNNING coinPair=KRW-INJ strategyName=COMPOSITE_MTF_MOMENTUM_CLOSED initialCapital=1000000.0 totalAssetKrw=1000000.0 availableKrw=1000000.0 totalReturnPct=0.0
+-- 목록 /trading
+페이지 /trading → 200 40471 · 오류 문자열 0
+API /api/v1/trading/sessions → 200 · success=True · 48건 · 상태 {'CREATED': 1, 'DELETED': 16, 'EMERGENCY_STOPPED': 20, 'STOPPED': 11}
+-- 상세 /trading/203
+페이지 /trading/203 → 200 38642 · 오류 문자열 0
+API /api/v1/trading/sessions/203 → 200 · success=True · id=203 status=CREATED coinPair=KRW-BTC strategyType=DAILY_SMA20 initialCapital=20200.0 totalAssetKrw=20200.0 availableKrw=20200.0
+-- 목록 /trading/dynamic
+페이지 /trading/dynamic → 200 40170 · 오류 문자열 0
+API /api/v1/dynamic-sessions → 200 · success=True · 40건 · 상태 {'EMERGENCY_STOPPED': 21, 'STOPPED': 19}
+-- 상세 /trading/dynamic/93
+페이지 /trading/dynamic/93 → 200 38441 · 오류 문자열 0
+API /api/v1/dynamic-sessions/93 → 200 · success=True · id=93 status=STOPPED strategyType=COMPOSITE_MTF_CONFIRMED initialCapital=10000.0 totalAssetKrw=10146.06 availableKrw=10146.06
+== 끝

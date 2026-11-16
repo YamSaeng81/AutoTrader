@@ -1,0 +1,368 @@
+{
+  "source": "c584166bc3eebc217bba0b910a393933126fec08",
+  "base": "ce6df2fa2b1b4a0b089576bc700fb867a466686d",
+  "checks": {
+    "manifest_docs/evidence/v172run-20261116/": {
+      "ok": true,
+      "count": 31,
+      "mismatch": []
+    },
+    "manifest_docs/evidence/v172u2c-20261116/": {
+      "ok": true,
+      "count": 38,
+      "mismatch": []
+    },
+    "manifest_docs/evidence/review-v172-u2/": {
+      "ok": true,
+      "count": 4,
+      "mismatch": []
+    },
+    "manifest_docs/evidence/review-v172-u2/tail-record/": {
+      "ok": true,
+      "count": 1,
+      "mismatch": []
+    },
+    "manifest_docs/evidence/review-ce6df2fa/": {
+      "ok": true,
+      "count": 4,
+      "mismatch": []
+    },
+    "head_origin": {
+      "ok": true
+    },
+    "supplement_only_four_raw_files": {
+      "ok": true,
+      "paths": [
+        "docs/evidence/v172run-20261116/out/exit-codes.txt",
+        "docs/evidence/v172run-20261116/out/out-U0-deploy.txt",
+        "docs/evidence/v172run-20261116/out/out-U1-deploy.txt",
+        "docs/evidence/v172run-20261116/out/out-U2-deploy.txt"
+      ]
+    },
+    "documentation_only_since_execution_source": {
+      "ok": true,
+      "count": 90
+    },
+    "runner_thirteen_fixed_hashes": {
+      "ok": true
+    },
+    "u2c_fixed_hash": {
+      "ok": true
+    },
+    "actual_local_extraction": {
+      "ok": true,
+      "exit_code": 0,
+      "stdout": "F        b7e3fc2c1753c2ac 같음\r\nG        4d7ff02a94194fc1 같음\r\nU변수      bc96a3a6fda61f88 같음\r\nU0       4f1e8151a4f7bf28 같음\r\nU1       68d06a12bde2117f 같음\r\nU1되돌림    98e963b96b1fd84a 같음\r\nU2       2feef9e129d07d2e 같음\r\nU3       6583c32e4d7ceef7 같음\r\nUF2      eff1e389c5441d8b 같음\r\nU4       8661620c7ebbfc99 같음\r\nU되돌림     2003195a90c7c3c8 같음\r\nU뒤관측     9e6e7f94526f11ff 같음\r\nU2확인     1c9eab3582d85743 같음\r\n",
+      "stderr": ""
+    },
+    "extracted_thirteen_hashes": {
+      "ok": true
+    },
+    "bash_syntax_F": {
+      "ok": true,
+      "stderr": ""
+    },
+    "bash_syntax_G": {
+      "ok": true,
+      "stderr": ""
+    },
+    "bash_syntax_U변수": {
+      "ok": true,
+      "stderr": ""
+    },
+    "bash_syntax_U0": {
+      "ok": true,
+      "stderr": ""
+    },
+    "bash_syntax_U1": {
+      "ok": true,
+      "stderr": ""
+    },
+    "bash_syntax_U1되돌림": {
+      "ok": true,
+      "stderr": ""
+    },
+    "bash_syntax_U2": {
+      "ok": true,
+      "stderr": ""
+    },
+    "bash_syntax_U3": {
+      "ok": true,
+      "stderr": ""
+    },
+    "bash_syntax_UF2": {
+      "ok": true,
+      "stderr": ""
+    },
+    "bash_syntax_U4": {
+      "ok": true,
+      "stderr": ""
+    },
+    "bash_syntax_U되돌림": {
+      "ok": true,
+      "stderr": ""
+    },
+    "bash_syntax_U뒤관측": {
+      "ok": true,
+      "stderr": ""
+    },
+    "bash_syntax_U2확인": {
+      "ok": true,
+      "stderr": ""
+    },
+    "original_file_preserved_F": {
+      "ok": true
+    },
+    "original_file_preserved_G": {
+      "ok": true
+    },
+    "original_block_preserved_U변수": {
+      "ok": true
+    },
+    "original_block_preserved_U1되돌림": {
+      "ok": true
+    },
+    "original_block_preserved_U1": {
+      "ok": true
+    },
+    "original_block_preserved_U0": {
+      "ok": true
+    },
+    "original_block_preserved_U3": {
+      "ok": true
+    },
+    "original_block_preserved_U4": {
+      "ok": true
+    },
+    "original_block_preserved_U되돌림": {
+      "ok": true
+    },
+    "original_block_preserved_U뒤관측": {
+      "ok": true
+    },
+    "original_block_preserved_U2": {
+      "ok": true
+    },
+    "original_block_preserved_UF2": {
+      "ok": true
+    },
+    "reference_exact_single_literal_change": {
+      "ok": true,
+      "sha256": "a8478e3a932cec09b2b9ffc3376cd65643a9c2d242e6149cca3c89f497a5b9b9"
+    },
+    "one_snapshot_count_and_null_content": {
+      "ok": true
+    },
+    "p0_before_state_queries": {
+      "ok": true
+    },
+    "p0_fail_closed": {
+      "ok": true
+    },
+    "tail_records_after_verification": {
+      "ok": true
+    },
+    "original_tail_names_checked_twice": {
+      "ok": true
+    },
+    "completion_only_last_statement": {
+      "ok": true
+    },
+    "no_product_mutation_commands_in_confirmation": {
+      "ok": true,
+      "matches": []
+    },
+    "runner_continuation_only": {
+      "ok": true
+    },
+    "submitted_actual_pg_twelve_inputs": {
+      "ok": true,
+      "old_pass": 5,
+      "new_pass": 1
+    },
+    "actual_shell_history_predicate": {
+      "ok": true,
+      "statuses": [
+        0,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    "submitted_counts_r2/scen-u2c-run2.txt": {
+      "ok": true,
+      "passed": 158,
+      "failed": 4,
+      "decode_replacements": 1
+    },
+    "submitted_counts_r3/scen-u2c-run3.txt": {
+      "ok": true,
+      "passed": 187,
+      "failed": 0,
+      "decode_replacements": 1
+    },
+    "runner_submitted_eighteen_cases": {
+      "ok": true
+    },
+    "archive_member_paths": {
+      "ok": true,
+      "files": 5471
+    },
+    "archive_forbidden_logs_empty": {
+      "ok": true,
+      "cases": 32
+    },
+    "archive_positive_tail_bytes": {
+      "ok": true
+    },
+    "archive_positive_U0": {
+      "ok": true
+    },
+    "archive_positive_U1": {
+      "ok": true
+    },
+    "archive_positive_U2": {
+      "ok": true
+    },
+    "archive_positive_U2확인": {
+      "ok": true
+    },
+    "archive_positive_U2확인-2": {
+      "ok": true
+    },
+    "archive_positive_U3": {
+      "ok": true
+    },
+    "archive_positive_UF2": {
+      "ok": true
+    },
+    "archive_positive_U4": {
+      "ok": true
+    },
+    "archive_positive_U뒤관측": {
+      "ok": true
+    },
+    "archive_positive_completion": {
+      "ok": true
+    },
+    "archive_negative_u2e-c02": {
+      "ok": true
+    },
+    "archive_negative_u2e-c03": {
+      "ok": true
+    },
+    "archive_negative_u2e-c04": {
+      "ok": true
+    },
+    "archive_negative_u2e-c05": {
+      "ok": true
+    },
+    "archive_negative_u2e-c06": {
+      "ok": true
+    },
+    "archive_negative_u2e-c07": {
+      "ok": true
+    },
+    "archive_negative_u2e-c08": {
+      "ok": true
+    },
+    "archive_negative_u2e-c09": {
+      "ok": true
+    },
+    "archive_negative_u2e-c10": {
+      "ok": true
+    },
+    "archive_negative_u2e-c11": {
+      "ok": true
+    },
+    "archive_negative_u2e-c12": {
+      "ok": true
+    },
+    "archive_negative_u2e-c12n": {
+      "ok": true
+    },
+    "archive_negative_u2e-c13": {
+      "ok": true
+    },
+    "archive_negative_u2e-c13n": {
+      "ok": true
+    },
+    "archive_negative_u2e-c14": {
+      "ok": true
+    },
+    "archive_negative_u2e-c21": {
+      "ok": true
+    },
+    "archive_negative_u2e-c22": {
+      "ok": true
+    },
+    "archive_negative_u2e-c23": {
+      "ok": true
+    },
+    "archive_negative_u2e-c24": {
+      "ok": true
+    },
+    "archive_negative_u2e-c25": {
+      "ok": true
+    },
+    "archive_negative_u2e-c26": {
+      "ok": true
+    },
+    "archive_negative_u2e-c27": {
+      "ok": true
+    },
+    "archive_negative_u2e-c31": {
+      "ok": true
+    },
+    "archive_negative_u2e-c32": {
+      "ok": true
+    },
+    "archive_negative_u2e-c33": {
+      "ok": true
+    },
+    "archive_negative_u2e-c34": {
+      "ok": true
+    },
+    "archive_negative_u2e-c41": {
+      "ok": true
+    },
+    "archive_negative_u2e-c42": {
+      "ok": true
+    },
+    "archive_negative_u2e-c43": {
+      "ok": true
+    },
+    "archive_negative_u2e-c44": {
+      "ok": true
+    },
+    "archive_negative_u2e-c45": {
+      "ok": true
+    },
+    "archive_p0_no_later_state_queries_c11": {
+      "ok": true
+    },
+    "archive_p0_no_later_state_queries_c12": {
+      "ok": true
+    },
+    "archive_p0_no_later_state_queries_c13": {
+      "ok": true
+    },
+    "archive_p0_no_later_state_queries_c14": {
+      "ok": true
+    },
+    "last_actual_read": {
+      "ok": true
+    },
+    "original_u2_exit_preserved": {
+      "ok": true
+    }
+  }
+}

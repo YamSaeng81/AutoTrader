@@ -1,0 +1,43 @@
+== 화면 확인 2026-11-16 16:20:38 KST (서버 시계)
+frontend 컨테이너 이미지 sha256:9d7f123ad6afd75b46d954b7c7031267df5afb3bf6e99660d5a53a3c5d43798e 2026-11-16T07:15:16.447837224Z 0
+로그인 POST /api/auth/login → 200 · 쿠키 1개
+-- 인증 없는 요청(로그인 이동 기대)
+/ → 307 http://localhost:3000/login
+/login → 200
+-- 목록 /paper-trading
+페이지 /paper-trading → 200 38949 · 오류 문자열 0
+  File "<string>", line 11
+    print(f"API {p} → {c} · success={j.get(\"success\")} · {len(d)}건 · 상태 {dict(sorted(st.items()))}")
+                                                                                                     ^
+SyntaxError: f-string expression part cannot include a backslash
+-- 상세 /paper-trading/587
+페이지 /paper-trading/587 → 200 39589 · 오류 문자열 0
+  File "<string>", line 11
+    print(f"API {p} → {c} · success={j.get(\"success\")} · {len(d)}건 · 상태 {dict(sorted(st.items()))}")
+                                                                                                     ^
+SyntaxError: f-string expression part cannot include a backslash
+-- 목록 /trading
+페이지 /trading → 200 40471 · 오류 문자열 0
+  File "<string>", line 11
+    print(f"API {p} → {c} · success={j.get(\"success\")} · {len(d)}건 · 상태 {dict(sorted(st.items()))}")
+                                                                                                     ^
+SyntaxError: f-string expression part cannot include a backslash
+-- 상세 /trading/203
+페이지 /trading/203 → 200 38642 · 오류 문자열 0
+  File "<string>", line 11
+    print(f"API {p} → {c} · success={j.get(\"success\")} · {len(d)}건 · 상태 {dict(sorted(st.items()))}")
+                                                                                                     ^
+SyntaxError: f-string expression part cannot include a backslash
+-- 목록 /trading/dynamic
+페이지 /trading/dynamic → 200 40170 · 오류 문자열 0
+  File "<string>", line 11
+    print(f"API {p} → {c} · success={j.get(\"success\")} · {len(d)}건 · 상태 {dict(sorted(st.items()))}")
+                                                                                                     ^
+SyntaxError: f-string expression part cannot include a backslash
+-- 상세 /trading/dynamic/93
+페이지 /trading/dynamic/93 → 200 38441 · 오류 문자열 0
+  File "<string>", line 11
+    print(f"API {p} → {c} · success={j.get(\"success\")} · {len(d)}건 · 상태 {dict(sorted(st.items()))}")
+                                                                                                     ^
+SyntaxError: f-string expression part cannot include a backslash
+== 끝
