@@ -1,0 +1,78 @@
+[로컬 시작] 2026-11-16 14:01:20 KST(이 PC 시계) 블록=U1 구분=deploy 출처=ce6df2fa 판=V172D4
+freshness 회차 없음(pgrep 종료 1)
+== V171D4 — 바꾸기 전 대응 확인(backend·frontend 실행 컨테이너·이미지 이름·보존 태그)
+보존 태그 판정 backend=0 frontend=1 (0 있음·같음 / 1 명시적 부재 / 2 다른 대상 / 3 조회 불명)
+2026-11-16 14:01:54 KST
+sha256:2c5d84276cdbf01f718077e3d2d0475f6af5982d7afb95082750fcebe7f5979f
+sha256:2c5d84276cdbf01f718077e3d2d0475f6af5982d7afb95082750fcebe7f5979f sha256:b3a42cd2dd9947e6dffc5ccec71de077b3d2fccfc810d21796378be73b05aa0c sha256:4016cc389044ba95a88f9048f6b14de7118e276c75f9a524998e2b8baa50ac34 -
+4a6853689be9c36a984b41e80b8c36b8885cd894707768bfd3ad336c6376239b  /home/manicstr/maint-v172/app-old.jar
+43c4c59a11013bd8e4f33b8d9224420b1638e8099a323307fec4cdd5d0eea7ba  /home/manicstr/maint-v172/app-new.jar
+변경 BOOT-INF/classes/com/cryptoautotrader/api/controller/PaperTradingController.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/dto/PaperTradingStartRequest.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/dto/PerformanceSummaryResponse$PerformanceSummaryResponseBuilder.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/dto/PerformanceSummaryResponse$RegimeStat$RegimeStatBuilder.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/dto/PerformanceSummaryResponse$RegimeStat.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/dto/PerformanceSummaryResponse$SessionPerformance$SessionPerformanceBuilder.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/dto/PerformanceSummaryResponse$SessionPerformance.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/dto/PerformanceSummaryResponse.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/entity/paper/PaperPositionEntity$PaperPositionEntityBuilder.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/entity/paper/PaperPositionEntity.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/entity/paper/VirtualBalanceEntity$VirtualBalanceEntityBuilder.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/entity/paper/VirtualBalanceEntity.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/repository/OrderRepository.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/repository/paper/PaperPositionRepository.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/repository/paper/VirtualBalanceRepository.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/CandleFreshnessGuard.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$1.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$2.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$3.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$BlackSwanGateDecision.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$BuyCandidate.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$EmptyPositionOutcome.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/EntryPriorityRounds.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService$1.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService$EmptyPositionOutcome.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService$PriceSnapshot.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$1.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$2.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$3.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$4.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$5.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$CancelOutcome.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$ClosingSellIntent.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$IntentExpired.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$ReservationRejected.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$SubmitRejection.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/service/PaperExecutionMode.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/service/PaperMaxInvestment.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/PaperTradingService$1.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/service/PaperTradingService$2.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/service/PaperTradingService$AlignedEntryExpired.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/PaperTradingService$RiskMetrics.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/service/PaperTradingService$SessionValuation.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/PaperTradingService.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/service/RealtimeProtectLines$Collector.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/service/RealtimeProtectLines$Line.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/service/RealtimeProtectLines.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/service/RealtimeProtectionDispatcher$CoinLane.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/service/RealtimeProtectionDispatcher$Engine.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/service/RealtimeProtectionDispatcher$Snapshot.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/service/RealtimeProtectionDispatcher.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/RiskManagementService.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/TelegramNotificationService$Attempt.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/TelegramNotificationService$Outcome.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/TelegramNotificationService$Reply.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/TelegramNotificationService$SendMessageRequest.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/TelegramNotificationService$TradeEvent.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/TelegramNotificationService.class
+추가 BOOT-INF/classes/db/migration/V96__paper_aligned_runtime_state.sql
+(끝) 881 895
+JARM b65879533e1ba1c552f57e82b35b3993000319c4b0a81464d37a726ba42111f8
+== frontend(같은 릴리스) — 보존 태그 확인·새 이미지 빌드(재기동 없음)
+sha256:9d7f123ad6afd75b46d954b7c7031267df5afb3bf6e99660d5a53a3c5d43798e
+sha256:9d7f123ad6afd75b46d954b7c7031267df5afb3bf6e99660d5a53a3c5d43798e sha256:13343943ed4ab0db003bf40e77cb38c9d41e67287a7d51fcb6da818ad6569d93 sha256:11d9a954a3054d3eff3c6d2d798fad55beefce3a166c9335259d8fa6367e4f89 -
+✅ U1 통과 — ⏸ 운영자 확인 1회 뒤 U2(backend 만 재기동, frontend 는 U3 뒤 UF2)
+[로컬 끝] 2026-11-16 14:04:13 KST rc=0

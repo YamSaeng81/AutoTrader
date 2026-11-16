@@ -1,0 +1,9 @@
+[로컬 시작] 2026-11-16 14:15:58 KST(이 PC 시계) 블록=U2 구분=deploy 출처=ce6df2fa 판=V172D4
+2026-11-16 14:16:12 KST
+== 여기부터 재기동 — 새 backend 기동 때 Flyway 가 V96 하나를 적용한다. 이 뒤의 멈춤은 '되돌림 필요'(V96 은 되돌리지 않는다)
+ Container autotrader-backend-1 Recreate 
+ Container autotrader-backend-1 Recreated 
+ Container autotrader-backend-1 Starting 
+ Container autotrader-backend-1 Started 
+🔴 멈춤: 되돌림 필요: V95 이후 이력이 V96 한 줄(성공·체크섬 -424836241)이 아님
+[로컬 끝] 2026-11-16 14:16:35 KST rc=1
