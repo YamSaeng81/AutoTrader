@@ -1,0 +1,6 @@
+#!/bin/bash
+case "${FAKE:-}:$PWD" in
+  origlist:*/maint-v161) echo "sha256sum: ./a: 권한 거부(가짜)" >&2; "/usr/bin/sha256sum" "$@"; exit 1;;
+  keeplist:*/maint-v161-pre-v168-20261116) echo "sha256sum: ./a: 권한 거부(가짜)" >&2; "/usr/bin/sha256sum" "$@"; exit 1;;
+esac
+exec "/usr/bin/sha256sum" "$@"

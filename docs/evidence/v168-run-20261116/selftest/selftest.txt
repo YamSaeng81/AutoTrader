@@ -1,0 +1,12 @@
+normal rc=0 성공문구=1 임시잔여=0 사본=있음 끝줄=✅ 보존 완료: 원본·사본 sha256 목록 같음 (3개
+origlist rc=4 성공문구=0 임시잔여=0 사본=없음 끝줄=🔴 원본 목록 생성 실패 rc=123 — 복사하지 않
+keeplist rc=4 성공문구=0 임시잔여=0 사본=있음 끝줄=🔴 사본 목록 생성 실패 rc=123 — 사본 /d/tmp/v1
+copyfail rc=4 성공문구=0 임시잔여=0 사본=있음 끝줄=🔴 복사 실패 rc=1 — 사본 /d/tmp/v168run-selftest/k
+mismatch rc=5 성공문구=0 임시잔여=0 사본=있음 끝줄=🔴 원본·사본 sha256 목록 다름 rc=1 — 사본 /d/
+exist-keep rc=3 성공문구=0 임시잔여=0 사본=있음 끝줄=🔴 멈춤: /d/tmp/v168run-selftest/keep2/h-exist-keep/main
+exist-v168 rc=3 성공문구=0 임시잔여=0 사본=없음 끝줄=🔴 멈춤: /d/tmp/v168run-selftest/keep2/h-exist-v168/main
+exist-v167 rc=3 성공문구=0 임시잔여=0 사본=없음 끝줄=🔴 멈춤: /d/tmp/v168run-selftest/keep2/h-exist-v167/main
+no-v161 rc=3 성공문구=0 임시잔여=0 사본=없음 끝줄=🔴 멈춤: /d/tmp/v168run-selftest/keep2/h-no-v161/maint-v
+repeat-output rc=2
+v1-origlist rc=0 성공문구=1
+v1-keeplist rc=0 성공문구=1

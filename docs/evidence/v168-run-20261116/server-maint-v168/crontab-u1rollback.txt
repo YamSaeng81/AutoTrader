@@ -1,0 +1,5 @@
+19 * * * * cd ~/crypto_trader/AutoTrader && /usr/bin/python3 scripts/prospective/start_66.py freshness --save >> scripts/prospective/freshness_runs.log 2>&1
+25 0 * * * cd ~/crypto_trader/AutoTrader && /usr/bin/python3 scripts/prospective/start_66.py watch --notify >> scripts/prospective/watch_runs.log 2>&1
+# 정기 점검 자동화 (docs/OPS_DAILY_CHECK.md) — 10:00·22:00 KST, 설치 fbd60d3
+0 10,22 * * * SID_OK_STATUS=CREATED REPO_DIR=$HOME/crypto_trader/AutoTrader SQL_FILE=$HOME/ops-scripts/daily_checks.sql $HOME/ops-scripts/daily_check.sh >> $HOME/daily-check/cron.log 2>&1
+30 9 * * * set -C; cd $HOME/crypto_trader/AutoTrader && docker compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -v sid=203 -v init=20200 -f - < $HOME/ops-scripts/sid_ledger.sql > $HOME/sid203-ledger/$(date +\%Y\%m\%d).txt 2>&1

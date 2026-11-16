@@ -1,0 +1,6 @@
+#!/bin/bash
+case "${FAKE:-}" in
+  copyfail) "/usr/bin/cp" "$@"; echo "cp: 쓰기 오류(가짜)" >&2; exit 1;;
+  mismatch) "/usr/bin/cp" "$@"; echo changed > "${@: -1}/a"; exit 0;;
+esac
+exec "/usr/bin/cp" "$@"

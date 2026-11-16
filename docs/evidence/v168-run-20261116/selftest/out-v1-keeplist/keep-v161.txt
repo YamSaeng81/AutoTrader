@@ -1,0 +1,19 @@
+서버 2026-11-16 09:08:42    
+== 보존 전 목록
+ls: cannot access '/d/tmp/v168run-selftest/keep2/v1-keeplist/maint-v161-*': No such file or directory
+drwxr-xr-x 1 SangJoon_Lee 197121 0 Nov 16 09:08 /d/tmp/v168run-selftest/keep2/v1-keeplist/maint-v161
+== 원본 숨김·하위 폴더 확인
+total 1
+drwxr-xr-x 1 SangJoon_Lee 197121 0 Nov 16 09:08 .
+drwxr-xr-x 1 SangJoon_Lee 197121 0 Nov 16 09:08 ..
+-rw-r--r-- 1 SangJoon_Lee 197121 2 Nov 16 09:08 a
+sha256sum: ./a: 권한 거부(가짜)
+== 원본 파일 1개 · 사본 1개
+✅ 원본·사본 sha256 목록 같음
+== 원본 sha256 목록
+87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7 *./a
+== 보존 후 목록
+drwxr-xr-x 1 SangJoon_Lee 197121 0 Nov 16 09:08 /d/tmp/v168run-selftest/keep2/v1-keeplist/maint-v161
+drwxr-xr-x 1 SangJoon_Lee 197121 0 Nov 16 09:08 /d/tmp/v168run-selftest/keep2/v1-keeplist/maint-v161-pre-v168-20261116
+drwxr-xr-x 1 SangJoon_Lee 197121 0 Nov 16 09:08 /d/tmp/v168run-selftest/keep2/v1-keeplist/maint-v161-pre-v168-20261116
+rc=0

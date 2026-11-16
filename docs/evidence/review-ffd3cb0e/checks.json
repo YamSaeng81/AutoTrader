@@ -1,0 +1,374 @@
+{
+  "source": "ffd3cb0eb07f35d921383d8174ff62587922ec04",
+  "manifests": {
+    "n15-late-20261116": {
+      "count": 32,
+      "mismatch": []
+    },
+    "review-d5790c1c": {
+      "count": 3,
+      "mismatch": []
+    }
+  },
+  "runs": {
+    "ctl1": {
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "pin_lines": [],
+      "meta": "HEAD 0e1d2a021ab2f3c759a9b2be9c4f09430f93c80d\n M web-api/src/test/java/com/cryptoautotrader/api/service/N15EntryExpiryTest.java\nworktree_diff_sha256 eb952112f98fa9bec3d4bb208ac465a5ab79220726c761bc57beac8cedd8770c\ngate_ms=off\nN15PIN=\nclasses=N15EntryExpiryTest\nstart 2026-11-16 08:54:01    \nend 2026-11-16 08:54:23     rc=0\n",
+      "summary": "N15 승인 실행 만료 — E=D+W 이상 새 예약·매수 의도 없음\t10\t실패0\t오류0\t건너뜀0\n합계\t10\t실패0\t오류0\t건너뜀0\n외부WS연결·구독줄=0\n--- NET-GUARD\ninstalled_during_run=true\ndisabled_reason=null\nclasses_checked=1\nblocked_external_attempts=0\nallowed_jndi_nameserver_probes=3\nallowed_own_interface_connections=0\nrestored_security_manager=null\n\n"
+    },
+    "fix-ctl1": {
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "pin_lines": [],
+      "meta": "HEAD ee6e472955be8e232dfdd2dd50c1b90aa171dae0\n M web-api/src/test/java/com/cryptoautotrader/api/service/N15EntryExpiryTest.java\nworktree_diff_sha256 1533790fbbc904daf691aefdad184d166d25d64df8de38042f5d814279740283\ngate_ms=off\nN15PIN=\nclasses=N15EntryExpiryTest\nstart 2026-11-16 08:56:13    \nend 2026-11-16 08:56:35     rc=0\n",
+      "summary": "N15 승인 실행 만료 — E=D+W 이상 새 예약·매수 의도 없음\t10\t실패0\t오류0\t건너뜀0\n합계\t10\t실패0\t오류0\t건너뜀0\n외부WS연결·구독줄=0\n--- NET-GUARD\ninstalled_during_run=true\ndisabled_reason=null\nclasses_checked=1\nblocked_external_attempts=0\nallowed_jndi_nameserver_probes=3\nallowed_own_interface_connections=0\nrestored_security_manager=null\n\n"
+    },
+    "fix-ctl2": {
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "pin_lines": [],
+      "meta": "HEAD ee6e472955be8e232dfdd2dd50c1b90aa171dae0\n M web-api/src/test/java/com/cryptoautotrader/api/service/N15EntryExpiryTest.java\nworktree_diff_sha256 1533790fbbc904daf691aefdad184d166d25d64df8de38042f5d814279740283\ngate_ms=off\nN15PIN=\nclasses=N15EntryExpiryTest\nstart 2026-11-16 08:56:35    \nend 2026-11-16 08:56:57     rc=0\n",
+      "summary": "N15 승인 실행 만료 — E=D+W 이상 새 예약·매수 의도 없음\t10\t실패0\t오류0\t건너뜀0\n합계\t10\t실패0\t오류0\t건너뜀0\n외부WS연결·구독줄=0\n--- NET-GUARD\ninstalled_during_run=true\ndisabled_reason=null\nclasses_checked=1\nblocked_external_attempts=0\nallowed_jndi_nameserver_probes=3\nallowed_own_interface_connections=0\nrestored_security_manager=null\n\n"
+    },
+    "fix-ctl3": {
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "pin_lines": [],
+      "meta": "HEAD ee6e472955be8e232dfdd2dd50c1b90aa171dae0\n M web-api/src/test/java/com/cryptoautotrader/api/service/N15EntryExpiryTest.java\nworktree_diff_sha256 1533790fbbc904daf691aefdad184d166d25d64df8de38042f5d814279740283\ngate_ms=off\nN15PIN=\nclasses=N15EntryExpiryTest\nstart 2026-11-16 08:56:58    \nend 2026-11-16 08:57:20     rc=0\n",
+      "summary": "N15 승인 실행 만료 — E=D+W 이상 새 예약·매수 의도 없음\t10\t실패0\t오류0\t건너뜀0\n합계\t10\t실패0\t오류0\t건너뜀0\n외부WS연결·구독줄=0\n--- NET-GUARD\ninstalled_during_run=true\ndisabled_reason=null\nclasses_checked=1\nblocked_external_attempts=0\nallowed_jndi_nameserver_probes=3\nallowed_own_interface_connections=0\nrestored_security_manager=null\n\n"
+    },
+    "pin3": {
+      "tests": 10,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0,
+      "pin_lines": [
+        "[N15PIN] 2026-11-15T23:53:48.863580500Z 붙잡음 order-exec-1 주문#5 세션8 식별자 cat-61d259bd-e264-4d73-96e8-4be52310e7e1",
+        "[N15PIN] 2026-11-15T23:53:49.184045Z ④ LATE 판정 직전 ? 놓기 전 거래소 호출 0 · 붙잡힌 식별자 cat-61d259bd-e264-4d73-96e8-4be52310e7e1",
+        "[N15PIN] 2026-11-15T23:53:49.187164400Z 놓음(true) 사본 그대로 createOrder 로 진행 ? 주문 행 지금 없음(정리됨)",
+        "[N15PIN] 2026-11-15T23:53:49.393276700Z ④ LATE 대역 호출 createOrder [KRW-CRO, bid, null, 5000.00000000, price, cat-61d259bd-e264-4d73-96e8-4be52310e7e1] 식별자 일치 true"
+      ],
+      "meta": "HEAD 0e1d2a021ab2f3c759a9b2be9c4f09430f93c80d\n M web-api/src/test/java/com/cryptoautotrader/api/service/N15EntryExpiryTest.java\nworktree_diff_sha256 eb952112f98fa9bec3d4bb208ac465a5ab79220726c761bc57beac8cedd8770c\ngate_ms=off\nN15PIN=1\nclasses=N15EntryExpiryTest\nstart 2026-11-16 08:53:27    \nend 2026-11-16 08:53:50     rc=1\n",
+      "summary": "N15 승인 실행 만료 — E=D+W 이상 새 예약·매수 의도 없음\t10\t실패1\t오류0\t건너뜀0\n합계\t10\t실패1\t오류0\t건너뜀0\nFAIL N15 승인 실행 만료 — E=D+W 이상 새 예약·매수 의도 없음 :: LIVE 접수 LATE :: org.opentest4j.AssertionFailedError: \n\nexpected: 0\n\n but was: 1\n외부WS연결·구독줄=0\n--- NET-GUARD\ninstalled_during_run=true\ndisabled_reason=null\nclasses_checked=1\nblocked_external_attempts=0\nallowed_jndi_nameserver_probes=3\nallowed_own_interface_connections=0\nrestored_security_manager=null\n\n"
+    },
+    "pin4-before-fix": {
+      "tests": 10,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0,
+      "pin_lines": [
+        "[N15PIN] 2026-11-15T23:55:18.832407700Z 붙잡음 order-exec-1 주문#5 세션8 식별자 cat-c30466a0-ec28-47fe-8a10-c40b970bdfd4",
+        "[N15PIN] 2026-11-15T23:55:19.131320700Z ④ LATE 판정 직전 ? 놓기 전 거래소 호출 0 · 붙잡힌 식별자 cat-c30466a0-ec28-47fe-8a10-c40b970bdfd4",
+        "[N15PIN] 2026-11-15T23:55:19.135320Z 놓음(true) 사본 그대로 createOrder 로 진행 ? 주문 행 지금 없음(정리됨)",
+        "[N15PIN] 2026-11-15T23:55:19.346094Z ④ LATE 대역 호출 createOrder [KRW-CRO, bid, null, 5000.00000000, price, cat-c30466a0-ec28-47fe-8a10-c40b970bdfd4] 식별자 일치 true"
+      ],
+      "meta": "HEAD ee6e472955be8e232dfdd2dd50c1b90aa171dae0\nworktree_diff_sha256 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\ngate_ms=off\nN15PIN=1\nclasses=N15EntryExpiryTest\nstart 2026-11-16 08:54:57    \nend 2026-11-16 08:55:20     rc=1\n",
+      "summary": "N15 승인 실행 만료 — E=D+W 이상 새 예약·매수 의도 없음\t10\t실패1\t오류0\t건너뜀0\n합계\t10\t실패1\t오류0\t건너뜀0\nFAIL N15 승인 실행 만료 — E=D+W 이상 새 예약·매수 의도 없음 :: LIVE 접수 LATE :: org.opentest4j.AssertionFailedError: \n\nexpected: 0\n\n but was: 1\n외부WS연결·구독줄=0\n--- NET-GUARD\ninstalled_during_run=true\ndisabled_reason=null\nclasses_checked=1\nblocked_external_attempts=0\nallowed_jndi_nameserver_probes=3\nallowed_own_interface_connections=0\nrestored_security_manager=null\n\n"
+    },
+    "pin5-after-fix": {
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "pin_lines": [
+        "[N15PIN] 2026-11-15T23:55:57.140639700Z 붙잡음 order-exec-1 주문#5 세션8 식별자 cat-e0f680e2-9051-4355-9837-dbadd532826c",
+        "[N15PIN] 2026-11-15T23:56:00.143540900Z 놓음(false) 사본 그대로 createOrder 로 진행 ? 주문 행 지금 있음",
+        "[N15PIN] 2026-11-15T23:56:00.426931400Z ④ LATE 판정 직전 ? 놓기 전 거래소 호출 0 · 붙잡힌 식별자 cat-e0f680e2-9051-4355-9837-dbadd532826c"
+      ],
+      "meta": "HEAD ee6e472955be8e232dfdd2dd50c1b90aa171dae0\n M web-api/src/test/java/com/cryptoautotrader/api/service/N15EntryExpiryTest.java\nworktree_diff_sha256 1533790fbbc904daf691aefdad184d166d25d64df8de38042f5d814279740283\ngate_ms=off\nN15PIN=1\nclasses=N15EntryExpiryTest\nstart 2026-11-16 08:55:35    \nend 2026-11-16 08:56:05     rc=0\n",
+      "summary": "N15 승인 실행 만료 — E=D+W 이상 새 예약·매수 의도 없음\t10\t실패0\t오류0\t건너뜀0\n합계\t10\t실패0\t오류0\t건너뜀0\n외부WS연결·구독줄=0\n--- NET-GUARD\ninstalled_during_run=true\ndisabled_reason=null\nclasses_checked=1\nblocked_external_attempts=0\nallowed_jndi_nameserver_probes=3\nallowed_own_interface_connections=0\nrestored_security_manager=null\n\n"
+    }
+  },
+  "fix_paths": [
+    "web-api/src/test/java/com/cryptoautotrader/api/service/N15EntryExpiryTest.java"
+  ],
+  "investigation_paths": [
+    "web-api/src/test/java/com/cryptoautotrader/api/service/N15EntryExpiryTest.java"
+  ],
+  "fix_diff_matches": true,
+  "fix_diff_sha256": "1533790fbbc904daf691aefdad184d166d25d64df8de38042f5d814279740283",
+  "candidate_unchanged": true,
+  "prepared_sha256": {
+    "prepared-keep-v161.sh": "26cb622cd61cef4a00d33c1666fa46aa64644cbed409fb7718afae3acfbe12fd",
+    "prepared-runner.sh": "6c8081dc44e76c67b9bb58711ab9fb353d02a10614e9f82d7a6abc2c2f9a6139",
+    "prepared-extractor.py": "432be92bea43e92af733cc9e2d601f77fd6fd34e4470d04420bb2eb74bf72fd2",
+    "prepared-blocks.json": "72f882f8303f482f29258c7c384e7f0e3aed2c4376e4900a2f3a3628fa225ca0",
+    "prepared-selftest.txt": "31798893641cd7d41ce0bb76d113c9437cff10651e7efa93dbdc5f694ee78237"
+  },
+  "blocks": {
+    "F": {
+      "sha256": "b7e3fc2c1753c2ac8f2c8f99aee56dc05b013cbce2045ca25c30d95dbe0353b6",
+      "fixed_source_match": true,
+      "manifest_match": true,
+      "syntax_rc": 0
+    },
+    "G": {
+      "sha256": "4d7ff02a94194fc17e11ed062b4c0fdb80a395aa282c941e7b624be95851c822",
+      "fixed_source_match": true,
+      "manifest_match": true,
+      "syntax_rc": 0
+    },
+    "U변수": {
+      "sha256": "9042ae7bc39dd0054d4ca43a5e05677f13fb936f9300abf5ee0d1a6064a87311",
+      "fixed_source_match": true,
+      "manifest_match": true,
+      "syntax_rc": 0
+    },
+    "U0": {
+      "sha256": "cffb1d94c3ff4d93193a0f8133946627e8cf25bb7edcc40da1f38297dc233787",
+      "fixed_source_match": true,
+      "manifest_match": true,
+      "syntax_rc": 0
+    },
+    "U1": {
+      "sha256": "6127f4ae8b0cf19d1bd97d3ed1ed5ff762f3377b225456ed82a0da08851ae72b",
+      "fixed_source_match": true,
+      "manifest_match": true,
+      "syntax_rc": 0
+    },
+    "U1되돌림": {
+      "sha256": "aecdd952e76e99a7a8233221accb23f0ed664032c04ae6a6e8395a2c4b111163",
+      "fixed_source_match": true,
+      "manifest_match": true,
+      "syntax_rc": 0
+    },
+    "U2": {
+      "sha256": "03a25c9375b81fdc4fa0341fa9f270b8614bec075d7736e74143b7f9a0171948",
+      "fixed_source_match": true,
+      "manifest_match": true,
+      "syntax_rc": 0
+    },
+    "U3": {
+      "sha256": "fd78948b03e850406a9245bfd8bf48d0139622c71d1c153c97740cac8117c8e6",
+      "fixed_source_match": true,
+      "manifest_match": true,
+      "syntax_rc": 0
+    },
+    "UF2": {
+      "sha256": "5b59952371f84ef2e9379a4f0af2e06c77ebdb5d756c2d810c14d360d078a7cf",
+      "fixed_source_match": true,
+      "manifest_match": true,
+      "syntax_rc": 0
+    },
+    "U4": {
+      "sha256": "9d5919f476f67acc00561ee411abab23e9ca28a77cc4ab25426c77615f43036e",
+      "fixed_source_match": true,
+      "manifest_match": true,
+      "syntax_rc": 0
+    },
+    "U되돌림": {
+      "sha256": "4b0da72e82003a4623c25adc268468f4c37ffe651db137484266aa07f5b58f19",
+      "fixed_source_match": true,
+      "manifest_match": true,
+      "syntax_rc": 0
+    },
+    "U뒤관측": {
+      "sha256": "1257073da29caf02b62e59e81f5124f8fd9f8458146deae8d90ea79f2a76fbc1",
+      "fixed_source_match": true,
+      "manifest_match": true,
+      "syntax_rc": 0
+    }
+  },
+  "preservation_failure_model": {
+    "current": {
+      "rc": 0,
+      "stdout": "ACCEPTED\n",
+      "stderr": ""
+    },
+    "strict": {
+      "rc": 7,
+      "stdout": "",
+      "stderr": ""
+    }
+  },
+  "keep2_files": {
+    "keep-v161-remote.sh": {
+      "sha256": "f9b09a0df8ba962e408ec50f826c6848c63c74f9c8a99e345ce1e3c85e545725",
+      "current_match": true
+    },
+    "keep-v161.sh": {
+      "sha256": "0b8fd38f2e1a4b70068cf9162eac9e6b95537277a3ea3fce6d9e57e80e0f99c9",
+      "current_match": true
+    },
+    "keep-v161.v1-before.sh": {
+      "sha256": "26cb622cd61cef4a00d33c1666fa46aa64644cbed409fb7718afae3acfbe12fd",
+      "current_match": true
+    },
+    "selftest.txt": {
+      "sha256": "a7c696fc74b739078d02b4ce04a3b7bc66b7c1218a1d0e0af61d5a3c627afd0c",
+      "current_match": true
+    },
+    "bin/cp": {
+      "sha256": "ac21dde07403cdcf502ea6a2ae924bb604d3a85dff5b1622fd4781f3216fecd5",
+      "current_match": true
+    },
+    "bin/sha256sum": {
+      "sha256": "aa7378fa738b33ba05d1d8e758a5a0076dab9fbcf48d78dc5c16a097ccd649bf",
+      "current_match": true
+    },
+    "bin/ssh": {
+      "sha256": "cf3d7d241a98a890deda2caf19a13abf72fd51de6c02e96fbd54da14e8129b06",
+      "current_match": true
+    },
+    "out-copyfail/keep-v161.txt": {
+      "sha256": "7639bd8e6410b0404f739ffe4e3b57afbec0e80d4c325397a6f062a933bfbbef",
+      "current_match": true
+    },
+    "out-exist-keep/keep-v161.txt": {
+      "sha256": "487f3a870b6933b6f237a23f58f987baeb592c1ed8f6ab6e67ad19ea67986728",
+      "current_match": true
+    },
+    "out-exist-v167/keep-v161.txt": {
+      "sha256": "f5d3f3ee9dbf3053507a2c474f0b7e74b6a55ab8defb256bfaad00ff017cd6c1",
+      "current_match": true
+    },
+    "out-exist-v168/keep-v161.txt": {
+      "sha256": "05a0a02c95dacb3f037c04cef0305f86bd84f97c10c8cb0ffa0effbb961dcfdb",
+      "current_match": true
+    },
+    "out-keeplist/keep-v161.txt": {
+      "sha256": "f34d76595b7a053dd62451453a29bc9b47bbcbbf43095c82d6ceeb2978be5fcc",
+      "current_match": true
+    },
+    "out-mismatch/keep-v161.txt": {
+      "sha256": "5cb1cbb0f037faba30b7f5a85dc2f9885e8415d911aff2e74edb53b45b0f1482",
+      "current_match": true
+    },
+    "out-no-v161/keep-v161.txt": {
+      "sha256": "93218891bfb97f393c8dd1593edbb6224b9fe81d63d27c289110614c70f1e2fd",
+      "current_match": true
+    },
+    "out-normal/keep-v161.txt": {
+      "sha256": "64c88254e7bc588f7532e735832b5c009b38af3284bdfea6ec17f20460e89f90",
+      "current_match": true
+    },
+    "out-origlist/keep-v161.txt": {
+      "sha256": "aaf4acea415934436470546a41652d14706d3c7200ebc6a930f021d87072056b",
+      "current_match": true
+    },
+    "out-v1-keeplist/keep-v161.txt": {
+      "sha256": "c5b8ee6ad1cb6e761d15f5ead526f6bbdbf7221d8261a96d4bf9851322d3eeb3",
+      "current_match": true
+    },
+    "out-v1-origlist/keep-v161.txt": {
+      "sha256": "e64ac916425e55a657a7965b72b6d1206945566f13a9943479d7159d7c64ac83",
+      "current_match": true
+    }
+  },
+  "keep2_syntax": {
+    "keep-v161-remote.sh": 0,
+    "keep-v161.sh": 0
+  },
+  "keep2_cases": {
+    "normal": {
+      "rc": 0,
+      "success": true,
+      "copy_exists": true,
+      "temporary_residual": []
+    },
+    "origlist": {
+      "rc": 4,
+      "success": false,
+      "copy_exists": false,
+      "temporary_residual": []
+    },
+    "keeplist": {
+      "rc": 4,
+      "success": false,
+      "copy_exists": true,
+      "temporary_residual": []
+    },
+    "copyfail": {
+      "rc": 4,
+      "success": false,
+      "copy_exists": true,
+      "temporary_residual": []
+    },
+    "mismatch": {
+      "rc": 5,
+      "success": false,
+      "copy_exists": true,
+      "temporary_residual": []
+    },
+    "exist-keep": {
+      "rc": 3,
+      "success": false,
+      "copy_exists": true,
+      "temporary_residual": []
+    },
+    "exist-v168": {
+      "rc": 3,
+      "success": false,
+      "copy_exists": false,
+      "temporary_residual": []
+    },
+    "exist-v167": {
+      "rc": 3,
+      "success": false,
+      "copy_exists": false,
+      "temporary_residual": []
+    },
+    "no-v161": {
+      "rc": 3,
+      "success": false,
+      "copy_exists": false,
+      "temporary_residual": []
+    }
+  },
+  "keep2_repeat_output_rejected": true,
+  "document_qa": {
+    "START_HERE.md": {
+      "lines": 38,
+      "broken_links": [],
+      "foreign_count": 0
+    },
+    "LIMITED_LIVE_TEST_PLAN.md": {
+      "lines": 138,
+      "broken_links": [],
+      "foreign_count": 0
+    },
+    "CURRENT_HANDOFF.md": {
+      "lines": 37,
+      "broken_links": [],
+      "foreign_count": 0
+    },
+    "LIVE_READINESS.md": {
+      "lines": 49,
+      "broken_links": [],
+      "foreign_count": 0
+    },
+    "NOVEMBER_LIVE_UPGRADE.md": {
+      "lines": 58,
+      "broken_links": [],
+      "foreign_count": 0
+    },
+    "PROGRESS.md": {
+      "lines": 57,
+      "broken_links": [],
+      "foreign_count": 0
+    },
+    "README.md": {
+      "lines": 41,
+      "broken_links": [],
+      "foreign_count": 0
+    },
+    "review/README.md": {
+      "lines": 41,
+      "broken_links": [],
+      "foreign_count": 0
+    }
+  },
+  "recent_progress_items": 5,
+  "night_policy_unchanged": true,
+  "scope": "Static Git, hash, XML and bash syntax checks; shell failure model only. No operational script executed."
+}

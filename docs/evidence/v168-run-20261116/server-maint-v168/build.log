@@ -1,0 +1,93 @@
+ Image autotrader-backend Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 548B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 328B done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/gradle:8.7-jdk17-alpine
+#3 ...
+
+#4 [internal] load metadata for docker.io/library/eclipse-temurin:17-jre-alpine
+#4 DONE 1.1s
+
+#3 [internal] load metadata for docker.io/library/gradle:8.7-jdk17-alpine
+#3 DONE 1.1s
+
+#5 [internal] load .dockerignore
+#5 transferring context: 2B done
+#5 DONE 0.1s
+
+#6 [internal] load build context
+#6 DONE 0.0s
+
+#7 [builder 1/4] FROM docker.io/library/gradle:8.7-jdk17-alpine@sha256:86b77d6cc9e7b1d6928e1ad95d8fb4bd1f71a796a77bfb86216f8d836e87f16e
+#7 resolve docker.io/library/gradle:8.7-jdk17-alpine@sha256:86b77d6cc9e7b1d6928e1ad95d8fb4bd1f71a796a77bfb86216f8d836e87f16e 0.0s done
+#7 DONE 0.0s
+
+#8 [stage-1 1/3] FROM docker.io/library/eclipse-temurin:17-jre-alpine@sha256:e2ba4e947bd5e236a9866fbdda03e4936036cb9e9d16ea0d84d103d6634a5c21
+#8 resolve docker.io/library/eclipse-temurin:17-jre-alpine@sha256:e2ba4e947bd5e236a9866fbdda03e4936036cb9e9d16ea0d84d103d6634a5c21 0.0s done
+#8 DONE 0.0s
+
+#6 [internal] load build context
+#6 transferring context: 437.45MB 5.0s
+#6 transferring context: 866.38MB 10.0s
+#6 transferring context: 1.27GB 15.0s
+#6 transferring context: 1.69GB 20.0s
+#6 transferring context: 1.85GB 21.9s done
+#6 DONE 22.0s
+
+#9 [builder 2/4] WORKDIR /app
+#9 CACHED
+
+#10 [builder 3/4] COPY . .
+#10 DONE 2.7s
+
+#11 [builder 4/4] RUN gradle :web-api:bootJar -x test --no-daemon
+#11 1.017 To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.7/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+#11 2.216 Daemon will be stopped at the end of the build 
+#11 15.42 > Task :strategy-lib:compileJava
+#11 15.42 > Task :strategy-lib:processResources NO-SOURCE
+#11 15.42 > Task :strategy-lib:classes
+#11 15.52 > Task :strategy-lib:jar
+#11 17.02 > Task :core-engine:compileJava
+#11 17.02 > Task :core-engine:processResources NO-SOURCE
+#11 17.02 > Task :core-engine:classes
+#11 17.12 > Task :core-engine:jar
+#11 24.82 > Task :exchange-adapter:compileJava
+#11 24.82 > Task :exchange-adapter:processResources NO-SOURCE
+#11 24.82 > Task :exchange-adapter:classes
+#11 24.82 > Task :exchange-adapter:jar
+#11 43.82 > Task :web-api:compileJava
+#11 43.92 > Task :web-api:processResources
+#11 43.92 > Task :web-api:classes
+#11 44.02 > Task :web-api:resolveMainClassName
+#11 47.69 > Task :web-api:bootJar
+#11 47.69 
+#11 47.69 BUILD SUCCESSFUL in 47s
+#11 47.69 10 actionable tasks: 10 executed
+#11 DONE 48.2s
+
+#12 [stage-1 2/3] WORKDIR /app
+#12 CACHED
+
+#13 [stage-1 3/3] COPY --from=builder /app/web-api/build/libs/*.jar app.jar
+#13 DONE 0.1s
+
+#14 exporting to image
+#14 exporting layers
+#14 exporting layers 8.5s done
+#14 exporting manifest sha256:626092aead860827c8386e6237bcfc29235901acaddcf9a4fc4f58e2a75dbd34 0.0s done
+#14 exporting config sha256:d41dce309961ee75e8e64736e84534eb8cfdee7d737b38e86e656658ec9f706d 0.0s done
+#14 exporting attestation manifest sha256:7a81b5f9c445ca7a40df3b2b65c38663b7d4d9078aaf750327c0b4215e1924c5 0.0s done
+#14 exporting manifest list sha256:e25c2a85e4c7695a9ab2e5b4606fdf69cf0b6d7f8c894c8a128fc919d9850c06 0.0s done
+#14 naming to docker.io/library/autotrader-backend:latest done
+#14 unpacking to docker.io/library/autotrader-backend:latest
+#14 unpacking to docker.io/library/autotrader-backend:latest 1.0s done
+#14 DONE 9.6s
+
+#15 resolving provenance for metadata file
+#15 DONE 0.0s
+ Image autotrader-backend Built 
