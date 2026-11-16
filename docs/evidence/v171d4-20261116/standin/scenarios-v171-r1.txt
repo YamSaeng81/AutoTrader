@@ -1,0 +1,220 @@
+== x01 정상: 서버 LF jar 로 U0→U1→U2(V96)→U3→UF2→U4→U뒤관측 — JARM b6587953·대상/manifest/config 기록·새 컨테이너 대응
+PASS x01 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS x01 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS x01 — jar-manifest-sha(JARM) = JARM b65879533e1ba1c552f
+PASS x01 — jar-diff 62줄+끝 줄 = 63
+PASS x01 — image-before-chain = sha256:52e12428a60df5413
+PASS x01 — image-fe-before-chain = sha256:837db515e0eb8b9cb
+PASS x01 — frontend 보존 태그 = 대상 837db515(.Image d825a9f5 아님) = sha256:837db515e0eb8b9cb
+PASS x01 — fe-stage = 빌드끝
+PASS x01 — 새 backend: 대상≠config(정상 이미지) = 다름
+PASS x01 — HEAD = 0e1d2a021ab2f3c759a9b2be
+PASS x01 — backend 실행 컨테이너 그대로(ID·.Image 52e12428·manifest ca440b84) = 743dfebac8c062011d7711bb
+PASS x01 — frontend 실행 컨테이너 그대로(ID·.Image d825a9f5·manifest fa5c9ba8) = 9a63d15ab1106830ca5d4d59
+PASS x01 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS x01 U3 — 종료 0 · '✅ U3(deploy) 통과' · checkout 1
+PASS x01 — U2 뒤 backend .Image = 새 대상·manifest = 새 manifest = sha256:8c65adb15f2d2caf3
+PASS x01 UF2 — 종료 0 · '✅ UF2 통과' · checkout 1
+PASS x01 — UF2 뒤 frontend .Image·manifest = 새 대상·manifest = sha256:68c60a2bad016f684
+PASS x01 — fe-stage = 교체끝
+PASS x01 U4 — 종료 0 · '✅ U4 통과' · checkout 1
+PASS x01 U뒤관측 — 종료 0 · '' · checkout 1
+PASS x01 — start_66.py sha256 = 68d441ce0ed66d0a654d9ec7
+PASS x01 — 옛 기록 폴더 maint-v168 안 만듦 = 없음
+PASS x01 — imgchain.py 원문 = ICSUM = fddd5d1cae1b85e2a002d30a
+== x02 UF2 뒤 U되돌림 — frontend 교체 뒤 복구(보존 대상으로 이름·재생성), backend #27
+PASS x02 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS x02 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS x02 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS x02 U3 — 종료 0 · '✅ U3(deploy) 통과' · checkout 1
+PASS x02 UF2 — 종료 0 · '✅ UF2 통과' · checkout 1
+PASS x02 U되돌림 — 종료 0 · 'b5cd1d0 (#27 이미지) 로 복귀' · checkout 2
+PASS x02 — 판정 = 실행 판정 backend=�
+PASS x02 — frontend 재생성: .Image = 837db515(대상)·manifest fa5c9ba8 = sha256:837db515e0eb8b9cb
+PASS x02 — backend 재생성: .Image = 52e12428·manifest ca440b84 = sha256:52e12428a60df5413
+PASS x02 — backend latest·보존 태그 = #27 대상 = sha256:52e12428a60df5413
+PASS x02 — frontend 이미지 이름 = 837db515 = sha256:837db515e0eb8b9cb
+PASS x02 — HEAD = b5cd1d0d47ea68ffe6ff476b
+FAIL x02 U3 — 종료 2(기대 0) · '✅ U3(rollback) 통과' · checkout 2(기대 2)
+✅ U3(deploy) 통과 — 기동 30분 뒤 U4
+[대역 끝] rc=0 · 가짜 시각 12:40:15
+== x03 U1 통과(빌드끝) 뒤 U2 하지 않음 → U1되돌림 — 이름 두 개를 보존 대상으로, 실행 컨테이너 그대로
+PASS x03 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS x03 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS x03 U1되돌림 — 종료 0 · '↩ U1-되돌림 끝' · checkout 2
+PASS x03 — backend latest·보존 태그 = #27 대상 = sha256:52e12428a60df5413
+PASS x03 — frontend 이미지 이름 = 837db515 = sha256:837db515e0eb8b9cb
+PASS x03 — backend 실행 컨테이너 그대로(ID·.Image 52e12428·manifest ca440b84) = 743dfebac8c062011d7711bb
+PASS x03 — frontend 실행 컨테이너 그대로(ID·.Image d825a9f5·manifest fa5c9ba8) = 9a63d15ab1106830ca5d4d59
+PASS x03 — HEAD = b5cd1d0d47ea68ffe6ff476b
+PASS x03 — 계획 = 되돌릴 이미지 이�
+PASS x03 — 재기동 없음(up 0) = 0
+== x04·x04s 한 항목 변조 jar(클래스 / V96 SQL) → 이름 목록(RARX·JARN) 통과, JARM 에서 재기동 전 멈춤 → U1되돌림(frontend 빌드 전 단계)
+PASS x04 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS x04 U1 — 종료 1 · '새 jar 항목 내용이 후보 0e1d2a02(제품 입력 99e6ab10) 목록(JARM)과 다름' · checkout 1
+PASS x04 — 이름 목록 62줄+끝 줄(RARX·JARN 통과) = 63
+PASS x04 — fe-stage(frontend 빌드 전) = 보존태그
+PASS x04 — frontend 빌드 안 함 = 0
+PASS x04 U1되돌림 — 종료 0 · '↩ U1-되돌림 끝' · checkout 2
+PASS x04 — backend latest·보존 태그 = #27 대상 = sha256:52e12428a60df5413
+PASS x04 — frontend 이미지 이름 = 837db515 = sha256:837db515e0eb8b9cb
+PASS x04 — backend 실행 컨테이너 그대로(ID·.Image 52e12428·manifest ca440b84) = 743dfebac8c062011d7711bb
+PASS x04 — frontend 실행 컨테이너 그대로(ID·.Image d825a9f5·manifest fa5c9ba8) = 9a63d15ab1106830ca5d4d59
+PASS x04 — 계획 = 되돌릴 이미지 이�
+PASS x04s U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS x04s U1 — 종료 1 · '새 jar 항목 내용이 후보 0e1d2a02(제품 입력 99e6ab10) 목록(JARM)과 다름' · checkout 1
+PASS x04s — 이름 목록 62줄+끝 줄(RARX·JARN 통과) = 63
+PASS x04s — fe-stage(frontend 빌드 전) = 보존태그
+PASS x04s — frontend 빌드 안 함 = 0
+PASS x04s U1되돌림 — 종료 0 · '↩ U1-되돌림 끝' · checkout 2
+PASS x04s — backend latest·보존 태그 = #27 대상 = sha256:52e12428a60df5413
+PASS x04s — frontend 이미지 이름 = 837db515 = sha256:837db515e0eb8b9cb
+PASS x04s — backend 실행 컨테이너 그대로(ID·.Image 52e12428·manifest ca440b84) = 743dfebac8c062011d7711bb
+PASS x04s — frontend 실행 컨테이너 그대로(ID·.Image d825a9f5·manifest fa5c9ba8) = 9a63d15ab1106830ca5d4d59
+PASS x04s — 계획 = 되돌릴 이미지 이�
+== x05 b5cd1d0 jar · x05c 로컬 CRLF bootJar(종전 JARM 7df5758f) → 이름 목록(RARX)에서 먼저 멈춤
+PASS x05 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS x05 U1 — 종료 1 · 'jar 차이가 기대 62줄' · checkout 1
+PASS x05 — JARM 기록 없음 = 없음
+PASS x05c U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS x05c U1 — 종료 1 · 'jar 차이가 기대 62줄' · checkout 1
+PASS x05c — JARM 기록 없음 = 없음
+FAIL x05c — CRLF jar 차이 줄 수(62 + 리소스 97) = 96 (기대 97)
+== x06·x12 JARM 없음 / 한 글자 변조
+PASS x06 U0 — 종료 1 · '변수 순서 — F 변수 → G 변수 → v1.171 통합 후보 초안 D4 U 변수' · checkout 0
+PASS x12 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS x12 U1 — 종료 1 · '새 jar 항목 내용이 후보 0e1d2a02(제품 입력 99e6ab10) 목록(JARM)과 다름' · checkout 1
+== 판 표지·기록 폴더·옛 판 혼합 거부
+PASS x07 U0 — 종료 1 · '변수 순서 — F 변수 → G 변수 → v1.171 통합 후보 초안 D4 U 변수' · checkout 0
+PASS x08 U0 — 종료 1 · '변수 순서 — F 변수 → G 변수 → v1.168 통합 후보 초안 D4 U 변수' · checkout 0
+PASS x09 U0 — 종료 1 · '변수 순서 — F 변수 → G 변수 → v1.171 통합 후보 초안 D4 U 변수' · checkout 0
+PASS x10 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS x10 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS x10 U2 — 종료 1 · 'U 변수가 v1.171 통합 후보 초안 D4 판이 아님' · checkout 1
+PASS x11 U0 — 종료 1 · '실행 중 frontend 이미지가 FEIMGOLD 와 다름' · checkout 0
+== i01~i08 이미지 대응 조회·형식 이상 → 멈춤(변경 명령 0)
+PASS i01 U0 — 종료 1 · 'frontend 이미지 이름의 대상·manifest·config 조회 실패' · checkout 0
+PASS i02 U0 — 종료 1 · 'backend 실행 이미지의 대상·manifest·config 조회 실패' · checkout 0
+PASS i03 U0 — 종료 1 · 'frontend 이미지 이름의 대상·manifest·config 조회 실패' · checkout 0
+PASS i04 U0 — 종료 1 · 'backend 실행 이미지의 대상·manifest·config 조회 실패' · checkout 0
+PASS i05 U0 — 종료 1 · '실행 중 frontend 컨테이너가 이미지 이름의 manifest·config 와 연결되지 않음' · checkout 0
+PASS i06 U0 — 종료 1 · '보존 태그 autotrader-backend:b5cd1d0 이 이미 다른 이미지를 가리킨다' · checkout 0
+PASS i07 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS i07 U1 — 종료 1 · '실행 중 backend 가 U0 대응과 다름 또는 조회 실패(아직 바꾼 것 없음, U1-되돌림 하지 않는다)' · checkout 0
+PASS i07 — 변경 명령 0(docker tag·build) = 0
+PASS i08 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS i08 U1 — 종료 1 · '(아직 바꾼 것 없음, U1-되돌림 하지 않는다)' · checkout 0
+PASS i08 — 변경 명령 0 = 0
+== f01~f03 U1 frontend 빌드 전·중·뒤 실패 → U1되돌림
+PASS f01 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS f01 U1 — 종료 1 · 'autotrader-frontend:b5cd1d0 태그가 이미 다른 이미지를 가리키거나 조회 실패' · checkout 0
+PASS f01 — 변경 명령 0 = 0
+PASS f02 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS f02 U1 — 종료 1 · 'frontend 빌드 실패' · checkout 1
+PASS f02 — fe-stage = 빌드시작
+PASS f02 — frontend 이름 그대로 = sha256:837db515e0eb8b9cb
+PASS f02 U1되돌림 — 종료 0 · '↩ U1-되돌림 끝' · checkout 2
+PASS f02 — backend latest·보존 태그 = #27 대상 = sha256:52e12428a60df5413
+PASS f02 — frontend 이미지 이름 = 837db515 = sha256:837db515e0eb8b9cb
+PASS f02 — frontend 실행 컨테이너 그대로(ID·.Image d825a9f5·manifest fa5c9ba8) = 9a63d15ab1106830ca5d4d59
+PASS f02 — backend 실행 컨테이너 그대로(ID·.Image 52e12428·manifest ca440b84) = 743dfebac8c062011d7711bb
+PASS f02 — 계획 = 되돌릴 이미지 이�
+PASS f03 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS f03 U1 — 종료 1 · 'frontend 빌드 실패' · checkout 1
+PASS f03 — fe-stage = 빌드시작
+PASS f03 — frontend 이름이 바뀜(빌드 중) = 바뀜
+PASS f03 U1되돌림 — 종료 0 · '↩ U1-되돌림 끝' · checkout 2
+PASS f03 — backend latest·보존 태그 = #27 대상 = sha256:52e12428a60df5413
+PASS f03 — frontend 이미지 이름 = 837db515 = sha256:837db515e0eb8b9cb
+PASS f03 — frontend 실행 컨테이너 그대로(ID·.Image d825a9f5·manifest fa5c9ba8) = 9a63d15ab1106830ca5d4d59
+PASS f03 — backend 실행 컨테이너 그대로(ID·.Image 52e12428·manifest ca440b84) = 743dfebac8c062011d7711bb
+PASS f03 — 계획 = 되돌릴 이미지 이�
+PASS f04 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS f04 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS f04 U1되돌림 — 종료 1 · 'frontend 이미지 이름이 U1 새 이미지가 아님' · checkout 1
+PASS f04 — HEAD 그대로(NEW) = 0e1d2a021ab2f3c759a9b2be
+PASS f04 — backend latest 그대로(새 이미지) = sha256:8c65adb15f2d2caf3
+== t01~t03 태그 변경·조회 실패 → 재기동/교체 전 멈춤
+PASS t01 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS t01 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS t01 U2 — 종료 1 · 'latest 가 image-new 와 다름' · checkout 1
+PASS t01 — up 0 = 0
+PASS t02 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS t02 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS t02 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS t02 U3 — 종료 0 · '✅ U3(deploy) 통과' · checkout 1
+PASS t02 UF2 — 종료 1 · 'frontend 이미지 이름이 image-fe-new 대상·manifest·config 를 가리키지 않음' · checkout 1
+PASS t02 — frontend up 0 = 0
+PASS t03 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS t03 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS t03 U2 — 종료 1 · 'latest 가 image-new 대상·manifest·config 와 다름 또는 조회 실패(아직 바꾼 것 없음)' · checkout 1
+PASS t03 — up 0 = 0
+== c01 새 컨테이너 .Image 가 config 로 보이는 경우도 같은 이미지로 수용(대상≠config) · c02 daemon 사용 목록·manifest 불일치 거절
+PASS c01 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS c01 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS c01 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS c01 U3 — 종료 0 · '✅ U3(deploy) 통과' · checkout 1
+PASS c01 — backend .Image = 새 config = sha256:47f161df289fddd4d
+PASS c02 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS c02 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+FAIL c02 U2 — 종료 1(기대 1) · '되돌림 필요: 새 컨테이너가 image-new 대상·manifest·config 와 연결되지 않음' · checkout 1(기대 1)
+🔴 이미지 대응 거절: 컨테이너 ImageManifestDescriptor 가 linux/amd64 OCI manifest 가 아님 {'mediaType': 'application/vnd.oci.image.manifest.v1+json', 'digest': 'sha256:ca440b8403c4a65ce39c3a49f0e480c5ca5e9630380cdbcfe4daf6405fc6c628', 'size': 1624, 'platform': {'architecture': 'arm64', 'os': 'linux'}}
+🔴 멈춤: 실행 중 backend 가 #27 이미지 대응이 아님 또는 조회 실패(아직 바꾼 것 없음) — 보고
+[대역 끝] rc=1 · 가짜 시각 12:35:00
+== r01 UF2 교체 뒤 실패(응답 500) → U되돌림 frontend 복구 · r02 frontend 교체 전 U되돌림(이름만 복구, 재생성 0)
+PASS r01 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS r01 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS r01 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS r01 U3 — 종료 0 · '✅ U3(deploy) 통과' · checkout 1
+PASS r01 UF2 — 종료 1 · 'frontend 되돌림 필요: / 응답 500' · checkout 1
+PASS r01 U되돌림 — 종료 0 · 'b5cd1d0 (#27 이미지) 로 복귀' · checkout 2
+PASS r01 — frontend 재생성 .Image·manifest = sha256:837db515e0eb8b9cb
+PASS r01 — backend latest·보존 태그 = #27 대상 = sha256:52e12428a60df5413
+PASS r01 — frontend 이미지 이름 = 837db515 = sha256:837db515e0eb8b9cb
+PASS r01 — fe-restored = frontend 복구 — 이�
+PASS r02 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS r02 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS r02 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS r02 U3 — 종료 0 · '✅ U3(deploy) 통과' · checkout 1
+PASS r02 U되돌림 — 종료 0 · 'b5cd1d0 (#27 이미지) 로 복귀' · checkout 2
+PASS r02 — frontend 실행 컨테이너 그대로(ID·.Image d825a9f5·manifest fa5c9ba8) = 9a63d15ab1106830ca5d4d59
+PASS r02 — backend latest·보존 태그 = #27 대상 = sha256:52e12428a60df5413
+PASS r02 — frontend 이미지 이름 = 837db515 = sha256:837db515e0eb8b9cb
+PASS r02 — frontend 재생성 0 = 0
+PASS r02 — fe-restored = frontend 실행은 구�
+PASS r03 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS r03 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS r03 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS r03 U3 — 종료 0 · '✅ U3(deploy) 통과' · checkout 1
+PASS r03 U되돌림 — 종료 1 · '실행 backend 가 image-before·image-new 대응 어느 것도 아니거나 조회 실패' · checkout 1
+PASS r03 — 변경 명령 0(U되돌림 구간 tag·up) = 3
+PASS r03 — HEAD 그대로(NEW) = 0e1d2a021ab2f3c759a9b2be
+PASS r03 — backend latest 그대로(새) = sha256:8c65adb15f2d2caf3
+PASS r04 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS r04 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS r04 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS r04 U3 — 종료 0 · '✅ U3(deploy) 통과' · checkout 1
+PASS r04 UF2 — 종료 0 · '✅ UF2 통과' · checkout 1
+PASS r04 U되돌림 — 종료 1 · '실행 backend 가 image-before·image-new 대응 어느 것도 아니거나 조회 실패' · checkout 1
+PASS r04 — frontend 그대로(새) = sha256:68c60a2bad016f684
+== p01 P0 우선: 기동 로그 연결 획득 시간 초과 + 이미지 조회 실패 → P0 로 멈춤
+PASS p01 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS p01 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS p01 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS p01 U3 — 종료 1 · '🔴 P0 — 연결 획득 시간 초과 줄이 있다' · checkout 1
+PASS p02 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS p02 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS p02 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS p02 U3 — 종료 1 · '실행 이미지가 기대 대상·manifest·config 와 다름 또는 조회 실패' · checkout 1
+== o01 옛 V168D4 블록(d5790c1c 원문)을 이 장치로 — 11-16 10:25~10:27 실패 재현(U1 JARM 7df5758f 불일치 → U1되돌림 frontend No such image)
+PASS o01 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS o01 U1 — 종료 1 · '새 jar 항목 내용이 후보 0e1d2a02(제품 입력 99e6ab10) 목록(JARM)과 다름' · checkout 1
+PASS o01 — JARM(서버 값과 같음) = JARM b65879533e1ba1c552f
+PASS o01 U1되돌림 — 종료 1 · '' · checkout 2
+PASS o01 — frontend 단계 No such image d825a9f5 = 1
+PASS 전체 — 금지 명령 기록 줄 수 합 = 0
+== 결과: PASS 193 · FAIL 3
+
+real	58m49.282s
+user	21m16.200s
+sys	30m36.197s

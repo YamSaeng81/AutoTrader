@@ -1,0 +1,300 @@
+diff -ru '--exclude=runs' '--exclude=blocks-d4' '--exclude=fixreal' '--exclude=imgstate.py' '--exclude=scenarios-v17*' v168d4s/sim/adv.sh v171d4s/sim/adv.sh
+--- v168d4s/sim/adv.sh	2026-11-15 22:31:28.923972400 +0900
++++ v171d4s/sim/adv.sh	2026-11-16 10:59:23.952353100 +0900
+@@ -1,4 +1,4 @@
+ #!/bin/bash
+ # 사용: adv.sh <대역 이름> <초> — 가짜 시계만 민다
+-S=/d/tmp/v168d4s/sim/runs/$1; echo $(( $(cat $S/state/clock) + $2 )) > $S/state/clock
++S=/d/tmp/v171d4s/sim/runs/$1; echo $(( $(cat $S/state/clock) + $2 )) > $S/state/clock
+ echo "$(date '+%T') 가짜 시계 +$2초 → $(TZ=KST-9 /usr/bin/date -d @"$(cat $S/state/clock)" '+%F %T %Z')" | tee -a $S/out/clock.txt
+diff -ru '--exclude=runs' '--exclude=blocks-d4' '--exclude=fixreal' '--exclude=imgstate.py' '--exclude=scenarios-v17*' v168d4s/sim/conf.local.sh v171d4s/sim/conf.local.sh
+--- v168d4s/sim/conf.local.sh	2026-11-15 22:31:29.065928900 +0900
++++ v171d4s/sim/conf.local.sh	2026-11-16 11:08:15.176321900 +0900
+@@ -1,4 +1,5 @@
++# V171D4 대역 값 — 정상 jar 를 서버 LF 빌드로 바꿨다. 이하 원래 주석
+ # V168D4 대역 값(22:35, v167d4s 사본에서 NEW·jar·DIFFN 만 교체) — 후보 0e1d2a02·그 로컬 bootJar(be723125…, JARM 7df5758f 동일)·git diff --name-only b5cd1d0 0e1d2a02(133경로). 이하 원래 주석: V167D4 대역 값 — 후보 99e6ab10(candidate/order-poll-race-b987d7a7)·그 로컬 bootJar(f7450f13…)·실제 git diff --name-only b5cd1d0 99e6ab10(130경로). V161D4 대역에서 NEW·jar·DIFFN·판 표지·기록 폴더만 다르다
+ D2_NEWC=0e1d2a021ab2f3c759a9b2be9c4f09430f93c80d
+-D2_JAR_NEW=/d/tmp/v168-ev/jars/0e1d2a02.jar
++D2_JAR_NEW=/d/tmp/v171/jars/srv-e25c2a85-app-new.jar   # V171D4: 서버가 0e1d2a02 로 빌드한 실제 jar(5c53c9e3…, JARM b6587953…, ~/maint-v168/app-new.jar). 종전 로컬 bootJar(CRLF, JARM 7df5758f…)는 JARM 거절 사례에 쓴다
+ D2_DIFF="$(cat /d/tmp/v168-ev/d4/diffn-b5cd1d0-0e1d2a02.txt)"
+diff -ru '--exclude=runs' '--exclude=blocks-d4' '--exclude=fixreal' '--exclude=imgstate.py' '--exclude=scenarios-v17*' v168d4s/sim/conf.sh v171d4s/sim/conf.sh
+--- v168d4s/sim/conf.sh	2026-11-15 22:31:28.929153900 +0900
++++ v171d4s/sim/conf.sh	2026-11-16 11:08:15.175315600 +0900
+@@ -1,16 +1,16 @@
+ # SMA20 PAPER 후보 초안 D4 대역 공통 값(총괄 v1.144 H, D3 대역 장치를 옮김). 가짜 명령·init·sim 이 읽는다. 실제 서버 값은 D4 U변수 원문에 있고 여기서 바꾸지 않는다.
+ MIDC=99bd4eaadb0ff3037518c3cacbf6bb98de91bf4e   # 예상 밖 HEAD 사례용(로컬에 있는 다른 커밋)
+ REPOSRC="/d/Claude Code/projects/crypto-auto-trader"   # start_66.py 원문을 꺼내는 로컬 저장소(읽기만)
+-R=/d/tmp/v168d4s/sim
++R=/d/tmp/v171d4s/sim
+ . "$R/conf.local.sh"
+ OLDC=b5cd1d0d47ea68ffe6ff476b89cf9fca5bef1b88
+ NEWC=$D2_NEWC
+ QSC=fa0691e647b61f6df4a85bdf796996f50470185e
+ # 실행 중 #27 이미지 — D4 U변수 IMGOLD 원문 값을 대역 이미지 이름으로 그대로 쓴다(이름 I26 은 D3 장치의 변수 이름을 그대로 둔 것)
+ I26=sha256:52e12428a60df5413d6e495024220bbd4c8fa07830549556f0b47bbe6ad39055
+-JAR_OLD=/d/tmp/o1o3/jars/b5cd1d0.jar   # 보존 실제 jar(a7ef759f…)
++JAR_OLD=/d/tmp/v171/jars/srv-52e12428-app-old.jar   # V171D4: 서버 #27 컨테이너에서 꺼낸 실제 b5cd1d0 jar(4a685368…, LF 리소스 — ~/maint-v168/app-old.jar). 종전 대역은 로컬 보존 jar a7ef759f…
+ JAR_NEW=$D2_JAR_NEW
+-BLOCKS=${D2_BLOCKS:-/d/tmp/v168d4s/blocks-d4}
++BLOCKS=${D2_BLOCKS:-/d/tmp/v171d4s/blocks-d4}
+ FG=/d/tmp/sma20pd4/fg
+ # V159D4 덧붙임 — frontend 대역 이미지(실행 중 구판)·관문/조회문 고정 커밋 대역 값·V96 Flyway 체크섬
+ FEI0=sha256:d825a9f5b00d3dac93ee154f32f91b5a1474248fefaa3651f0d0c3b0cc2f7f66   # V161D4: 실행 중 구판 frontend = 운영 읽기 실제 값(n03-1113-1000/frontend-image.txt). U변수 FEIMGOLD 와 같다
+@@ -19,3 +19,6 @@
+ GSD=/d/tmp/v160/gs-6385e1d5   # git show 6385e1d5:<경로> 원문 3개(gate.sql c9dc2056…·rollback_gate.sh fe19aab4…·preflight v2 af4105c1…)
+ EVD="/d/Claude Code/projects/crypto-auto-trader/docs/evidence/v159-20261113"
+ V96SUMX=-424836241
++# V171D4: 실행 중 frontend 이미지 이름의 대상·manifest·config, #27 backend 의 manifest·config(운영 읽기 2026-11-16 10:52, save 원문 해시 확인)
++FET0=sha256:837db515e0eb8b9cb4bcf8f03ed3b98adf9f8cdb176d13777949c792d10b5017; FEM0=sha256:fa5c9ba849c3ee1e48540004105ea18df6d8d25df1bf490a6eeac425413e3ad6; FEC0=sha256:80ce755066587ea4eadad00e823b9f4aaa5e9696897aa3a4ebcf12cf6d11d946
++I26M=sha256:ca440b8403c4a65ce39c3a49f0e480c5ca5e9630380cdbcfe4daf6405fc6c628; I26C=sha256:0344757e24e4567d56ff735560eb8564eab131933613b6deee663ead91e43e9b
+diff -ru '--exclude=runs' '--exclude=blocks-d4' '--exclude=fixreal' '--exclude=imgstate.py' '--exclude=scenarios-v17*' v168d4s/sim/init.sh v171d4s/sim/init.sh
+--- v168d4s/sim/init.sh	2026-11-15 22:31:28.936922200 +0900
++++ v171d4s/sim/init.sh	2026-11-16 11:08:15.175315600 +0900
+@@ -2,9 +2,9 @@
+ # 사용: init.sh <대역 이름> <가짜 시작 시각(KST, 예 '2026-11-10 10:20:00')>
+ # 새 대역 폴더를 만든다. 이미 있으면 멈춘다(실행 출력 보존). D3 대역 init.sh 를 D4 값으로 옮겼다 — 실행 중 #27 이미지 기록 ~/maint-o13n21/image-new.txt, 복구 태그 1899b49(#26) 추가, 운영 판에도 시험 파일이 있다.
+ set -eu
+-. /d/tmp/v168d4s/sim/conf.sh
++. /d/tmp/v171d4s/sim/conf.sh
+ S=$R/runs/$1; [ ! -e "$S" ] || { echo "이미 있음 $S"; exit 2; }
+-mkdir -p "$S"/{state/fetag,state/tag,state/img,state/svc,fix,out,home/crypto_trader/AutoTrader/scripts/prospective,home/maint-o13n21,home/ops-scripts,home/sid203-ledger,home/daily-check}
++mkdir -p "$S"/{state/fetag,state/tag,state/img,state/svc,state/ctr,state/man,state/blob,state/fault,fix,out,home/crypto_trader/AutoTrader/scripts/prospective,home/maint-o13n21,home/ops-scripts,home/sid203-ledger,home/daily-check}
+ TZ=KST-9 /usr/bin/date -d "$2" +%s > "$S/state/clock"
+ echo $OLDC > "$S/state/HEAD"
+ h() { printf '%s' "$1" | /usr/bin/sha256sum | cut -c1-64; }
+@@ -20,7 +20,15 @@
+ echo "$I26" > "$S/state/tag/latest"; echo "$I26" > "$S/state/backend.image"; echo 2026-11-06T04:36:36.000000000Z > "$S/state/backend.started"
+ for s in db redis db-backup frontend; do echo "sha256:$(h standin-$s)" > "$S/state/svc/$s"; done
+ echo "$I26" > "$S/home/maint-o13n21/image-new.txt"
+-echo "$FEI0" > "$S/state/fetag/latest"; echo frontend-old > "$S/state/img/${FEI0#sha256:}"   # V159D4: 실행 중 구판 frontend
++# V171D4: containerd 저장소 — 실제 서버 save 원문으로 #27 backend·frontend 이미지(대상·manifest·config) 등록, 실행 컨테이너 ID·.Image·manifest 는 운영 읽기 값
++PYREAL='/c/Users/SangJoon_Lee/AppData/Local/Microsoft/WindowsApps/PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0/python.exe'
++PYTHONUTF8=1 "$PYREAL" -I $R/imgstate.py seed "$S/state" "$(cygpath -w $R/fixreal/blobs-52e12428.json)" "$I26"
++PYTHONUTF8=1 "$PYREAL" -I $R/imgstate.py seed "$S/state" "$(cygpath -w $R/fixreal/blobs-837db515.json)" "$FET0"
++echo "$FET0" > "$S/state/fetag/latest"; echo frontend > "$S/state/img/${FET0#sha256:}"   # frontend 이미지 이름 = 대상 837db515(d825a9f5 는 이미지가 아니다)
++echo "$I26" > "$S/state/tag/b5cd1d0"   # 운영: V168 U1(11-16 10:25)이 만든 backend 보존 태그가 남아 있다(→52e12428)
++echo "743dfebac8c062011d7711bb59ebe727ee1e174724526b0160f6921afd5bfece $I26 $I26M" > "$S/state/ctr/backend"
++echo "9a63d15ab1106830ca5d4d59bda98b440005f5310743b8e16c2e2f0079c0fe4a $FEI0 $FEM0" > "$S/state/ctr/frontend"
++for s in db redis db-backup; do echo "$(h cid-$s) $(cat "$S/state/svc/$s") sha256:$(h man-$s)" > "$S/state/ctr/$s"; done
+ echo "$FEI0" > "$S/state/svc/frontend"   # V161D4: 실행 중 frontend = 운영 실제 값(위 for 의 대역 값을 덮어쓴다)
+ cp $R/fixbase159/preflight-ok.txt "$S/fix/preflight.txt"; cp $R/fixbase159/gate-ok.txt "$S/fix/gate.txt"
+ cp $R/fixbase/maint_checks.sql $R/fixbase/maint_verify.py $R/fixbase/log-*.log "$S/fix/"
+diff -ru '--exclude=runs' '--exclude=blocks-d4' '--exclude=fixreal' '--exclude=imgstate.py' '--exclude=scenarios-v17*' v168d4s/sim/scenarios-v167.sh v171d4s/sim/scenarios-v167.sh
+--- v168d4s/sim/scenarios-v167.sh	2026-11-15 22:31:28.941932200 +0900
++++ v171d4s/sim/scenarios-v167.sh	2026-11-16 10:59:23.977078900 +0900
+@@ -5,7 +5,7 @@
+ #            ④ JARM 없음·변조·판 표지·기록 폴더·옛 판 혼합 거부 ⑤ FEIMGOLD 대조(그대로인 값) 확인.
+ # 사용: scenarios-v167.sh <접두어>
+ set -u
+-cd /d/tmp/v168d4s/sim; P=${1:?접두어}; T='2026-11-11 10:30:00'
++cd /d/tmp/v171d4s/sim; P=${1:?접두어}; T='2026-11-11 10:30:00'
+ . ./conf.sh
+ NH=68d441ce0ed66d0a654d9ec7ca485d0a69a5bb8bacf4de48b5d61d0ef813b56b
+ MV=maint-v167
+@@ -65,7 +65,7 @@
+ 
+ echo "== 판 표지·기록 폴더·옛 판 혼합 거부(checkout 0)"
+ ini x07; UVAR=/d/tmp/v161d4/blocks-d4/U변수.sh chk x07 U0 "" 1 "변수 순서 — F 변수 → G 변수 → v1.167 통합 후보 초안 D4 U 변수" 0   # 옛 V161D4 U변수 + 새 블록
+-ini x08; UVAR=/d/tmp/v168d4s/blocks-d4/U변수.sh D2_BLOCKS=/d/tmp/v161d4/blocks-d4 chk x08 U0 "" 1 "변수 순서 — F 변수 → G 변수 → v1.161 통합 후보 초안 D4 U 변수" 0   # 새 U변수 + 옛 블록
++ini x08; UVAR=/d/tmp/v171d4s/blocks-d4/U변수.sh D2_BLOCKS=/d/tmp/v161d4/blocks-d4 chk x08 U0 "" 1 "변수 순서 — F 변수 → G 변수 → v1.161 통합 후보 초안 D4 U 변수" 0   # 새 U변수 + 옛 블록
+ ini x09; printf 'M=~/maint-v161\n' >> runs/$P-x09/vars.sh; chk x09 U0 "" 1 "변수 순서 — F 변수 → G 변수 → v1.167 통합 후보 초안 D4 U 변수" 0
+ ini x10; u0u1 x10; printf 'UB=V161D4\n' >> runs/$P-x10/vars.sh; chk x10 U2 "" 1 "U 변수가 v1.167 통합 후보 초안 D4 판이 아님" 1
+ ini x11; echo "sha256:$(printf x | /usr/bin/sha256sum | cut -c1-64)" > runs/$P-x11/state/svc/frontend; chk x11 U0 "" 1 "실행 중 frontend 이미지가 FEIMGOLD 와 다름" 0
+diff -ru '--exclude=runs' '--exclude=blocks-d4' '--exclude=fixreal' '--exclude=imgstate.py' '--exclude=scenarios-v17*' v168d4s/sim/scenarios-v168.sh v171d4s/sim/scenarios-v168.sh
+--- v168d4s/sim/scenarios-v168.sh	2026-11-15 22:32:10.916467300 +0900
++++ v171d4s/sim/scenarios-v168.sh	2026-11-16 10:59:23.986126300 +0900
+@@ -7,7 +7,7 @@
+ #            ④ JARM 없음·변조·판 표지·기록 폴더·옛 판 혼합 거부 ⑤ FEIMGOLD 대조(그대로인 값) 확인.
+ # 사용: scenarios-v167.sh <접두어>
+ set -u
+-cd /d/tmp/v168d4s/sim; P=${1:?접두어}; T='2026-11-11 10:30:00'
++cd /d/tmp/v171d4s/sim; P=${1:?접두어}; T='2026-11-11 10:30:00'
+ . ./conf.sh
+ NH=68d441ce0ed66d0a654d9ec7ca485d0a69a5bb8bacf4de48b5d61d0ef813b56b
+ MV=maint-v168
+@@ -67,7 +67,7 @@
+ 
+ echo "== 판 표지·기록 폴더·옛 판 혼합 거부(checkout 0)"
+ ini x07; UVAR=/d/tmp/v167d4s/blocks-d4/U변수.sh chk x07 U0 "" 1 "변수 순서 — F 변수 → G 변수 → v1.168 통합 후보 초안 D4 U 변수" 0   # 옛 V167D4 U변수 + 새 블록
+-ini x08; UVAR=/d/tmp/v168d4s/blocks-d4/U변수.sh D2_BLOCKS=/d/tmp/v167d4s/blocks-d4 chk x08 U0 "" 1 "변수 순서 — F 변수 → G 변수 → v1.167 통합 후보 초안 D4 U 변수" 0   # 새 U변수 + 옛(V167D4) 블록
++ini x08; UVAR=/d/tmp/v171d4s/blocks-d4/U변수.sh D2_BLOCKS=/d/tmp/v167d4s/blocks-d4 chk x08 U0 "" 1 "변수 순서 — F 변수 → G 변수 → v1.167 통합 후보 초안 D4 U 변수" 0   # 새 U변수 + 옛(V167D4) 블록
+ ini x09; printf 'M=~/maint-v167\n' >> runs/$P-x09/vars.sh; chk x09 U0 "" 1 "변수 순서 — F 변수 → G 변수 → v1.168 통합 후보 초안 D4 U 변수" 0
+ ini x10; u0u1 x10; printf 'UB=V167D4\n' >> runs/$P-x10/vars.sh; chk x10 U2 "" 1 "U 변수가 v1.168 통합 후보 초안 D4 판이 아님" 1
+ ini x11; echo "sha256:$(printf x | /usr/bin/sha256sum | cut -c1-64)" > runs/$P-x11/state/svc/frontend; chk x11 U0 "" 1 "실행 중 frontend 이미지가 FEIMGOLD 와 다름" 0
+diff -ru '--exclude=runs' '--exclude=blocks-d4' '--exclude=fixreal' '--exclude=imgstate.py' '--exclude=scenarios-v17*' v168d4s/sim/sim.sh v171d4s/sim/sim.sh
+--- v168d4s/sim/sim.sh	2026-11-15 22:31:28.951277200 +0900
++++ v171d4s/sim/sim.sh	2026-11-16 10:59:24.002349000 +0900
+@@ -3,7 +3,7 @@
+ # PATH 맨 앞은 가짜 명령, 그 뒤는 Git Bash 기본 도구뿐(Windows 의 docker·git·python 경로는 빼고 넣지 않는다).
+ # 출력 파일이 이미 있으면 덮어쓰지 않고 종료 2(블록을 돌리지 않는다).
+ set -u
+-. /d/tmp/v168d4s/sim/conf.sh
++. /d/tmp/v171d4s/sim/conf.sh
+ S=$R/runs/$1; n=$2; o=$S/out/out-${n}${3:+-$3}.txt
+ [ ! -e "$o" ] || { echo "🔴 대역 거절(종료 2): 이미 있는 출력 $o — 블록을 돌리지 않았다"; exit 2; }
+ blk=$BLOCKS/$n.sh; [ -e "$blk" ] || blk=$R/extra/$n.sh
+diff -ru '--exclude=runs' '--exclude=blocks-d4' '--exclude=fixreal' '--exclude=imgstate.py' '--exclude=scenarios-v17*' v168d4s/sim/stubs/curl v171d4s/sim/stubs/curl
+--- v168d4s/sim/stubs/curl	2026-11-15 16:09:27.000000000 +0900
++++ v171d4s/sim/stubs/curl	2026-11-16 11:07:40.536101600 +0900
+@@ -1,6 +1,14 @@
+ #!/bin/bash
+-# V159D4: frontend 응답 확인 한 형태만 받는다(그 밖은 금지). 응답 코드는 FE_HTTP(기본 200).
++# frontend 응답 확인 한 형태와 V171D4 이미지 API 조회 한 형태만 받는다(그 밖은 금지). 응답 코드는 FE_HTTP(기본 200), API 실패 주입 API_FAIL.
+ . "$(dirname "$0")/_lib.sh"; calllog curl "$@"
+ [ -f "$SIM/env.sh" ] && . "$SIM/env.sh"
++PYREAL='/c/Users/SangJoon_Lee/AppData/Local/Microsoft/WindowsApps/PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0/python.exe'
++if [ $# = 4 ] && [ "$1" = -sf ] && [ "$2" = --unix-socket ] && [ "$3" = /var/run/docker.sock ]; then
++  case "$4" in http://localhost/v1.56/images/sha256:*/json\?manifests=1) ;; *) forbid curl-api "$@" ;; esac
++  t=${4#http://localhost/v1.56/images/}; t=${t%/json\?manifests=1}
++  [ -z "${API_FAIL:-}" ] || exit 22
++  [ -e "$ST/img/${t#sha256:}" ] || exit 22
++  PYTHONUTF8=1 "$PYREAL" -I -X utf8 "$(dirname "$0")/../imgstate.py" api "$ST" "$t" | tr -d '\r'; exit ${PIPESTATUS[0]}
++fi
+ [ "$*" = "-s -o /dev/null -w %{http_code} http://localhost:3000/" ] || forbid curl "$@"
+ printf '%s' "${FE_HTTP:-200}"
+diff -ru '--exclude=runs' '--exclude=blocks-d4' '--exclude=fixreal' '--exclude=imgstate.py' '--exclude=scenarios-v17*' v168d4s/sim/stubs/docker v171d4s/sim/stubs/docker
+--- v168d4s/sim/stubs/docker	2026-11-15 16:09:27.000000000 +0900
++++ v171d4s/sim/stubs/docker	2026-11-16 12:05:14.069332600 +0900
+@@ -1,18 +1,31 @@
+ #!/bin/bash
+-# 가짜 docker — 상태는 $SIM/state 파일. 실제 docker 를 부르지 않는다.
++# 가짜 docker(V171D4 대역) — 상태는 $SIM/state 파일. 실제 docker 를 부르지 않는다.
++# V171D4: containerd 이미지 저장소 흉내 — 이미지 = 대상 ID(index)·linux/amd64 manifest·config(../imgstate.py), 컨테이너 = ID·.Image·ImageManifestDescriptor($ST/ctr/<서비스>).
++#   새로 만든 컨테이너의 .Image 는 대상 ID(UP_IMG_CONFIG=1 이면 config). 운영 frontend 의 .Image d825a9f5 는 이미지가 아니다(이미지 참조로 쓰면 No such image).
+ . "$(dirname "$0")/_lib.sh"; calllog docker "$@"
+ [ -f "$SIM/env.sh" ] && . "$SIM/env.sh"
+-idof() {   # 참조(태그 또는 sha256:id) → id, 없으면 1
++PYREAL='/c/Users/SangJoon_Lee/AppData/Local/Microsoft/WindowsApps/PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0/python.exe'
++IS="$(dirname "$0")/../imgstate.py"
++isp() { PYTHONUTF8=1 "$PYREAL" -I -X utf8 "$IS" "$@"; }
++idof() {   # 참조(태그 또는 sha256:id) → 대상 id, 없으면 1
+   case "$1" in
+     sha256:*) [ -e "$ST/img/${1#sha256:}" ] && echo "$1" ;;
+     autotrader-backend:*) [ -e "$ST/tag/${1#autotrader-backend:}" ] && cat "$ST/tag/${1#autotrader-backend:}" ;;
+-    autotrader-frontend) cat "$ST/fetag/latest" ;;   # V159D4: frontend 이미지 이름(태그 없음 = latest)
++    autotrader-frontend) cat "$ST/fetag/latest" ;;   # 이미지 이름(태그 없음 = latest)
+     autotrader-frontend:*) [ -e "$ST/fetag/${1#autotrader-frontend:}" ] && cat "$ST/fetag/${1#autotrader-frontend:}" ;;
+     *) return 1 ;;
+   esac
+ }
+-imgofcid() { case "$1" in cid-tmp) cat "$ST/tmpcid" ;; cid-backend) cat "$ST/backend.image" ;; cid-*) cat "$ST/svc/${1#cid-}" ;; esac; }
+-startofcid() { case "$1" in cid-backend) cat "$ST/backend.started" ;; *) echo 2026-11-01T00:00:00.000000000Z ;; esac; }
++svcofcid() { local s; for s in backend frontend db redis db-backup; do [ "$(cut -d' ' -f1 "$ST/ctr/$s" 2>/dev/null)" = "$1" ] && { echo "$s"; return 0; }; done; return 1; }
++setctr() {   # setctr <서비스> <대상 id> — 새 컨테이너(새 ID·.Image·manifest)
++  local s=$1 t=$2 m c img cid
++  read -r m c < "$ST/man/${t#sha256:}"
++  img=$t; [ -z "${UP_IMG_CONFIG:-}" ] || img=$c
++  cid=$(printf 'standin-ctr-%s-%s-%s' "$s" "$t" "$(now)" | sha256sum | cut -c1-64)
++  echo "$cid $img $m" > "$ST/ctr/$s"
++  if [ "$s" = backend ]; then echo "$img" > "$ST/backend.image"; else echo "$img" > "$ST/svc/$s"; fi
++}
++startofsvc() { case "$1" in backend) cat "$ST/backend.started" ;; frontend) cat "$ST/frontend.started" 2>/dev/null || echo 2026-10-21T04:45:59.089630967Z ;; *) echo 2026-11-01T00:00:00.000000000Z ;; esac; }
+ sql() {
+   case "$1" in
+     *"count(*) AS total"*) echo "${SC_OUT:-66 | 63 | 3 | -}" ;;
+@@ -34,13 +47,13 @@
+   shift; [ "$1" = -f ] && shift 2
+   sub=$1; shift
+   case "$sub" in
+-    ps) if [ "$1" = -q ]; then echo "cid-$2"; else echo "NAME IMAGE STATUS"; echo "autotrader-backend-1 $(cat "$ST/backend.image" | cut -c1-19) Up (대역)"; fi ;;
++    ps) if [ "$1" = -q ]; then [ -z "${PSQ_FAIL:-}" ] || exit 1; cut -d' ' -f1 "$ST/ctr/$2" 2>/dev/null; else echo "NAME IMAGE STATUS"; echo "autotrader-backend-1 $(cat "$ST/backend.image" | cut -c1-19) Up (대역)"; fi ;;
+     exec)
+       [ "$1" = -T ] && shift; svc=$1; shift
+       if [ "$svc" = db ]; then
+         q=""; for ((i=1; i<=$#; i++)); do [ "${!i}" = -c ] && { j=$((i+1)); q=${!j}; }; done
+         if [ -n "$q" ]; then sql "$q"; exit $?; fi
+-        t=$(mktemp); cat > "$t"   # V159D4: 표준 입력 SQL 을 내용으로 가른다(손실 조회 v2·관문 3판·관문 장부 COPY·종전 qc)
++        t=$(mktemp); cat > "$t"   # 표준 입력 SQL 을 내용으로 가른다(손실 조회 v2·관문 3판·관문 장부 COPY·종전 qc)
+         if grep -q "preflight.asof" "$t"; then rm -f "$t"; [ -n "${PF_RC:-}" ] && { echo "ERROR:  대역 조회 실패" >&2; exit "$PF_RC"; }; cat "$SIM/fix/preflight.txt"; exit 0; fi
+         if grep -q "'GATE'" "$t"; then rm -f "$t"; cat "$SIM/fix/gate.txt"; exit 0; fi
+         if grep -q "COPY (" "$t"; then rm -f "$t"; echo "id,대역"; exit 0; fi
+@@ -52,20 +65,22 @@
+         *) forbid "docker-exec-$1" "$@" ;;
+       esac ;;
+     build)
+-      if [ "$1" = frontend ]; then   # V159D4: frontend 이미지 빌드(대역 id), 실패 주입 FE_BUILD_FAIL
++      if [ "$1" = frontend ]; then   # frontend 이미지 빌드(대역 id), 실패 주입 FE_BUILD_FAIL(이름 그대로)·FE_BUILD_FAIL_AFTER_TAG(이름이 바뀐 뒤 실패)
+         [ -z "${FE_BUILD_FAIL:-}" ] || { echo "(대역) frontend 빌드 실패 주입"; exit 1; }
+-        id=$(printf 'standin-fe-build-%s-%s' "$(cat "$ST/HEAD")" "$(now)" | sha256sum | cut -c1-64)
+-        echo frontend > "$ST/img/$id"; echo "sha256:$id" > "$ST/fetag/latest"; echo "(대역) building frontend → sha256:${id:0:12}"; exit 0
++        id=$(isp build "$ST" frontend "fe-$(cat "$ST/HEAD")-$(now)") || exit 1
++        echo frontend > "$ST/img/${id#sha256:}"; echo "$id" > "$ST/fetag/latest"; echo "(대역) building frontend → ${id:0:19}"
++        [ -z "${FE_BUILD_FAIL_AFTER_TAG:-}" ] || { echo "(대역) frontend 이름을 바꾼 뒤 실패 주입"; exit 1; }
++        exit 0
+       fi
+       h=$(cat "$ST/HEAD"); jar=${BUILD_JAR:-$(cat "$SIM/fix/jar-$h" 2>/dev/null)}
+       [ -n "$jar" ] || { echo "대역: HEAD $h 의 jar 없음"; exit 1; }
+-      id=$(printf 'standin-build-%s-%s' "$h" "$(now)" | sha256sum | cut -c1-64)
+-      echo "$jar" > "$ST/img/$id"; echo "sha256:$id" > "$ST/tag/latest"
+-      echo "(대역) building backend from HEAD ${h:0:7} → sha256:${id:0:12}" ;;
++      id=$(isp build "$ST" backend "be-$h-$(now)-$jar") || exit 1
++      echo "$jar" > "$ST/img/${id#sha256:}"; echo "$id" > "$ST/tag/latest"
++      echo "(대역) building backend from HEAD ${h:0:7} → ${id:0:19}" ;;
+     up)
+-      if [ "${@: -1}" = frontend ]; then cat "$ST/fetag/latest" > "$ST/svc/frontend"; echo " Container autotrader-frontend-1  Started (대역)"; exit 0; fi   # V159D4
+-      img=$(cat "$ST/tag/latest"); echo "$img" > "$ST/backend.image"
+-      [ "$img" = "$(cat "$SIM/fix/img26")" ] || touch "$ST/v96"   # V159D4: 새 backend 기동 = Flyway 가 V96 적용(되돌려도 남는다)
++      if [ "${@: -1}" = frontend ]; then setctr frontend "$(cat "$ST/fetag/latest")"; date -u -d "@$(now)" '+%Y-%m-%dT%H:%M:%S.000000000Z' > "$ST/frontend.started"; echo " Container autotrader-frontend-1  Started (대역)"; exit 0; fi
++      img=$(cat "$ST/tag/latest"); setctr backend "$img"
++      [ "$img" = "$(cat "$SIM/fix/img26")" ] || touch "$ST/v96"   # 새 backend 기동 = Flyway 가 V96 적용(되돌려도 남는다)
+       date -u -d "@$(now)" '+%Y-%m-%dT%H:%M:%S.000000000Z' > "$ST/backend.started"
+       if [ "$img" = "$(cat "$SIM/fix/img26")" ]; then cp "$SIM/fix/log-${ROLLLOG:-normal}.log" "$ST/backend.log"; else cp "$SIM/fix/log-${NEWLOG:-normal}.log" "$ST/backend.log"; fi
+       echo " Container autotrader-backend-1  Started (대역)" ;;
+@@ -76,13 +91,27 @@
+ fi
+ case "$1" in
+   inspect) [ "$2" = --format ] || forbid docker-inspect "$@"; f=$3; c=$4
+-    if [ "$f" = '{{.Config.Image}}' ]; then [ "$c" = cid-frontend ] && { echo autotrader-frontend; exit 0; }; forbid docker-inspect-config "$@"; fi   # V159D4
+-    i=$(imgofcid "$c") || exit 1; s=$(startofcid "$c"); f=${f//\{\{.Image\}\}/$i}; echo "${f//\{\{.State.StartedAt\}\}/$s}" ;;
+-  image) [ "$2" = inspect ] || forbid docker-image "$@"
+-    if [ "$3" = --format ]; then idof "$5" || { echo "Error: No such image: $5" >&2; exit 1; }; else idof "$3" > /dev/null || { echo "Error: No such image: $3" >&2; exit 1; }; echo '[{"대역":1}]'; fi ;;
+-  tag) id=$(idof "$2") || { echo "Error: No such image: $2" >&2; exit 1; }
+-    case "$3" in autotrader-frontend) echo "$id" > "$ST/fetag/latest" ;; autotrader-frontend:*) echo "$id" > "$ST/fetag/${3#autotrader-frontend:}" ;; *) echo "$id" > "$ST/tag/${3#autotrader-backend:}" ;; esac ;;
+-  cp) c=${2%%:*}; i=$(imgofcid "$c") || exit 1; cp "$(cat "$ST/img/${i#sha256:}")" "$3" ;;
++    if [ "$c" = cid-tmp ]; then i=$(cat "$ST/tmpcid"); echo "${f//\{\{.Image\}\}/$i}"; exit 0; fi
++    s=$(svcofcid "$c") || { echo "Error: No such object: $c" >&2; exit 1; }
++    if [ "$f" = '{{.Config.Image}}' ]; then [ "$s" = frontend ] && { echo autotrader-frontend; exit 0; }; forbid docker-inspect-config "$@"; fi
++    read -r cid img m < "$ST/ctr/$s"
++    [ -z "${CTR_NOMAN:-}" ] || [ "$CTR_NOMAN" != "$s" ] || m=null
++    arch=${CTR_ARCH:-amd64}; case "$cid" in 743dfebac8c0*|9a63d15ab110*) ;; *) arch=${CTR_ARCH_NEW:-$arch} ;; esac   # CTR_ARCH_NEW: 새로 만든 컨테이너에만 주입
++    if [ "$m" = null ]; then j=null; else j="{\"mediaType\":\"application/vnd.oci.image.manifest.v1+json\",\"digest\":\"$m\",\"size\":1624,\"platform\":{\"architecture\":\"$arch\",\"os\":\"linux\"}}"; fi
++    f=${f//\{\{.Id\}\}/$cid}; f=${f//\{\{.Image\}\}/$img}; f=${f//\{\{json .ImageManifestDescriptor\}\}/$j}; echo "${f//\{\{.State.StartedAt\}\}/$(startofsvc $s)}" ;;
++  image) case "$2" in
++      inspect) if [ "$3" = --format ]; then [ "$4" = '{{.Id}}' ] || forbid docker-image-inspect-format "$@"; idof "$5" || { echo "Error response from daemon: No such image: $5" >&2; exit 1; }
++               else idof "$3" > /dev/null || { echo "Error response from daemon: No such image: $3" >&2; exit 1; }; echo '[{"대역":1}]'; fi ;;
++      save) [ "$3" = --platform ] && [ "$4" = linux/amd64 ] && [ $# = 5 ] || forbid docker-image-save "$@"
++            t=$(idof "$5") || { echo "Error response from daemon: No such image: $5" >&2; exit 1; }
++            [ -z "${SAVE_FAIL:-}" ] || { echo "(대역) save 실패 주입" >&2; exit 1; }
++            isp save "$ST" "$t" ;;
++      *) forbid docker-image "$@" ;;
++    esac ;;
++  tag) id=$(idof "$2") || { echo "Error response from daemon: No such image: $2" >&2; exit 1; }
++    case "$3" in autotrader-frontend) echo "$id" > "$ST/fetag/latest" ;; autotrader-frontend:*) echo "$id" > "$ST/fetag/${3#autotrader-frontend:}" ;; autotrader-backend:*) echo "$id" > "$ST/tag/${3#autotrader-backend:}" ;; *) forbid docker-tag "$@" ;; esac ;;
++  cp) c=${2%%:*}; if [ "$c" = cid-tmp ]; then i=$(cat "$ST/tmpcid"); else s=$(svcofcid "$c") || exit 1; i=$(cut -d' ' -f2 "$ST/ctr/$s"); fi
++      [ -e "$ST/img/${i#sha256:}" ] || { echo "대역: 컨테이너 이미지 ${i:0:19} 의 jar 를 모름" >&2; exit 1; }; cp "$(cat "$ST/img/${i#sha256:}")" "$3" ;;
+   create) idof "$2" > "$ST/tmpcid" || exit 1; echo cid-tmp ;;
+   rm) echo "$2" ;;
+   *) forbid "docker-$1" "$@" ;;
+diff -ru '--exclude=runs' '--exclude=blocks-d4' '--exclude=fixreal' '--exclude=imgstate.py' '--exclude=scenarios-v17*' v168d4s/sim/stubs/git v171d4s/sim/stubs/git
+--- v168d4s/sim/stubs/git	2026-11-15 22:31:28.956318900 +0900
++++ v171d4s/sim/stubs/git	2026-11-16 10:59:24.007702900 +0900
+@@ -1,7 +1,7 @@
+ #!/bin/bash
+ # 가짜 git(D4 대역 사본) — HEAD 는 $SIM/state/HEAD. 실제 git·원격 접속을 부르지 않는다. 커밋 두 개(OLDC·NEWC, conf.sh)만 안다. D3: start_66.py 블롭 조회·체크아웃 시 원문 교체를 더했다.
+ . "$(dirname "$0")/_lib.sh"; calllog git "$@"
+-. /d/tmp/v168d4s/sim/conf.sh
++. /d/tmp/v171d4s/sim/conf.sh
+ [ -f "$SIM/env.sh" ] && . "$SIM/env.sh"
+ case "$1" in
+   rev-parse) NFP=scripts/prospective/start_66.py
+diff -ru '--exclude=runs' '--exclude=blocks-d4' '--exclude=fixreal' '--exclude=imgstate.py' '--exclude=scenarios-v17*' v168d4s/sim/stubs/python3 v171d4s/sim/stubs/python3
+--- v168d4s/sim/stubs/python3	2026-11-15 16:09:27.000000000 +0900
++++ v171d4s/sim/stubs/python3	2026-11-16 11:07:44.664410100 +0900
+@@ -6,6 +6,7 @@
+ export PYTHONUTF8=1 PYTHONIOENCODING=utf-8
+ case "$1" in
+   -) "$PYREAL" -I -X utf8 "$@" | tr -d '\r'; exit ${PIPESTATUS[0]} ;;
++  -I) case "$2" in */imgchain.py) "$PYREAL" -I -X utf8 "${@:2}" | tr -d '\r'; exit ${PIPESTATUS[0]} ;; *) forbid python3-I "$@" ;; esac ;;   # V171D4: 이미지 대응 확인 도구(블록이 쓴 원문). 표준 입력은 그대로 넘긴다
+   */maint_verify.py) "$PYREAL" -I -X utf8 "$@" | tr -d '\r'; exit ${PIPESTATUS[0]} ;;
+   scripts/prospective/start_66.py) cat "$SIM/fix/alerts.txt"; exit ${ALERTS_RC:-0} ;;
+   -c) case "$2" in   # D3: 블록 원문의 두 -c(문법 확인·관측 행 대조)만 실제 Python 으로 돌린다

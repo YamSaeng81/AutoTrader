@@ -1,0 +1,136 @@
+[서버시각] 2026-11-16 10:52:08 KST
+== git
+b5cd1d0d47ea68ffe6ff476b89cf9fca5bef1b88
+(추적 끝)
+== docker
+client=29.9.2 server=29.9.2 api=1.56
+Docker Compose version v5.6.0
+driver=overlayfs status=[["driver-type","io.containerd.snapshotter.v1"]]
+== container backend id=743dfebac8c062011d7711bb59ebe727ee1e174724526b0160f6921afd5bfece
+"/autotrader-backend-1" Created=2026-11-10T04:48:42.774887574Z StartedAt=2026-11-10T04:48:44.119959397Z Restart=0 Status=running ConfigImage="autotrader-backend" Image=sha256:52e12428a60df5413d6e495024220bbd4c8fa07830549556f0b47bbe6ad39055
+-- ImageManifestDescriptor
+{"mediaType":"application/vnd.oci.image.manifest.v1+json","digest":"sha256:ca440b8403c4a65ce39c3a49f0e480c5ca5e9630380cdbcfe4daf6405fc6c628","size":1624,"platform":{"architecture":"amd64","os":"linux"}}
+-- compose labels
+"com.docker.compose.image":"sha256:ca440b8403c4a65ce39c3a49f0e480c5ca5e9630380cdbcfe4daf6405fc6c628"
+"com.docker.compose.service":"backend"
+"com.docker.compose.version":"5.6.0"}
+== container frontend id=9a63d15ab1106830ca5d4d59bda98b440005f5310743b8e16c2e2f0079c0fe4a
+"/autotrader-frontend-1" Created=2026-09-22T07:38:49.590526756Z StartedAt=2026-10-21T04:45:59.089630967Z Restart=0 Status=running ConfigImage="autotrader-frontend" Image=sha256:d825a9f5b00d3dac93ee154f32f91b5a1474248fefaa3651f0d0c3b0cc2f7f66
+-- ImageManifestDescriptor
+{"mediaType":"application/vnd.oci.image.manifest.v1+json","digest":"sha256:fa5c9ba849c3ee1e48540004105ea18df6d8d25df1bf490a6eeac425413e3ad6","size":1814,"platform":{"architecture":"amd64","os":"linux"}}
+-- compose labels
+"com.docker.compose.image":"sha256:fa5c9ba849c3ee1e48540004105ea18df6d8d25df1bf490a6eeac425413e3ad6"
+"com.docker.compose.service":"frontend"
+"com.docker.compose.version":"5.5.1"}
+== image autotrader-backend:latest
+Id=sha256:52e12428a60df5413d6e495024220bbd4c8fa07830549556f0b47bbe6ad39055 Created=2026-11-10T12:44:35.489082358+09:00 Os=linux Arch=amd64 RepoTags=["autotrader-backend:b5cd1d0","autotrader-backend:latest"] Descriptor={"digest":"sha256:52e12428a60df5413d6e495024220bbd4c8fa07830549556f0b47bbe6ad39055","mediaType":"application/vnd.oci.image.index.v1+json","size":856}
+== image autotrader-backend:b5cd1d0
+Id=sha256:52e12428a60df5413d6e495024220bbd4c8fa07830549556f0b47bbe6ad39055 Created=2026-11-10T12:44:35.489082358+09:00 Os=linux Arch=amd64 RepoTags=["autotrader-backend:b5cd1d0","autotrader-backend:latest"] Descriptor={"digest":"sha256:52e12428a60df5413d6e495024220bbd4c8fa07830549556f0b47bbe6ad39055","mediaType":"application/vnd.oci.image.index.v1+json","size":856}
+== image autotrader-frontend:latest
+Id=sha256:837db515e0eb8b9cb4bcf8f03ed3b98adf9f8cdb176d13777949c792d10b5017 Created=2026-09-18T14:25:43.672418569+09:00 Os=linux Arch=amd64 RepoTags=["autotrader-frontend:latest"] Descriptor={"digest":"sha256:837db515e0eb8b9cb4bcf8f03ed3b98adf9f8cdb176d13777949c792d10b5017","mediaType":"application/vnd.oci.image.index.v1+json","size":856}
+== image autotrader-frontend:b5cd1d0
+
+Error response from daemon: No such image: autotrader-frontend:b5cd1d0
+== image sha256:52e12428a60df5413d6e495024220bbd4c8fa07830549556f0b47bbe6ad39055
+Id=sha256:52e12428a60df5413d6e495024220bbd4c8fa07830549556f0b47bbe6ad39055 Created=2026-11-10T12:44:35.489082358+09:00 Os=linux Arch=amd64 RepoTags=["autotrader-backend:b5cd1d0","autotrader-backend:latest"] Descriptor={"digest":"sha256:52e12428a60df5413d6e495024220bbd4c8fa07830549556f0b47bbe6ad39055","mediaType":"application/vnd.oci.image.index.v1+json","size":856}
+== image ls (digests, no trunc)
+autotrader-backend:b5cd1d0 id=sha256:52e12428a60df5413d6e495024220bbd4c8fa07830549556f0b47bbe6ad39055 digest=sha256:52e12428a60df5413d6e495024220bbd4c8fa07830549556f0b47bbe6ad39055 created=2026-11-10 12:44:35 +0900 KST
+autotrader-backend:latest id=sha256:52e12428a60df5413d6e495024220bbd4c8fa07830549556f0b47bbe6ad39055 digest=sha256:52e12428a60df5413d6e495024220bbd4c8fa07830549556f0b47bbe6ad39055 created=2026-11-10 12:44:35 +0900 KST
+autotrader-backend:1899b49 id=sha256:426a09a20afc9e16cff8b7a569d4e04f18ed47cefb9242f44e3b9ea9666153a1 digest=sha256:426a09a20afc9e16cff8b7a569d4e04f18ed47cefb9242f44e3b9ea9666153a1 created=2026-11-06 13:33:48 +0900 KST
+autotrader-backend:ee509cf id=sha256:200f2f5727e90204574fd9965a5cc06dfc5d317e98c13b200de2ac7201378ae6 digest=sha256:200f2f5727e90204574fd9965a5cc06dfc5d317e98c13b200de2ac7201378ae6 created=2026-11-06 10:11:50 +0900 KST
+autotrader-backend:7a94472 id=sha256:e51b512a72cc3740313bb2a9e6f369d4f480554c588f322cff518c827f9c7be6 digest=sha256:e51b512a72cc3740313bb2a9e6f369d4f480554c588f322cff518c827f9c7be6 created=2026-11-05 19:35:22 +0900 KST
+autotrader-backend:1103f48 id=sha256:9818254ca137a79245d1b30f07c0e193ca4d9a1ac028e0b26a16af6853616b62 digest=sha256:9818254ca137a79245d1b30f07c0e193ca4d9a1ac028e0b26a16af6853616b62 created=2026-11-05 15:29:00 +0900 KST
+autotrader-backend:fe01207 id=sha256:9cb5d84f0bfde5208f24f591ad291dacabdfa691a0b2e1f057c4f8c3e1720fb7 digest=sha256:9cb5d84f0bfde5208f24f591ad291dacabdfa691a0b2e1f057c4f8c3e1720fb7 created=2026-11-05 10:13:32 +0900 KST
+autotrader-backend:6995c52 id=sha256:67294e80ada31d346e36caeb01a2c259b6b5514357c804977ba1d20fba6aec07 digest=sha256:67294e80ada31d346e36caeb01a2c259b6b5514357c804977ba1d20fba6aec07 created=2026-11-04 16:38:27 +0900 KST
+autotrader-backend:b1d7664 id=sha256:fd3ac351bcf508d465b9c2f6024ba978273603729f3e6cecba40a639a2f4dcb6 digest=sha256:fd3ac351bcf508d465b9c2f6024ba978273603729f3e6cecba40a639a2f4dcb6 created=2026-11-04 13:53:24 +0900 KST
+autotrader-backend:ea44900 id=sha256:618046540764e49aa40efef7ec950f28cd5882e8bf7d6bdfdc3da0ed1f0112f9 digest=sha256:618046540764e49aa40efef7ec950f28cd5882e8bf7d6bdfdc3da0ed1f0112f9 created=2026-11-02 15:05:05 +0900 KST
+autotrader-backend:5bb0544 id=sha256:39875d5f921972ef217d35822b8f207b88191e3c840e79b9a6e10ea1dcd16aa4 digest=sha256:39875d5f921972ef217d35822b8f207b88191e3c840e79b9a6e10ea1dcd16aa4 created=2026-11-02 08:28:11 +0900 KST
+autotrader-backend:cad3939 id=sha256:a747a8e6c3043ae655e73bd2f6495a6ba755cb85d92c6fec7c96c6b3e8b357ae digest=sha256:a747a8e6c3043ae655e73bd2f6495a6ba755cb85d92c6fec7c96c6b3e8b357ae created=2026-10-31 20:14:57 +0900 KST
+autotrader-backend:f0872e2 id=sha256:fdd7695a59d6d1cff2c5b63f03af41cdb397795c0df7a7d97a1be37b8848fff2 digest=sha256:fdd7695a59d6d1cff2c5b63f03af41cdb397795c0df7a7d97a1be37b8848fff2 created=2026-10-30 19:57:06 +0900 KST
+autotrader-backend:82d15d4 id=sha256:e08b35b00a3cac875617c5b33c63d7cd792d1db86c437e72a9240fcbd77ea5e3 digest=sha256:e08b35b00a3cac875617c5b33c63d7cd792d1db86c437e72a9240fcbd77ea5e3 created=2026-10-30 09:09:41 +0900 KST
+autotrader-backend:98aaac4 id=sha256:bc8fe9fde752693bb36d52df4871ca6d5c56d8e7758ef9199457544e1bb31af0 digest=sha256:bc8fe9fde752693bb36d52df4871ca6d5c56d8e7758ef9199457544e1bb31af0 created=2026-10-29 13:41:53 +0900 KST
+autotrader-backend:2eb4225 id=sha256:7516eaf6b0fb2ab8d766d78d2f64d21ecb48ca4d324c0866e5d3bd7fde1a8c7c digest=sha256:7516eaf6b0fb2ab8d766d78d2f64d21ecb48ca4d324c0866e5d3bd7fde1a8c7c created=2026-10-27 10:29:39 +0900 KST
+autotrader-backend:de3fe3a id=sha256:0b94cb36bc07f43f6d2f723e32acd3d3ce96c98251024b2fa08223f097aa1f5e digest=sha256:0b94cb36bc07f43f6d2f723e32acd3d3ce96c98251024b2fa08223f097aa1f5e created=2026-10-23 15:58:16 +0900 KST
+autotrader-backend:39f994c id=sha256:8b1b8c7898c0807f56f6a708986eafe77918d6f1da4c73ab33524fa173b58f9e digest=sha256:8b1b8c7898c0807f56f6a708986eafe77918d6f1da4c73ab33524fa173b58f9e created=2026-10-21 13:58:05 +0900 KST
+autotrader-backend:3b781d8 id=sha256:048e9dc8338e2e37289f14228d0f5b5cfb57f48b6c9380363b7f479c53ad3d36 digest=sha256:048e9dc8338e2e37289f14228d0f5b5cfb57f48b6c9380363b7f479c53ad3d36 created=2026-10-19 12:59:47 +0900 KST
+autotrader-frontend:latest id=sha256:837db515e0eb8b9cb4bcf8f03ed3b98adf9f8cdb176d13777949c792d10b5017 digest=sha256:837db515e0eb8b9cb4bcf8f03ed3b98adf9f8cdb176d13777949c792d10b5017 created=2026-09-18 14:25:43 +0900 KST
+== image ls --tree (autotrader)
+autotrader-backend:1103f48                      9818254ca137        430MB          151MB        
+└─ linux/amd64                                  e7d165ecad46        430MB          151MB        
+
+autotrader-backend:1899b49                      426a09a20afc        430MB          151MB        
+└─ linux/amd64                                  f9be48384774        430MB          151MB        
+
+autotrader-backend:2eb4225                      7516eaf6b0fb        429MB          150MB        
+└─ linux/amd64                                  b44f6ddc489d        429MB          150MB        
+
+autotrader-backend:39f994c                      8b1b8c7898c0        438MB          153MB        
+└─ linux/amd64                                  590f6ca2e357        438MB          153MB        
+
+autotrader-backend:3b781d8                      048e9dc8338e        438MB          153MB        
+└─ linux/amd64                                  72d3c247db60        438MB          153MB        
+
+autotrader-backend:5bb0544                      39875d5f9219        429MB          150MB        
+└─ linux/amd64                                  ba5e538f1fc5        429MB          150MB        
+
+autotrader-backend:6995c52                      67294e80ada3        430MB          151MB        
+└─ linux/amd64                                  4d4ba6f50879        430MB          151MB        
+
+autotrader-backend:7a94472                      e51b512a72cc        430MB          151MB        
+└─ linux/amd64                                  16d55c89a7da        430MB          151MB        
+
+autotrader-backend:82d15d4                      e08b35b00a3c        429MB          150MB        
+└─ linux/amd64                                  c7f20471223f        429MB          150MB        
+
+autotrader-backend:98aaac4                      bc8fe9fde752        429MB          150MB        
+└─ linux/amd64                                  ee63260c84b3        429MB          150MB        
+
+autotrader-backend:b1d7664                      fd3ac351bcf5        430MB          151MB        
+└─ linux/amd64                                  40cccb35a93d        430MB          151MB        
+
+autotrader-backend:b5cd1d0                   
+autotrader-backend:latest                       52e12428a60d        430MB          151MB   U    
+└─ linux/amd64                                  ca440b8403c4        430MB          151MB   U    
+
+autotrader-backend:cad3939                      a747a8e6c304        429MB          150MB        
+└─ linux/amd64                                  7d46ea9ed961        429MB          150MB        
+
+autotrader-backend:de3fe3a                      0b94cb36bc07        429MB          150MB        
+└─ linux/amd64                                  40bd0b088e98        429MB          150MB        
+
+autotrader-backend:ea44900                      618046540764        429MB          150MB        
+└─ linux/amd64                                  1b1341b30a5b        429MB          150MB        
+
+autotrader-backend:ee509cf                      200f2f5727e9        430MB          151MB        
+└─ linux/amd64                                  e841f47dfc0a        430MB          151MB        
+
+autotrader-backend:f0872e2                      fdd7695a59d6        429MB          150MB        
+└─ linux/amd64                                  b34d70601cdc        429MB          150MB        
+
+autotrader-backend:fe01207                      9cb5d84f0bfd        430MB          151MB        
+└─ linux/amd64                                  89c84458e910        430MB          151MB        
+
+autotrader-frontend:latest                      837db515e0eb        306MB         73.1MB   U    
+└─ linux/amd64                                  fa5c9ba849c3        306MB         73.1MB   U    
+
+cloudflare/cloudflared:latest                   6b599ca3e974       96.2MB         28.7MB   U    
+├─ linux/amd64                                  64f4e9d6a867       96.2MB         28.7MB   U    
+== 짧은 id 검색
+-- d825a9f5
+
+Error response from daemon: No such image: d825a9f5:latest
+-- 837db515
+sha256:837db515e0eb8b9cb4bcf8f03ed3b98adf9f8cdb176d13777949c792d10b5017 ["autotrader-frontend:latest"]
+-- e25c2a85
+sha256:e25c2a85e4c7695a9ab2e5b4606fdf69cf0b6d7f8c894c8a128fc919d9850c06 []
+-- fa5c9ba8
+
+Error response from daemon: No such image: fa5c9ba8:latest
+== maint-v168 image files
+image-before.txt: sha256:52e12428a60df5413d6e495024220bbd4c8fa07830549556f0b47bbe6ad39055
+image-fe-before.txt: sha256:d825a9f5b00d3dac93ee154f32f91b5a1474248fefaa3651f0d0c3b0cc2f7f66
+fe-ref-before.txt: autotrader-frontend
+image-new.txt: sha256:e25c2a85e4c7695a9ab2e5b4606fdf69cf0b6d7f8c894c8a128fc919d9850c06
+image-fe-new.txt: (없음)
+== maint-v171
+ls: cannot access '/home/manicstr/maint-v171': No such file or directory

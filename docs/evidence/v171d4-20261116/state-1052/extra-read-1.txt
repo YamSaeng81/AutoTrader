@@ -1,0 +1,15 @@
+[서버시각] 2026-11-16 10:53:21 KST
+cat: /etc/docker/daemon.json: No such file or directory
+== backend Driver={{.Driver}}
+Driver=overlayfs Platform=linux GraphDriver=null Storage={"RootFS":{"Snapshot":{"Name":"overlayfs"}}}
+== frontend Driver={{.Driver}}
+Driver=overlayfs Platform=linux GraphDriver=null Storage={"RootFS":{"Snapshot":{"Name":"overlayfs"}}}
+== docker events 없음; journal에서 snapshotter 전환 흔적(권한 있으면)
+ls: cannot access '/var/lib/docker/image': Permission denied
+drwx--x--- 12 root root 4096 Oct 21 13:45 /var/lib/docker
+1
+Commandline: apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+Install: containerd.io:amd64 (2.1.5-1~ubuntu.22.04~jammy), docker-compose-plugin:amd64 (2.40.3-1~ubuntu.22.04~jammy), docker-ce-cli:amd64 (5:29.0.1-1~ubuntu.22.04~jammy), pigz:amd64 (2.6-1, automatic), libslirp0:amd64 (4.6.1-1build1, automatic), docker-buildx-plugin:amd64 (0.30.0-1~ubuntu.22.04~jammy), docker-ce:amd64 (5:29.0.1-1~ubuntu.22.04~jammy), docker-ce-rootless-extras:amd64 (5:29.0.1-1~ubuntu.22.04~jammy, automatic), slirp4netns:amd64 (1.0.1-2, automatic)
+Upgrade: containerd.io:amd64 (2.3.5-1~ubuntu.22.04~jammy, 2.4.2-2~ubuntu.22.04~jammy), docker-compose-plugin:amd64 (5.5.1-1~ubuntu.22.04~jammy, 5.6.0-1~ubuntu.22.04~jammy), docker-ce-cli:amd64 (5:29.8.1-1~ubuntu.22.04~jammy, 5:29.9.1-1~ubuntu.22.04~jammy), open-iscsi:amd64 (2.1.5-1ubuntu1.1, 2.1.5-1ubuntu1.3), libaudit-common:amd64 (1:3.0.7-1build1, 1:3.0.7-1ubuntu0.1), sosreport:amd64 (4.10.2-0ubuntu0~22.04.1, 4.11.2-0ubuntu0~22.04.1), tzdata:amd64 (2026c-0ubuntu0.22.04.1, 2026e-0ubuntu0.22.04.1), docker-buildx-plugin:amd64 (0.37.1-1~ubuntu.22.04~jammy, 0.38.0-1~ubuntu.22.04~jammy), docker-ce:amd64 (5:29.8.1-1~ubuntu.22.04~jammy, 5:29.9.1-1~ubuntu.22.04~jammy), dnsmasq-base:amd64 (2.90-0ubuntu0.22.04.4, 2.91-0ubuntu0.22.04.2), open-vm-tools:amd64 (2:12.3.5-3~ubuntu0.22.04.3, 2:12.3.5-3~ubuntu0.22.04.4), docker-ce-rootless-extras:amd64 (5:29.8.1-1~ubuntu.22.04~jammy, 5:29.9.1-1~ubuntu.22.04~jammy), libopeniscsiusr:amd64 (2.1.5-1ubuntu1.1, 2.1.5-1ubuntu1.3), libaudit1:amd64 (1:3.0.7-1build1, 1:3.0.7-1ubuntu0.1)
+Commandline: apt-get install --only-upgrade -y containerd.io docker-buildx-plugin docker-ce-cli docker-ce-rootless-extras docker-ce
+Upgrade: containerd.io:amd64 (2.4.2-2~ubuntu.22.04~jammy, 2.4.2-3~ubuntu.22.04~jammy), docker-ce-cli:amd64 (5:29.9.1-1~ubuntu.22.04~jammy, 5:29.9.2-1~ubuntu.22.04~jammy), docker-buildx-plugin:amd64 (0.38.0-1~ubuntu.22.04~jammy, 0.38.1-1~ubuntu.22.04~jammy), docker-ce:amd64 (5:29.9.1-1~ubuntu.22.04~jammy, 5:29.9.2-1~ubuntu.22.04~jammy), docker-ce-rootless-extras:amd64 (5:29.9.1-1~ubuntu.22.04~jammy, 5:29.9.2-1~ubuntu.22.04~jammy)

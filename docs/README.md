@@ -12,7 +12,7 @@
 | 시작 가능 여부 | [준비 목록](LIVE_READINESS.md) | 현재 체크 항목 |
 | F 명령 | [실행 절차](LIMITED_LIVE_TEST_RUNBOOK.md) | 필요한 F 변수/블록과 선행 조건 |
 | 점검 설치·전환·결과 해석 | [OPS](OPS_DAILY_CHECK.md) | 필요한 §번호 |
-| 새 코드 수용·허용 범위 | [최신 총괄 v1.170](evidence/review-ffd3cb0e/README.md) | N15 조사·보존 준비 보완 수용. 고정 운영 출처와U2 직전 확인 유지 |
+| 새 코드 수용·허용 범위 | [최신 총괄 v1.171](evidence/review-b6afaddd/README.md) | Git LF JARM 확정·V171D4 이미지 식별/복구 보완·재시도 순서 |
 | 엔진 공통 제약 | [ENGINE_PARITY](ENGINE_PARITY.md) | 변경하는 규칙/엔진의 항목 |
 
 ## 고정 계약·상세 설계 — 필요한 부분만

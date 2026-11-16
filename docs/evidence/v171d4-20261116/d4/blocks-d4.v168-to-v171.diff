@@ -1,0 +1,554 @@
+diff -u src/U0.sh /d/tmp/v171d4s/blocks-d4/U0.sh
+--- src/U0.sh	2026-11-16 11:00:32.036330700 +0900
++++ /d/tmp/v171d4s/blocks-d4/U0.sh	2026-11-16 11:05:46.333978200 +0900
+@@ -1,7 +1,7 @@
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "$M" = "$HOME/maint-v168" ] && [ "${UB:-}" = V168D4 ] && [ "$NEW" = 0e1d2a021ab2f3c759a9b2be9c4f09430f93c80d ] && [ -n "${JARN:-}" ] && [ -n "${JARM:-}" ] && type fresh_idle > /dev/null 2>&1 && type n21mark > /dev/null 2>&1 && type n21after > /dev/null 2>&1 && [ -n "${BTCIN:-}" ] && type sid203 > /dev/null 2>&1 && type newsobs > /dev/null 2>&1 && type httpobs > /dev/null 2>&1 && type holdobs > /dev/null 2>&1 && type entryobs > /dev/null 2>&1 && type n17obs > /dev/null 2>&1 && type n19obs > /dev/null 2>&1 && type n20obs > /dev/null 2>&1 || stop "변수 순서 — F 변수 → G 변수 → v1.168 통합 후보 초안 D4 U 변수"
++[ "$M" = "$HOME/maint-v171" ] && [ "${UB:-}" = V171D4 ] && [ "$NEW" = 0e1d2a021ab2f3c759a9b2be9c4f09430f93c80d ] && [ -n "${JARN:-}" ] && [ "${JARM:-}" = b65879533e1ba1c552f57e82b35b3993000319c4b0a81464d37a726ba42111f8 ] && [ -n "${ICSUM:-}" ] && type isimg > /dev/null 2>&1 && type same3 > /dev/null 2>&1 && type okimg > /dev/null 2>&1 && type fresh_idle > /dev/null 2>&1 && type n21mark > /dev/null 2>&1 && type n21after > /dev/null 2>&1 && [ -n "${BTCIN:-}" ] && type sid203 > /dev/null 2>&1 && type newsobs > /dev/null 2>&1 && type httpobs > /dev/null 2>&1 && type holdobs > /dev/null 2>&1 && type entryobs > /dev/null 2>&1 && type n17obs > /dev/null 2>&1 && type n19obs > /dev/null 2>&1 && type n20obs > /dev/null 2>&1 || stop "변수 순서 — F 변수 → G 변수 → v1.171 통합 후보 초안 D4 U 변수"
+ case "$IMGOLD" in sha256:*) ;; *) stop "IMGOLD 가 sha256: 이미지 ID 가 아님 — 승인된 U 변수 원문이 아님(초안 D1~D4 는 실행하지 않는다)" ;; esac
+ [ ! -e "$M/ok-U1" ] || stop "U1 을 이미 시작했다 — U0 를 다시 하지 않는다. ls -l $M 를 보고"
+ kwin "$(date +%s)" || stop "시작 시각·정기 보고 확인 — 위 줄"
+@@ -24,6 +24,12 @@
+ [ "$(docker image inspect --format '{{.Id}}' $REPO:ee509cf)" = "$IMGPREV7" ] || stop "이전 복구 태그 $REPO:ee509cf 이 #25 이미지(200f2f57…)가 아님 — 보고"
+ [ "$(docker image inspect --format '{{.Id}}' $REPO:1899b49)" = "$IMGPREV8" ] || stop "이전 복구 태그 $REPO:1899b49 이 #26 이미지(426a09a2…)가 아님 — 보고"
+ [ "$(docker image inspect --format '{{.Id}}' $REPO:latest)" = "$IMG0" ] || stop "$REPO:latest 가 실행 이미지와 다름"
++rm -f "$M/fe-stage.txt"   # V171D4: U1 frontend 단계 기록은 이 판의 U1 이 새로 쓴다
++R0=$(rchain "$IMG0") || stop "backend 실행 이미지의 대상·manifest·config 조회 실패 — 대응 불명, 보고"; echo "$R0" | tee "$M/image-before-chain.txt"
++[ "$(ok3 "$M/image-before-chain.txt")" = "$IMGOLD $IMGOLDM $IMGOLDC" ] || stop "#27 backend 이미지의 manifest·config 가 고정값(ca440b84…·0344757e…)과 다름 — 보고"
++isimg backend "$IMGOLD" $IMGOLD $IMGOLDM $IMGOLDC || stop "실행 중 backend 컨테이너가 #27 이미지 manifest·config 와 연결되지 않음 — 보고"
++same3 $REPO:latest "$M/image-before-chain.txt" || stop "$REPO:latest 의 대상·manifest·config 가 실행 이미지와 다름 — 보고"
++if docker image inspect $REPO:b5cd1d0 > /dev/null 2>&1; then same3 $REPO:b5cd1d0 "$M/image-before-chain.txt" || stop "보존 태그 $REPO:b5cd1d0 이 이미 다른 이미지를 가리킨다 — 보고"; fi
+ [ "$($DC exec -T backend env | grep '^TRADING_CAPITALPOOL_' | sort)" = "$POOLX" ] || stop "공유 풀 등록값이 STAGE_1·100000·20000·3 과 다름"
+ v94 || stop "Flyway 최고 버전이 94 가 아님"
+ TZDB=$($PSQL -At -c "SHOW TimeZone") || stop "DB TimeZone 조회 실패"
+@@ -81,7 +87,11 @@
+ FE0=$(docker inspect --format '{{.Image}}' "$($DC ps -q frontend)"); echo "$FE0" | tee "$M/image-fe-before.txt"
+ [ "$FE0" = "$FEIMGOLD" ] || stop "실행 중 frontend 이미지가 FEIMGOLD 와 다름 — 보고"
+ docker inspect --format '{{.Config.Image}}' "$($DC ps -q frontend)" | tee "$M/fe-ref-before.txt"
+-[ -s "$M/fe-ref-before.txt" ] || stop "frontend 이미지 이름을 읽지 못함"
++[ "$(cat "$M/fe-ref-before.txt")" = autotrader-frontend ] || stop "frontend 이미지 이름이 autotrader-frontend 가 아님 — 보고"
++RF=$(rchain autotrader-frontend) || stop "frontend 이미지 이름의 대상·manifest·config 조회 실패 — 대응 불명, 보고"; echo "$RF" | tee "$M/image-fe-before-chain.txt"
++[ "$(ok3 "$M/image-fe-before-chain.txt")" = "$FETOLD $FEMOLD $FECOLD" ] || stop "frontend 이미지 이름이 고정 대상·manifest·config(837db515…·fa5c9ba8…·80ce7550…)와 다름 — 보고"
++isimg frontend "$FEIMGOLD" $FETOLD $FEMOLD $FECOLD || stop "실행 중 frontend 컨테이너가 이미지 이름의 manifest·config 와 연결되지 않음 — 보고"
++if docker image inspect autotrader-frontend:b5cd1d0 > /dev/null 2>&1; then same3 autotrader-frontend:b5cd1d0 "$M/image-fe-before-chain.txt" || stop "보존 태그 autotrader-frontend:b5cd1d0 이 이미 다른 이미지를 가리킨다 — 보고"; fi
+ gsok || stop "GS(관문·조회문 고정 커밋)가 미정이거나 없음"
+ git show "$GS:$PFP" > "$M/preflight-loss.sql" && [ "$(h256 "$M/preflight-loss.sql")" = "$PFSUM" ] || stop "배포 전 손실 조회문 원문·해시가 다름"
+ $PSQL -At -F ' | ' < "$M/preflight-loss.sql" > "$M/preflight-loss.txt" 2>&1 || { cat "$M/preflight-loss.txt"; stop "🔴 배포 전 손실 조회 실패 — 배포 전 중단·보고(빌드·체크아웃·재기동으로 넘어가지 않는다)"; }
+diff -u src/U1.sh /d/tmp/v171d4s/blocks-d4/U1.sh
+--- src/U1.sh	2026-11-16 11:00:32.097075000 +0900
++++ /d/tmp/v171d4s/blocks-d4/U1.sh	2026-11-16 11:05:46.333978200 +0900
+@@ -1,7 +1,7 @@
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "${UB:-}" = V168D4 ] || stop "U 변수가 v1.168 통합 후보 초안 D4 판이 아님 — F → G → v1.168 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
++[ "${UB:-}" = V171D4 ] || stop "U 변수가 v1.171 통합 후보 초안 D4 판이 아님 — F → G → v1.171 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+ [ -e "$M/ok-U0" ] || stop "U0 미통과"
+ [ ! -e "$M/ok-U1" ] || stop "U1 을 이미 통과했다 — 바로 U2"
+ [ $(( $(date +%s) - $(stat -c %Y "$M/ok-U0") )) -le 1800 ] || stop "U0 가 30분보다 오래됨 — U0 부터(아직 바꾼 것 없음, U1-되돌림 하지 않는다)"
+@@ -12,20 +12,33 @@
+ [ "$FI" = 0 ] || { [ "$FI" = 1 ] && stop "freshness 회차가 돌고 있다(아직 바꾼 것 없음, U1-되돌림 하지 않는다) — 끝난 뒤 U0 부터(끊지 않는다)"; stop "프로세스 조회 실패(아직 바꾼 것 없음, U1-되돌림 하지 않는다) — 회차 없음으로 보지 않는다. pgrep-u1.* 를 보고"; }
+ date -u '+%Y-%m-%dT%H:%M:%SZ' > "$M/t-apply.utc"
+ IMG0=$(cat "$M/image-before.txt")
+-if docker image inspect $REPO:b5cd1d0 > /dev/null 2>&1; then [ "$(docker image inspect --format '{{.Id}}' $REPO:b5cd1d0)" = "$IMG0" ] || stop "$REPO:b5cd1d0 태그가 이미 다른 이미지를 가리킨다(HEAD·latest 그대로, U1-되돌림 하지 않는다)"; fi
+-docker tag "$IMG0" $REPO:b5cd1d0
+-[ "$(docker image inspect --format '{{.Id}}' $REPO:b5cd1d0)" = "$IMG0" ] || stop "기존 이미지 보존 태그 실패(HEAD·latest 그대로, U1-되돌림 하지 않는다)"
++echo "== V171D4 — 바꾸기 전 대응 확인(backend·frontend 실행 컨테이너·이미지 이름·보존 태그)"
++[ "$IMG0" = "$IMGOLD" ] && [ "$(ok3 "$M/image-before-chain.txt")" = "$IMGOLD $IMGOLDM $IMGOLDC" ] && [ "$(ok3 "$M/image-fe-before-chain.txt")" = "$FETOLD $FEMOLD $FECOLD" ] && [ "$(cat "$M/fe-ref-before.txt")" = autotrader-frontend ] || stop "U0 대응 기록이 없거나 고정값과 다름(아직 바꾼 것 없음, U1-되돌림 하지 않는다) — 보고"
++isimg backend "$IMGOLD" $IMGOLD $IMGOLDM $IMGOLDC || stop "실행 중 backend 가 U0 대응과 다름 또는 조회 실패(아직 바꾼 것 없음, U1-되돌림 하지 않는다) — 보고"
++same3 $REPO:latest "$M/image-before-chain.txt" || stop "$REPO:latest 가 U0 대응과 다름 또는 조회 실패(아직 바꾼 것 없음, U1-되돌림 하지 않는다) — 보고"
++isimg frontend "$FEIMGOLD" $FETOLD $FEMOLD $FECOLD || stop "실행 중 frontend 가 U0 대응과 다름 또는 조회 실패(아직 바꾼 것 없음, U1-되돌림 하지 않는다) — 보고"
++same3 autotrader-frontend "$M/image-fe-before-chain.txt" || stop "frontend 이미지 이름이 U0 대응과 다름 또는 조회 실패(아직 바꾼 것 없음, U1-되돌림 하지 않는다) — 보고"
++if docker image inspect $REPO:b5cd1d0 > /dev/null 2>&1; then same3 $REPO:b5cd1d0 "$M/image-before-chain.txt" || stop "$REPO:b5cd1d0 태그가 이미 다른 이미지를 가리키거나 조회 실패(HEAD·latest 그대로, U1-되돌림 하지 않는다)"; fi
++if docker image inspect autotrader-frontend:b5cd1d0 > /dev/null 2>&1; then same3 autotrader-frontend:b5cd1d0 "$M/image-fe-before-chain.txt" || stop "autotrader-frontend:b5cd1d0 태그가 이미 다른 이미지를 가리키거나 조회 실패(HEAD·latest 그대로, U1-되돌림 하지 않는다)"; fi
++docker tag "$IMGOLD" $REPO:b5cd1d0
++same3 $REPO:b5cd1d0 "$M/image-before-chain.txt" || stop "기존 backend 이미지 보존 태그 실패(HEAD·latest 그대로, U1-되돌림 하지 않는다)"
++docker tag "$FETOLD" autotrader-frontend:b5cd1d0
++same3 autotrader-frontend:b5cd1d0 "$M/image-fe-before-chain.txt" || stop "기존 frontend 이미지 보존 태그 실패(HEAD·latest 그대로, U1-되돌림 하지 않는다)"
++echo 보존태그 > "$M/fe-stage.txt"   # frontend 단계: 보존태그 → 빌드시작(이미지 이름이 바뀔 수 있음) → 빌드끝(새 이미지 기록)
+ git checkout --quiet $NEW
+ [ "$(git rev-parse HEAD)" = "$NEW" ] && [ -z "$(git status --porcelain --untracked-files=no)" ] || stop "체크아웃 결과가 NEW 가 아니거나 변경 있음 — U1-되돌림"
+ [ "$(h256 "$NF")" = "$NHNEW" ] && [ -e "$NT" ] || stop "start_66.py 가 운영·후보 같은 원문(68d441ce…)과 다르거나 시험 파일 없음 — U1-되돌림"
+ python3 -c 'import ast,sys; ast.parse(open(sys.argv[1], encoding="utf-8").read())' "$NF" > "$M/syntax.txt" 2>&1 || { cat "$M/syntax.txt"; stop "start_66.py 문법 확인 실패 — U1-되돌림"; }   # 캐시 파일을 쓰지 않는 문법 확인
+ date '+%F %T %Z' | tee "$M/t-build.txt"
+ $DC build backend > "$M/build.log" 2>&1 || stop "빌드 실패 — build.log 를 보고. U1-되돌림"
+-IMG1=$(docker image inspect --format '{{.Id}}' $REPO:latest); echo "$IMG1" | tee "$M/image-new.txt"
++IMG1=$(docker image inspect --format '{{.Id}}' $REPO:latest) || stop "새 backend 이미지 조회 실패 — U1-되돌림"; echo "$IMG1" | tee "$M/image-new.txt"
+ [ "$IMG1" != "$IMG0" ] || stop "새 이미지가 만들어지지 않음 — U1-되돌림"
+-[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$IMG0" ] || stop "🔴 실행 중 backend 가 바뀌었다 — 보고"
++R1=$(rchain "$IMG1") || stop "새 backend 이미지의 대상·manifest·config 조회 실패 — U1-되돌림"; echo "$R1" | tee "$M/image-new-chain.txt"
++[ "$(cut -d' ' -f2 "$M/image-new-chain.txt")" != "$IMGOLDM" ] || stop "새 backend manifest 가 #27 과 같음 — U1-되돌림"
++same3 $REPO:b5cd1d0 "$M/image-before-chain.txt" || stop "backend 보존 태그가 빌드 중 바뀌었거나 조회 실패 — U1-되돌림(보고)"
++isimg backend "$IMGOLD" $IMGOLD $IMGOLDM $IMGOLDC || stop "🔴 실행 중 backend 가 바뀌었다 또는 조회 실패 — 보고"
+ docker cp "$($DC ps -q backend)":/app/app.jar "$M/app-old.jar"
+-CID=$(docker create $REPO:latest); docker cp "$CID":/app/app.jar "$M/app-new.jar"; docker rm "$CID" > /dev/null
++CID=$(docker create "$IMG1"); docker cp "$CID":/app/app.jar "$M/app-new.jar"; docker rm "$CID" > /dev/null
+ sha256sum "$M/app-old.jar" "$M/app-new.jar" | tee "$M/jar-sha.txt"
+ python3 - "$M/app-old.jar" "$M/app-new.jar" > "$M/jar-diff.txt" 2>&1 <<'EOF' && JC=0 || JC=$?
+ import hashlib, io, re, sys, zipfile
+@@ -132,14 +145,16 @@
+ [ "$JMC" = 0 ] || stop "새 jar 항목 목록 거절(종료 $JMC) — jar-manifest-new.txt 를 보고(재기동 전). U1-되돌림"
+ JMH=$(sha256sum < "$M/jar-manifest-new.txt" | cut -c1-64); echo "JARM $JMH" | tee "$M/jar-manifest-sha.txt"
+ [ "$JMH" = "$JARM" ] || stop "새 jar 항목 내용이 후보 0e1d2a02(제품 입력 99e6ab10) 목록(JARM)과 다름 — 옛 후보 jar 이거나 다른 입력. jar-manifest-new.txt 를 보고(재기동 전). U1-되돌림"
+-echo "== frontend(같은 릴리스) — 기존 이미지 보존 태그·새 이미지 빌드(재기동 없음)"
+-FE0=$(cat "$M/image-fe-before.txt"); FEREF=$(cat "$M/fe-ref-before.txt"); FER=${FEREF%%:*}
+-if docker image inspect $FER:b5cd1d0 > /dev/null 2>&1; then [ "$(docker image inspect --format '{{.Id}}' $FER:b5cd1d0)" = "$FE0" ] || stop "$FER:b5cd1d0 태그가 이미 다른 이미지를 가리킨다 — U1-되돌림"; fi
+-docker tag "$FE0" $FER:b5cd1d0
+-[ "$(docker image inspect --format '{{.Id}}' $FER:b5cd1d0)" = "$FE0" ] || stop "frontend 기존 이미지 보존 태그 실패 — U1-되돌림"
+-$DC build frontend > "$M/build-fe.log" 2>&1 || stop "frontend 빌드 실패 — build-fe.log 를 보고. U1-되돌림"
+-FE1=$(docker image inspect --format '{{.Id}}' "$FEREF"); echo "$FE1" | tee "$M/image-fe-new.txt"
+-[ "$FE1" != "$FE0" ] || stop "새 frontend 이미지가 만들어지지 않음 — U1-되돌림"
+-[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q frontend)")" = "$FE0" ] || stop "🔴 실행 중 frontend 가 바뀌었다 — 보고"
++echo "== frontend(같은 릴리스) — 보존 태그 확인·새 이미지 빌드(재기동 없음)"
++same3 autotrader-frontend:b5cd1d0 "$M/image-fe-before-chain.txt" || stop "frontend 보존 태그가 U1 시작 때와 다름 또는 조회 실패 — U1-되돌림(보고)"
++echo 빌드시작 > "$M/fe-stage.txt"
++$DC build frontend > "$M/build-fe.log" 2>&1 || stop "frontend 빌드 실패 — build-fe.log 를 보고. U1-되돌림(이미지 이름은 보존 태그 대상으로 되돌린다)"
++FE1=$(docker image inspect --format '{{.Id}}' autotrader-frontend) || stop "새 frontend 이미지 조회 실패 — U1-되돌림"; echo "$FE1" | tee "$M/image-fe-new.txt"
++[ "$FE1" != "$FETOLD" ] || stop "새 frontend 이미지가 만들어지지 않음 — U1-되돌림"
++RF1=$(rchain "$FE1") || stop "새 frontend 이미지의 대상·manifest·config 조회 실패 — U1-되돌림"; echo "$RF1" | tee "$M/image-fe-new-chain.txt"
++[ "$(cut -d' ' -f2 "$M/image-fe-new-chain.txt")" != "$FEMOLD" ] || stop "새 frontend manifest 가 구판과 같음 — U1-되돌림"
++echo 빌드끝 > "$M/fe-stage.txt"
++same3 autotrader-frontend:b5cd1d0 "$M/image-fe-before-chain.txt" || stop "frontend 보존 태그가 빌드 중 바뀌었거나 조회 실패 — U1-되돌림(보고)"
++isimg frontend "$FEIMGOLD" $FETOLD $FEMOLD $FECOLD || stop "🔴 실행 중 frontend 가 바뀌었다 또는 조회 실패 — 보고"
+ touch "$M/ok-U1"; echo "✅ U1 통과 — ⏸ 운영자 확인 1회 뒤 U2(backend 만 재기동, frontend 는 U3 뒤 UF2)"
+ )
+diff -u "src/U1�\220\230�\217\214림.sh" "/d/tmp/v171d4s/blocks-d4/U1�\220\230�\217\214림.sh"
+--- "src/U1�\220\230�\217\214림.sh"	2026-11-16 11:00:32.163971700 +0900
++++ "/d/tmp/v171d4s/blocks-d4/U1�\220\230�\217\214림.sh"	2026-11-16 11:05:46.334983500 +0900
+@@ -1,28 +1,54 @@
+-# U1-되돌림(D4) — U1 이 '… U1-되돌림' 으로 멈췄거나, U1 통과 뒤 운영자가 U2 를 하지 않기로 했을 때만 쓴다(자동 실행 없음). 재기동하지 않는다.
+-# 대상은 HEAD=NEW 뿐이다(이미 OLD 이면 체크아웃 없이 latest·원문만 맞춘다). 그 밖 HEAD·추적 변경·실행 이미지/cron 불일치·프로세스 조회 실패는 바꾸지 않고 멈춘다.
++# U1-되돌림(V171D4) — U1 이 '… U1-되돌림' 으로 멈췄거나, U1 통과 뒤 운영자가 U2 를 하지 않기로 했을 때만 쓴다(자동 실행 없음). 재기동하지 않는다.
++# 대상은 HEAD=NEW 뿐이다(이미 OLD 이면 체크아웃 없이 이미지 이름·원문만 맞춘다). 그 밖 HEAD·추적 변경·실행 컨테이너 대응 불일치·cron 불일치·프로세스/이미지 조회 실패는 바꾸지 않고 멈춘다.
++# V171D4: 이미지 이름은 U1 의 frontend 단계 기록(fe-stage.txt)과 대응 확인한 보존 태그로 되돌린다. 컨테이너 .Image(가변 latest 의 옛 값)를 복구 출처로 쓰지 않는다.
++#   없음/보존태그 = frontend 빌드 전(이미지 이름이 바뀌었으면 제3의 이미지 — 멈춤) · 빌드시작 = 빌드 중/뒤 실패(바뀐 이름은 보존 태그로) · 빌드끝 = 새 이미지 기록됨(이름이 그 새 이미지일 때만 되돌림)
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "${UB:-}" = V168D4 ] || stop "U 변수가 v1.168 통합 후보 초안 D4 판이 아님 — F → G → v1.168 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
++[ "${UB:-}" = V171D4 ] || stop "U 변수가 v1.171 통합 후보 초안 D4 판이 아님 — F → G → v1.171 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+ [ ! -e "$M/ok-U2" ] && [ ! -e "$M/t-deploy.utc" ] || stop "U2(재기동)를 시작했다 — U1-되돌림이 아니라 U되돌림"
+ IMG0=$(cat "$M/image-before.txt"); [ "$IMG0" = "$IMGOLD" ] || stop "image-before 가 #27 이미지(IMGOLD)가 아님"
++[ -s "$M/image-before-chain.txt" ] && [ "$(ok3 "$M/image-before-chain.txt")" = "$IMGOLD $IMGOLDM $IMGOLDC" ] || stop "U0 backend 대응 기록이 없거나 고정값과 다름 — 바꾸지 않고 보고"
++[ -s "$M/image-fe-before-chain.txt" ] && [ "$(ok3 "$M/image-fe-before-chain.txt")" = "$FETOLD $FEMOLD $FECOLD" ] && [ "$(cat "$M/fe-ref-before.txt")" = autotrader-frontend ] || stop "U0 frontend 대응 기록이 없거나 고정값과 다름 — 바꾸지 않고 보고"
+ [ -e "$M/start_66.py.before" ] || stop "U0 보존본이 없다 — 보고"
+ date '+%F %T %Z' | tee "$M/t-u1rollback.txt"
+ { git rev-parse HEAD; git status --porcelain --untracked-files=no; echo "(끝)"; } | tee "$M/git-pre-u1rollback.txt"
+ H=$(head -1 "$M/git-pre-u1rollback.txt")
+ [ "$H" = "$NEW" ] || [ "$H" = "$OLD" ] || stop "HEAD 가 후보·b5cd1d0 어느 것도 아님($H) — 다른 작업 상태일 수 있다. 바꾸지 않고 보고"
+ [ "$(sed -n 2p "$M/git-pre-u1rollback.txt")" = "(끝)" ] || stop "추적 파일 변경이 있다 — 덮어쓰지 않고 보고"
+-[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$IMG0" ] || stop "실행 중 backend 가 image-before 가 아님 — 재기동이 있었을 수 있다. 바꾸지 않고 보고"
++FS=$(cat "$M/fe-stage.txt" 2>/dev/null || echo 없음); echo "frontend 단계 기록: $FS" | tee "$M/fe-stage-u1rollback.txt"
++case "$FS" in 없음|보존태그|빌드시작|빌드끝) ;; *) stop "frontend 단계 기록이 U1 단계가 아님($FS) — 바꾸지 않고 보고" ;; esac
++echo "== 바꾸기 전 대응 확인 — 실행 컨테이너 두 개·이미지 이름·보존 태그"
++isimg backend "$IMGOLD" $IMGOLD $IMGOLDM $IMGOLDC || stop "실행 중 backend 가 #27 이미지 대응이 아님 또는 조회 실패 — 재기동이 있었을 수 있다. 바꾸지 않고 보고"
++isimg frontend "$FEIMGOLD" $FETOLD $FEMOLD $FECOLD || stop "실행 중 frontend 가 U0 대응이 아님 또는 조회 실패 — 바꾸지 않고 보고"
++BL=0; same3 $REPO:latest "$M/image-before-chain.txt" 2>> "$M/u1rb-probe.txt" || BL=1
++if [ "$BL" = 1 ]; then
++  L=$(docker image inspect --format '{{.Id}}' $REPO:latest) || stop "backend latest 조회 실패 — 바꾸지 않고 보고"
++  [ -s "$M/image-new.txt" ] && [ "$L" = "$(cat "$M/image-new.txt")" ] || stop "backend latest 가 U0 이미지·U1 새 이미지 어느 것도 아님($L) — 바꾸지 않고 보고"
++  same3 $REPO:b5cd1d0 "$M/image-before-chain.txt" || stop "backend 보존 태그가 U0 대응과 다름 또는 조회 실패 — 바꾸지 않고 보고"
++fi
++FL=0; same3 autotrader-frontend "$M/image-fe-before-chain.txt" 2>> "$M/u1rb-probe.txt" || FL=1
++if [ "$FL" = 1 ]; then
++  case "$FS" in 빌드시작|빌드끝) ;; *) stop "frontend 이미지 이름이 U0 와 다른데 U1 이 frontend 빌드 전 단계($FS) — 제3의 이미지일 수 있다. 바꾸지 않고 보고" ;; esac
++  FL1=$(docker image inspect --format '{{.Id}}' autotrader-frontend) || stop "frontend 이미지 이름 조회 실패 — 바꾸지 않고 보고"
++  [ "$FS" != 빌드끝 ] || { [ -s "$M/image-fe-new.txt" ] && [ "$FL1" = "$(cat "$M/image-fe-new.txt")" ]; } || stop "frontend 이미지 이름이 U1 새 이미지가 아님($FL1, 제3의 이미지) — 바꾸지 않고 보고"
++  echo "$FL1" | tee "$M/fe-latest-pre-u1rollback.txt"
++  same3 autotrader-frontend:b5cd1d0 "$M/image-fe-before-chain.txt" || stop "frontend 보존 태그가 U0 대응과 다름 또는 조회 실패 — 바꾸지 않고 보고"
++fi
++echo "되돌릴 이미지 이름: backend latest $([ "$BL" = 1 ] && echo 보존 태그로 || echo 그대로) · frontend $([ "$FL" = 1 ] && echo 보존 태그로 || echo 그대로)" | tee "$M/u1rb-plan.txt"
+ crontab -l > "$M/crontab-u1rollback.txt" || stop "crontab 조회 실패 — 바꾸지 않고 보고"
+ [ "$(h256 "$M/crontab-u1rollback.txt")" = "$CRON" ] || stop "crontab 이 f2dce280… 과 다름 — 바꾸지 않고 보고"
+ FI=0; fresh_idle u1rb || FI=$?
+ [ "$FI" = 0 ] || { [ "$FI" = 1 ] && stop "freshness 회차가 돌고 있다(아직 바꾼 것 없음) — 끝난 뒤 다시(끊지 않는다)"; stop "프로세스 조회 실패(아직 바꾼 것 없음) — 회차 없음으로 보지 않는다. pgrep-u1rb.* 를 보고"; }
+ if [ "$H" = "$NEW" ]; then git checkout --quiet $OLD; else echo "HEAD 가 이미 b5cd1d0 — 체크아웃하지 않는다"; fi
+-docker tag "$IMG0" $REPO:latest
+-if [ -s "$M/image-fe-before.txt" ] && [ -s "$M/fe-ref-before.txt" ]; then FEREF=$(cat "$M/fe-ref-before.txt"); docker tag "$(cat "$M/image-fe-before.txt")" "$FEREF"; [ "$(docker image inspect --format '{{.Id}}' "$FEREF")" = "$(cat "$M/image-fe-before.txt")" ] || stop "frontend latest 원복 실패 — 보고"; [ "$(docker inspect --format '{{.Image}}' "$($DC ps -q frontend)")" = "$(cat "$M/image-fe-before.txt")" ] || stop "실행 중 frontend 가 바뀌었다 — 보고"; fi
+-{ git rev-parse HEAD; git status --porcelain --untracked-files=no; echo "(끝)"; docker image inspect --format '{{.Id}}' $REPO:latest; } | tee "$M/git-u1rollback.txt"
+-[ "$(head -1 "$M/git-u1rollback.txt")" = "$OLD" ] && [ "$(sed -n 2p "$M/git-u1rollback.txt")" = "(끝)" ] && [ "$(sed -n 3p "$M/git-u1rollback.txt")" = "$IMG0" ] || stop "되돌림 결과가 b5cd1d0·latest=image-before 가 아님 — 보고"
++if [ "$BL" = 1 ]; then docker tag "$IMGOLD" $REPO:latest; fi
++same3 $REPO:latest "$M/image-before-chain.txt" || stop "backend latest 원복 확인 실패 — 보고"
++if [ "$FL" = 1 ]; then docker tag "$FETOLD" autotrader-frontend; fi
++same3 autotrader-frontend "$M/image-fe-before-chain.txt" || stop "frontend 이미지 이름 원복 확인 실패 — 보고"
++isimg backend "$IMGOLD" $IMGOLD $IMGOLDM $IMGOLDC || stop "실행 중 backend 가 바뀌었다 또는 조회 실패 — 보고"
++isimg frontend "$FEIMGOLD" $FETOLD $FEMOLD $FECOLD || stop "실행 중 frontend 가 바뀌었다 또는 조회 실패 — 보고"
++{ git rev-parse HEAD; git status --porcelain --untracked-files=no; echo "(끝)"; echo "backend latest $(ok3 "$M/image-before-chain.txt")"; echo "frontend latest $(ok3 "$M/image-fe-before-chain.txt")"; } | tee "$M/git-u1rollback.txt"
++[ "$(head -1 "$M/git-u1rollback.txt")" = "$OLD" ] && [ "$(sed -n 2p "$M/git-u1rollback.txt")" = "(끝)" ] || stop "되돌림 결과가 b5cd1d0 가 아님 — 보고"
+ [ "$(h256 "$NF")" = "$NHOLD" ] && cmp -s "$NF" "$M/start_66.py.before" && [ -e "$NT" ] || stop "start_66.py 가 U0 보존본과 다르거나 시험 파일이 없다 — 보고"
+-[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$IMG0" ] || stop "실행 중 backend 가 바뀌었다 — 보고"
+-rm -f "$M/ok-U1"; echo "↩ U1-되돌림 끝 — HEAD b5cd1d0·latest = image-before, 재기동 없음. 상태 파일(streak·snap·log)은 되감지 않았다"
++rm -f "$M/ok-U1"; echo "↩ U1-되돌림 끝 — HEAD b5cd1d0·backend latest = #27(52e12428)·frontend 이미지 이름 = U0 대상(837db515), 실행 컨테이너 두 개 대응 그대로, 재기동 없음. 상태 파일(streak·snap·log)은 되감지 않았다"
+ )
+diff -u src/U2.sh /d/tmp/v171d4s/blocks-d4/U2.sh
+--- src/U2.sh	2026-11-16 11:00:32.225795600 +0900
++++ /d/tmp/v171d4s/blocks-d4/U2.sh	2026-11-16 11:05:46.334983500 +0900
+@@ -1,12 +1,14 @@
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "${UB:-}" = V168D4 ] || stop "U 변수가 v1.168 통합 후보 초안 D4 판이 아님 — F → G → v1.168 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
++[ "${UB:-}" = V171D4 ] || stop "U 변수가 v1.171 통합 후보 초안 D4 판이 아님 — F → G → v1.171 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+ [ -e "$M/ok-U1" ] || stop "U1 미통과"
+ [ ! -e "$M/ok-U2" ] || stop "U2 를 이미 했다 — U3"
+ IMG1=$(cat "$M/image-new.txt")
+ [ "$(git rev-parse HEAD)" = "$NEW" ] || stop "HEAD 가 NEW 가 아님"
+ [ "$(docker image inspect --format '{{.Id}}' $REPO:latest)" = "$IMG1" ] || stop "latest 가 image-new 와 다름"
++same3 $REPO:latest "$M/image-new-chain.txt" || stop "latest 가 image-new 대상·manifest·config 와 다름 또는 조회 실패(아직 바꾼 것 없음) — 보고"
++isimg backend "$IMGOLD" $IMGOLD $IMGOLDM $IMGOLDC || stop "실행 중 backend 가 #27 이미지 대응이 아님 또는 조회 실패(아직 바꾼 것 없음) — 보고"
+ sid203 || stop "SID 203·기준 행·EG·0 확인 중 다른 것 있음"
+ [ "$(sc)" = "66 | 63 | 3 | -" ] || stop "검증 66세션 상태 다름"
+ date '+%F %T %Z' | tee "$M/t-deploy.txt"; date -u '+%Y-%m-%dT%H:%M:%SZ' > "$M/t-deploy.utc"
+@@ -14,7 +16,7 @@
+ echo "== 여기부터 재기동 — 새 backend 기동 때 Flyway 가 V96 하나를 적용한다. 이 뒤의 멈춤은 '되돌림 필요'(V96 은 되돌리지 않는다)"
+ $DC up -d --no-build --no-deps backend || stop "되돌림 필요: 재생성 실패"
+ sleep 15
+-[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$IMG1" ] || stop "되돌림 필요: 새 컨테이너 이미지가 image-new 와 다름"
++isimg backend "$(okimg "$M/image-new-chain.txt")" $(ok3 "$M/image-new-chain.txt") || stop "되돌림 필요: 새 컨테이너가 image-new 대상·manifest·config 와 연결되지 않음 또는 조회 실패"
+ [ "$($DC exec -T backend env | grep '^TRADING_CAPITALPOOL_' | sort)" = "$POOLX" ] || stop "되돌림 필요: 공유 풀 등록값 다름"
+ v96 || stop "되돌림 필요: Flyway 최고 버전이 96 이 아님"
+ [ "$($PSQL -At -c "SELECT string_agg(version || ':' || success || ':' || checksum, ',' ORDER BY installed_rank) FROM flyway_schema_history WHERE version::int >= 95")" = "96:t:$V96SUM" ] || stop "되돌림 필요: V95 이후 이력이 V96 한 줄(성공·체크섬 $V96SUM)이 아님"
+diff -u src/U3.sh /d/tmp/v171d4s/blocks-d4/U3.sh
+--- src/U3.sh	2026-11-16 11:00:32.287882200 +0900
++++ /d/tmp/v171d4s/blocks-d4/U3.sh	2026-11-16 11:05:46.334983500 +0900
+@@ -1,17 +1,18 @@
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "${UB:-}" = V168D4 ] || stop "U 변수가 v1.168 통합 후보 초안 D4 판이 아님 — F → G → v1.168 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+-if [ -e "$M/t-rollback.utc" ]; then S=$(cat "$M/t-rollback.utc"); EXP=$(cat "$M/image-before.txt"); T=rollback; else [ -e "$M/ok-U2" ] || stop "U2 미통과"; S=$(cat "$M/t-deploy.utc"); EXP=$(cat "$M/image-new.txt"); T=deploy; fi
++[ "${UB:-}" = V171D4 ] || stop "U 변수가 v1.171 통합 후보 초안 D4 판이 아님 — F → G → v1.171 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
++if [ -e "$M/t-rollback.utc" ]; then S=$(cat "$M/t-rollback.utc"); EXPF="$M/image-before-chain.txt"; T=rollback; else [ -e "$M/ok-U2" ] || stop "U2 미통과"; S=$(cat "$M/t-deploy.utc"); EXPF="$M/image-new-chain.txt"; T=deploy; fi
+ [ $(( $(date +%s) - $(date -d "$S" +%s) )) -ge 300 ] || stop "기동 5분 전 — 5분이 지난 뒤 U3"
+ $DC ps backend
+-[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$EXP" ] || stop "실행 이미지가 기대와 다름"
++IMGOK=0; isimg backend "$(okimg "$EXPF")" $(ok3 "$EXPF") || IMGOK=$?   # V171D4: 판정은 P0 검사 뒤
+ $PSQL -At -c "$NEWSCFG" > "$M/news-$T.txt" || stop "뉴스 설정 조회 실패 — 1분 뒤 U3 를 다시"
+ OBS=$(date +%s); echo "$OBS" > "$M/obs-$T.txt"   # 관측 시각 = 뉴스 설정을 읽은 시각(로그는 그 뒤에 읽는다)
+ $DC logs --no-color --since "$S" backend > "$M/app-$T.log"
+ echo "== HOLD 질의 장기 대여·연결 획득(기동 뒤 로그 · 배포 전 기준선: $(head -1 "$M/hold-before.txt"))"
+ holdobs "$M/app-$T.log" | tee "$M/holdobs-$T.txt" && HQ=0 || HQ=$?
+ [ "$HQ" != 1 ] || stop "🔴 P0 — 연결 획득 시간 초과 줄이 있다. 즉시 보고(되돌림 여부는 총괄 판단, U 되돌림 블록 준비됨)"
++[ "$IMGOK" = 0 ] || stop "실행 이미지가 기대 대상·manifest·config 와 다름 또는 조회 실패"
+ grep -E "Schema .* is up to date|Migrating schema|Successfully applied|매도 격리 점검|Started CryptoAutoTrader" "$M/app-$T.log" | head -10
+ grep -q "Started CryptoAutoTrader" "$M/app-$T.log" || stop "되돌림 필요: 기동 완료 줄 없음"
+ if [ "$T" = rollback ]; then ! grep -qE "Migrating schema|Successfully applied" "$M/app-$T.log" || stop "되돌림 뒤 마이그레이션이 돌았다 — 보고"; else grep -qE "Migrating schema .*96|Successfully applied 1 migration" "$M/app-$T.log" || echo "⚪ V96 적용 줄이 로그에 없음 — U2 의 Flyway 이력 확인으로 갈음(기록만)"; fi
+diff -u src/U4.sh /d/tmp/v171d4s/blocks-d4/U4.sh
+--- src/U4.sh	2026-11-16 11:00:32.349671700 +0900
++++ /d/tmp/v171d4s/blocks-d4/U4.sh	2026-11-16 11:05:46.337019000 +0900
+@@ -1,7 +1,7 @@
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "${UB:-}" = V168D4 ] || stop "U 변수가 v1.168 통합 후보 초안 D4 판이 아님 — F → G → v1.168 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
++[ "${UB:-}" = V171D4 ] || stop "U 변수가 v1.171 통합 후보 초안 D4 판이 아님 — F → G → v1.171 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+ [ -e "$M/ok-U3-deploy" ] || stop "U3 미통과"
+ S=$(cat "$M/t-deploy.utc")
+ [ $(( $(date +%s) - $(date -d "$S" +%s) )) -ge 1800 ] || stop "아직 30분 전 — 완료로 판정하지 않는다"
+diff -u src/UF2.sh /d/tmp/v171d4s/blocks-d4/UF2.sh
+--- src/UF2.sh	2026-11-16 11:00:32.410594800 +0900
++++ /d/tmp/v171d4s/blocks-d4/UF2.sh	2026-11-16 11:05:46.337019000 +0900
+@@ -1,30 +1,32 @@
+-# UF2(V168D4 새 블록) — U3(deploy) 통과 뒤 frontend 만 새 이미지로 교체한다. backend 먼저·frontend 나중이 기본안이다.
++# UF2(V168D4 에서 온 블록, V171D4 이미지 대응 보완) — U3(deploy) 통과 뒤 frontend 만 새 이미지로 교체한다. backend 먼저·frontend 나중이 기본안이다.
+ # 사이 구간(구 frontend + 새 API)은 키 없는 세션 표시·정지 이동이 같다(로컬 대역 fe-compat-old A·B). 새 모드 CLOSING 은 구 화면이 0원·보유 0 으로 보이므로
+ # 양쪽 설치·관측이 끝나기 전에는 새 모의 세션을 만들지 않는다.
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "${UB:-}" = V168D4 ] || stop "U 변수가 v1.168 통합 후보 초안 D4 판이 아님 — F → G → v1.168 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
++[ "${UB:-}" = V171D4 ] || stop "U 변수가 v1.171 통합 후보 초안 D4 판이 아님 — F → G → v1.171 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+ [ -e "$M/ok-U3-deploy" ] || stop "U3(deploy) 미통과 — frontend 는 backend 관측 뒤"
+ [ ! -e "$M/t-rollback.utc" ] || stop "되돌림을 시작했다 — frontend 를 바꾸지 않는다"
+ [ ! -e "$M/ok-UF2" ] || stop "UF2 를 이미 했다 — U4"
+-FE0=$(cat "$M/image-fe-before.txt"); FE1=$(cat "$M/image-fe-new.txt"); FEREF=$(cat "$M/fe-ref-before.txt")
+-[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q frontend)")" = "$FE0" ] || stop "실행 중 frontend 가 image-fe-before 가 아님 — 보고"
+-[ "$(docker image inspect --format '{{.Id}}' "$FEREF")" = "$FE1" ] || stop "frontend 이미지 이름이 image-fe-new 를 가리키지 않음 — 보고"
+-[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$(cat "$M/image-new.txt")" ] || stop "backend 가 새 이미지가 아님 — 보고"
++[ "$(cat "$M/fe-stage.txt" 2>/dev/null)" = 빌드끝 ] && [ -s "$M/image-fe-new-chain.txt" ] || stop "U1 frontend 단계 기록이 빌드끝이 아니거나 새 frontend 대응 기록 없음 — 보고"
++isimg frontend "$FEIMGOLD" $FETOLD $FEMOLD $FECOLD || stop "실행 중 frontend 가 U0 대응이 아님 또는 조회 실패 — 보고"
++same3 autotrader-frontend "$M/image-fe-new-chain.txt" || stop "frontend 이미지 이름이 image-fe-new 대상·manifest·config 를 가리키지 않음 또는 조회 실패 — 보고"
++same3 autotrader-frontend:b5cd1d0 "$M/image-fe-before-chain.txt" || stop "frontend 보존 태그가 U0 대응과 다름 또는 조회 실패(복구 출처 없음) — 보고"
++isimg backend "$(okimg "$M/image-new-chain.txt")" $(ok3 "$M/image-new-chain.txt") || stop "backend 가 새 이미지 대응이 아님 또는 조회 실패 — 보고"
+ sid203 || stop "SID 203·기준 행·EG·0 확인 중 다른 것 있음"
+ [ "$(sc)" = "66 | 63 | 3 | -" ] || stop "검증 66세션 상태 다름"
+ svc | tee "$M/svc-pre-fe.txt"
+ date '+%F %T %Z' | tee "$M/t-fe.txt"; date -u '+%Y-%m-%dT%H:%M:%SZ' > "$M/t-fe.utc"
+ echo "== 여기부터 frontend 재생성 — 이 뒤의 멈춤은 'frontend 되돌림 필요'(U되돌림의 frontend 단계)"
++echo 교체시작 > "$M/fe-stage.txt"
+ $DC up -d --no-build --no-deps frontend || stop "frontend 되돌림 필요: 재생성 실패"
+ sleep 10
+-[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q frontend)")" = "$FE1" ] || stop "frontend 되돌림 필요: 새 컨테이너 이미지가 image-fe-new 와 다름"
++isimg frontend "$(okimg "$M/image-fe-new-chain.txt")" $(ok3 "$M/image-fe-new-chain.txt") || stop "frontend 되돌림 필요: 새 컨테이너가 image-fe-new 대상·manifest·config 와 연결되지 않음 또는 조회 실패"
+ svc | tee "$M/svc-fe.txt"
+ diff <(grep -v '^frontend ' "$M/svc-pre-fe.txt") <(grep -v '^frontend ' "$M/svc-fe.txt") || stop "frontend 외 서비스가 바뀜 — 보고"
+ C=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/) || C=000; echo "frontend / 응답 $C" | tee "$M/fe-http.txt"
+ case "$C" in 200|302|307|308) ;; *) stop "frontend 되돌림 필요: / 응답 $C" ;; esac
+ $DC logs --no-color --since "$(cat "$M/t-fe.utc")" frontend > "$M/frontend-fe.log"
+ ! grep -qiE "error|unhandled" "$M/frontend-fe.log" || { grep -iE "error|unhandled" "$M/frontend-fe.log" | cut -c1-200; stop "frontend 로그에 오류 줄 — 바로 되돌리지 말고 위 줄을 보고"; }
+-touch "$M/ok-UF2"; echo "✅ UF2 통과 — 화면 확인(목록·상세 표시) 뒤 U4. 새 모의 세션 생성은 별도 승인"
++echo 교체끝 > "$M/fe-stage.txt"; touch "$M/ok-UF2"; echo "✅ UF2 통과 — 화면 확인(목록·상세 표시) 뒤 U4. 새 모의 세션 생성은 별도 승인"
+ )
+diff -u "src/U�\220\230�\217\214림.sh" "/d/tmp/v171d4s/blocks-d4/U�\220\230�\217\214림.sh"
+--- "src/U�\220\230�\217\214림.sh"	2026-11-16 11:00:32.471905500 +0900
++++ "/d/tmp/v171d4s/blocks-d4/U�\220\230�\217\214림.sh"	2026-11-16 11:05:46.338023000 +0900
+@@ -1,15 +1,27 @@
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "${UB:-}" = V168D4 ] || stop "U 변수가 v1.168 통합 후보 초안 D4 판이 아님 — F → G → v1.168 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
++[ "${UB:-}" = V171D4 ] || stop "U 변수가 v1.171 통합 후보 초안 D4 판이 아님 — F → G → v1.171 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+ IMG0=$(cat "$M/image-before.txt"); [ "$IMG0" = "$IMGOLD" ] || stop "image-before 가 #27 이미지(IMGOLD)가 아님"
++[ -s "$M/image-before-chain.txt" ] && [ "$(ok3 "$M/image-before-chain.txt")" = "$IMGOLD $IMGOLDM $IMGOLDC" ] || stop "U0 backend 대응 기록이 없거나 고정값과 다름 — 바꾸지 않고 보고"
++[ -s "$M/image-fe-before-chain.txt" ] && [ "$(ok3 "$M/image-fe-before-chain.txt")" = "$FETOLD $FEMOLD $FECOLD" ] && [ "$(cat "$M/fe-ref-before.txt")" = autotrader-frontend ] || stop "U0 frontend 대응 기록이 없거나 고정값과 다름 — 바꾸지 않고 보고"
+ [ -e "$M/start_66.py.before" ] || stop "U0 보존본이 없다 — 보고"
+ { git rev-parse HEAD; git status --porcelain --untracked-files=no; echo "(끝)"; } | tee "$M/git-pre-rollback.txt"
+ H=$(head -1 "$M/git-pre-rollback.txt")
+ [ "$H" = "$NEW" ] || [ "$H" = "$OLD" ] || stop "HEAD 가 후보·b5cd1d0 어느 것도 아님($H) — 다른 작업 상태일 수 있다. 바꾸지 않고 보고"
+ [ "$(sed -n 2p "$M/git-pre-rollback.txt")" = "(끝)" ] || stop "추적 파일 변경이 있다 — 덮어쓰지 않고 보고"
+-IMGR=$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)") || stop "실행 이미지 조회 실패 — 바꾸지 않고 보고"
+-[ "$IMGR" = "$IMG0" ] || { [ -s "$M/image-new.txt" ] && [ "$IMGR" = "$(cat "$M/image-new.txt")" ]; } || stop "실행 이미지가 image-before·image-new 어느 것도 아님 — 다른 작업이 있었을 수 있다. 바꾸지 않고 보고"
++echo "== V171D4 — 바꾸기 전 실행 컨테이너 대응 판정(backend·frontend)과 보존 태그 확인"
++if isimg backend "$(okimg "$M/image-before-chain.txt")" $(ok3 "$M/image-before-chain.txt") 2>> "$M/rb-probe.txt"; then BR=구판
++elif [ -s "$M/image-new-chain.txt" ] && isimg backend "$(okimg "$M/image-new-chain.txt")" $(ok3 "$M/image-new-chain.txt") 2>> "$M/rb-probe.txt"; then BR=새판
++else cat "$M/rb-probe.txt" 2>/dev/null | tail -4; stop "실행 backend 가 image-before·image-new 대응 어느 것도 아니거나 조회 실패 — 다른 작업이 있었을 수 있다. 바꾸지 않고 보고"; fi
++if isimg frontend "$FEIMGOLD $(okimg "$M/image-fe-before-chain.txt")" $(ok3 "$M/image-fe-before-chain.txt") 2>> "$M/rb-probe.txt"; then FR=구판
++elif [ -s "$M/image-fe-new-chain.txt" ] && isimg frontend "$(okimg "$M/image-fe-new-chain.txt")" $(ok3 "$M/image-fe-new-chain.txt") 2>> "$M/rb-probe.txt"; then FR=새판
++else cat "$M/rb-probe.txt" 2>/dev/null | tail -4; stop "실행 frontend 가 U0·U1 대응 어느 것도 아니거나 조회 실패(제3의 이미지일 수 있다) — 바꾸지 않고 보고"; fi
++same3 $REPO:b5cd1d0 "$M/image-before-chain.txt" || stop "backend 보존 태그가 U0 대응과 다름 또는 조회 실패 — 바꾸지 않고 보고"
++same3 autotrader-frontend:b5cd1d0 "$M/image-fe-before-chain.txt" || stop "frontend 보존 태그가 U0 대응과 다름 또는 조회 실패 — 바꾸지 않고 보고"
++FN=0; same3 autotrader-frontend "$M/image-fe-before-chain.txt" 2>> "$M/rb-probe.txt" || FN=1
++if [ "$FN" = 1 ]; then FL1=$(docker image inspect --format '{{.Id}}' autotrader-frontend) || stop "frontend 이미지 이름 조회 실패 — 바꾸지 않고 보고"; [ -s "$M/image-fe-new.txt" ] && [ "$FL1" = "$(cat "$M/image-fe-new.txt")" ] || stop "frontend 이미지 이름이 U0·U1 이미지 어느 것도 아님($FL1) — 바꾸지 않고 보고"; fi
++echo "실행 판정 backend=$BR frontend=$FR · frontend 이미지 이름 $([ "$FN" = 1 ] && echo U1새판 || echo U0) · 단계 $(cat "$M/fe-stage.txt" 2>/dev/null || echo 없음)" | tee "$M/rb-identity.txt"
+ crontab -l > "$M/crontab-rollback.txt" || stop "crontab 조회 실패 — 바꾸지 않고 보고"
+ [ "$(h256 "$M/crontab-rollback.txt")" = "$CRON" ] || stop "crontab 이 f2dce280… 과 다름 — 바꾸지 않고 보고"
+ FI=0; fresh_idle rb || FI=$?
+@@ -22,19 +34,26 @@
+ cat "$M/gate-out.txt"
+ [ "$GR" = 0 ] && [ "$(grep '^VERDICT ' "$M/gate-out.txt" | tail -1 | cut -d' ' -f2)" = ROLLBACK_GATE_OK ] || stop "관문이 ROLLBACK_GATE_OK 가 아님(종료 $GR) — 구판으로 되돌리지 않는다. 현재 바이너리로 정지·유효 가격 대기·정산/정리를 유지하고 gate-out.txt 를 보고(0원 정산·행 삭제·마이그레이션 삭제 금지)"
+ date '+%F %T %Z' | tee "$M/t-rollback.txt"; date -u '+%Y-%m-%dT%H:%M:%SZ' > "$M/t-rollback.utc"
+-if [ -s "$M/image-fe-new.txt" ] && [ "$(docker inspect --format '{{.Image}}' "$($DC ps -q frontend)")" = "$(cat "$M/image-fe-new.txt")" ]; then
+-  FE0=$(cat "$M/image-fe-before.txt"); docker tag "$FE0" "$(cat "$M/fe-ref-before.txt")"
++if [ "$FR" = 새판 ]; then
++  docker tag "$FETOLD" autotrader-frontend   # 대응 확인한 보존 대상 ID 로 이미지 이름을 되돌린다
++  same3 autotrader-frontend "$M/image-fe-before-chain.txt" || stop "frontend 이미지 이름 원복 확인 실패 — 보고"
+   $DC up -d --no-build --no-deps --force-recreate frontend
+   sleep 10
+-  [ "$(docker inspect --format '{{.Image}}' "$($DC ps -q frontend)")" = "$FE0" ] || stop "frontend 이미지가 image-fe-before 와 다름"
+-else echo "frontend 는 구판 그대로 — 바꾸지 않는다"; fi
++  isimg frontend "$(okimg "$M/image-fe-before-chain.txt")" $(ok3 "$M/image-fe-before-chain.txt") || stop "frontend 가 image-fe-before 대상·manifest·config 와 연결되지 않음 또는 조회 실패"
++  echo "frontend 복구 — 이미지 이름·실행 컨테이너 모두 U0 대상(837db515)" | tee "$M/fe-restored.txt"
++elif [ "$FN" = 1 ]; then
++  docker tag "$FETOLD" autotrader-frontend
++  same3 autotrader-frontend "$M/image-fe-before-chain.txt" || stop "frontend 이미지 이름 원복 확인 실패 — 보고"
++  echo "frontend 실행은 구판 그대로 — 이미지 이름만 U0 대상으로 되돌렸다(재생성 없음)" | tee "$M/fe-restored.txt"
++else echo "frontend 는 구판 그대로 — 바꾸지 않는다" | tee "$M/fe-restored.txt"; fi
+ if [ "$H" = "$NEW" ]; then git checkout --quiet $OLD; else echo "HEAD 가 이미 b5cd1d0 — 체크아웃하지 않는다"; fi
+ [ "$(git rev-parse HEAD)" = "$OLD" ] && [ -z "$(git status --porcelain --untracked-files=no)" ] || stop "체크아웃 실패"
+ [ "$(h256 "$NF")" = "$NHOLD" ] && cmp -s "$NF" "$M/start_66.py.before" && [ -e "$NT" ] || stop "start_66.py 가 U0 보존본과 다르거나 시험 파일이 없다 — 보고"
+-docker tag "$IMG0" $REPO:latest
++docker tag "$IMGOLD" $REPO:latest
++same3 $REPO:latest "$M/image-before-chain.txt" || stop "backend latest 원복 확인 실패 — 보고"
+ $DC up -d --no-build --no-deps --force-recreate backend
+ sleep 15
+-[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$IMG0" ] || stop "이미지가 image-before 와 다름"
++isimg backend "$(okimg "$M/image-before-chain.txt")" $(ok3 "$M/image-before-chain.txt") || stop "이미지가 image-before 대상·manifest·config 와 다름 또는 조회 실패"
+ [ "$($DC exec -T backend env | grep '^TRADING_CAPITALPOOL_' | sort)" = "$POOLX" ] || stop "공유 풀 등록값 다름"
+ svc | tee "$M/svc-rollback.txt"
+ { git rev-parse HEAD; git status --porcelain --untracked-files=no; echo "(끝)"; } | tee "$M/git-rollback.txt"
+diff -u "src/U�\222��\200측.sh" "/d/tmp/v171d4s/blocks-d4/U�\222��\200측.sh"
+--- "src/U�\222��\200측.sh"	2026-11-16 11:00:32.533499500 +0900
++++ "/d/tmp/v171d4s/blocks-d4/U�\222��\200측.sh"	2026-11-16 11:05:46.338023000 +0900
+@@ -1,10 +1,10 @@
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "${UB:-}" = V168D4 ] || stop "U 변수가 v1.168 통합 후보 초안 D4 판이 아님 — F → G → v1.168 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
++[ "${UB:-}" = V171D4 ] || stop "U 변수가 v1.171 통합 후보 초안 D4 판이 아님 — F → G → v1.171 통합 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+ [ -e "$M/ok-U4" ] || stop "U4 미통과"
+ S=$(cat "$M/t-deploy.utc"); TS=$(date '+%Y%m%d-%H%M')
+-[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$(cat "$M/image-new.txt")" ] || stop "실행 이미지가 image-new 와 다름 — 보고"
++isimg backend "$(okimg "$M/image-new-chain.txt")" $(ok3 "$M/image-new-chain.txt") || stop "실행 이미지가 image-new 대상·manifest·config 와 다름 또는 조회 실패 — 보고"
+ $PSQL -At -c "$NEWSCFG" > "$M/news-$TS.txt" || stop "뉴스 설정 조회 실패"
+ OBS=$(date +%s)   # 관측 시각 = 뉴스 설정을 읽은 시각
+ $DC logs --no-color --since "$S" backend > "$M/app-news-$TS.log"
+diff -u "src/U�\200�\210\230.sh" "/d/tmp/v171d4s/blocks-d4/U�\200�\210\230.sh"
+--- "src/U�\200�\210\230.sh"	2026-11-16 11:00:31.972824500 +0900
++++ "/d/tmp/v171d4s/blocks-d4/U�\200�\210\230.sh"	2026-11-16 11:05:46.332468000 +0900
+@@ -1,4 +1,4 @@
+-M=~/maint-v168; mkdir -p "$M"; OPS=~/ops-scripts; UB=V168D4   # v1.168 통합 후보(candidate/order-poll-race-b987d7a7 0e1d2a02, 99e6ab10 + 시험 전용 보완 — 제품·빌드·프런트 입력은 99e6ab10 과 같음) 배포 D4(미승인·실행 금지) 판 표지 — U 블록 전부가 확인한다. 원본 구조 V167D4(v167-race-20261115/d4, 그 원본 V161D4·V160D4·V159D4·SMA20PD4), 생성기 mkdraft9.py(값만 변경). backend+frontend 같은 릴리스, DDL V96(새 backend 기동 때 Flyway)
++M=~/maint-v171; mkdir -p "$M"; OPS=~/ops-scripts; UB=V171D4   # v1.171 판(V168D4 + Git LF JARM·이미지 대상/manifest/config 대응·단계별 복구, 총괄 v1.171 §2~§4) 통합 후보(candidate/order-poll-race-b987d7a7 0e1d2a02, 99e6ab10 + 시험 전용 보완 — 제품·빌드·프런트 입력은 99e6ab10 과 같음) 배포 D4(미승인·실행 금지) 판 표지 — U 블록 전부가 확인한다. 원본 구조 V167D4(v167-race-20261115/d4, 그 원본 V161D4·V160D4·V159D4·SMA20PD4), 생성기 mkdraft9.py(값만 변경) → V171D4 생성기 mkdraft10.py(V168D4 원문 d5790c1c 에서 지정 부분만 변경). backend+frontend 같은 릴리스, DDL V96(새 backend 기동 때 Flyway)
+ OLD=b5cd1d0d47ea68ffe6ff476b89cf9fca5bef1b88; NEW=0e1d2a021ab2f3c759a9b2be9c4f09430f93c80d
+ IMGOLD=sha256:52e12428a60df5413d6e495024220bbd4c8fa07830549556f0b47bbe6ad39055   # #27 O1·O3+N21 통합 배포 이미지(~/maint-o13n21/image-new.txt, v1.140 수용 값) — U0 가 실행 이미지·기록 파일과 같은지 확인한다. sha256: 로 시작하지 않으면 U0 가 멈춘다
+ IMGPREV8=sha256:426a09a20afc9e16cff8b7a569d4e04f18ed47cefb9242f44e3b9ea9666153a1   # #26 이미지 — 이전 복구 태그 autotrader-backend:1899b49 가 가리킨다(D3 U1 이 만듦, 보존, 바꾸지 않는다)
+@@ -210,10 +210,166 @@
+   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/TelegramNotificationService.class' \
+   '추가 BOOT-INF/classes/db/migration/V96__paper_aligned_runtime_state.sql')"   # 보존 b5cd1d0.jar(a7ef759f…) 대 로컬 bootJar 99e6ab10(f7450f13…), 비교기 v2 — 변경 48·추가 14. 🔴 88f06345 입력 jar(0834382a…)와 이름 목록이 같다 — 내용 구별은 JARM
+ JARN="(끝) 881 895"
+-JARM=7df5758fc48231372a9a507b228bafb5bfed1648332a8566e0881d80e2e1176d   # V168D4: 새 jar 항목 이름·sha256 목록(jarmanifest, 895줄)의 sha256 — 로컬 bootJar 99e6ab10(0e1d2a02 와 제품·빌드·프런트 입력 동일). 88f06345 입력 jar 는 a91ffaaf…, b5cd1d0 는 a66d2ccd…
++JARM=b65879533e1ba1c552f57e82b35b3993000319c4b0a81464d37a726ba42111f8   # V171D4(총괄 v1.171 §2): 후보 0e1d2a02 Git 블롭(LF) 기준 새 jar 항목 이름·sha256 목록(895줄, docs/evidence/review-b6afaddd/expected-manifest-git-lf.txt)의 sha256. 종전 V168D4 JARM 은 Windows CRLF 리소스 97개를 담은 값(당시 기록으로 보존). 798항목은 종전과 같다. 88f06345 입력 jar 는 a91ffaaf…, b5cd1d0 는 a66d2ccd…
+ V96F=web-api/src/main/resources/db/migration/V96__paper_aligned_runtime_state.sql; V96B=5b92eef03548c6bd1feaef2b35451563d5327246; V96SUM=-424836241   # V96 원문 블롭·Flyway 체크섬(로컬 실제 java -jar 기동 두 번에서 같은 값, oldbin-v96-r1·r2)
+ v96() { [ "$($PSQL -At -c "SELECT max(version::int) FROM flyway_schema_history WHERE success")" = "96" ] ; }
+-FEIMGOLD=sha256:d825a9f5b00d3dac93ee154f32f91b5a1474248fefaa3651f0d0c3b0cc2f7f66   # 실행 중 frontend 이미지 ID — 운영 읽기 2026-11-13 13:39:36 KST(N03 11-13 10:00 회차 읽기, 컨테이너 9a63d15ab110, docs/evidence/n03-1113-1000/frontend-image.txt). U0 가 실행 중 frontend 와 다시 대조하고 다르면 멈춘다
++FEIMGOLD=sha256:d825a9f5b00d3dac93ee154f32f91b5a1474248fefaa3651f0d0c3b0cc2f7f66   # 실행 중 frontend 컨테이너의 .Image 기록값(V171D4: 이미지 참조로 쓰지 않는다 — 아래 FETOLD) — 운영 읽기 2026-11-13 13:39:36 KST(N03 11-13 10:00 회차 읽기, 컨테이너 9a63d15ab110, docs/evidence/n03-1113-1000/frontend-image.txt). U0 가 실행 중 frontend 와 다시 대조하고 다르면 멈춘다
++# ── V171D4 이미지 대응(총괄 v1.171 §3) — 운영 읽기 2026-11-16 10:52~11:00 KST(docs/evidence/v171d4-20261116/state-1052) ──
++# 서버 Docker 29.9.2 는 containerd 이미지 저장소다. 이미지 참조의 대상 ID(index)·linux/amd64 manifest·config 는 서로 다른 값이다.
++# 새로 만든 컨테이너의 .Image 는 대상 ID(backend 743dfeb… = 52e12428)다. 09-22 에 만든 frontend 9a63d15… 의 .Image(d825a9f5)는
++# 지금 어떤 이미지 객체(대상 837db515·config 80ce7550)와도 같지 않다. 그래서 실행 컨테이너 대응은 ① 컨테이너 ImageManifestDescriptor
++# = 참조 대상의 linux/amd64 manifest ② daemon 이 그 manifest 의 사용 컨테이너로 그 컨테이너를 표시 ③ save 산출물의 manifest→config
++# 원문 해시 ④ .Image 가 허용값(옛 컨테이너는 기록값, 새 컨테이너는 대상 ID 또는 config)인지로 확인한다. 태그 이름·Compose 라벨만으로 정하지 않는다.
++IMGOLDM=sha256:ca440b8403c4a65ce39c3a49f0e480c5ca5e9630380cdbcfe4daf6405fc6c628; IMGOLDC=sha256:0344757e24e4567d56ff735560eb8564eab131933613b6deee663ead91e43e9b   # #27 backend 대상 52e12428 의 linux/amd64 manifest·config(save 원문 해시 확인)
++FETOLD=sha256:837db515e0eb8b9cb4bcf8f03ed3b98adf9f8cdb176d13777949c792d10b5017; FEMOLD=sha256:fa5c9ba849c3ee1e48540004105ea18df6d8d25df1bf490a6eeac425413e3ad6; FECOLD=sha256:80ce755066587ea4eadad00e823b9f4aaa5e9696897aa3a4ebcf12cf6d11d946   # 실행 중 frontend: 이미지 이름 autotrader-frontend 의 대상 ID·linux/amd64 manifest·config
++DAPI=v1.56   # 서버 Docker Engine API 판(29.9.2)
++ICSUM=fddd5d1cae1b85e2a002d30afe24044869b79c4983c6cc46fe3363a0aba354f6   # 아래 imgchain.py 원문 sha256 — 블록이 ~/maint-v171/imgchain.py 로 쓰고 쓸 때마다 대조한다
++IFS= read -r -d '' ICPY <<'ICEOF' || true
++# V171D4 이미지 대응 확인 도구(총괄 v1.171 §3-2). containerd 이미지 저장소에서 이미지 참조의 대상 ID·linux/amd64 manifest·config 와
++# 실행 컨테이너의 연결을 확인한다. 하나라도 확인하지 못하면 표준 오류에 '🔴 이미지 대응 거절'을 쓰고 종료 3(표준 출력 없음).
++#   api  <대상ID>     표준 입력 = GET /images/<대상ID>/json?manifests=1 응답 → "manifest 사용컨테이너(쉼표, 없으면 -)"
++#   save <manifest>   표준 입력 = docker image save --platform linux/amd64 <대상ID> 스트림(디스크에 쓰지 않음) → "config"
++#   ctr               표준 입력 = docker inspect --format '{{.Id}} {{.Image}} {{json .ImageManifestDescriptor}}' 한 줄 → "컨테이너ID .Image manifest"
++import hashlib, json, re, sys, tarfile
++H = re.compile(r"sha256:[0-9a-f]{64}")
++CID = re.compile(r"[0-9a-f]{64}")
++MAN = "application/vnd.oci.image.manifest.v1+json"
++CFG = "application/vnd.oci.image.config.v1+json"
++AMD = {"architecture": "amd64", "os": "linux"}
++
++
++def die(m):
++    sys.stderr.write("🔴 이미지 대응 거절: " + m + "\n")
++    sys.exit(3)
++
++
++def plat(p):
++    return isinstance(p, dict) and p == AMD
++
++
++def api(t):
++    if not H.fullmatch(t):
++        die("대상 ID 형식이 아님 %r" % t)
++    try:
++        d = json.loads(sys.stdin.buffer.read())
++    except ValueError:
++        die("API 응답이 JSON 이 아님")
++    if not isinstance(d, dict) or d.get("Id") != t or (d.get("Descriptor") or {}).get("digest") != t:
++        die("API 응답의 Id·Descriptor 가 조회한 대상 ID 와 다름")
++    ms = [m for m in (d.get("Manifests") or []) if isinstance(m, dict) and m.get("Kind") == "image"]
++    if len(ms) != 1:
++        die("image 종류 manifest 가 정확히 1개가 아님(%d개)" % len(ms))
++    m = ms[0]
++    desc = m.get("Descriptor") or {}
++    data = m.get("ImageData") or {}
++    if not H.fullmatch(str(m.get("ID"))) or desc.get("digest") != m.get("ID"):
++        die("manifest ID 와 Descriptor digest 가 다름")
++    if desc.get("mediaType") != MAN:
++        die("manifest 형식이 OCI manifest 가 아님 %r" % desc.get("mediaType"))
++    if not plat(desc.get("platform")) or not plat(data.get("Platform")):
++        die("manifest 플랫폼이 linux/amd64 가 아님 %r %r" % (desc.get("platform"), data.get("Platform")))
++    if m.get("Available") is not True:
++        die("manifest 내용이 저장소에 없음(Available 아님)")
++    cs = data.get("Containers") or []
++    if not isinstance(cs, list) or any(not CID.fullmatch(str(c)) for c in cs) or len(set(cs)) != len(cs):
++        die("사용 컨테이너 목록 형식 이상")
++    print(m["ID"], ",".join(cs) if cs else "-")
++
++
++def save(mdig):
++    if not H.fullmatch(mdig):
++        die("manifest 형식이 아님 %r" % mdig)
++    small = {}
++    try:
++        with tarfile.open(fileobj=sys.stdin.buffer, mode="r|") as t:
++            for e in t:
++                if e.isfile() and (e.name == "index.json" or (e.name.startswith("blobs/sha256/") and e.size < (1 << 20))):
++                    if e.name in small:
++                        die("저장 산출물에 같은 이름 중복 " + e.name)
++                    small[e.name] = t.extractfile(e).read()
++    except tarfile.TarError as x:
++        die("저장 산출물을 읽지 못함(%s)" % type(x).__name__)
++    for k, b in small.items():
++        if k.startswith("blobs/sha256/") and hashlib.sha256(b).hexdigest() != k[len("blobs/sha256/"):]:
++            die("blob 원문 해시가 이름과 다름 " + k)
++    if "index.json" not in small:
++        die("저장 산출물에 index.json 없음")
++    idx = json.loads(small["index.json"])
++    ms = idx.get("manifests") or []
++    if len(ms) != 1 or ms[0].get("digest") != mdig or ms[0].get("mediaType") != MAN or not plat(ms[0].get("platform")):
++        die("저장 산출물 index 가 linux/amd64 manifest %s 하나가 아님" % mdig[:19])
++    mb = small.get("blobs/sha256/" + mdig[7:])
++    if mb is None or len(mb) != ms[0].get("size"):
++        die("manifest 원문 없음 또는 크기 다름")
++    mj = json.loads(mb)
++    c = mj.get("config") or {}
++    if mj.get("mediaType") != MAN or c.get("mediaType") != CFG or not H.fullmatch(str(c.get("digest"))):
++        die("manifest 의 config 기술자 형식 이상")
++    cb = small.get("blobs/sha256/" + c["digest"][7:])
++    if cb is None or len(cb) != c.get("size"):
++        die("config 원문 없음 또는 크기 다름")
++    cj = json.loads(cb)
++    if cj.get("os") != "linux" or cj.get("architecture") != "amd64" or cj.get("variant"):
++        die("config 플랫폼이 linux/amd64 가 아님 %r/%r" % (cj.get("os"), cj.get("architecture")))
++    print(c["digest"])
++
++
++def ctr():
++    line = sys.stdin.read().strip()
++    p = line.split(" ", 2)
++    if len(p) != 3 or not CID.fullmatch(p[0]) or not H.fullmatch(p[1]):
++        die("컨테이너 조회 줄 형식 이상 %r" % line[:120])
++    try:
++        d = json.loads(p[2])
++    except ValueError:
++        die("ImageManifestDescriptor 가 JSON 이 아님")
++    if not isinstance(d, dict) or d.get("mediaType") != MAN or not plat(d.get("platform")) or not H.fullmatch(str(d.get("digest"))):
++        die("컨테이너 ImageManifestDescriptor 가 linux/amd64 OCI manifest 가 아님 %r" % (d if isinstance(d, dict) else p[2][:80]))
++    print(p[0], p[1], d["digest"])
++
++
++if len(sys.argv) == 3 and sys.argv[1] == "api":
++    api(sys.argv[2])
++elif len(sys.argv) == 3 and sys.argv[1] == "save":
++    save(sys.argv[2])
++elif len(sys.argv) == 2 and sys.argv[1] == "ctr":
++    ctr()
++else:
++    die("사용법: api <대상ID> | save <manifest> | ctr")
++ICEOF
++icpy() { [ -e "$M/imgchain.py" ] || printf '%s' "$ICPY" > "$M/imgchain.py"; [ "$(h256 "$M/imgchain.py")" = "$ICSUM" ] || { echo "🔴 $M/imgchain.py 원문 해시가 ICSUM 과 다름" >&2; return 9; } ; }
++rchain() {   # rchain <이미지 참조> → "대상ID manifest config 사용컨테이너(쉼표, 없으면 -)" 한 줄. 하나라도 확인 못 하면 출력 없이 0 아닌 종료
++  local t j a c
++  icpy || return 9
++  t=$(docker image inspect --format '{{.Id}}' "$1") || return 4
++  j=$(curl -sf --unix-socket /var/run/docker.sock "http://localhost/$DAPI/images/$t/json?manifests=1") || { echo "🔴 이미지 API 조회 실패 $1" >&2; return 5; }
++  a=$(printf '%s' "$j" | python3 -I "$M/imgchain.py" api "$t") || return 6
++  c=$(docker image save --platform linux/amd64 "$t" | python3 -I "$M/imgchain.py" save "${a%% *}") || return 7
++  echo "$t ${a%% *} $c ${a#* }"
++}
++cchain() {   # cchain <서비스> → "컨테이너ID .Image manifest"
++  local id
++  icpy || return 9
++  id=$($DC ps -q "$1") && [ -n "$id" ] || { echo "🔴 $1 컨테이너 조회 실패" >&2; return 4; }
++  docker inspect --format '{{.Id}} {{.Image}} {{json .ImageManifestDescriptor}}' "$id" | python3 -I "$M/imgchain.py" ctr
++}
++isimg() {   # isimg <서비스> "<허용 .Image 값들>" <대상ID> <manifest> <config> — 실행 컨테이너가 그 이미지인지
++  [ $# = 5 ] || { echo "🔴 isimg 인자 수 $#(기록 파일 없음?)" >&2; return 1; }
++  local c r
++  c=$(cchain "$1") && r=$(rchain "$3") || return 1
++  set -- "$1" "$2" "$3" "$4" "$5" $c $r
++  [ $# = 12 ] || { echo "🔴 $1: 대응 조회 결과 형식 이상" >&2; return 1; }
++  [ "$9" = "$3" ] && [ "${10}" = "$4" ] && [ "${11}" = "$5" ] && [ "$8" = "$4" ] || { echo "🔴 $1: manifest·config 대응 다름(컨테이너 manifest ${8:7:12} / 기대 ${4:7:12}·${5:7:12}, 조회 ${10:7:12}·${11:7:12})" >&2; return 1; }
++  case ",${12}," in *",$6,"*) ;; *) echo "🔴 $1: daemon 의 manifest 사용 컨테이너 목록에 실행 컨테이너 ${6:0:12} 없음" >&2; return 1 ;; esac
++  case " $2 " in *" $7 "*) ;; *) echo "🔴 $1: 컨테이너 .Image ${7:7:12} 가 허용값이 아님" >&2; return 1 ;; esac
++}
++ok3() { cut -d' ' -f1-3 "$1" ; }   # 대응 기록 파일 → "대상 manifest config"
++okimg() { echo "$(cut -d' ' -f1 "$1") $(cut -d' ' -f3 "$1")" ; }   # 새로 만든 컨테이너의 .Image 허용값 = 대상 ID 또는 config
++same3() {   # same3 <이미지 참조> <대응 기록 파일> — 참조의 대상·manifest·config 가 기록과 같은지(조회 실패는 다름)
++  local r
++  [ -s "$2" ] && r=$(rchain "$1") || return 1
++  [ "$(echo "$r" | cut -d' ' -f1-3)" = "$(ok3 "$2")" ]
++}
+ GS=6385e1d5f64eb09a95791ba253a30d2b21341082   # 관문 3판·손실 조회문 v2 를 담은 main 고정 커밋(총괄 v1.160 §5 지정). 꺼낸 원문 해시가 GATESQL·GATESH·PFSUM 과 다르면 U0·U되돌림이 멈춘다
+ GTP=docs/evidence/v159-20261113/rollback-gate-v3; GATESQL=c9dc20563d6921d4e96cf6abc4b3737efeea94ecbaefddfbc23736056aabd56b; GATESH=fe19aab4e7396d50641a210b60cf328a117916ee8fab127bb3e53678522d6a42   # 상태 기반 복구 관문 3판 원문 해시
+ PFP=docs/evidence/v159-20261113/d4-draft/preflight-real-loss-readonly.v2.sql; PFSUM=af4105c1f70f6f095b8f1bbbb1c722acd717b2dcd46190e3a9224cd949c5cab0   # 배포 전 손실 조회 v2 원문 해시
