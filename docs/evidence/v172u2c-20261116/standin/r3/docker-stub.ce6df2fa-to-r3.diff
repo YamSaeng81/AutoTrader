@@ -1,0 +1,11 @@
+38c38,41
+<     *"string_agg(version"*) [ -e "$ST/v96" ] && echo "96:t:${V96CK:--424836241}" || echo "" ;;   # V159D4: V95 이후 이력
+---
+>     *"count(*) || '|' || coalesce(string_agg(version"*) [ -z "${V96H_FAIL:-}" ] || { echo 'ERROR:  대역 V95 이후 이력 조회 실패 주입' >&2; return 2; }
+>       if [ -n "${V96C_OUT+x}" ]; then echo "$V96C_OUT"; else [ -e "$ST/v96" ] && echo "1|96:true:${V96CK:--424836241}" || echo "0|-"; fi ;;   # r3: 행수·내용 한 SELECT(U2확인 1c9eab35), 실제 PG 형식(pg-v96-r3-out.txt), V96C_OUT 주입
+>     *"string_agg(version"*) [ -z "${V96H_FAIL:-}" ] || { echo 'ERROR:  대역 V95 이후 이력 조회 실패 주입' >&2; return 2; }
+>       if [ -n "${V96H_OUT+x}" ]; then echo "$V96H_OUT"; else [ -e "$ST/v96" ] && echo "96:true:${V96CK:--424836241}" || echo ""; fi ;;   # V159D4: V95 이후 이력. v1.174: 실제 PG 연결 결과 형식 96:true:(종전 96:t: 는 틀린 응답), V96H_OUT·V96H_FAIL 주입
+101c104
+<     f=${f//\{\{.Id\}\}/$cid}; f=${f//\{\{.Image\}\}/$img}; f=${f//\{\{json .ImageManifestDescriptor\}\}/$j}; echo "${f//\{\{.State.StartedAt\}\}/$(startofsvc $s)}" ;;
+---
+>     f=${f//\{\{.Id\}\}/$cid}; f=${f//\{\{.Image\}\}/$img}; f=${f//\{\{json .ImageManifestDescriptor\}\}/$j}; f=${f//\{\{.RestartCount\}\}/${RESTARTS:-0}}; f=${f//\{\{.State.Status\}\}/${CSTATUS:-running}}; echo "${f//\{\{.State.StartedAt\}\}/$(startofsvc $s)}" ;;   # v1.174: 재시작 수·상태(U2확인)

@@ -1,0 +1,361 @@
+{
+  "source": "ce6df2fa2b1b4a0b089576bc700fb867a466686d",
+  "scope": "Local source, hashes, archive and isolated shell branches. No server or full rehearsal execution.",
+  "checks": {
+    "docs/evidence/v172d4-20261116": {
+      "ok": true,
+      "count": 42,
+      "blob_mismatch": [],
+      "working_mismatch": []
+    },
+    "docs/evidence/review-1644851b": {
+      "ok": true,
+      "count": 4,
+      "blob_mismatch": [],
+      "working_mismatch": []
+    },
+    "docs/evidence/review-1644851b/postlog": {
+      "ok": true,
+      "count": 2,
+      "blob_mismatch": [],
+      "working_mismatch": []
+    },
+    "main_origin": {
+      "ok": true
+    },
+    "runner_fixed_hashes": {
+      "ok": true
+    },
+    "extract_F": {
+      "ok": true
+    },
+    "extract_G": {
+      "ok": true
+    },
+    "syntax_F": {
+      "ok": true,
+      "stderr": ""
+    },
+    "syntax_G": {
+      "ok": true,
+      "stderr": ""
+    },
+    "hash_U변수": {
+      "ok": true
+    },
+    "syntax_U변수": {
+      "ok": true,
+      "stderr": ""
+    },
+    "hash_U0": {
+      "ok": true
+    },
+    "syntax_U0": {
+      "ok": true,
+      "stderr": ""
+    },
+    "hash_U1": {
+      "ok": true
+    },
+    "syntax_U1": {
+      "ok": true,
+      "stderr": ""
+    },
+    "hash_U1되돌림": {
+      "ok": true
+    },
+    "syntax_U1되돌림": {
+      "ok": true,
+      "stderr": ""
+    },
+    "hash_U2": {
+      "ok": true
+    },
+    "syntax_U2": {
+      "ok": true,
+      "stderr": ""
+    },
+    "hash_U3": {
+      "ok": true
+    },
+    "syntax_U3": {
+      "ok": true,
+      "stderr": ""
+    },
+    "hash_UF2": {
+      "ok": true
+    },
+    "syntax_UF2": {
+      "ok": true,
+      "stderr": ""
+    },
+    "hash_U4": {
+      "ok": true
+    },
+    "syntax_U4": {
+      "ok": true,
+      "stderr": ""
+    },
+    "hash_U되돌림": {
+      "ok": true
+    },
+    "syntax_U되돌림": {
+      "ok": true,
+      "stderr": ""
+    },
+    "hash_U뒤관측": {
+      "ok": true
+    },
+    "syntax_U뒤관측": {
+      "ok": true,
+      "stderr": ""
+    },
+    "image_checker_preserved": {
+      "ok": true,
+      "sha256": "5a4f440d09db354f373f22c2f4d68a9fea1eda700d541d6c0530ef0572c357e1"
+    },
+    "constant_0e1d2a02": {
+      "ok": true
+    },
+    "constant_b6587953": {
+      "ok": true
+    },
+    "constant_6385e1d5": {
+      "ok": true
+    },
+    "two_tags_before_write": {
+      "ok": true
+    },
+    "both_names_before_mutation_U1되돌림": {
+      "ok": true
+    },
+    "both_names_before_mutation_U되돌림": {
+      "ok": true
+    },
+    "p0_first_U3": {
+      "ok": true
+    },
+    "p0_first_U4": {
+      "ok": true
+    },
+    "p0_first_U뒤관측": {
+      "ok": true
+    },
+    "isolated_helpers": {
+      "ok": true,
+      "count": 18,
+      "actual": [
+        "0|",
+        "1|",
+        "2|",
+        "2|",
+        "2|",
+        "2|",
+        "0|",
+        "1|",
+        "2|",
+        "0|",
+        "1|",
+        "2|",
+        "3|",
+        "0|원판",
+        "0|새판",
+        "0|제3",
+        "0|제3",
+        "2|"
+      ],
+      "stderr": "🔴 backup 태그 조회 불명(HTTP 404 {\"message\":\"other\"})\n🔴 backup 태그 조회 불명(HTTP 500 {\"message\":\"other\"})\n🔴 backup 태그 조회 불명(HTTP 200 bad)\n🔴 backup 태그 조회 불명(curl 종료 7)\n🔴 backup 대응이 기록(old)과 다름\n🔴 backup 대응 조회 불명\n🔴 backup 대응이 기록(old)과 다름\n🔴 backup 대응 조회 불명\n🔴 latest 대상 ifest config… 은 원판·이번 빌드 기록 어느 것도 아님(제3의 대상 또는 출처 미확인)\n🔴 latest 대상 anifest conf… 은 원판·이번 빌드 기록 어느 것도 아님(제3의 대상 또는 출처 미확인)\n🔴 latest 대응 조회 불명 — 원판·새판으로 추정하지 않는다\n"
+    },
+    "second_log_r1_0": {
+      "ok": true,
+      "returncode": 0,
+      "output": "== 기동 뒤 HOLD 질의 장기 대여·연결 획득(N13 · 배포 전 기준선: baseline)\nMODEL_HOLD\nAFTER_HOLD\n",
+      "stderr": ""
+    },
+    "second_log_r1_1": {
+      "ok": true,
+      "returncode": 0,
+      "output": "== 기동 뒤 HOLD 질의 장기 대여·연결 획득(N13 · 배포 전 기준선: baseline)\nMODEL_HOLD\n🔴 P0 — 연결 획득 시간 초과 줄이 있다. 즉시 보고\nAFTER_HOLD\n",
+      "stderr": ""
+    },
+    "second_log_r1_2": {
+      "ok": true,
+      "returncode": 0,
+      "output": "== 기동 뒤 HOLD 질의 장기 대여·연결 획득(N13 · 배포 전 기준선: baseline)\nMODEL_HOLD\n🔴 P0 — 연결 획득 시간 초과 줄이 있다. 즉시 보고\nAFTER_HOLD\n",
+      "stderr": ""
+    },
+    "second_log_r1_3": {
+      "ok": true,
+      "returncode": 0,
+      "output": "== 기동 뒤 HOLD 질의 장기 대여·연결 획득(N13 · 배포 전 기준선: baseline)\nMODEL_HOLD\n⚪ 장기 대여 경고 있음 — 개선 미확인, 위 줄을 보고\nAFTER_HOLD\n",
+      "stderr": ""
+    },
+    "second_log_final_0": {
+      "ok": true,
+      "returncode": 0,
+      "output": "== 기동 뒤 HOLD 질의 장기 대여·연결 획득(N13, 두 번째 로그 — 첫 검사 뒤 새로 나타난 줄 포함 · 배포 전 기준선: baseline)\nMODEL_HOLD\nAFTER_HOLD\n",
+      "stderr": ""
+    },
+    "second_log_final_1": {
+      "ok": true,
+      "returncode": 1,
+      "output": "== 기동 뒤 HOLD 질의 장기 대여·연결 획득(N13, 두 번째 로그 — 첫 검사 뒤 새로 나타난 줄 포함 · 배포 전 기준선: baseline)\nMODEL_HOLD\n🔴 P0 — 연결 획득 시간 초과 줄이 있다(두 번째 로그). 즉시 보고(되돌림 여부는 총괄 판단, U 되돌림 블록 준비됨)\n",
+      "stderr": ""
+    },
+    "second_log_final_2": {
+      "ok": true,
+      "returncode": 1,
+      "output": "== 기동 뒤 HOLD 질의 장기 대여·연결 획득(N13, 두 번째 로그 — 첫 검사 뒤 새로 나타난 줄 포함 · 배포 전 기준선: baseline)\nMODEL_HOLD\n🔴 P0 검사 미완료 — 두 번째 로그 holdobs 종료 2(판정 실패). 연결 획득 실패를 0 으로 보지 않는다. 즉시 보고\n",
+      "stderr": ""
+    },
+    "second_log_final_3": {
+      "ok": true,
+      "returncode": 0,
+      "output": "== 기동 뒤 HOLD 질의 장기 대여·연결 획득(N13, 두 번째 로그 — 첫 검사 뒤 새로 나타난 줄 포함 · 배포 전 기준선: baseline)\nMODEL_HOLD\n⚪ 장기 대여 경고 있음 — 개선 미확인, 위 줄을 보고\nAFTER_HOLD\n",
+      "stderr": ""
+    },
+    "submitted_rehearsal_counts": {
+      "ok": true,
+      "summaries": {
+        "standin/r1/scen-r1-a.txt": {
+          "pass_count": 56,
+          "fail_count": 4,
+          "replacement_characters": 0,
+          "footer": [
+            "== 결과(a): PASS 56 · FAIL 4"
+          ]
+        },
+        "standin/r1/scen-r1-b.txt": {
+          "pass_count": 108,
+          "fail_count": 0,
+          "replacement_characters": 2,
+          "footer": [
+            "== 결과(b): PASS 108 · FAIL 0"
+          ]
+        },
+        "standin/r1/scen-r1-c.txt": {
+          "pass_count": 83,
+          "fail_count": 0,
+          "replacement_characters": 0,
+          "footer": [
+            "== 결과(c): PASS 83 · FAIL 0"
+          ]
+        },
+        "standin/scen-r2-d1.txt": {
+          "pass_count": 23,
+          "fail_count": 0,
+          "replacement_characters": 0,
+          "footer": [
+            "== 결과(d1): PASS 23 · FAIL 0"
+          ]
+        },
+        "standin/scen-r2-d2.txt": {
+          "pass_count": 77,
+          "fail_count": 0,
+          "replacement_characters": 0,
+          "footer": [
+            "== 결과(d2): PASS 77 · FAIL 0"
+          ]
+        },
+        "runner/runner-selftest.txt": {
+          "pass_count": 12,
+          "fail_count": 0,
+          "replacement_characters": 0,
+          "footer": [
+            "== 결과: PASS 12 · FAIL 0"
+          ]
+        }
+      }
+    },
+    "rehearsal_archive": {
+      "ok": true,
+      "included": 9212,
+      "full_manifest": 11286,
+      "omitted": 2074,
+      "mismatch": []
+    },
+    "archive_omissions_documented": {
+      "ok": true,
+      "count": 2074,
+      "examples": [
+        "r1a-k01/fix/alerts.txt",
+        "r1a-k01/fix/gate.txt",
+        "r1a-k01/fix/gs/gate.sql",
+        "r1a-k01/fix/gs/preflight-real-loss-readonly.v2.sql"
+      ]
+    },
+    "archive_forbidden_commands": {
+      "ok": true,
+      "cases": 66,
+      "nonempty": []
+    },
+    "archive_second_log_p11": {
+      "ok": true,
+      "file": "r2d2-p11/out/out-U뒤관측.txt"
+    },
+    "archive_second_log_p12": {
+      "ok": true,
+      "file": "r2d2-p12/out/out-U뒤관측.txt"
+    },
+    "archive_second_log_p13": {
+      "ok": true,
+      "file": "r2d2-p13/out/out-U3.txt"
+    },
+    "archive_second_log_p14": {
+      "ok": true,
+      "file": "r2d2-p14/out/out-U4.txt"
+    },
+    "archive_second_log_p15": {
+      "ok": true,
+      "file": "r2d2-p15/out/out-U3.txt"
+    },
+    "archive_second_log_p16": {
+      "ok": true,
+      "file": "r2d2-p16/out/out-U뒤관측.txt"
+    },
+    "latest_review_START_HERE.md": {
+      "ok": true
+    },
+    "latest_review_LIMITED_LIVE_TEST_PLAN.md": {
+      "ok": true
+    },
+    "latest_review_CURRENT_HANDOFF.md": {
+      "ok": true
+    },
+    "latest_review_LIVE_READINESS.md": {
+      "ok": true
+    },
+    "latest_review_NOVEMBER_LIVE_UPGRADE.md": {
+      "ok": true
+    },
+    "latest_review_PROGRESS.md": {
+      "ok": true
+    },
+    "latest_review_README.md": {
+      "ok": true
+    },
+    "management_links": {
+      "ok": true,
+      "broken": []
+    },
+    "management_characters": {
+      "ok": true,
+      "files": []
+    },
+    "management_lengths": {
+      "ok": true,
+      "lines": {
+        "START_HERE.md": 38,
+        "LIMITED_LIVE_TEST_PLAN.md": 140,
+        "CURRENT_HANDOFF.md": 38,
+        "LIVE_READINESS.md": 49,
+        "NOVEMBER_LIVE_UPGRADE.md": 58,
+        "PROGRESS.md": 54,
+        "README.md": 41
+      }
+    },
+    "night_policy_preserved": {
+      "ok": true
+    }
+  }
+}

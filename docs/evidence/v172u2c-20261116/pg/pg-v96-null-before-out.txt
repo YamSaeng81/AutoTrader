@@ -1,0 +1,8 @@
+SQL(블록 원문): SELECT string_agg(version || ':' || success || ':' || checksum, ',' ORDER BY installed_rank) FROM flyway_schema_history WHERE version::int >= 95
+서버: 15.13
+정상(운영과 같은 행)       [96:true:-424836241]
+정상 V96 + NULL 체크섬 V95 행 [96:true:-424836241]
+정상 V96 + NULL 체크섬 V96 추가 행 [96:true:-424836241]
+정상 V96 + NULL 체크섬 V97 행 [96:true:-424836241]
+정상 V96 + 실패·NULL V95 행  [96:true:-424836241]
+단독 NULL 체크섬 V96          []

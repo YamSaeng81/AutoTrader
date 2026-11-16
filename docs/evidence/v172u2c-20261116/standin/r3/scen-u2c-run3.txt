@@ -1,0 +1,195 @@
+== 장치 확인: 고친 가짜 DB 로 원래 U2(ce6df2fa)가 실제와 같은 줄에서 rc1 — 11-16 14:16 재현
+PASS c01 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS c01 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS c01 U2 — 종료 1 · '되돌림 필요: V95 이후 이력이 V96 한 줄(성공·체크섬 -424836241)이 아님' · checkout 1
+PASS c01 — 원래 U2 멈춤 뒤: 새 backend 실행·V96·ok-U2 없음·svc-deploy 없음 = sha256:b7befd92 없음 �
+== c01 정상: U2확인 통과 → ok-U2(마지막) → U3 → UF2 → U4 → U뒤관측
+PASS c01 U2확인 — 종료 0 · '✅ U2확인 통과 — ok-U2 기록' · checkout 1
+PASS c01 — 변경 명령 늘지 않음·배포 기록 그대로 = 5 8b28cc08e9cd3b36 cdac0
+PASS c01 — ok-U2 내용 = V172D4 U2확인 20261116
+PASS c01 — 출력 순서: P0 → V96 이력 → ✅(마지막 줄) = 순서 맞음
+PASS c01 — 새 기록(svc·git·v96·holdobs·backend-start·app) 각 1개, U2 꼬리 이름 = 새 기록과 같은 바이트 = 1 1 1 1 1 1 같음
+PASS c01 U2확인(2) — 종료 1 · 'U2 를 이미 통과했다 — U2확인 대상 아님(U3)' · checkout 1
+PASS c01 U3 — 종료 0 · '✅ U3(deploy) 통과' · checkout 1
+PASS c01 UF2 — 종료 0 · '✅ UF2 통과' · checkout 1
+PASS c01 U4 — 종료 0 · '✅ U4 통과' · checkout 1
+PASS c01 U뒤관측 — 종료 0 · '' · checkout 1
+PASS c01 — U3·U4·U뒤관측 기록 = 있음 있음 있음 1
+== c02~c13n V96 이력(r3 행수·내용 한 SELECT): false·체크섬 다름·0행·복수 행·V96 두 번·조회 실패·옛 t 표기·NULL 혼합 2종·단독 NULL·행수 없는 옛 형식 → ok-U2 전에 멈춤
+PASS c02 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS c02 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS c02 U2 — 종료 1 · '되돌림 필요: V95 이후 이력이 V96 한 줄(성공·체크섬 -424836241)이 아님' · checkout 1
+PASS c02 U2확인 — 종료 1 · 'V95 이후 이력이 V96 한 줄(행수 1·성공 true·체크섬 -424836241)이 아님' · checkout 1
+PASS c02 — ok-U2·svc-deploy·git-deploy 없음·변경 명령 늘지 않음·배포 기록 그대로 = 없음 없음 없음 5 8
+PASS c02 — V96 이력 원문 기록 수(조회 실패면 0) = 1
+PASS c03 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS c03 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS c03 U2 — 종료 1 · '되돌림 필요: V95 이후 이력이 V96 한 줄(성공·체크섬 -424836241)이 아님' · checkout 1
+PASS c03 U2확인 — 종료 1 · 'V95 이후 이력이 V96 한 줄(행수 1·성공 true·체크섬 -424836241)이 아님' · checkout 1
+PASS c03 — ok-U2·svc-deploy·git-deploy 없음·변경 명령 늘지 않음·배포 기록 그대로 = 없음 없음 없음 5 8
+PASS c03 — V96 이력 원문 기록 수(조회 실패면 0) = 1
+PASS c04 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS c04 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS c04 U2 — 종료 1 · '되돌림 필요: V95 이후 이력이 V96 한 줄(성공·체크섬 -424836241)이 아님' · checkout 1
+PASS c04 U2확인 — 종료 1 · 'V95 이후 이력이 V96 한 줄(행수 1·성공 true·체크섬 -424836241)이 아님' · checkout 1
+PASS c04 — ok-U2·svc-deploy·git-deploy 없음·변경 명령 늘지 않음·배포 기록 그대로 = 없음 없음 없음 5 8
+PASS c04 — V96 이력 원문 기록 수(조회 실패면 0) = 1
+PASS c05 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS c05 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS c05 U2 — 종료 1 · '되돌림 필요: V95 이후 이력이 V96 한 줄(성공·체크섬 -424836241)이 아님' · checkout 1
+PASS c05 U2확인 — 종료 1 · 'V95 이후 이력이 V96 한 줄(행수 1·성공 true·체크섬 -424836241)이 아님' · checkout 1
+PASS c05 — ok-U2·svc-deploy·git-deploy 없음·변경 명령 늘지 않음·배포 기록 그대로 = 없음 없음 없음 5 8
+PASS c05 — V96 이력 원문 기록 수(조회 실패면 0) = 1
+PASS c06 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS c06 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS c06 U2 — 종료 1 · '되돌림 필요: V95 이후 이력이 V96 한 줄(성공·체크섬 -424836241)이 아님' · checkout 1
+PASS c06 U2확인 — 종료 1 · 'V95 이후 이력이 V96 한 줄(행수 1·성공 true·체크섬 -424836241)이 아님' · checkout 1
+PASS c06 — ok-U2·svc-deploy·git-deploy 없음·변경 명령 늘지 않음·배포 기록 그대로 = 없음 없음 없음 5 8
+PASS c06 — V96 이력 원문 기록 수(조회 실패면 0) = 1
+PASS c07 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS c07 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS c07 U2 — 종료 1 · '되돌림 필요: V95 이후 이력이 V96 한 줄(성공·체크섬 -424836241)이 아님' · checkout 1
+PASS c07 U2확인 — 종료 1 · 'V95 이후 이력 조회 실패 — 보고' · checkout 1
+PASS c07 — ok-U2·svc-deploy·git-deploy 없음·변경 명령 늘지 않음·배포 기록 그대로 = 없음 없음 없음 5 8
+PASS c07 — V96 이력 원문 기록 수(조회 실패면 0) = 0
+PASS c08 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS c08 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS c08 U2 — 종료 1 · '되돌림 필요: V95 이후 이력이 V96 한 줄(성공·체크섬 -424836241)이 아님' · checkout 1
+PASS c08 U2확인 — 종료 1 · 'V95 이후 이력이 V96 한 줄(행수 1·성공 true·체크섬 -424836241)이 아님' · checkout 1
+PASS c08 — ok-U2·svc-deploy·git-deploy 없음·변경 명령 늘지 않음·배포 기록 그대로 = 없음 없음 없음 5 8
+PASS c08 — V96 이력 원문 기록 수(조회 실패면 0) = 1
+PASS c09 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS c09 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS c09 U2 — 종료 1 · '되돌림 필요: V95 이후 이력이 V96 한 줄(성공·체크섬 -424836241)이 아님' · checkout 1
+PASS c09 U2확인 — 종료 1 · 'V95 이후 이력이 V96 한 줄(행수 1·성공 true·체크섬 -424836241)이 아님' · checkout 1
+PASS c09 — ok-U2·svc-deploy·git-deploy 없음·변경 명령 늘지 않음·배포 기록 그대로 = 없음 없음 없음 5 8
+PASS c09 — V96 이력 원문 기록 수(조회 실패면 0) = 1
+PASS c10 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS c10 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS c10 U2 — 종료 1 · '되돌림 필요: V95 이후 이력이 V96 한 줄(성공·체크섬 -424836241)이 아님' · checkout 1
+PASS c10 U2확인 — 종료 1 · 'V95 이후 이력이 V96 한 줄(행수 1·성공 true·체크섬 -424836241)이 아님' · checkout 1
+PASS c10 — ok-U2·svc-deploy·git-deploy 없음·변경 명령 늘지 않음·배포 기록 그대로 = 없음 없음 없음 5 8
+PASS c10 — V96 이력 원문 기록 수(조회 실패면 0) = 1
+PASS c12n U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS c12n U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS c12n U2 — 종료 1 · '되돌림 필요: V95 이후 이력이 V96 한 줄(성공·체크섬 -424836241)이 아님' · checkout 1
+PASS c12n U2확인 — 종료 1 · 'V95 이후 이력이 V96 한 줄(행수 1·성공 true·체크섬 -424836241)이 아님' · checkout 1
+PASS c12n — ok-U2·svc-deploy·git-deploy 없음·변경 명령 늘지 않음·배포 기록 그대로 = 없음 없음 없음 5 8
+PASS c12n — V96 이력 원문 기록 수(조회 실패면 0) = 1
+PASS c13n U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS c13n U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS c13n U2 — 종료 1 · '되돌림 필요: V95 이후 이력이 V96 한 줄(성공·체크섬 -424836241)이 아님' · checkout 1
+PASS c13n U2확인 — 종료 1 · 'V95 이후 이력이 V96 한 줄(행수 1·성공 true·체크섬 -424836241)이 아님' · checkout 1
+PASS c13n — ok-U2·svc-deploy·git-deploy 없음·변경 명령 늘지 않음·배포 기록 그대로 = 없음 없음 없음 5 8
+PASS c13n — V96 이력 원문 기록 수(조회 실패면 0) = 1
+PASS c04 — 0행 기록 표시 = V95 이후 이력(행수
+PASS c09 — NULL 혼합 기록 표시 = V95 이후 이력(행수
+== c11~c14 P0 먼저: 로그 P0·로그 조회 실패·빈 로그·holdobs 판정 실패 → DB·이미지 확인 전에 멈춤
+PASS c11 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS c11 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS c11 U2 — 종료 1 · '되돌림 필요: V95 이후 이력이 V96 한 줄(성공·체크섬 -424836241)이 아님' · checkout 1
+PASS c11 U2확인 — 종료 1 · '🔴 P0 — 연결 획득 시간 초과 줄이 있다. 즉시 보고' · checkout 1
+PASS c11 — ok-U2·svc-deploy·git-deploy 없음·변경 명령 늘지 않음·배포 기록 그대로 = 없음 없음 없음 5 8
+PASS c12 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS c12 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS c12 U2 — 종료 1 · '되돌림 필요: V95 이후 이력이 V96 한 줄(성공·체크섬 -424836241)이 아님' · checkout 1
+PASS c12 U2확인 — 종료 1 · '🔴 P0 검사 미완료 — 기동 구간 로그를 확보하지 못함' · checkout 1
+PASS c12 — ok-U2·svc-deploy·git-deploy 없음·변경 명령 늘지 않음·배포 기록 그대로 = 없음 없음 없음 5 8
+PASS c13 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS c13 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS c13 U2 — 종료 1 · '되돌림 필요: V95 이후 이력이 V96 한 줄(성공·체크섬 -424836241)이 아님' · checkout 1
+PASS c13 U2확인 — 종료 1 · '🔴 P0 검사 미완료 — 기동 구간 로그가 비었다' · checkout 1
+PASS c13 — ok-U2·svc-deploy·git-deploy 없음·변경 명령 늘지 않음·배포 기록 그대로 = 없음 없음 없음 5 8
+PASS c14 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS c14 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS c14 U2 — 종료 1 · '되돌림 필요: V95 이후 이력이 V96 한 줄(성공·체크섬 -424836241)이 아님' · checkout 1
+PASS c14 U2확인 — 종료 1 · '🔴 P0 검사 미완료 — holdobs 종료 2' · checkout 1
+PASS c14 — ok-U2·svc-deploy·git-deploy 없음·변경 명령 늘지 않음·배포 기록 그대로 = 없음 없음 없음 5 8
+PASS c11 — P0 단계 뒤 확인 미도달(git·이미지·DB 조회 0) = 0 0
+PASS c12 — P0 단계 뒤 확인 미도달(git·이미지·DB 조회 0) = 0 0
+PASS c13 — P0 단계 뒤 확인 미도달(git·이미지·DB 조회 0) = 0 0
+PASS c14 — P0 단계 뒤 확인 미도달(git·이미지·DB 조회 0) = 0 0
+== c21~c27 상태 불일치: 서비스·backend 이미지·frontend 이미지·latest·재시작·다시 기동·HEAD
+PASS c21 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS c21 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS c21 U2 — 종료 1 · '되돌림 필요: V95 이후 이력이 V96 한 줄(성공·체크섬 -424836241)이 아님' · checkout 1
+PASS c21 U2확인 — 종료 1 · 'backend 외 서비스가 바뀜 — 보고' · checkout 1
+PASS c21 — ok-U2·svc-deploy·git-deploy 없음·변경 명령 늘지 않음·배포 기록 그대로 = 없음 없음 없음 5 8
+PASS c22 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS c22 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS c22 U2 — 종료 1 · '되돌림 필요: V95 이후 이력이 V96 한 줄(성공·체크섬 -424836241)이 아님' · checkout 1
+PASS c22 U2확인 — 종료 1 · '실행 backend 가 U1 새 이미지 대응이 아님 또는 조회 실패 — 보고' · checkout 1
+PASS c22 — ok-U2·svc-deploy·git-deploy 없음·변경 명령 늘지 않음·배포 기록 그대로 = 없음 없음 없음 5 8
+PASS c23 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS c23 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS c23 U2 — 종료 1 · '되돌림 필요: V95 이후 이력이 V96 한 줄(성공·체크섬 -424836241)이 아님' · checkout 1
+PASS c23 U2확인 — 종료 1 · '실행 frontend 가 U0 구판 대응이 아님 또는 조회 실패 — 보고' · checkout 1
+PASS c23 — ok-U2·svc-deploy·git-deploy 없음·변경 명령 늘지 않음·배포 기록 그대로 = 없음 없음 없음 5 8
+PASS c24 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS c24 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS c24 U2 — 종료 1 · '되돌림 필요: V95 이후 이력이 V96 한 줄(성공·체크섬 -424836241)이 아님' · checkout 1
+PASS c24 U2확인 — 종료 1 · 'backend latest 가 U1 새 이미지 대상·manifest·config 와 다름 또는 조회 실패 — 보고' · checkout 1
+PASS c24 — ok-U2·svc-deploy·git-deploy 없음·변경 명령 늘지 않음·배포 기록 그대로 = 없음 없음 없음 5 8
+PASS c25 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS c25 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS c25 U2 — 종료 1 · '되돌림 필요: V95 이후 이력이 V96 한 줄(성공·체크섬 -424836241)이 아님' · checkout 1
+PASS c25 U2확인 — 종료 1 · 'backend 재시작 1 · 상태 running — 보고' · checkout 1
+PASS c25 — ok-U2·svc-deploy·git-deploy 없음·변경 명령 늘지 않음·배포 기록 그대로 = 없음 없음 없음 5 8
+PASS c26 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS c26 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS c26 U2 — 종료 1 · '되돌림 필요: V95 이후 이력이 V96 한 줄(성공·체크섬 -424836241)이 아님' · checkout 1
+PASS c26 U2확인 — 종료 1 · '뒤 2분 안이 아님' · checkout 1
+PASS c26 — ok-U2·svc-deploy·git-deploy 없음·변경 명령 늘지 않음·배포 기록 그대로 = 없음 없음 없음 5 8
+PASS c27 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS c27 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS c27 U2 — 종료 1 · '되돌림 필요: V95 이후 이력이 V96 한 줄(성공·체크섬 -424836241)이 아님' · checkout 1
+PASS c27 U2확인 — 종료 1 · 'HEAD 가 NEW 가 아니거나 추적 파일 변경 있음 — 보고' · checkout 1
+PASS c27 — ok-U2·svc-deploy·git-deploy 없음·변경 명령 늘지 않음·배포 기록 그대로 = 없음 없음 없음 5 8
+== c31~c34 DB 상태: SID203·66세션·공유 풀·Flyway 최고 버전
+PASS c31 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS c31 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS c31 U2 — 종료 1 · '되돌림 필요: V95 이후 이력이 V96 한 줄(성공·체크섬 -424836241)이 아님' · checkout 1
+PASS c31 U2확인 — 종료 1 · 'SID 203·기준 행·EG·0 확인 중 다른 것 있음 — 보고' · checkout 1
+PASS c31 — ok-U2·svc-deploy·git-deploy 없음·변경 명령 늘지 않음·배포 기록 그대로 = 없음 없음 없음 5 8
+PASS c32 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS c32 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS c32 U2 — 종료 1 · '되돌림 필요: V95 이후 이력이 V96 한 줄(성공·체크섬 -424836241)이 아님' · checkout 1
+PASS c32 U2확인 — 종료 1 · '검증 66세션 상태 다름 — 보고' · checkout 1
+PASS c32 — ok-U2·svc-deploy·git-deploy 없음·변경 명령 늘지 않음·배포 기록 그대로 = 없음 없음 없음 5 8
+PASS c33 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS c33 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS c33 U2 — 종료 1 · '되돌림 필요: V95 이후 이력이 V96 한 줄(성공·체크섬 -424836241)이 아님' · checkout 1
+PASS c33 U2확인 — 종료 1 · '공유 풀 등록값 다름 — 보고' · checkout 1
+PASS c33 — ok-U2·svc-deploy·git-deploy 없음·변경 명령 늘지 않음·배포 기록 그대로 = 없음 없음 없음 5 8
+PASS c34 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS c34 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS c34 U2 — 종료 1 · '되돌림 필요: V95 이후 이력이 V96 한 줄(성공·체크섬 -424836241)이 아님' · checkout 1
+PASS c34 U2확인 — 종료 1 · 'Flyway 최고 버전이 96 이 아님 또는 조회 실패 — 보고' · checkout 1
+PASS c34 — ok-U2·svc-deploy·git-deploy 없음·변경 명령 늘지 않음·배포 기록 그대로 = 없음 없음 없음 5 8
+== c41~c44 단계 전제: U2 재기동 전·복구 시작·frontend 교체 시작·원래 U2 꼬리 기록 있음
+PASS c41 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS c41 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS c41 U2확인 — 종료 1 · 'U2 배포 시각 기록 없음 — U2 재기동 전 상태' · checkout 1
+PASS c41 — ok-U2 없음·변경 명령 0 = 없음 4
+PASS c42 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS c42 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS c42 U2 — 종료 1 · '되돌림 필요: V95 이후 이력이 V96 한 줄(성공·체크섬 -424836241)이 아님' · checkout 1
+PASS c42 U2확인 — 종료 1 · '복구를 시작한 기록 rb-probe.txt 이 있다' · checkout 1
+PASS c42 — ok-U2·svc-deploy·git-deploy 없음·변경 명령 늘지 않음·배포 기록 그대로 = 없음 없음 없음 5 8
+PASS c43 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS c43 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS c43 U2 — 종료 1 · '되돌림 필요: V95 이후 이력이 V96 한 줄(성공·체크섬 -424836241)이 아님' · checkout 1
+PASS c43 U2확인 — 종료 1 · 'frontend 교체를 시작한 기록 t-fe.utc 이 있다' · checkout 1
+PASS c43 — ok-U2·svc-deploy·git-deploy 없음·변경 명령 늘지 않음·배포 기록 그대로 = 없음 없음 없음 5 8
+PASS c44 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS c44 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS c44 U2 — 종료 1 · '되돌림 필요: V95 이후 이력이 V96 한 줄(성공·체크섬 -424836241)이 아님' · checkout 1
+PASS c44 U2확인 — 종료 1 · '원래 U2 의 꼬리 기록(svc-deploy·git-deploy)이 있다' · checkout 1
+PASS c44 — ok-U2·svc-deploy·git-deploy 없음·변경 명령 늘지 않음·배포 기록 그대로 = 없음 있음 없음 5 8
+PASS c45 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS c45 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS c45 U2 — 종료 1 · '되돌림 필요: V95 이후 이력이 V96 한 줄(성공·체크섬 -424836241)이 아님' · checkout 1
+PASS c45 U2확인 — 종료 1 · 'U1 기록(frontend 단계 빌드끝·새 이미지 대응)이 U1 통과 상태가 아님' · checkout 1
+PASS c45 — ok-U2·svc-deploy·git-deploy 없음·변경 명령 늘지 않음·배포 기록 그대로 = 없음 없음 없음 5 8
+PASS 전체 — 금지 명령 기록 줄 수 합 = 0
+== 결과(u2c): PASS 187 · FAIL 0

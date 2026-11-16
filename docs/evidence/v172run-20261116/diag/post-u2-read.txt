@@ -1,0 +1,19 @@
+2026-11-16 14:17:17 KST
+로그 줄 222
+연결 획득 실패 0 · 누수 경고 0
+backend-1  | 05:16:26.863 [main] INFO  c.c.api.service.CapitalPoolLimits - 공유 풀 한도 확인: 단계=STAGE_1 총상한=100000 포지션당=20000 동시보유=3
+backend-1  | 05:16:27.175 [main] INFO  c.c.api.service.PoolLossGuard - 위험 한도 확인: 단계 STAGE_1 총 자본 100000 기준 누적 15.00%·24시간 3.00%
+backend-1  | 05:16:30.831 [main] INFO  c.c.api.service.SellQuarantineReport - 매도 격리 점검: 반영 표시 없이 체결된 매도가 있는 열린 실자금 포지션 없음
+🔴 한도 줄 0
+ERROR 전체 3 · 캔들 404 3
+backend Image=sha256:2c5d84276cdbf01f718077e3d2d0475f6af5982d7afb95082750fcebe7f5979f StartedAt=2026-11-16T05:16:14.129686133Z Restart=0 Status=running
+frontend Image=sha256:d825a9f5b00d3dac93ee154f32f91b5a1474248fefaa3651f0d0c3b0cc2f7f66 StartedAt=2026-10-21T04:45:59.089630967Z Restart=0 Status=running
+db Image=sha256:b26180320dea45a27190318903f63cc2839f190315663a53b6429a937dd02196 StartedAt=2026-10-21T04:45:59.107498608Z Restart=0 Status=running
+redis Image=sha256:8b81dd37ff027bec4e516d41acfbe9fe2460070dc6d4a4570a2ac5b9d59df065 StartedAt=2026-10-21T04:45:59.097312922Z Restart=0 Status=running
+db-backup Image=sha256:b26180320dea45a27190318903f63cc2839f190315663a53b6429a937dd02196 StartedAt=2026-10-28T23:35:34.179563141Z Restart=0 Status=running
+HEAD 0e1d2a021ab2f3c759a9b2be9c4f09430f93c80d 변경 0
+ok-U0
+ok-U1
+t-deploy.txt
+t-deploy.utc
+2026-11-16 14:16:12 KST

@@ -1,0 +1,16 @@
+2026-11-16 14:16:47 KST
+ERROR:  column "|" does not exist
+LINE 1: SELECT installed_rank||"|"||version||"|"||description||"|"||...
+                               ^
+backend 769da3f60f29fbe10c723b77a3334ccb65a429d6733a7941ce565b7c1e71b964 Image=sha256:2c5d84276cdbf01f718077e3d2d0475f6af5982d7afb95082750fcebe7f5979f StartedAt=2026-11-16T05:16:14.129686133Z Restart=0 Status=running
+backend-1  | 05:16:20.193 [main] INFO  o.f.c.i.license.VersionPrinter - Flyway Community Edition 9.22.3 by Redgate
+backend-1  | 05:16:20.213 [main] INFO  org.flywaydb.core.FlywayExecutor - Database: jdbc:postgresql://db:5432/crypto_auto_trader (PostgreSQL 15.13)
+backend-1  | 05:16:20.343 [main] INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "96 - paper aligned runtime state"
+backend-1  | 05:16:20.376 [main] INFO  o.f.core.internal.command.DbMigrate - Successfully applied 1 migration to schema "public", now at version v96 (execution time 00:00.017s)
+backend-1  | 05:16:30.483 [main] INFO  c.c.api.CryptoAutoTraderApplication - Started CryptoAutoTraderApplication in 15.435 seconds (process running for 16.124)
+backend-1  | 05:16:37.443 [task-1] ERROR c.c.exchange.upbit.UpbitRestClient - Upbit API 오류: status=404, url=https://api.upbit.com/v1/candles/minutes/60?market=KRW-BLAST&count=1&to=2026-10-26T03:00:52, body={"error":{"name":404,"message":"Code not found"}}
+backend-1  | 05:16:37.568 [task-1] ERROR c.c.exchange.upbit.UpbitRestClient - Upbit API 오류: status=404, url=https://api.upbit.com/v1/candles/minutes/60?market=KRW-BONK&count=1&to=2026-07-18T04:30:43, body={"error":{"name":404,"message":"Code not found"}}
+backend-1  | 05:16:37.696 [task-1] ERROR c.c.exchange.upbit.UpbitRestClient - Upbit API 오류: status=404, url=https://api.upbit.com/v1/candles/minutes/60?market=KRW-STORJ&count=1&to=2026-07-27T12:44:10, body={"error":{"name":404,"message":"Code not found"}}
+e1d46bad603de250f03c659fa93a49a7276ac2bc83b896f6ffb2b835244a67d4  -
+5b92eef03548c6bd1feaef2b35451563d5327246
+web-api/src/main/resources/db/migration/V96__paper_aligned_runtime_state.sql: Unicode text, UTF-8 text

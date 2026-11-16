@@ -1,0 +1,32 @@
+블록 844e5c0c18e6ac25 · SQL: SELECT string_agg(version || ':' || success || ':' || checksum, ',' ORDER BY installed_rank) FROM flyway_schema_history WHERE version::int >= 95
+블록 기대값(V96SUM=-424836241): 96:true:-424836241
+서버: 15.13
+정상(운영과 같은 행)   [96:true:-424836241] 멈춤
+실패 행(success=false)      [96:false:-424836241] 멈춤
+체크섬 다름               [96:true:123456] 멈춤
+0행(V95 이후 없음)        [] 멈춤
+복수 행(95·96)             [95:true:111,96:true:-424836241] 멈춤
+V96 두 번(실패·성공)    [96:false:-424836241,96:true:-424836241] 멈춤
+단독 체크섬 NULL V96      [] 멈춤
+정상 V96 + NULL 체크섬 V95 [96:true:-424836241] 멈춤
+정상 V96 + NULL 체크섬 V96 추가 [96:true:-424836241] 멈춤
+정상 V96 + NULL 체크섬 V97 [96:true:-424836241] 멈춤
+정상 V96 + 실패·NULL V95  [96:true:-424836241] 멈춤
+표 비었음                  [] 멈춤
+
+블록 1c9eab3582d85743 · SQL: SELECT count(*) || '|' || coalesce(string_agg(version || ':' || success || ':' || coalesce(checksum::text, 'NULL'), ',' ORDER BY installed_rank), '-') FROM flyway_schema_history WHERE version::int >= 95
+블록 기대값(V96SUM=-424836241): 1|96:true:-424836241
+서버: 15.13
+정상(운영과 같은 행)   [1|96:true:-424836241] 멈춤
+실패 행(success=false)      [1|96:false:-424836241] 멈춤
+체크섬 다름               [1|96:true:123456] 멈춤
+0행(V95 이후 없음)        [0|-] 멈춤
+복수 행(95·96)             [2|95:true:111,96:true:-424836241] 멈춤
+V96 두 번(실패·성공)    [2|96:false:-424836241,96:true:-424836241] 멈춤
+단독 체크섬 NULL V96      [1|96:true:NULL] 멈춤
+정상 V96 + NULL 체크섬 V95 [2|95:true:NULL,96:true:-424836241] 멈춤
+정상 V96 + NULL 체크섬 V96 추가 [2|96:true:-424836241,96:true:NULL] 멈춤
+정상 V96 + NULL 체크섬 V97 [2|96:true:-424836241,97:true:NULL] 멈춤
+정상 V96 + 실패·NULL V95  [2|95:false:NULL,96:true:-424836241] 멈춤
+표 비었음                  [0|-] 멈춤
+

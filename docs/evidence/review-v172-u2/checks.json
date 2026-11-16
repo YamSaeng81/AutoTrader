@@ -1,0 +1,39 @@
+{
+  "source": "ce6df2fa2b1b4a0b089576bc700fb867a466686d",
+  "scope": "Local source and uncommitted diagnostic snapshots. No live queries.",
+  "checks": {
+    "expected_t_in_original_block": true,
+    "concatenation_query": true,
+    "wrong_stub_response": true,
+    "actual_concatenation_true": true,
+    "original_failed_check_precedes_tail": true,
+    "new_backend_reported": true,
+    "actual_started_at": true,
+    "original_deploy_time": true,
+    "p0_and_leak_zero_at_1422": true,
+    "catchup_observed_at_1422": true,
+    "failed_initial_diagnostic_retained": true
+  },
+  "records": {
+    "u2-diag-1.txt": {
+      "sha256": "363435d1ce124a5019e72830fb67de036141ea7177a5d2570bd3f2f54b24f285",
+      "bytes": 2120
+    },
+    "u2-diag-2.txt": {
+      "sha256": "3c0746b6a21260ea9ac2bb3ad56b28bc72fcccc153cf6f8a5ea972814329164c",
+      "bytes": 183
+    },
+    "post-u1-read.txt": {
+      "sha256": "58001ea509f85f6a7f7d35cb21c0be34d8012004c4add71641265d4aa30971c5",
+      "bytes": 890
+    },
+    "post-u2-read.txt": {
+      "sha256": "7a6819525becae34c59175216bcb2d4600951020032dca1f386c216109acf3e6",
+      "bytes": 1515
+    },
+    "post-u2-read-5min.txt": {
+      "sha256": "0b8055aa82a8ca7a69676bbbdb26f0c1532f2bca57719b14028e302de4b06f87",
+      "bytes": 231
+    }
+  }
+}

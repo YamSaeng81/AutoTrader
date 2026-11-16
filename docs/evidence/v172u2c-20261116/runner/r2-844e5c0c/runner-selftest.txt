@@ -1,0 +1,25 @@
+PASS U2확인 정상 rc0 — 종료 0 · ssh 호출 1
+PASS 원격 원문 = F+G+U변수+U2확인, 마지막 문자 ')'
+PASS 같은 출력 이름 다시 → 덮어쓰지 않음 — 종료 2 · ssh 호출 0
+PASS 원격 rc1 그대로(U2확인 시도 2) — 종료 1 · ssh 호출 1
+PASS ssh 실패 rc255 그대로(U3) — 종료 255 · ssh 호출 1
+PASS U3 시도 꼬리 2 — 종료 0 · ssh 호출 1
+PASS 원격 원문 = F+G+U변수+U3(ce6df2fa 원문)
+PASS U2확인 rollback 거절 — 종료 2 · ssh 호출 0
+PASS U0 은 이 틀로 실행하지 않음 — 종료 2 · ssh 호출 0
+PASS U1 은 이 틀로 실행하지 않음 — 종료 2 · ssh 호출 0
+PASS U2 은 이 틀로 실행하지 않음 — 종료 2 · ssh 호출 0
+PASS U1되돌림 은 이 틀로 실행하지 않음 — 종료 2 · ssh 호출 0
+PASS 모드 잘못 — 종료 2 · ssh 호출 0
+PASS U2확인 1바이트 변조 — 종료 2 · ssh 호출 0
+PASS U3 1바이트 변조 — 종료 2 · ssh 호출 0
+PASS 기준 출처 40자 아님 — 종료 2 · ssh 호출 0
+PASS U2 자리에 다른 원문 — 종료 2 · ssh 호출 0
+PASS 복구 뒤 정상 — 종료 0 · ssh 호출 1
+== 종료값 기록
+2026-11-16 14:43:10 U2확인 deploy rc=0 out-U2확인-deploy.txt
+2026-11-16 14:43:11 U2확인 deploy 2 rc=1 out-U2확인-deploy-2.txt
+2026-11-16 14:43:12 U3 deploy rc=255 out-U3-deploy.txt
+2026-11-16 14:43:12 U3 deploy 2 rc=0 out-U3-deploy-2.txt
+2026-11-16 14:43:15 U4 deploy rc=0 out-U4-deploy.txt
+== 결과: PASS 18 · FAIL 0
