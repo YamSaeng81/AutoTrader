@@ -1,0 +1,6 @@
+2026-11-17 23:23:23 UTC [rollback] 기록 staged.dst=removed-by-rollback
+2026-11-17 23:23:23 UTC [rollback] 지움: /etc/ssh/sshd_config.d/00-cat-hardening.conf(이번 stage 산출물 확인 뒤)
+2026-11-17 23:23:23 UTC [rollback] sshd -t rc=0
+2026-11-17 23:23:26 UTC [rollback] reload 명령 rc=0 · MainPID 이전=0
+2026-11-17 23:23:26 UTC [rollback] 서비스 is-active='inactive'(rc=3) · MainPID='0'(rc=0)
+2026-11-17 23:23:26 UTC [rollback] STOP rc=6: reload 뒤 서비스가 active 아님 — 성공 아님, 열어 둔 세션에서 확인

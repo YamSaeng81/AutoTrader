@@ -1,0 +1,16 @@
+2026-11-17 23:23:28 UTC [stage] 기록 staged.dst=0a2933a644b044700eabce5b8cfadac98c963a9383147e84a66cc8caf92e367b
+2026-11-17 23:23:28 UTC [stage] 기록 staged.main=e8efe17e55e5cae9bb4c06fe66dedeeeaf7c4052b3da4447be23f7a587b781bb
+2026-11-17 23:23:28 UTC [stage] 기록 staged.dlist=52c1aec431545a7cf71d0ebef3d857e4f3207d8184a32f52ae4cafc54b2e70be
+2026-11-17 23:23:28 UTC [stage] 기록 staged.perm=644 root:root
+2026-11-17 23:23:28 UTC [stage] 놓음: /etc/ssh/sshd_config.d/00-cat-hardening.conf 644 root:root
+2026-11-17 23:23:28 UTC [stage] sshd -t rc=0
+2026-11-17 23:23:28 UTC [stage] sshd -T[dev] rc=0
+2026-11-17 23:23:28 UTC [stage] sshd -T[dev_ext] rc=0
+2026-11-17 23:23:28 UTC [stage] sshd -T[root_ext] rc=0
+2026-11-17 23:23:28 UTC [stage] sshd -T[root_dev] rc=0
+2026-11-17 23:23:28 UTC [stage] sshd -T[nouser] rc=1
+대역: -T 실패
+2026-11-17 23:23:28 UTC [stage] 기대값 불일치 있음
+2026-11-17 23:23:28 UTC [stage] 기록 staged.dst=removed-after-check-fail
+2026-11-17 23:23:28 UTC [stage] 검사 실패 → 방금 놓은 /etc/ssh/sshd_config.d/00-cat-hardening.conf 지움(reload 안 함)
+2026-11-17 23:23:28 UTC [stage] 지운 뒤 sshd -t rc=0

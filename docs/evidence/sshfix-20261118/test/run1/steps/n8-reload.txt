@@ -1,0 +1,10 @@
+2026-11-17 23:23:19 UTC [reload] sshd -t rc=0
+2026-11-17 23:23:19 UTC [reload] sshd -T[dev] rc=0
+2026-11-17 23:23:19 UTC [reload] sshd -T[dev_ext] rc=0
+2026-11-17 23:23:19 UTC [reload] sshd -T[root_ext] rc=0
+2026-11-17 23:23:19 UTC [reload] sshd -T[root_dev] rc=0
+2026-11-17 23:23:19 UTC [reload] sshd -T[nouser] rc=0
+2026-11-17 23:23:19 UTC [reload] 조건별 기대값 모두 일치
+2026-11-17 23:23:21 UTC [reload] reload 명령 rc=0 · MainPID 이전=
+2026-11-17 23:23:21 UTC [reload] 서비스 is-active=''(rc=1) · MainPID=''(rc=1)
+2026-11-17 23:23:21 UTC [reload] STOP rc=9: reload 뒤 서비스 상태 조회 불명 — 성공 아님, 열어 둔 세션에서 확인

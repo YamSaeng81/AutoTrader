@@ -1,0 +1,18 @@
+debconf: delaying package configuration, since apt-utils is not installed
+STOP: root(sudo) 필요 — 아무것도 읽지 않음
+nonroot rc=3
+== 시각 2026-11-17 23:25:19 UTC
+rc[sshd_T.plain]=0
+  stderr 줄 수=0
+rc[grep.usedns]=0
+  usedns no
+== hostname 이 끼는 설정 줄(모든 sshd 설정 파일, 줄 번호·값만)
+-- /etc/ssh/sshd_config grep rc=0
+  12:Include /etc/ssh/sshd_config.d/*.conf
+== 서비스 실행 인자(-f/-o 명령줄 옵션 확인)
+rc[systemctl.execstart]=1
+  System has not been booted with systemd as init system (PID 1). Can't operate.
+  Failed to connect to bus: Host is down
+rc[ps.sshd]=1
+판정 안내: rc[sshd_T.plain]=0 이고 'usedns no' 한 줄, Match Host 줄 0, 명령줄 -f/-o 없음일 때만 admin_read 의 5조건을 실제 접속 정책으로 쓴다. 아니면 hostname 조건까지 다시 고정.
+root rc=0

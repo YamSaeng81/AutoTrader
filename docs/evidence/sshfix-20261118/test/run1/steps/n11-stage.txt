@@ -1,0 +1,16 @@
+2026-11-17 23:23:27 UTC [stage] 기록 staged.dst=0a2933a644b044700eabce5b8cfadac98c963a9383147e84a66cc8caf92e367b
+2026-11-17 23:23:27 UTC [stage] 기록 staged.main=e8efe17e55e5cae9bb4c06fe66dedeeeaf7c4052b3da4447be23f7a587b781bb
+2026-11-17 23:23:27 UTC [stage] 기록 staged.dlist=52c1aec431545a7cf71d0ebef3d857e4f3207d8184a32f52ae4cafc54b2e70be
+2026-11-17 23:23:27 UTC [stage] 기록 staged.perm=644 root:root
+2026-11-17 23:23:27 UTC [stage] 놓음: /etc/ssh/sshd_config.d/00-cat-hardening.conf 644 root:root
+2026-11-17 23:23:27 UTC [stage] sshd -t rc=0
+2026-11-17 23:23:27 UTC [stage] sshd -T[dev] rc=0
+2026-11-17 23:23:27 UTC [stage] sshd -T[dev_ext] rc=0
+2026-11-17 23:23:27 UTC [stage] sshd -T[root_ext] rc=0
+2026-11-17 23:23:27 UTC [stage] sshd -T[root_dev] rc=0
+2026-11-17 23:23:27 UTC [stage] sshd -T[nouser] rc=0
+2026-11-17 23:23:27 UTC [stage]   [nouser] 기대 'passwordauthentication no' 아님 → 실제: passwordauthentication yes 
+2026-11-17 23:23:27 UTC [stage]   [nouser] 기대 'authenticationmethods publickey' 아님 → 실제: authenticationmethods any 
+2026-11-17 23:23:27 UTC [stage]   [nouser] 기대 'permitrootlogin no' 아님 → 실제: permitrootlogin without-password 
+2026-11-17 23:23:27 UTC [stage] 기대값 불일치 있음
+2026-11-17 23:23:27 UTC [stage] STOP rc=7: 검사 실패 + /etc/ssh/sshd_config.d/00-cat-hardening.conf 가 놓은 바이트가 아님(b76beb5ce6f75f78d687a6fa03ff4bda040baae6c798532e7850f384dc2d94b8) — 지우지 않음, reload 안 함

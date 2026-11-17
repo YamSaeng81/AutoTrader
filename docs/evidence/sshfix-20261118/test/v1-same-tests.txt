@@ -1,0 +1,205 @@
+debconf: delaying package configuration, since apt-utils is not installed
+openssh-server 1:8.9p1-3ubuntu0.18
+== N1 정상 한 벌(바뀐 기록·상태 확인 경로)
+2026-11-17 23:24:10 UTC [precheck] 파일 전제 일치(sshd_config·목록·00 없음·묶음 conf·authorized_keys)
+2026-11-17 23:24:10 UTC [precheck] sshd -t rc=0
+2026-11-17 23:24:10 UTC [precheck] sshd -T[dev] rc=0
+2026-11-17 23:24:10 UTC [precheck]   [dev] 기대 'passwordauthentication no' 아님 → 실제: passwordauthentication yes 
+2026-11-17 23:24:10 UTC [precheck]   [dev] 기대 'authenticationmethods publickey' 아님 → 실제: authenticationmethods any 
+2026-11-17 23:24:10 UTC [precheck]   [dev] 기대 'permitrootlogin no' 아님 → 실제: permitrootlogin without-password 
+2026-11-17 23:24:10 UTC [precheck]   [dev] allowusers 가 'manicstr' 하나가 아님 → 
+2026-11-17 23:24:10 UTC [precheck] sshd -T[dev_ext] rc=0
+2026-11-17 23:24:10 UTC [precheck]   [dev_ext] 기대 'passwordauthentication no' 아님 → 실제: passwordauthentication yes 
+2026-11-17 23:24:10 UTC [precheck]   [dev_ext] 기대 'authenticationmethods publickey' 아님 → 실제: authenticationmethods any 
+2026-11-17 23:24:10 UTC [precheck]   [dev_ext] 기대 'permitrootlogin no' 아님 → 실제: permitrootlogin without-password 
+2026-11-17 23:24:10 UTC [precheck]   [dev_ext] allowusers 가 'manicstr' 하나가 아님 → 
+2026-11-17 23:24:10 UTC [precheck] sshd -T[root_ext] rc=0
+2026-11-17 23:24:10 UTC [precheck]   [root_ext] 기대 'passwordauthentication no' 아님 → 실제: passwordauthentication yes 
+2026-11-17 23:24:10 UTC [precheck]   [root_ext] 기대 'authenticationmethods publickey' 아님 → 실제: authenticationmethods any 
+2026-11-17 23:24:10 UTC [precheck]   [root_ext] 기대 'permitrootlogin no' 아님 → 실제: permitrootlogin without-password 
+2026-11-17 23:24:10 UTC [precheck] sshd -T[root_dev] rc=0
+2026-11-17 23:24:10 UTC [precheck]   [root_dev] 기대 'passwordauthentication no' 아님 → 실제: passwordauthentication yes 
+2026-11-17 23:24:10 UTC [precheck]   [root_dev] 기대 'authenticationmethods publickey' 아님 → 실제: authenticationmethods any 
+2026-11-17 23:24:10 UTC [precheck]   [root_dev] 기대 'permitrootlogin no' 아님 → 실제: permitrootlogin without-password 
+2026-11-17 23:24:10 UTC [precheck] sshd -T[nouser] rc=0
+2026-11-17 23:24:10 UTC [precheck]   [nouser] 기대 'passwordauthentication no' 아님 → 실제: passwordauthentication yes 
+2026-11-17 23:24:10 UTC [precheck]   [nouser] 기대 'authenticationmethods publickey' 아님 → 실제: authenticationmethods any 
+2026-11-17 23:24:10 UTC [precheck]   [nouser] 기대 'permitrootlogin no' 아님 → 실제: permitrootlogin without-password 
+2026-11-17 23:24:10 UTC [precheck] 기대값 불일치 있음
+2026-11-17 23:24:10 UTC [precheck] 참고: 적용 전 check 불일치는 정상(현재 값 기록용)
+PASS N1a precheck (rc=0)
+2026-11-17 23:24:10 UTC [backup] 백업 /root/sshd-bak-20261118-0101 확인(3파일)
+PASS N1b backup(목록 rc 0 0 0·state 기록) (rc=0)
+FAIL N1b' 백업 목록 종료값 각각 0 — 'find/sort/sha256sum rc=0 0 0' 없음
+2026-11-17 23:24:10 UTC [addkey] 키 줄 1 → 2, 권한 600 manicstr:manicstr → 600 manicstr:manicstr, 새 sha256=7d8d28ed9d68b5be193855d9e36ff12c2b3868a0bd419b7415a7511a0744308e
+2026-11-17 23:24:10 UTC [addkey] 개발 PC 에서 verify_local.sh newkey 로 새 키 독립 접속을 먼저 확인
+PASS N1c addkey(직후 해시·권한·지문 기록) (rc=0)
+FAIL N1c' ak.added 기록 — '기록 ak.added=[0-9a-f]{64}' 없음
+2026-11-17 23:24:10 UTC [stage] 놓음: /etc/ssh/sshd_config.d/00-cat-hardening.conf 644 root:root
+2026-11-17 23:24:10 UTC [stage] sshd -t rc=0
+2026-11-17 23:24:10 UTC [stage] sshd -T[dev] rc=0
+2026-11-17 23:24:10 UTC [stage] sshd -T[dev_ext] rc=0
+2026-11-17 23:24:10 UTC [stage] sshd -T[root_ext] rc=0
+2026-11-17 23:24:10 UTC [stage] sshd -T[root_dev] rc=0
+2026-11-17 23:24:10 UTC [stage] sshd -T[nouser] rc=0
+2026-11-17 23:24:10 UTC [stage] 조건별 기대값 모두 일치
+2026-11-17 23:24:10 UTC [stage] reload 전 단계 끝 — 결과 보고 뒤 reload
+PASS N1d stage(직후 해시·목록 기록) (rc=0)
+2026-11-17 23:24:10 UTC [reload] sshd -t rc=0
+2026-11-17 23:24:10 UTC [reload] sshd -T[dev] rc=0
+2026-11-17 23:24:10 UTC [reload] sshd -T[dev_ext] rc=0
+2026-11-17 23:24:10 UTC [reload] sshd -T[root_ext] rc=0
+2026-11-17 23:24:10 UTC [reload] sshd -T[root_dev] rc=0
+2026-11-17 23:24:10 UTC [reload] sshd -T[nouser] rc=0
+2026-11-17 23:24:10 UTC [reload] 조건별 기대값 모두 일치
+2026-11-17 23:24:12 UTC [reload] reload rc=0 · is-active=active · MainPID 3497 → 3497
+2026-11-17 23:24:12 UTC [reload] 열어 둔 세션은 닫지 말고 개발 PC 에서 verify_local.sh after
+PASS N1e reload active (rc=0)
+FAIL N1e' active·MainPID 확인 줄 — 'is-active='active'\(rc=0\)' 없음
+PASS N1e'' reload 1회
+PASS N1f 두 키 접속·publickey 만 (rc=0)
+2026-11-17 23:24:12 UTC [rollback] 지움: /etc/ssh/sshd_config.d/00-cat-hardening.conf
+2026-11-17 23:24:12 UTC [rollback] sshd -t rc=0
+2026-11-17 23:24:13 UTC [rollback] reload rc=0 · is-active=inactive
+PASS N1g rollback(이번 stage 산출물 확인 뒤 지움·active) (rc=0)
+PASS N1g' 00 없음·목록 백업과 같음
+2026-11-17 23:24:13 UTC [rollback-key] authorized_keys 백업으로 복구 600 manicstr:manicstr sha256=571d367c3a3b56a79511d780e90c9cb1c890cc7f8f8b12e5a0404c7def73de9e
+PASS N1h rollback-key(addkey 직후 해시 일치 → 복구) (rc=0)
+PASS N1h' 바이트·권한 복구
+2026-11-17 23:24:13 UTC [rollback-key] authorized_keys 백업으로 복구 600 manicstr:manicstr sha256=571d367c3a3b56a79511d780e90c9cb1c890cc7f8f8b12e5a0404c7def73de9e
+PASS N1i 이미 백업과 같음 → 쓰지 않고 0 (rc=0)
+FAIL N1i' 쓰지 않음 표시 — '이미 백업과 같음' 없음
+== N2 00 파일이 제3 내용으로 바뀜 → 지우지·reload 하지 않고 7
+PASS N2 준비 backup·stage·reload (rc=0)
+2026-11-17 23:24:16 UTC [rollback] 지움: /etc/ssh/sshd_config.d/00-cat-hardening.conf
+2026-11-17 23:24:16 UTC [rollback] sshd -t rc=0
+2026-11-17 23:24:16 UTC [rollback] reload rc=0 · is-active=inactive
+FAIL N2a rollback → 7 (rc=0, 기대 7)
+FAIL N2b 제3 파일 그대로·reload 0회
+== N3 sshd_config 가 백업과 다름 → 주의만 내고 진행하지 않고 7
+PASS N3 준비 backup·stage (rc=0)
+2026-11-17 23:24:17 UTC [rollback] 지움: /etc/ssh/sshd_config.d/00-cat-hardening.conf
+2026-11-17 23:24:17 UTC [rollback] 주의: sshd_config 가 백업과 다름 — 이 묶음 밖 변경, 사람 판단
+2026-11-17 23:24:17 UTC [rollback] sshd -t rc=0
+2026-11-17 23:24:17 UTC [rollback] reload rc=0 · is-active=inactive
+FAIL N3a rollback → 7 (rc=0, 기대 7)
+FAIL N3b 00 그대로·reload 0회
+2026-11-17 23:24:17 UTC [reload] STOP rc=7: 놓인 설정 파일이 없거나 해시 다름
+PASS N3c stage 뒤 주 설정 바뀜 → reload 도 7 (rc=7)
+== N4 sshd_config.d 에 제3 파일 추가 → 7
+PASS N4 준비 backup·stage (rc=0)
+2026-11-17 23:24:18 UTC [rollback] 지움: /etc/ssh/sshd_config.d/00-cat-hardening.conf
+2026-11-17 23:24:18 UTC [rollback] sshd -t rc=0
+2026-11-17 23:24:18 UTC [rollback] reload rc=0 · is-active=inactive
+FAIL N4a rollback → 7 (rc=0, 기대 7)
+FAIL N4b 두 파일 그대로·reload 0회
+== N5 addkey 뒤 후속 키 추가 → rollback-key 덮어쓰지 않고 7
+PASS N5 준비 backup·addkey (rc=0)
+2026-11-17 23:24:19 UTC [rollback-key] authorized_keys 백업으로 복구 600 manicstr:manicstr sha256=571d367c3a3b56a79511d780e90c9cb1c890cc7f8f8b12e5a0404c7def73de9e
+FAIL N5a rollback-key → 7 (rc=0, 기대 7)
+FAIL N5b 후속 키 보존
+== N6 addkey 기록 없이 키 파일이 바뀜(제3) → 7
+PASS N6 준비 backup (rc=0)
+2026-11-17 23:24:20 UTC [rollback-key] authorized_keys 백업으로 복구 600 manicstr:manicstr sha256=571d367c3a3b56a79511d780e90c9cb1c890cc7f8f8b12e5a0404c7def73de9e
+FAIL N6a rollback-key → 7 (rc=0, 기대 7)
+FAIL N6b 제3 내용 보존
+== N7·N8·N10 reload 상태 관문
+PASS N7 준비 backup·stage (rc=0)
+2026-11-17 23:24:21 UTC [reload] sshd -t rc=0
+2026-11-17 23:24:21 UTC [reload] sshd -T[dev] rc=0
+2026-11-17 23:24:21 UTC [reload] sshd -T[dev_ext] rc=0
+2026-11-17 23:24:21 UTC [reload] sshd -T[root_ext] rc=0
+2026-11-17 23:24:21 UTC [reload] sshd -T[root_dev] rc=0
+2026-11-17 23:24:21 UTC [reload] sshd -T[nouser] rc=0
+2026-11-17 23:24:21 UTC [reload] 조건별 기대값 모두 일치
+2026-11-17 23:24:23 UTC [reload] reload rc=0 · is-active=inactive · MainPID 0 → 0
+2026-11-17 23:24:23 UTC [reload] 열어 둔 세션은 닫지 말고 개발 PC 에서 verify_local.sh after
+FAIL N7 reload rc0·inactive → 6(성공 아님) (rc=0, 기대 6)
+2026-11-17 23:24:23 UTC [reload] sshd -t rc=0
+2026-11-17 23:24:23 UTC [reload] sshd -T[dev] rc=0
+2026-11-17 23:24:23 UTC [reload] sshd -T[dev_ext] rc=0
+2026-11-17 23:24:23 UTC [reload] sshd -T[root_ext] rc=0
+2026-11-17 23:24:23 UTC [reload] sshd -T[root_dev] rc=0
+2026-11-17 23:24:23 UTC [reload] sshd -T[nouser] rc=0
+2026-11-17 23:24:23 UTC [reload] 조건별 기대값 모두 일치
+Failed to connect to bus
+Failed to connect to bus
+Failed to connect to bus
+2026-11-17 23:24:25 UTC [reload] reload rc=0 · is-active= · MainPID  → 
+2026-11-17 23:24:25 UTC [reload] 열어 둔 세션은 닫지 말고 개발 PC 에서 verify_local.sh after
+FAIL N8 reload rc0·상태 조회 불명 → 9 (rc=0, 기대 9)
+2026-11-17 23:24:25 UTC [reload] sshd -t rc=0
+2026-11-17 23:24:25 UTC [reload] sshd -T[dev] rc=0
+2026-11-17 23:24:26 UTC [reload] sshd -T[dev_ext] rc=0
+2026-11-17 23:24:26 UTC [reload] sshd -T[root_ext] rc=0
+2026-11-17 23:24:26 UTC [reload] sshd -T[root_dev] rc=0
+2026-11-17 23:24:26 UTC [reload] sshd -T[nouser] rc=0
+2026-11-17 23:24:26 UTC [reload] 조건별 기대값 모두 일치
+2026-11-17 23:24:29 UTC [reload] reload rc=1 · is-active=active · MainPID 3497 → 3497
+2026-11-17 23:24:29 UTC [reload] STOP rc=4: reload 실패 — 열어 둔 세션에서 상태 확인, 필요하면 rollback
+PASS N10 reload 명령 실패 → 4 (rc=4)
+== N9 rollback 뒤 inactive → 6
+2026-11-17 23:24:29 UTC [rollback] 지움: /etc/ssh/sshd_config.d/00-cat-hardening.conf
+2026-11-17 23:24:29 UTC [rollback] sshd -t rc=0
+2026-11-17 23:24:29 UTC [rollback] reload rc=0 · is-active=inactive
+FAIL N9 rollback reload 뒤 inactive → 6 (rc=0, 기대 6)
+PASS N9b 파일은 이번 산출물이라 지워짐(상태만 실패로 보고)
+== N11 stage 검사 중 00 파일이 제3 내용으로 바뀜 → 지우지 않고 7
+PASS N11 준비 backup (rc=0)
+2026-11-17 23:24:30 UTC [stage] 놓음: /etc/ssh/sshd_config.d/00-cat-hardening.conf 644 root:root
+2026-11-17 23:24:30 UTC [stage] sshd -t rc=0
+2026-11-17 23:24:30 UTC [stage] sshd -T[dev] rc=0
+2026-11-17 23:24:30 UTC [stage] sshd -T[dev_ext] rc=0
+2026-11-17 23:24:30 UTC [stage] sshd -T[root_ext] rc=0
+2026-11-17 23:24:30 UTC [stage] sshd -T[root_dev] rc=0
+2026-11-17 23:24:30 UTC [stage] sshd -T[nouser] rc=0
+2026-11-17 23:24:30 UTC [stage]   [nouser] 기대 'passwordauthentication no' 아님 → 실제: passwordauthentication yes 
+2026-11-17 23:24:30 UTC [stage]   [nouser] 기대 'authenticationmethods publickey' 아님 → 실제: authenticationmethods any 
+2026-11-17 23:24:30 UTC [stage]   [nouser] 기대 'permitrootlogin no' 아님 → 실제: permitrootlogin without-password 
+2026-11-17 23:24:30 UTC [stage] 기대값 불일치 있음
+2026-11-17 23:24:30 UTC [stage] 검사 실패 → 방금 놓은 /etc/ssh/sshd_config.d/00-cat-hardening.conf 지움(reload 안 함)
+2026-11-17 23:24:30 UTC [stage] 지운 뒤 sshd -t rc=0
+FAIL N11a stage → 7 (rc=4, 기대 7)
+grep: /etc/ssh/sshd_config.d/00-cat-hardening.conf: No such file or directory
+FAIL N11b 제3 파일 그대로·reload 0회
+== N12 stage 검사 실패, 놓은 바이트 그대로 → 그 파일만 지우고 4
+PASS N12 준비 backup (rc=0)
+2026-11-17 23:24:31 UTC [stage] 놓음: /etc/ssh/sshd_config.d/00-cat-hardening.conf 644 root:root
+2026-11-17 23:24:31 UTC [stage] sshd -t rc=0
+2026-11-17 23:24:31 UTC [stage] sshd -T[dev] rc=0
+2026-11-17 23:24:31 UTC [stage] sshd -T[dev_ext] rc=0
+2026-11-17 23:24:31 UTC [stage] sshd -T[root_ext] rc=0
+2026-11-17 23:24:31 UTC [stage] sshd -T[root_dev] rc=0
+2026-11-17 23:24:31 UTC [stage] sshd -T[nouser] rc=1
+대역: -T 실패
+2026-11-17 23:24:31 UTC [stage] 기대값 불일치 있음
+2026-11-17 23:24:31 UTC [stage] 검사 실패 → 방금 놓은 /etc/ssh/sshd_config.d/00-cat-hardening.conf 지움(reload 안 함)
+2026-11-17 23:24:31 UTC [stage] 지운 뒤 sshd -t rc=0
+PASS N12a stage → 4 (rc=4)
+PASS N12b 놓은 파일만 지움·목록 백업과 같음
+== N13 백업 목록 검증
+PASS N13 준비 backup (rc=0)
+2026-11-17 23:24:32 UTC [stage] 놓음: /etc/ssh/sshd_config.d/00-cat-hardening.conf 644 root:root
+2026-11-17 23:24:32 UTC [stage] sshd -t rc=0
+2026-11-17 23:24:32 UTC [stage] sshd -T[dev] rc=0
+2026-11-17 23:24:32 UTC [stage] sshd -T[dev_ext] rc=0
+2026-11-17 23:24:32 UTC [stage] sshd -T[root_ext] rc=0
+2026-11-17 23:24:32 UTC [stage] sshd -T[root_dev] rc=0
+2026-11-17 23:24:32 UTC [stage] sshd -T[nouser] rc=0
+2026-11-17 23:24:32 UTC [stage] 조건별 기대값 모두 일치
+2026-11-17 23:24:33 UTC [stage] reload 전 단계 끝 — 결과 보고 뒤 reload
+FAIL N13a 목록에서 필수 항목 빠짐 → 7 (rc=0, 기대 7)
+2026-11-17 23:24:33 UTC [stage] STOP rc=7: /etc/ssh/sshd_config.d/00-cat-hardening.conf 이미 있음
+PASS N13b 목록 밖 파일 → 7 (rc=7)
+sha256sum: SHA256SUMS: no properly formatted SHA256 checksum lines found
+2026-11-17 23:24:33 UTC [stage] STOP rc=7: 백업 /root/sshd-bak-20261118-0113 없음/검증 실패
+PASS N13c 빈 목록 → 7 (rc=7)
+FAIL N13d 세 경우 모두 설정 파일 안 놓음
+== N14 stage 기록 없이 같은 바이트의 00 파일(수동 복사) → rollback 7
+PASS N14 준비 backup (rc=0)
+2026-11-17 23:24:34 UTC [rollback] 지움: /etc/ssh/sshd_config.d/00-cat-hardening.conf
+2026-11-17 23:24:34 UTC [rollback] sshd -t rc=0
+2026-11-17 23:24:34 UTC [rollback] reload rc=0 · is-active=inactive
+FAIL N14a rollback → 7 (rc=0, 기대 7)
+FAIL N14b 파일 그대로·reload 0회
+== 합계 PASS=29 FAIL=23

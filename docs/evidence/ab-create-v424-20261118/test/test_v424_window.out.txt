@@ -1,0 +1,40 @@
+{"done": "8개 OK · DB 메타 대조 성공(확인 SQL 전 초안)", "t0": "2026-11-18T14:15:00+09:00"}
+PASS P1 정상 11-18 14:06:30·C14:00 → 0, POST 8 — rc=0 posts=8
+PASS P1a 초안 T0 = 승인 T0 — 2026-11-18T14:15:00+09:00
+PASS P1b 기록부 preflight 에 승인값
+{"stop": "승인 창 밖 — 지금 경계 2026-11-18T14:15:00+09:00, 승인 C 2026-11-18T14:00:00+09:00 의 [+6분, +12분]이 아니다. 보낸 것 없음"}
+PASS N1 다음C 14:21:30 → 2, POST 0, DB 0 — rc=2 posts=0 meta=0
+{"stop": "승인 창 밖 — 지금 경계 2026-11-19T14:00:00+09:00, 승인 C 2026-11-18T14:00:00+09:00 의 [+6분, +12분]이 아니다. 보낸 것 없음"}
+PASS N2 다음날 11-19 14:06:30 → 2, POST 0, DB 0 — rc=2 posts=0 meta=0
+{"stop": "승인 창 밖 — 지금 경계 2026-11-18T14:00:00+09:00, 승인 C 2026-11-18T14:00:00+09:00 의 [+6분, +12분]이 아니다. 보낸 것 없음"}
+PASS N2b 승인 C 의 창 앞 14:05:59 → 2, POST 0
+{"stop": "P2B 직전 창 지남 — 더 보내지 않는다(부분 결과)", "created_ok": ["P1A", "P1B", "P2A"], "reconcile_status": "조회됨"}
+PASS N3 도중 창 끝 이탈 → 3, POST 3 뒤 중단 — rc=3 posts=3
+PASS N3a 기존 기록 보존(intent·result 3, window_closed·reconcile) — preflight,preflight_meta,intent,result,intent,result,intent,result,window_closed,reconcile
+{"stop": "P1B 직전 창 지남 — 더 보내지 않는다(부분 결과)", "created_ok": ["P1A"], "reconcile_status": "조회됨"}
+PASS N3b 도중 다음날 같은 분으로 이동 → 3, POST 1 뒤 중단 — rc=3 posts=1
+{"stop": "P1A 직전 창 지남 — 더 보내지 않는다(부분 결과)", "created_ok": [], "reconcile_status": "조회됨"}
+PASS N3c 첫 POST 직전 창 지남 → POST 0, 3(기록 보존) — rc=3
+{"stop": "승인 날짜·C·T0 이상 — 승인값이 비었다: --approved-date. 보낸 것 없음"}
+PASS N4 빈 날짜 → 2, POST 0·DB 0·기록부 없음 — rc=2
+{"stop": "승인 날짜·C·T0 이상 — 승인값이 비었다: --approved-date,--approved-c,--approved-t0. 보낸 것 없음"}
+PASS N5 승인값 없음 → 2, POST 0·DB 0·기록부 없음 — rc=2
+{"stop": "승인 날짜·C·T0 이상 — 승인 T0 가 승인 C+15분이 아니다. 보낸 것 없음"}
+PASS N6 T0 이동(14:30) → 2, POST 0·DB 0·기록부 없음 — rc=2
+{"stop": "승인 날짜·C·T0 이상 — 승인 C 가 M15 경계(:00/:15/:30/:45, 초 0)가 아니다. 보낸 것 없음"}
+PASS N7 C 경계 아님(14:05) → 2, POST 0·DB 0·기록부 없음 — rc=2
+{"stop": "승인 날짜·C·T0 이상 — 승인 C 의 KST 날짜가 승인 날짜와 다르다. 보낸 것 없음"}
+PASS N8 날짜≠C 날짜 → 2, POST 0·DB 0·기록부 없음 — rc=2
+{"stop": "승인 날짜·C·T0 이상 — 승인 C/T0 에 시간대가 없다. 보낸 것 없음"}
+PASS N9 시간대 없음 → 2, POST 0·DB 0·기록부 없음 — rc=2
+{"stop": "승인 날짜·C·T0 이상 — --approved-date 형식(YYYY-MM-DD) 아님. 보낸 것 없음"}
+PASS N10 날짜 형식 → 2, POST 0·DB 0·기록부 없음 — rc=2
+{"done": "8개 OK · DB 메타 대조 성공(확인 SQL 전 초안)", "t0": "2026-11-18T05:15:00+00:00"}
+PASS P2 UTC 표기 같은 순간 → 0, POST 8 — rc=0
+{"mode": "계획만", "bodies": 8, "protocol_sha256": "8d787fe9d8c6d6bec00a588e38c6d638a97be9faf3709875b1670d71eae5d3db", "approved": {"date": "2026-11-18", "c": "2026-11-18T14:00:00+09:00", "t0": "2026-11-18T14:15:00+09:00", "window": ["2026-11-18T14:06:00+09:00", "2026-11-18T14:12:00+09:00"]}}
+PASS P3 계획만+승인값 → 2(설계), POST 0
+{"done": "8개 OK · DB 메타 대조 성공(확인 SQL 전 초안)", "t0": "2026-11-18T14:30:00+09:00"}
+PASS C1 대조 v4.2: 다음C 14:21:30 → 0·POST 8(현행 허용 재현) — rc=0 posts=8
+{"done": "8개 OK · DB 메타 대조 성공(확인 SQL 전 초안)", "t0": "2026-11-19T14:15:00+09:00"}
+PASS C2 대조 v4.2: 다음날 11-19 14:06:30 → 0·POST 8(현행 허용 재현) — rc=0 posts=8
+통과 21/21

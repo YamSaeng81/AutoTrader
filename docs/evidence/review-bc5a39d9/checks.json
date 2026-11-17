@@ -1,0 +1,535 @@
+{
+  "fixed_commit": "bc5a39d9f03f768b09c291cd3153d08efb6e8740",
+  "scope": "fixed blobs, saved outputs, temporary-file branches and pure time function; no production/DB/HTTP/SSH daemon/container",
+  "manifests": [
+    {
+      "folder": "sshadmin-20261117",
+      "list": "SHA256SUMS",
+      "matched": 38
+    },
+    {
+      "folder": "create-plan-20261117",
+      "list": "SHA256SUMS",
+      "matched": 12
+    },
+    {
+      "folder": "review-13a82299",
+      "list": "SHA256SUMS",
+      "matched": 4
+    },
+    {
+      "folder": "ab-create-v423-20261117",
+      "list": "bundle/SHA256SUMS.bundle",
+      "matched": 16
+    }
+  ],
+  "passed": 102,
+  "failed": 0,
+  "checks": [
+    {
+      "name": "docs/evidence/sshadmin-20261117/SHA256SUMS: working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshadmin-20261117/SHA256SUMS: count",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshadmin-20261117/README.md: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshadmin-20261117/admin_read.sh: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshadmin-20261117/change/00-cat-hardening.conf: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshadmin-20261117/change/ssh_change.sh: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshadmin-20261117/change/verify_local.sh: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshadmin-20261117/probe/probe-out.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshadmin-20261117/probe/probe-stderr.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshadmin-20261117/probe/probe_methods.sh: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshadmin-20261117/test/in_container.sh: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshadmin-20261117/test/run1/admin-read.container.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshadmin-20261117/test/run1/c0.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshadmin-20261117/test/run1/c1.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshadmin-20261117/test/run1/c10.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshadmin-20261117/test/run1/c11.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshadmin-20261117/test/run1/c12.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshadmin-20261117/test/run1/c2.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshadmin-20261117/test/run1/c3.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshadmin-20261117/test/run1/c4.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshadmin-20261117/test/run1/c5.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshadmin-20261117/test/run1/c6.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshadmin-20261117/test/run1/c7.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshadmin-20261117/test/run1/c8.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshadmin-20261117/test/run1/c9.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshadmin-20261117/test/run1/console.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshadmin-20261117/test/run1/m2.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshadmin-20261117/test/run1/m3.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshadmin-20261117/test/run1/r0.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshadmin-20261117/test/run1/r1.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshadmin-20261117/test/run1/r2.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshadmin-20261117/test/run1/r3.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshadmin-20261117/test/run1/r4.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshadmin-20261117/test/run1/read.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshadmin-20261117/test/run1/readM.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshadmin-20261117/test/run1/v0.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshadmin-20261117/test/run1/v1.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshadmin-20261117/test/run1/v2.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshadmin-20261117/test/run1/v3.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshadmin-20261117/test/run1/v4.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/create-plan-20261117/SHA256SUMS: working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/create-plan-20261117/SHA256SUMS: count",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/create-plan-20261117/README.md: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/create-plan-20261117/plan-check/N1-t0shift.stdout.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/create-plan-20261117/plan-check/N1-t0shift/plan.json: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/create-plan-20261117/plan-check/N2-0900hour.stdout.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/create-plan-20261117/plan-check/N2-0900hour/plan.json: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/create-plan-20261117/plan-check/N3-late-end.stdout.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/create-plan-20261117/plan-check/N3-late-end/plan.json: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/create-plan-20261117/plan-check/N4-no-tz.stdout.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/create-plan-20261117/plan-check/P1-1118.stdout.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/create-plan-20261117/plan-check/P1-1118/plan.json: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/create-plan-20261117/plan-check/m15_check.py: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/create-plan-20261117/plan-check/m15_check.stdout.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/review-13a82299/SHA256SUMS: working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/review-13a82299/SHA256SUMS: count",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/review-13a82299/.gitattributes: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/review-13a82299/README.md: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/review-13a82299/audit_review.py: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/review-13a82299/checks.json: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/bundle/SHA256SUMS.bundle: working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/bundle/SHA256SUMS.bundle: count",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/create/ab_create.py: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/create/http_post.py: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/create/ab_complete.py: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/create/meta_preflight.sql: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/create/meta_after.sql: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/create/post_creation_check.sql: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/tool/protocol.json: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/tool/ab_arms.py: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/sma20/sma20_create.py: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/sma20/sma20_complete.py: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/sma20/body.json: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/sma20/sma20_meta_preflight.sql: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/sma20/sma20_check.sql: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/preflight/preflight_v2.sql: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/bundle/judge_preflight.py: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/bundle/run_bundle.sh: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "fixed local HEAD",
+      "passed": true
+    },
+    {
+      "name": "unpublished origin/main ref",
+      "passed": true
+    },
+    {
+      "name": "no tracked production/build input changes",
+      "passed": true
+    },
+    {
+      "name": "admin_read.sh: syntax only",
+      "passed": true
+    },
+    {
+      "name": "change/ssh_change.sh: syntax only",
+      "passed": true
+    },
+    {
+      "name": "change/verify_local.sh: syntax only",
+      "passed": true
+    },
+    {
+      "name": "probe/probe_methods.sh: syntax only",
+      "passed": true
+    },
+    {
+      "name": "saved OpenSSH container result 40/40",
+      "passed": true
+    },
+    {
+      "name": "saved exact OpenSSH package",
+      "passed": true
+    },
+    {
+      "name": "saved Match refusal without reload",
+      "passed": true
+    },
+    {
+      "name": "probe offers two methods",
+      "passed": true
+    },
+    {
+      "name": "probe disabled key/password prompt/reuse",
+      "passed": true
+    },
+    {
+      "name": "admin captures sshd exit before grep",
+      "passed": true
+    },
+    {
+      "name": "admin host assumes address without collecting UseDNS",
+      "passed": true
+    },
+    {
+      "name": "verify disables connection reuse and limits identities",
+      "passed": true
+    },
+    {
+      "name": "current branch observation rollback_normal",
+      "passed": true
+    },
+    {
+      "name": "current branch observation rollback_third_conf",
+      "passed": true
+    },
+    {
+      "name": "current branch observation rollback_changed_main",
+      "passed": true
+    },
+    {
+      "name": "current branch observation rollback_key_third_content",
+      "passed": true
+    },
+    {
+      "name": "current branch observation reload_inactive_service",
+      "passed": true
+    },
+    {
+      "name": "generic window accepts 2026-11-18T14:06:30+09:00",
+      "passed": true
+    },
+    {
+      "name": "generic window accepts 2026-11-18T14:21:30+09:00",
+      "passed": true
+    },
+    {
+      "name": "generic window accepts 2026-11-19T14:06:30+09:00",
+      "passed": true
+    },
+    {
+      "name": "later call can derive a different T0",
+      "passed": true
+    }
+  ],
+  "branch_probes": [
+    {
+      "case": "rollback_normal",
+      "exit": 0,
+      "config_exists": false,
+      "reload_called": true,
+      "key_restored_to_backup": true,
+      "main_changed_from_backup": false,
+      "prior": {
+        "hardening.conf": "this-change-conf\n",
+        "sshd_config": "baseline-main\n",
+        "authorized_keys": "baseline-key-fixture\n"
+      },
+      "stdout": "지움: D:/Claude Code/projects/crypto-auto-trader/docs/evidence/review-bc5a39d9/branch-49y1ldpx/hardening.conf\nsshd -t rc=0\nreload rc=0 · is-active=inactive\n",
+      "stderr": ""
+    },
+    {
+      "case": "rollback_third_conf",
+      "exit": 0,
+      "config_exists": false,
+      "reload_called": true,
+      "key_restored_to_backup": false,
+      "main_changed_from_backup": false,
+      "prior": {
+        "hardening.conf": "third-party-conf\n",
+        "sshd_config": "baseline-main\n",
+        "authorized_keys": "unrelated-added-key-fixture\n"
+      },
+      "stdout": "지움: D:/Claude Code/projects/crypto-auto-trader/docs/evidence/review-bc5a39d9/branch-141lk6oi/hardening.conf\nsshd -t rc=0\nreload rc=0 · is-active=inactive\n",
+      "stderr": ""
+    },
+    {
+      "case": "rollback_changed_main",
+      "exit": 0,
+      "config_exists": false,
+      "reload_called": true,
+      "key_restored_to_backup": true,
+      "main_changed_from_backup": true,
+      "prior": {
+        "hardening.conf": "this-change-conf\n",
+        "sshd_config": "changed-main\n",
+        "authorized_keys": "baseline-key-fixture\n"
+      },
+      "stdout": "지움: D:/Claude Code/projects/crypto-auto-trader/docs/evidence/review-bc5a39d9/branch-8kh8sh10/hardening.conf\n주의: sshd_config 가 백업과 다름 — 이 묶음 밖 변경, 사람 판단\nsshd -t rc=0\nreload rc=0 · is-active=inactive\n",
+      "stderr": ""
+    },
+    {
+      "case": "rollback_key_third_content",
+      "exit": 0,
+      "config_exists": true,
+      "reload_called": false,
+      "key_restored_to_backup": true,
+      "main_changed_from_backup": false,
+      "prior": {
+        "hardening.conf": "third-party-conf\n",
+        "sshd_config": "baseline-main\n",
+        "authorized_keys": "unrelated-added-key-fixture\n"
+      },
+      "stdout": "authorized_keys 백업으로 복구 644 CodexSandboxOffline:UNKNOWN sha256=77da56b6d79b9d4e8c0fbb8d8284ad0df4f81e21e5faf45f84a5672565968aae\n",
+      "stderr": ""
+    },
+    {
+      "case": "reload_inactive_service",
+      "exit": 0,
+      "config_exists": true,
+      "reload_called": true,
+      "key_restored_to_backup": true,
+      "main_changed_from_backup": false,
+      "prior": {
+        "hardening.conf": "this-change-conf\n",
+        "sshd_config": "baseline-main\n",
+        "authorized_keys": "baseline-key-fixture\n"
+      },
+      "stdout": "reload rc=0 · is-active=inactive · MainPID 123 → 123\n열어 둔 세션은 닫지 말고 개발 PC 에서 verify_local.sh after\n",
+      "stderr": ""
+    }
+  ],
+  "window_probes": [
+    {
+      "called_at": "2026-11-18T14:06:30+09:00",
+      "inside_generic_window": true,
+      "boundary": "2026-11-18T14:00:00+09:00",
+      "t0": "2026-11-18T14:15:00+09:00"
+    },
+    {
+      "called_at": "2026-11-18T14:21:30+09:00",
+      "inside_generic_window": true,
+      "boundary": "2026-11-18T14:15:00+09:00",
+      "t0": "2026-11-18T14:30:00+09:00"
+    },
+    {
+      "called_at": "2026-11-19T14:06:30+09:00",
+      "inside_generic_window": true,
+      "boundary": "2026-11-19T14:00:00+09:00",
+      "t0": "2026-11-19T14:15:00+09:00"
+    }
+  ]
+}

@@ -6,15 +6,25 @@
 
 | 구분 | 기준 | 상태 |
 |---|---|---|
-| 최신 총괄 판단 | [v1.180](evidence/review-13a82299/README.md) | 431차 범위 수용·v4.2.3 고정·SSH 관리자 확인. 실제 생성 전 |
-| 최신 개발 제출(판정 전) | 432차 [SSH 관리자 준비](evidence/sshadmin-20261117/README.md) · [생성 제출안](evidence/create-plan-20261117/README.md) | 운영 변경·생성 없음. 접속 시도1회(비밀값 없음)만 |
-| 직전 개발 제출(범위 수용) | 431차 [SSH](evidence/sshsec-20261117/README.md) · [v4.2.3](evidence/ab-create-v423-20261117/README.md) | main13a82299. 4목록 일치. SSH 실제 변경·9세션/T0 없음 |
-| 그 전 개발 제출(범위 수용) | 430차 [v4.2·단건·봉/T0](evidence/ab-create-v42-20261117/README.md) · [N03](evidence/n03-1117-1000/README.md) · [통신](evidence/netinv-20261117/README.md) | mainc3dca385. 통신 회복은 항목별로 구분 |
+| 최신 총괄 판단 | [v1.181](evidence/review-bc5a39d9/README.md) | 432차 범위 수용, 관리자 읽기 허용·복구/상태/시각 관문 보완. 실제 변경/생성 전 |
+| 최신 개발 제출(총괄 판정 전) | 433차 [SSH 관문 v2](evidence/sshfix-20261118/README.md) · [A/B v4.2.4](evidence/ab-create-v424-20261118/README.md) · [N03 22:00](evidence/n03-1117-2200/README.md) | 운영 변경·생성 없음. 22:12 예약 미실행(PC 절전), 11-18 08:18 늦은 읽기 |
+| 직전 개발 제출(범위 수용) | 432차 [SSH 관리자 준비](evidence/sshadmin-20261117/README.md) · [생성안](evidence/create-plan-20261117/README.md) | bc5a39d9. 운영 변경·생성 없음 |
+| 그 전 개발 제출(범위 수용) | 431차 [SSH](evidence/sshsec-20261117/README.md) · [v4.2.3](evidence/ab-create-v423-20261117/README.md) | main13a82299. SSH 실제 변경·9세션/T0 없음 |
 | 운영 반영(수용) | [427차 결과](evidence/v172run-20261116/README.md) | backend0e1d2a02/2c5d8427·V96·frontend9d7f123a. U2 rc1·U3 지연 편차 보존 |
 
-### 432차 제출 — SSH 관리자 준비·생성 실행 제출안 (판정 전)
+### 433차 제출 — SSH 복구/상태 관문 v2·A/B 날짜/C/T0 고정·N03 늦은 읽기 (총괄 판정 전)
 
-- 정정: 7일244건은 종류/사용자만, root 전용 파일 값 미확인, 공격 지속은10:40 기준. 개발 계정 조건 서버 응답 `publickey,password`(11:22:55, 비밀값 없음) — 그 조건의 비밀번호 인증은 켜져 있다. 운영자 읽기 스크립트(인자 검사·`sshd -T -C` 종료값 분리·가림)와 변경/복구 묶음(전제 해시·검사 실패 시 reload 없음)을 8.9p1 컨테이너에서40/40, Match 블록이 00 파일을 덮는 경우 4로 멈춤 확인. 생성은13a82299 archive16/16, D=11-18 일정·명령표, SMA20 계획만 통과·음성4 거절. [SSH](evidence/sshadmin-20261117/README.md) · [생성](evidence/create-plan-20261117/README.md)
+- SSH `ssh_change.sh` v2(4a16f658): 이번 stage/addkey 산출물 기록과 대조해 제3 00설정·주 설정 변경·제3 목록 파일·후속 키·조회 불명이면 변경0으로 7, reload 뒤 inactive 6·조회 불명 9, 백업 목록 완전성 검사. 8.9p1 컨테이너 실제 sshd **52/52**, 같은 시험에서 v1은 29/52. 관리자 읽기 보충 admin_read_add.sh(usedns·Match Host·실행 인자 rc 분리). [SSH](evidence/sshfix-20261118/README.md)
+- A/B v4.2.4(ab_create 63cd5dd1·run_bundle 47745b0b, 목록 e28b1293): 승인 날짜·C·T0 입력 검증, 시작·첫/매 POST 직전 경계=승인 C 확인. 대역 **21/21**(다음C·다음날 2·도중 이탈 3, v4.2 원문은 같은 입력 0 재현)·실행 틀 6/6·고정 단계 파일 5/5·배치 종료값 분리 6/6. 11-18 값은 12:00까지 승인 없으면 폐기. [A/B](evidence/ab-create-v424-20261118/README.md)
+- N03 22:00: 예약 프로세스가 PC 절전(17:18~08:05)으로 미실행. 08:18:23 늦은 읽기 rc0 — 22:00:03 전송 성공·🟢·ERROR0·HEAD 0e1d2a02 재시작0, 새 P0 없음. 17:18~08:18 미관측. [N03](evidence/n03-1117-2200/README.md)
+
+### v1.181 — 432차 범위 수용·SSH 복구 관문·생성 시각 고정
+
+- 38/38·12/12·앞 총괄4/4·동결 묶음16/16 일치, 로컬102대조 성공. 관리자 제한 읽기는 수집 범위를 허용하고 UseDNS/개별 종료값을 추가 확인한다. 제3설정 삭제·키 후속 변경 덮어쓰기·reload0/inactive 성공 분기를 재현했다. A/B의 다음C/다음날 허용도 확인해 승인 날짜/C/T0 관문을 최소 보완한다. 실제 변경·생성은 승인 전이다. [검토와 지시](evidence/review-bc5a39d9/README.md)
+
+### 432차 제출 — SSH 관리자 준비·생성 실행 제출안 (범위 수용)
+
+- 정정: 7일244건은 종류/사용자만, root 전용 파일 값 미확인, 공격 지속은10:40 기준. 개발 계정 조건 서버 응답 `publickey,password`(11:22:55, 비밀값 없음) — 그 조건에서password 방식 제시를 확인했으며 비밀번호 성공은 검사하지 않았다. 운영자 읽기 스크립트(인자 검사·`sshd -T -C` 종료값 분리·가림)와 변경/복구 묶음(전제 해시·검사 실패 시 reload 없음)을 8.9p1 컨테이너에서40/40, Match 블록이 00 파일을 덮는 경우 4로 멈춤 확인. 생성은13a82299 archive16/16, D=11-18 일정·명령표, SMA20 계획만 통과·음성4 거절. [SSH](evidence/sshadmin-20261117/README.md) · [생성](evidence/create-plan-20261117/README.md)
 
 ### v1.180 — 431차 범위 수용·도구 동결·SSH 관리자 확인
 
@@ -24,27 +34,19 @@
 
 - SSH10:40:59~10:42:07 rc0, 최근5분 실패/Invalid user49줄·출발지22·제한0. 유효 인증 값·방화벽 규칙은 미확인이다. 도구는bad10c08, 보존Linux49/49·Git Bash43/43, 옛 판29/43. chmod 오실행·WSL 무효/덮임 회차는 성공 근거와 분리한다. [SSH](evidence/sshsec-20261117/README.md) · [도구](evidence/ab-create-v423-20261117/README.md)
 
-### v1.179 — 430차 범위 수용·SSH 후속·토큰 검사 보완
-
-- 고정c3dca385의7목록 일치, 로컬432대조 성공. v4.2·SMA20 단건·검사한 봉/T0·차트 대비·N03 읽기를 범위 수용했다. SSH 제한은 별도 보안/접근성 후속으로 올리고 IP 가림 집계·통신 전부 회복 서술을 정정했다. nosecret 검사 오류가0건/후속 허용으로 바뀌는 공백을 재현해 최소 보완을 지시했다. [검토](evidence/review-c3dca385/README.md)
-
-### 430차 제출 — 생성 묶음·단건·N03·통신 조사 (범위 수용)
-
-- v4.2 리다이렉트·SMA20 로컬 연결1/1·봉/T0·차트 후보·실행 틀v4.2.2를 제출했다. N03·장부10:13:16 rc0, 통신 조사10:17 rc1은 유지한다. 캔들/텔레그램 뒤 성공과CP·Claude회복/PAPER 기회비용 미확인을 구분한다. 세션 공백은 사용 한도 중단·자동 재개 없음이다. [도구](evidence/ab-create-v42-20261117/README.md) · [N03](evidence/n03-1117-1000/README.md) · [통신](evidence/netinv-20261117/README.md)
-
 ## 최근 완료 기록
 
 | 차수 | 결과·판정 | 근거 |
 |---|---|---|
+| 433 제출 | SSH 관문 v2 52/52·A/B 시각 관문 21/21·N03 늦은 읽기 | [sshfix](evidence/sshfix-20261118/README.md) · [v424](evidence/ab-create-v424-20261118/README.md) |
+| v1.181 / 432 | 관리자 읽기 수집 허용·SSH 복구/상태와 A/B 시각 관문 보완 | [review-bc5a39d9](evidence/review-bc5a39d9/README.md) |
 | v1.180 / 431 | v4.2.3 고정·SSH 제한 읽기 수용, 관리자 확인 대기 | [review-13a82299](evidence/review-13a82299/README.md) |
 | v1.179 / 430 | 단건·봉/T0·N03 범위 수용, SSH 후속·토큰 오류 보완 | [review-c3dca385](evidence/review-c3dca385/README.md) |
 | v1.178 / 429 | DB 메타·로컬 연결·늦은 읽기 수용, 리다이렉트 보완 | [review-ab062049](evidence/review-ab062049/README.md) |
-| v1.177 / 428 | N05·화면 수용, 생성 도구·단건·봉/T0 보완 | [review-26a12f3e](evidence/review-26a12f3e/README.md) |
-| v1.176 / 427 | V172D4 운영 반영 수용·핀 갱신 | [review-7fea1b89](evidence/review-7fea1b89/README.md) |
 
 ## 마지막 운영 읽기와 인계
 
-마지막 N03·장부는 **11-17 10:13:16**, SSH는 **10:40:59~10:42:07**이다. DB 값은10:00 보고 기준이며 직접 조회는 없다. 22:12 이후 N03 예약은 아직 실제 실행을 확인하지 않았다. 실제 생성·T0는 승인 전이다. [현재 인계](CURRENT_HANDOFF.md)
+마지막 운영 읽기는 **11-18 08:18:23 KST** N03 22:00 보고 늦은 읽기다(DB는 22:00 보고 값, 직접 조회 없음). 22:12 예약은 개발 PC 절전으로 실행되지 않았고 11-17 17:18~11-18 08:18은 미관측이다. 장부 마지막 읽기 10:13:16, SSH 로그 10:40:59~10:42:07, 인증 방식 시도 11:22:55. [현재 인계](CURRENT_HANDOFF.md)
 
 ## 이력 보존과 갱신
 

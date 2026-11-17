@@ -1,0 +1,7 @@
+PASS B1 승인값 없음 → 0 아님(rc=1)·도구 호출 0·2.rc 없음
+PASS B2 AB_C 빈 값 → 0 아님(rc=1)·도구 호출 0·2.rc 없음
+PASS B3 승인값 전달 → rc0·2.rc=0
+PASS B3a 도구 인자에 승인 날짜·C·T0·--execute
+PASS B3b steps.log 에 승인값 줄
+PASS B4 도구 2(승인 창 밖) → rc2·2.rc=2(다음 단계 막힘)
+통과 6/6
