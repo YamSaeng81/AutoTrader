@@ -1,0 +1,1258 @@
+{
+  "source": "ab0620493408173e536ccddc43d3ab7b2b41a584",
+  "scope": "로컬 Git·보존 출력·순수 도구 함수·소켓 없는 리다이렉트 재현. 제품 시험/운영 접속 없음",
+  "passed": 236,
+  "failed": 0,
+  "checks": [
+    {
+      "name": "HEAD",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "origin/main",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "제출 변경은 docs 경로",
+      "ok": true,
+      "detail": 196
+    },
+    {
+      "name": "ab-create-v41-20261116 목록 개수",
+      "ok": true,
+      "detail": 104
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/README.md",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/chain_driver_v41.py",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/create/ab_complete.py",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/create/ab_create.py",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/create/extract_positions.sql",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/create/fake_meta.py",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/create/meta_after.sql",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/create/meta_preflight.sql",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/create/post_creation_check.sql",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/create/standin_server.py",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/create/test_ab_create_v41.py",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/javaharness/chain_driver_v4.py",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/meta-sql-pg/after-novar.err",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/meta-sql-pg/after-novar.out",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/meta-sql-pg/after586.err",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/meta-sql-pg/after586.out",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/meta-sql-pg/check_parse.py",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/meta-sql-pg/check_parse.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/meta-sql-pg/preflight.err",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/meta-sql-pg/preflight.out",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/meta-sql-pg/rc.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/meta-sql-pg/seed.out",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/meta-sql-pg/seed.sql",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-a-seed-early-window/TEST-com.cryptoautotrader.api.service.AbChainV4PgTest.xml",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-a-seed-early-window/gradle.log.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-a-seed-early-window/when.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-a-seed/TEST-com.cryptoautotrader.api.service.AbChainV4PgTest.xml",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-a-seed/arms.csv",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-a-seed/arms.csv.meta.json",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-a-seed/arms.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-a-seed/create/creation_log.draft.json",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-a-seed/create/journal.jsonl",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-a-seed/create/plan.json",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-a-seed/gradle.log.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-a-seed/local-test-token.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-a-seed/marks.csv",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-a-seed/neg_fp_missing.complete.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-a-seed/neg_fp_missing.db_check.out",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-a-seed/neg_fp_missing.psql.stderr.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-a-seed/neg_fp_multiple.complete.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-a-seed/neg_fp_multiple.db_check.out",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-a-seed/neg_fp_multiple.psql.stderr.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-a-seed/neg_one_row_1us.complete.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-a-seed/neg_one_row_1us.db_check.out",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-a-seed/neg_one_row_1us.psql.stderr.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-a-seed/neg_stored_ratio.complete.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-a-seed/neg_stored_ratio.db_check.out",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-a-seed/neg_stored_ratio.psql.stderr.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-a-seed/neg_trade_before_t0.complete.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-a-seed/neg_trade_before_t0.db_check.out",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-a-seed/neg_trade_before_t0.psql.stderr.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-a-seed/ok.aggregate.json",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-a-seed/ok.complete.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-a-seed/ok.creation_log.json",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-a-seed/ok.db_check.out",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-a-seed/ok.positions.csv",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-a-seed/ok.psql.stderr.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-a-seed/transcript.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-a-seed/when.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-b-main/TEST-com.cryptoautotrader.api.service.AbChainV4PgTest.xml",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-b-main/arms.csv",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-b-main/arms.csv.meta.json",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-b-main/arms.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-b-main/create/creation_log.draft.json",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-b-main/create/journal.jsonl",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-b-main/create/plan.json",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-b-main/gradle.log.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-b-main/local-test-token.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-b-main/marks.csv",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-b-main/neg_fp_missing.complete.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-b-main/neg_fp_missing.db_check.out",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-b-main/neg_fp_missing.psql.stderr.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-b-main/neg_fp_multiple.complete.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-b-main/neg_fp_multiple.db_check.out",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-b-main/neg_fp_multiple.psql.stderr.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-b-main/neg_one_row_1us.complete.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-b-main/neg_one_row_1us.db_check.out",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-b-main/neg_one_row_1us.psql.stderr.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-b-main/neg_other_db.complete.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-b-main/neg_other_db.db_check.out",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-b-main/neg_other_db.psql.stderr.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-b-main/neg_stored_ratio.complete.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-b-main/neg_stored_ratio.db_check.out",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-b-main/neg_stored_ratio.psql.stderr.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-b-main/neg_trade_before_t0.complete.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-b-main/neg_trade_before_t0.db_check.out",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-b-main/neg_trade_before_t0.psql.stderr.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-b-main/ok.aggregate.json",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-b-main/ok.complete.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-b-main/ok.creation_log.json",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-b-main/ok.db_check.out",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-b-main/ok.positions.csv",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-b-main/ok.psql.stderr.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-b-main/transcript.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run-b-main/when.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run0-driver-name-rejected/TEST-com.cryptoautotrader.api.service.AbChainV4PgTest.xml",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run0-driver-name-rejected/gradle.log.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/pgchain/run0-driver-name-rejected/when.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/test_ab_create_v41.run2.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/test_ab_v41.run1.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/runs/test_ab_v41.run2.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/tool/ab_arms.py",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/tool/protocol.json",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/ab-create-v41-20261116/tool/test_ab_v41.py",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "n03-1116-2200 목록 개수",
+      "ok": true,
+      "detail": 65
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/20261116-2200.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/20261116-2200.txt.msg",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/20261116-2200.txt.raw",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/README.md",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt1/error_lines.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt1/frontend-image.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt1/install_state.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt1/local-sha256.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt1/observations-supp.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt1/observations.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt1/run-time.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt1/server-files.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt1/token-check.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt2/attempt2-stderr.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt2/error_lines.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt2/frontend-image.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt2/install_state.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt2/local-sha256.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt2/observations-supp.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt2/observations.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt2/run-time.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt2/server-files.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt2/token-check.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt3/attempt3-stderr.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt3/error_lines.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt3/frontend-image.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt3/install_state.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt3/local-sha256.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt3/observations-supp.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt3/observations.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt3/run-time.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt3/server-files.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt3/token-check.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt4/attempt4-stderr.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt4/error_lines.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt4/frontend-image.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt4/install_state.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt4/local-sha256.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt4/observations-supp.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt4/observations.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt4/run-time.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt4/server-files.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt4/token-check.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt5/attempt5-stderr.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt5/error_lines.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt5/frontend-image.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt5/install_state.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt5/local-sha256.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt5/observations-supp.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt5/observations.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt5/run-time.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt5/server-files.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt5/token-check.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/attempt6-stderr.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/error_lines.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/frontend-image.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/install_state.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/last_send",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/local-sha256.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/observations-supp.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/observations.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/read.sh",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/run-time.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/server-files.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1116-2200/token-check.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "morning-20261117 목록 개수",
+      "ok": true,
+      "detail": 9
+    },
+    {
+      "name": "docs/evidence/morning-20261117/README.md",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/morning-20261117/logs-since-2200.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/morning-20261117/network-lines.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/morning-20261117/network-stderr.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/morning-20261117/read-morning.sh",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/morning-20261117/run-time.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/morning-20261117/state.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/morning-20261117/stderr.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/morning-20261117/token-check.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "review-26a12f3e 목록 개수",
+      "ok": true,
+      "detail": 4
+    },
+    {
+      "name": "docs/evidence/review-26a12f3e/.gitattributes",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/review-26a12f3e/README.md",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/review-26a12f3e/audit_review.py",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/review-26a12f3e/checks.json",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "v4 원문 연결 create/post_creation_check.sql",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "v4 원문 연결 create/extract_positions.sql",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "v4 원문 연결 tool/protocol.json",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "create/meta_preflight.sql 읽기 전용·비열람 제외",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "create/meta_after.sql 읽기 전용·비열람 제외",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "보존 PG 출력 해석 preflight.out",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "보존 PG 출력 해석 after586.out",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "보존 도구 시험 test_ab_create_v41.run2.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "보존 도구 시험 test_ab_v41.run2.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "run-a-seed 실제 HTTP·격리 PG 시험 XML",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "run-a-seed 완성기 순수 함수 재현",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "run-a-seed arms CSV 바이트 재현",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "run-a-seed 전송 의도·결과 각8",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "run-a-seed DB 시각 출처·정밀도",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "run-a-seed 음성 입력 거절 one_row_1us",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "run-a-seed 음성 입력 거절 fp_missing",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "run-a-seed 음성 입력 거절 fp_multiple",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "run-a-seed 음성 입력 거절 trade_before_t0",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "run-a-seed 음성 입력 거절 stored_ratio",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "run-b-main 실제 HTTP·격리 PG 시험 XML",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "run-b-main 완성기 순수 함수 재현",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "run-b-main arms CSV 바이트 재현",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "run-b-main 전송 의도·결과 각8",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "run-b-main DB 시각 출처·정밀도",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "run-b-main 음성 입력 거절 one_row_1us",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "run-b-main 음성 입력 거절 fp_missing",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "run-b-main 음성 입력 거절 fp_multiple",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "run-b-main 음성 입력 거절 trade_before_t0",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "run-b-main 음성 입력 거절 stored_ratio",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "run-b-main 음성 입력 거절 other_db",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "보고 서버 해시 20261116-2200.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "보고 서버 해시 20261116-2200.txt.msg",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "보고 서버 해시 20261116-2200.txt.raw",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "보고 서버 해시 last_send",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "22:00 보고 DB 값",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "n03-1116-2200 이미지·기동·HEAD 보존",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "morning-20261117 이미지·기동·HEAD 보존",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "아침 통신 ERROR9·WARN1",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "아침 로그 요약 값",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "6차 observations는 접속 실패 원문",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "4차 observations에 유효 관측 존재",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "리다이렉트 301 관측 재현",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "리다이렉트 302 관측 재현",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "리다이렉트 303 관측 재현",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "리다이렉트 307 관측 재현",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "리다이렉트 308 관측 재현",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "직접 GET 거절 대조군",
+      "ok": true,
+      "detail": null
+    }
+  ],
+  "finding": "v4.1 직접 GET 거절과 달리 urllib 자동 301/302/303 처리에서 전체 목록 GET·응답 수신이 발생한다. 실제 운영 발생은 미확인.",
+  "redirect_probe": [
+    {
+      "response": 301,
+      "requests": [
+        {
+          "method": "POST",
+          "url": "http://offline.invalid/api/v1/paper-trading/sessions"
+        },
+        {
+          "method": "GET",
+          "url": "http://offline.invalid/api/v1/paper-trading/sessions"
+        }
+      ],
+      "returned_code": 200,
+      "list_payload_received": true
+    },
+    {
+      "response": 302,
+      "requests": [
+        {
+          "method": "POST",
+          "url": "http://offline.invalid/api/v1/paper-trading/sessions"
+        },
+        {
+          "method": "GET",
+          "url": "http://offline.invalid/api/v1/paper-trading/sessions"
+        }
+      ],
+      "returned_code": 200,
+      "list_payload_received": true
+    },
+    {
+      "response": 303,
+      "requests": [
+        {
+          "method": "POST",
+          "url": "http://offline.invalid/api/v1/paper-trading/sessions"
+        },
+        {
+          "method": "GET",
+          "url": "http://offline.invalid/api/v1/paper-trading/sessions"
+        }
+      ],
+      "returned_code": 200,
+      "list_payload_received": true
+    },
+    {
+      "response": 307,
+      "requests": [
+        {
+          "method": "POST",
+          "url": "http://offline.invalid/api/v1/paper-trading/sessions"
+        }
+      ],
+      "returned_code": 307,
+      "list_payload_received": false
+    },
+    {
+      "response": 308,
+      "requests": [
+        {
+          "method": "POST",
+          "url": "http://offline.invalid/api/v1/paper-trading/sessions"
+        }
+      ],
+      "returned_code": 308,
+      "list_payload_received": false
+    }
+  ]
+}

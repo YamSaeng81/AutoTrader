@@ -1,0 +1,32 @@
+# 사용 한도 중단 기록 발췌 (2026-11-17 생성, 총괄 11-17 지시 '사용 한도 중단 로그도 근거에 포함')
+# 원본: 이 PC 의 Claude Code 로컬 세션 기록(jsonl, 세션 4db72c23…). 대화 본문·도구 출력은 넣지 않고 레코드 번호·시각(UTC)·종류·오류 표지만 옮긴다.
+# 한도 문구와 다음 사용자 입력(사람이 친 글자)만 레코드의 글자 그대로(각 100자 이내). KST = UTC+9.
+# 줄번호	timestamp(UTC)	type	role	isApiErrorMessage	error	문구
+3404	2026-11-16T08:35:49.794Z	api-request	None	None	None	
+3405	2026-11-16T08:35:51.692Z	assistant	assistant	None	None	(모델 응답 — 생략)
+3406	2026-11-16T08:35:57.721Z	assistant	assistant	None	None	(모델 응답 — 생략)
+3407	2026-11-16T08:35:59.935Z	user	user	None	None	(도구 결과 — 생략)
+3408	2026-11-16T08:36:00.039Z	api-request	None	None	None	
+3409	None	last-prompt	None	None	None	
+3410	None	ai-title	None	None	None	
+3411	None	session-owner	None	None	None	
+3412	None	atis-latch	None	None	None	
+3413	2026-11-16T08:36:00.401Z	assistant	assistant	True	rate_limit	You've hit your 5-hour limit · resets 6pm (Asia/Seoul)
+3414	2026-11-16T22:56:29.946Z	queue-operation	None	None	None	
+3415	2026-11-16T22:56:29.947Z	queue-operation	None	None	None	
+3416	2026-11-16T22:56:29.983Z	user	user	None	None	사용자 입력: 계속해줘
+
+# 2026-11-16T08:36:00.402Z < timestamp < 2026-11-16T22:56:29.900Z 인 레코드 수 — 이 세션(자동 재개·응답 여부):
+4db72c23 0
+# 이 프로젝트의 다른 로컬 세션 기록(jsonl) 같은 구간 레코드 수(파일명 앞 8자):
+39fcc133 0
+59c77fac 0
+8dd98bec 0
+929af379 0
+9a6cb5c1 0
+ab80f115 0
+ac4a3df8 0
+b4c8adba 0
+b97f38a5 0
+fca29c1e 0
+ffde7d53 0

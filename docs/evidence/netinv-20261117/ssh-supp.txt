@@ -1,0 +1,36 @@
+server 2026-11-17 10:17:58 KST
+Accepted 종류:
+     21 Accepted publickey for manicstr
+MaxStartups·drop 줄:
+2026-11-17T08:06:58+0900 yhdeabba sshd[1807822]: exited MaxStartups throttling after 00:48:31, 149646 connections dropped
+2026-11-17T08:07:02+0900 yhdeabba sshd[1807822]: error: beginning MaxStartups throttling
+2026-11-17T08:07:02+0900 yhdeabba sshd[1807822]: drop connection #12 from [143.198.x.x]:40494 on [192.168.x.x]:22 past MaxStartups
+분별 Failed 수:
+    990 T07:50
+   1029 T07:51
+   1054 T07:52
+   1099 T07:53
+   1145 T07:54
+   1048 T07:55
+   1051 T07:56
+   1084 T07:57
+   1064 T07:58
+   1051 T07:59
+   1040 T08:00
+   1009 T08:01
+   1034 T08:02
+    999 T08:03
+   1050 T08:04
+   1070 T08:05
+    910 T08:06
+   1016 T08:07
+   1013 T08:08
+    998 T08:09
+출발지(앞 두 자리)별 Failed:
+  20708 from 143.198.x.x
+      6 from 203.245.x.x
+      4 from 213.209.x.x
+      4 from 211.253.x.x
+      4 from 106.248.x.x
+sshd 설정 PasswordAuthentication(읽기):
+sshd -T 권한 없음(미확인)

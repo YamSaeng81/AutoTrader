@@ -1,0 +1,30 @@
+$ sma20_chain_driver create --port 2050 --code-sha 0e1d2a021ab2f3c759a9b2be9c4f09430f93c80d → rc=0
+{"stage": "create", "sub": "create", "rc": 0, "real_now": "2026-11-17T01:02:12+00:00", "window": ["2026-11-17T01:01:12+00:00", "2026-11-17T01:07:12+00:00"], "t0": "2026-11-18T00:00:00+00:00", "tool_out": "{\"done\": \"SMA20 1개 OK · DB 메타 대조 성공(확인 SQL 전 초안)\", \"session_id\": 2, \"t0\": \"2026-11-18T00:00:00+00:00\"}"}
+
+첫 평가 뒤 주문=0 포지션=0
+
+$ sma20_chain_driver check --tag ok → rc=0
+{"stage": "check", "tag": "ok", "psql_db": "sm20a", "complete_rc": 0, "complete_out": "{\"done\": \"SMA20 완성본\", \"session_id\": \"2\", \"t0\": \"2026-11-18T00:00:00+00:00\"}"}
+
+$ sma20_chain_driver check --tag neg_1us → rc=3
+{"stage": "check", "tag": "neg_1us", "psql_db": "sm20a", "complete_rc": 3, "complete_out": "{\"rejected\": \"started_at 이 초안 DB 메타 값과 나노초까지 같지 않다(다른 DB·저장값 다름)\"}"}
+
+$ sma20_chain_driver seed-other --other-db sm20o → rc=0
+{"stage": "seed-other", "rc": 0, "other_db": "sm20o", "id": "2", "stderr": ""}
+
+$ sma20_chain_driver check --tag neg_other_db --psql-db sm20o → rc=3
+{"stage": "check", "tag": "neg_other_db", "psql_db": "sm20o", "complete_rc": 3, "complete_out": "{\"rejected\": \"started_at 이 초안 DB 메타 값과 나노초까지 같지 않다(다른 DB·저장값 다름)\"}"}
+
+$ sma20_chain_driver check --tag neg_order_before_t0 → rc=3
+{"stage": "check", "tag": "neg_order_before_t0", "psql_db": "sm20a", "complete_rc": 3, "complete_out": "{\"rejected\": \"orders_all=1 (0 이어야 한다); orders_before_t0=1 (0 이어야 한다)\"}"}
+
+$ sma20_chain_driver check --tag neg_position → rc=3
+{"stage": "check", "tag": "neg_position", "psql_db": "sm20a", "complete_rc": 3, "complete_out": "{\"rejected\": \"positions_all=1 (0 이어야 한다); positions_before_t0=1 (0 이어야 한다)\"}"}
+
+$ sma20_chain_driver create --port 2050 --code-sha 0e1d2a021ab2f3c759a9b2be9c4f09430f93c80d → rc=4
+{"stage": "create", "sub": "create", "rc": 4, "real_now": "2026-11-17T01:02:15+00:00", "window": ["2026-11-17T01:01:15+00:00", "2026-11-17T01:07:15+00:00"], "t0": "2026-11-18T00:00:00+00:00", "tool_out": "{\"stop\": \"이미 전송 의도가 있는 기록부다 — 생성 반복 금지(결과와 무관)\"}"}
+
+$ sma20_chain_driver create --port 2050 --code-sha 0e1d2a021ab2f3c759a9b2be9c4f09430f93c80d --sub create-rerun-new → rc=2
+{"stage": "create", "sub": "create-rerun-new", "rc": 2, "real_now": "2026-11-17T01:02:15+00:00", "window": ["2026-11-17T01:01:15+00:00", "2026-11-17T01:07:15+00:00"], "t0": "2026-11-18T00:00:00+00:00", "tool_out": "{\"stop\": \"forwardTag=SMA20-FWD-1 세션이 이미 있다([2]) — 생성 반복 금지 — 보낸 것 없음\"}"}
+
+음성 rc: 1µs=3 다른DB=3 T0전주문=3 포지션=3 / 재실행 같은폴더=4 새폴더=2 / SMA20 세션 수=1

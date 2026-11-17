@@ -1,0 +1,20 @@
+@@db_now
+db_now,judge_at
+2026-11-16 23:44:51.066253+00,2026-11-17 05:10:00+00
+@@enablement
+strategy_name,timeframe,type_row,type_active,tf_row,tf_active,enabled
+COMPOSITE_MEANREV_BB,M15,f,,f,,t
+COMPOSITE_MTF_CONFIRMED,M15,f,,f,,t
+DAILY_SMA20,H1,f,,f,,t
+@@candles
+coin_pair,timeframe,min_required,n_window,n_closed,first_closed,last_closed,need_latest_closed,b1_ok,missing,b3_daily,status
+KRW-BTC,H1,457,500,499,2026-10-27 10:00:00+00,2026-11-17 04:00:00+00,2026-11-17 04:00:00+00,t,0,20,normal
+KRW-BTC,M15,100,497,497,2026-11-12 00:15:00+00,2026-11-17 04:15:00+00,2026-11-17 04:45:00+00,f,0,,stale
+KRW-ETH,M15,100,500,499,2026-11-12 00:15:00+00,2026-11-17 04:45:00+00,2026-11-17 04:45:00+00,t,0,,normal
+@@sessions
+running_total,running_prereg,max_id,n_new,cap,cap_ok
+4,2,601,9,120,t
+@@dup_candidates
+id,status,strategy_name,coin_pair,timeframe,initial_capital,params_json,started_at
+588,RUNNING,COMPOSITE_MEANREV_BB,KRW-BTC,M15,100000.00,"{""paperExecutionMode"": ""LIVE_ALIGNED"", ""paperMaxInvestment"": 20000}",2026-11-16 08:25:52.815926+00
+@@end

@@ -1,0 +1,28 @@
+{
+  "status": "SMA20 생성 초안 — 확인 SQL 전(sma20_complete.py 로 완성)",
+  "tool": "sma20_create v1",
+  "creator_version": "v4.2",
+  "code_sha": "0e1d2a021ab2f3c759a9b2be9c4f09430f93c80d",
+  "body_sha256": "809ac8b0be464c8875418c0f8bdfcc84420d13e44417f98ee45b430dc06b6ec1",
+  "body_file_sha256": "c0725d448a02ea353bf1a8bb9c76e3eaddb2757033f0449b449261aa59793bb1",
+  "forward_tag": "SMA20-FWD-1",
+  "window_start": "2026-11-17T01:01:12+00:00",
+  "window_end": "2026-11-17T01:07:12+00:00",
+  "t0": "2026-11-18T00:00:00+00:00",
+  "t0_rule": "창 시작 뒤 첫 09:00 KST(00:00 UTC), POST 전 고정",
+  "db_verified": false,
+  "reconcile_ok": true,
+  "reconcile_source": "DB 메타 조회(meta_after.sql, 열 제한·522~587 제외) — API 목록 아님",
+  "db_source": "로컬 격리 컨테이너 v152-pg / DB sm20a (docker exec psql, 생성기 메타 조회)",
+  "preflight_max_id": 1,
+  "meta_after_sha256": "3912ef45d808627f727bba5210cf2db28e8255ccff5a2c0e6005db41e90a19b5",
+  "session_id": "2",
+  "post_started_at_raw": "2026-11-17T01:02:12.929029200Z",
+  "db_meta_started_at": "2026-11-17 01:02:12.929029+00",
+  "precision_contract": "round_half_up(나노초→마이크로초)(post_started_at_raw) == db_meta_started_at",
+  "checks": {
+    "reconcile_problems": [],
+    "timing_problems": [],
+    "other_new_ids": []
+  }
+}

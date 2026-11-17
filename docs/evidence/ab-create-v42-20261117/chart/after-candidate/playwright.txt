@@ -1,0 +1,9 @@
+
+Running 2 tests using 1 worker
+
+[대비] light {"ratio":14.23,"fg":[29,41,61],"bg":[251,252,253],"layers":["div.px-6.py-5=oklab(0.983998 -0.00114059 -0.00275564 / 0.5)","div.bg-white.dark:bg-slate-900=rgb(255, 255, 255)"],"htmlDark":false}
+  ok 1 e2e\chart-title-contrast.spec.ts:75:7 › 차트 제목 대비 — light (2.6s)
+[대비] dark {"ratio":14.76,"fg":[241,245,249],"bg":[23,33,53],"layers":["div.px-6.py-5=oklab(0.278998 -0.00710082 -0.0403727 / 0.5)","div.bg-white.dark:bg-slate-900=lab(7.78673 1.82346 -15.0537)"],"htmlDark":true}
+  ok 2 e2e\chart-title-contrast.spec.ts:75:7 › 차트 제목 대비 — dark (1.1s)
+
+  2 passed (8.6s)

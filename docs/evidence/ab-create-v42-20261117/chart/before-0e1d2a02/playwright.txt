@@ -1,0 +1,32 @@
+
+Running 2 tests using 1 worker
+
+[대비] light {"ratio":14.23,"fg":[29,41,61],"bg":[251,252,253],"layers":["div.px-6.py-5=oklab(0.983998 -0.00114059 -0.00275564 / 0.5)","div.bg-white.rounded-2xl=rgb(255, 255, 255)"],"htmlDark":false}
+  ok 1 e2e\chart-title-contrast.spec.ts:75:7 › 차트 제목 대비 — light (2.7s)
+[대비] dark {"ratio":1.07,"fg":[241,245,249],"bg":[251,252,253],"layers":["div.px-6.py-5=oklab(0.983998 -0.00114059 -0.00275564 / 0.5)","div.bg-white.rounded-2xl=rgb(255, 255, 255)"],"htmlDark":true}
+  x  2 e2e\chart-title-contrast.spec.ts:75:7 › 차트 제목 대비 — dark (975ms)
+
+
+  1) e2e\chart-title-contrast.spec.ts:75:7 › 차트 제목 대비 — dark ───────────────────────────────────────
+
+    Error: 제목 대비 1.07:1 (글자 241,245,249 / 배경 251,252,253)
+
+    expect(received).toBeGreaterThanOrEqual(expected)
+
+    Expected: >= 4.5
+    Received:    1.07
+
+      90 |     await page.screenshot({ path: path.join(OUT, `${theme}-page.png`), fullPage: true });
+      91 |     expect(c.htmlDark).toBe(theme === 'dark');
+    > 92 |     expect(c.ratio, `제목 대비 ${c.ratio}:1 (글자 ${c.fg} / 배경 ${c.bg})`).toBeGreaterThanOrEqual(4.5);
+         |                                                                     ^
+      93 |   });
+      94 | }
+      95 |
+        at d:\tmp\fe-chart-0e1d2a02\crypto-trader-frontend\e2e\chart-title-contrast.spec.ts:92:69
+
+    Error Context: test-results\chart-title-contrast-차트-제목-대비-—-dark\error-context.md
+
+  1 failed
+    e2e\chart-title-contrast.spec.ts:75:7 › 차트 제목 대비 — dark ────────────────────────────────────────
+  1 passed (8.8s)

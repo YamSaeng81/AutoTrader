@@ -1,0 +1,22 @@
+사례 T20
+첫 호출 종료값=8
+다음 단계 직접 호출 종료값=8
+도구 호출(python 대역) 누계=1 · psql 대역 누계=0
+--- 남은 파일(OUT)
+total 9
+drwxr-xr-x 1 SangJoon_Lee 197121 0 Nov 17 09:52 .
+drwxr-xr-x 1 SangJoon_Lee 197121 0 Nov 17 09:52 ..
+-rw-r--r-- 1 SangJoon_Lee 197121 2 Nov 17 09:52 1.rc
+-rw-r--r-- 1 SangJoon_Lee 197121 0 Nov 17 09:52 2-ab-create.txt
+drwxr-xr-x 1 SangJoon_Lee 197121 0 Nov 17 09:52 steps.log
+--- 1.rc: 0
+--- steps.log
+(파일 아님 — 기록 실패 주입으로 폴더)
+--- 다음 단계 화면 출력
+/d/Claude Code/projects/crypto-auto-trader/docs/evidence/ab-create-v42-20261117/bundle/run_bundle.sh: line 42: C:/Users/SangJoon_Lee/AppData/Local/Temp/tmp.lEfe0pkS75/out21/steps.log: Is a directory
+2026-11-17T00:52:52Z STEP=3 🔴 앞 단계 STEP=2 rc=없음 — 이 단계 부르지 않음 [steps.log 기록 실패 → 이 줄 무효, 종료 8]
+--- 첫 호출 화면 출력
+2026-11-17T00:52:51Z STEP=2 ab_create rc=0 (0=8개 OK·DB 메타 대조 성공, 2=보낸 것 없음, 3=멈춤/부분/불명, 4=기록부·잠금)
+2026-11-17T00:52:51Z STEP=2 토큰 문자열 포함 파일 수=0
+/d/Claude Code/projects/crypto-auto-trader/docs/evidence/ab-create-v42-20261117/bundle/run_bundle.sh: line 42: C:/Users/SangJoon_Lee/AppData/Local/Temp/tmp.lEfe0pkS75/out21/steps.log: Is a directory
+2026-11-17T00:52:52Z STEP=2 끝 rc=0 [steps.log 기록 실패 → 이 줄 무효, 종료 8]

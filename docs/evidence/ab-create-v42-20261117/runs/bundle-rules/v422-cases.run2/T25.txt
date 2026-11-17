@@ -1,0 +1,25 @@
+사례 T25
+첫 호출 종료값=8
+다음 단계 직접 호출 종료값=8
+도구 호출(python 대역) 누계=1 · psql 대역 누계=1
+--- 남은 파일(OUT)
+total 15
+drwxr-xr-x 1 SangJoon_Lee 197121  0 Nov 17 09:52 .
+drwxr-xr-x 1 SangJoon_Lee 197121  0 Nov 17 09:52 ..
+-rw-r--r-- 1 SangJoon_Lee 197121  2 Nov 17 09:52 0.rc
+-rw-r--r-- 1 SangJoon_Lee 197121 14 Nov 17 09:52 1-judge.txt
+-rw-r--r-- 1 SangJoon_Lee 197121  0 Nov 17 09:52 1-preflight.err
+-rw-r--r-- 1 SangJoon_Lee 197121  7 Nov 17 09:52 1-preflight.out
+drwxr-xr-x 1 SangJoon_Lee 197121  0 Nov 17 09:52 steps.log
+--- 0.rc: 0
+--- steps.log
+(파일 아님 — 기록 실패 주입으로 폴더)
+--- 다음 단계 화면 출력
+/d/Claude Code/projects/crypto-auto-trader/docs/evidence/ab-create-v42-20261117/bundle/run_bundle.sh: line 42: C:/Users/SangJoon_Lee/AppData/Local/Temp/tmp.lEfe0pkS75/out26/steps.log: Is a directory
+2026-11-17T00:52:59Z STEP=2 🔴 앞 단계 STEP=1 rc=없음 — 이 단계 부르지 않음 [steps.log 기록 실패 → 이 줄 무효, 종료 8]
+--- 첫 호출 화면 출력
+2026-11-17T00:52:58Z STEP=1 preflight psql rc=0
+{"ok":"stub"}
+2026-11-17T00:52:58Z STEP=1 판정 rc=0
+/d/Claude Code/projects/crypto-auto-trader/docs/evidence/ab-create-v42-20261117/bundle/run_bundle.sh: line 42: C:/Users/SangJoon_Lee/AppData/Local/Temp/tmp.lEfe0pkS75/out26/steps.log: Is a directory
+2026-11-17T00:52:58Z STEP=1 끝 rc=0 [steps.log 기록 실패 → 이 줄 무효, 종료 8]

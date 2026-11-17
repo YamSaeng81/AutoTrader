@@ -1,0 +1,213 @@
+{
+  "status": "완성본 — 읽기 전용 DB 확인 출력에서 만듦(ab_complete.py v4.1)",
+  "tool_version": "v4.1",
+  "creator_meta_source": "로컬 격리 컨테이너 v152-pg / DB ab42b (docker exec psql, 생성기 메타 조회)",
+  "reconcile_source": "DB 메타 조회(meta_after.sql, 열 제한·522~587 제외) — API 목록 아님",
+  "protocol_sha256": "8d787fe9d8c6d6bec00a588e38c6d638a97be9faf3709875b1670d71eae5d3db",
+  "code_sha": "0e1d2a021ab2f3c759a9b2be9c4f09430f93c80d",
+  "t0": "2026-11-17T00:00:00+00:00",
+  "db_verified": true,
+  "db_check": {
+    "status": "확인됨",
+    "source_sha256": "a6a81c8a36a0dc51427240d8b62adb999c664f73feca3ec893beee6829d7afe3",
+    "db_now": "2026-11-16T23:53:49.434922+00:00",
+    "db_source": "로컬 격리 컨테이너 v152-pg / DB ab42b (docker exec psql)",
+    "started_at_match": "8/8 — 생성기 DB 메타 조회 started_at == 확인 SQL psql started_at (UTC 같은 순간, 나노초 정수 비교)",
+    "note": "시각 대조는 같은 생성 회차의 행인지 확인하는 검사이며 DB 서버 신원 인증이 아니다"
+  },
+  "draft_sha256": "ac114bc0ba0320cd33a115318f628f08b8a8c81f91a189b2abeded9e0a27b5b0",
+  "sessions": [
+    {
+      "pair_id": "P1",
+      "arm": "A",
+      "session_id": "2",
+      "created_at": "2026-11-16T23:53:48.372510600Z",
+      "post_started_at_raw": "2026-11-16T23:53:48.372510600Z",
+      "db_meta_started_at": "2026-11-16 23:53:48.372511+00",
+      "db_started_at": "2026-11-16 23:53:48.372511+00",
+      "ruleset_hash": "141c4dfd6822",
+      "stored": {
+        "strategy": "COMPOSITE_MEANREV_BB",
+        "coin": "KRW-BTC",
+        "timeframe": "M15",
+        "initial_capital": "100000.00",
+        "invest_ratio": "0.8000",
+        "max_investment": "20000",
+        "max_hold_hours": "24",
+        "stop_loss_pct": "",
+        "params_json": {
+          "paperExecutionMode": "LIVE_ALIGNED",
+          "paperMaxInvestment": 20000
+        }
+      }
+    },
+    {
+      "pair_id": "P1",
+      "arm": "B",
+      "session_id": "3",
+      "created_at": "2026-11-16T23:53:48.464505300Z",
+      "post_started_at_raw": "2026-11-16T23:53:48.464505300Z",
+      "db_meta_started_at": "2026-11-16 23:53:48.464505+00",
+      "db_started_at": "2026-11-16 23:53:48.464505+00",
+      "ruleset_hash": "282d280b8014",
+      "stored": {
+        "strategy": "COMPOSITE_MEANREV_BB",
+        "coin": "KRW-BTC",
+        "timeframe": "M15",
+        "initial_capital": "100000.00",
+        "invest_ratio": "0.8000",
+        "max_investment": "20000",
+        "max_hold_hours": "24",
+        "stop_loss_pct": "5.00",
+        "params_json": {
+          "paperExecutionMode": "LIVE_ALIGNED",
+          "paperMaxInvestment": 20000
+        }
+      }
+    },
+    {
+      "pair_id": "P2",
+      "arm": "A",
+      "session_id": "4",
+      "created_at": "2026-11-16T23:53:48.506346500Z",
+      "post_started_at_raw": "2026-11-16T23:53:48.506346500Z",
+      "db_meta_started_at": "2026-11-16 23:53:48.506347+00",
+      "db_started_at": "2026-11-16 23:53:48.506347+00",
+      "ruleset_hash": "141c4dfd6822",
+      "stored": {
+        "strategy": "COMPOSITE_MEANREV_BB",
+        "coin": "KRW-ETH",
+        "timeframe": "M15",
+        "initial_capital": "100000.00",
+        "invest_ratio": "0.8000",
+        "max_investment": "20000",
+        "max_hold_hours": "24",
+        "stop_loss_pct": "",
+        "params_json": {
+          "paperExecutionMode": "LIVE_ALIGNED",
+          "paperMaxInvestment": 20000
+        }
+      }
+    },
+    {
+      "pair_id": "P2",
+      "arm": "B",
+      "session_id": "5",
+      "created_at": "2026-11-16T23:53:48.528661700Z",
+      "post_started_at_raw": "2026-11-16T23:53:48.528661700Z",
+      "db_meta_started_at": "2026-11-16 23:53:48.528662+00",
+      "db_started_at": "2026-11-16 23:53:48.528662+00",
+      "ruleset_hash": "282d280b8014",
+      "stored": {
+        "strategy": "COMPOSITE_MEANREV_BB",
+        "coin": "KRW-ETH",
+        "timeframe": "M15",
+        "initial_capital": "100000.00",
+        "invest_ratio": "0.8000",
+        "max_investment": "20000",
+        "max_hold_hours": "24",
+        "stop_loss_pct": "5.00",
+        "params_json": {
+          "paperExecutionMode": "LIVE_ALIGNED",
+          "paperMaxInvestment": 20000
+        }
+      }
+    },
+    {
+      "pair_id": "P3",
+      "arm": "A",
+      "session_id": "6",
+      "created_at": "2026-11-16T23:53:48.570120400Z",
+      "post_started_at_raw": "2026-11-16T23:53:48.570120400Z",
+      "db_meta_started_at": "2026-11-16 23:53:48.57012+00",
+      "db_started_at": "2026-11-16 23:53:48.57012+00",
+      "ruleset_hash": "141c4dfd6822",
+      "stored": {
+        "strategy": "COMPOSITE_MTF_CONFIRMED",
+        "coin": "KRW-BTC",
+        "timeframe": "M15",
+        "initial_capital": "100000.00",
+        "invest_ratio": "0.8000",
+        "max_investment": "20000",
+        "max_hold_hours": "24",
+        "stop_loss_pct": "",
+        "params_json": {
+          "paperExecutionMode": "LIVE_ALIGNED",
+          "paperMaxInvestment": 20000
+        }
+      }
+    },
+    {
+      "pair_id": "P3",
+      "arm": "B",
+      "session_id": "7",
+      "created_at": "2026-11-16T23:53:48.612911400Z",
+      "post_started_at_raw": "2026-11-16T23:53:48.612911400Z",
+      "db_meta_started_at": "2026-11-16 23:53:48.612911+00",
+      "db_started_at": "2026-11-16 23:53:48.612911+00",
+      "ruleset_hash": "282d280b8014",
+      "stored": {
+        "strategy": "COMPOSITE_MTF_CONFIRMED",
+        "coin": "KRW-BTC",
+        "timeframe": "M15",
+        "initial_capital": "100000.00",
+        "invest_ratio": "0.8000",
+        "max_investment": "20000",
+        "max_hold_hours": "24",
+        "stop_loss_pct": "5.00",
+        "params_json": {
+          "paperExecutionMode": "LIVE_ALIGNED",
+          "paperMaxInvestment": 20000
+        }
+      }
+    },
+    {
+      "pair_id": "P4",
+      "arm": "A",
+      "session_id": "8",
+      "created_at": "2026-11-16T23:53:48.630114200Z",
+      "post_started_at_raw": "2026-11-16T23:53:48.630114200Z",
+      "db_meta_started_at": "2026-11-16 23:53:48.630114+00",
+      "db_started_at": "2026-11-16 23:53:48.630114+00",
+      "ruleset_hash": "141c4dfd6822",
+      "stored": {
+        "strategy": "COMPOSITE_MTF_CONFIRMED",
+        "coin": "KRW-ETH",
+        "timeframe": "M15",
+        "initial_capital": "100000.00",
+        "invest_ratio": "0.8000",
+        "max_investment": "20000",
+        "max_hold_hours": "24",
+        "stop_loss_pct": "",
+        "params_json": {
+          "paperExecutionMode": "LIVE_ALIGNED",
+          "paperMaxInvestment": 20000
+        }
+      }
+    },
+    {
+      "pair_id": "P4",
+      "arm": "B",
+      "session_id": "9",
+      "created_at": "2026-11-16T23:53:48.672074700Z",
+      "post_started_at_raw": "2026-11-16T23:53:48.672074700Z",
+      "db_meta_started_at": "2026-11-16 23:53:48.672075+00",
+      "db_started_at": "2026-11-16 23:53:48.672075+00",
+      "ruleset_hash": "282d280b8014",
+      "stored": {
+        "strategy": "COMPOSITE_MTF_CONFIRMED",
+        "coin": "KRW-ETH",
+        "timeframe": "M15",
+        "initial_capital": "100000.00",
+        "invest_ratio": "0.8000",
+        "max_investment": "20000",
+        "max_hold_hours": "24",
+        "stop_loss_pct": "5.00",
+        "params_json": {
+          "paperExecutionMode": "LIVE_ALIGNED",
+          "paperMaxInvestment": 20000
+        }
+      }
+    }
+  ]
+}

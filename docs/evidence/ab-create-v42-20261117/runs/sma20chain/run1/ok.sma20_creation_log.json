@@ -1,0 +1,23 @@
+{
+  "body_sha256": "809ac8b0be464c8875418c0f8bdfcc84420d13e44417f98ee45b430dc06b6ec1",
+  "check_db_source": "로컬 격리 컨테이너 v152-pg / DB sm20a (docker exec psql)",
+  "code_sha": "0e1d2a021ab2f3c759a9b2be9c4f09430f93c80d",
+  "creator_version": "v4.2",
+  "db_check_now": "2026-11-17 01:02:13.058303+00",
+  "db_check_sha256": "45836651a74e41e6a262b64d6aada2fec08db6dfdb76b2b1ccc6884e15352efb",
+  "db_meta_started_at": "2026-11-17 01:02:12.929029+00",
+  "db_source": "로컬 격리 컨테이너 v152-pg / DB sm20a (docker exec psql, 생성기 메타 조회)",
+  "db_started_at": "2026-11-17 01:02:12.929029+00",
+  "db_verified": true,
+  "forward_tag": "SMA20-FWD-1",
+  "pair_compare_note": "쌍 비교 구간은 LIVE 203 실제 started_at 부터(그 전은 선행 구간) — 이 기록부는 SMA20 쪽 T0 만 고정한다",
+  "post_started_at_raw": "2026-11-17T01:02:12.929029200Z",
+  "reconcile_source": "DB 메타 조회(meta_after.sql, 열 제한·522~587 제외) — API 목록 아님",
+  "session_id": "2",
+  "status": "완성본 — 읽기 전용 DB 확인 출력에서 만듦(sma20_complete.py v1)",
+  "t0": "2026-11-18T00:00:00+00:00",
+  "t0_rule": "창 시작 뒤 첫 09:00 KST(00:00 UTC), POST 전 고정",
+  "tool": "sma20_create v1",
+  "window_end": "2026-11-17T01:07:12+00:00",
+  "window_start": "2026-11-17T01:01:12+00:00"
+}

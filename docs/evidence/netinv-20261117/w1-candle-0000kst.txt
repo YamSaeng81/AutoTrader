@@ -1,0 +1,81 @@
+구간 2026-11-16T14:55:00Z~2026-11-16T15:20:00Z 줄 861 · ERROR 6 · WARN 3
+14:55:15.211 [scheduler-5] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-IOTA H1 6 건
+14:55:15.342 [scheduler-5] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-WAVES H1 6 건
+14:55:15.475 [scheduler-5] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-CRO H1 6 건
+14:56:19.009 [scheduler-4] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-IOTA H1 6 건
+14:56:19.140 [scheduler-4] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-WAVES H1 6 건
+14:56:19.272 [scheduler-4] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-CRO H1 6 건
+14:57:22.829 [scheduler-7] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-IOTA H1 6 건
+14:57:22.962 [scheduler-7] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-WAVES H1 6 건
+14:57:23.092 [scheduler-7] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-CRO H1 6 건
+14:58:26.608 [scheduler-8] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-IOTA H1 6 건
+14:58:26.739 [scheduler-8] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-WAVES H1 6 건
+14:58:26.869 [scheduler-8] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-CRO H1 6 건
+14:59:30.407 [scheduler-3] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-IOTA H1 6 건
+14:59:30.538 [scheduler-3] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-WAVES H1 6 건
+14:59:30.667 [scheduler-3] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-CRO H1 6 건
+15:00:49.110 [scheduler-7] ERROR c.c.e.upbit.UpbitCandleCollector - 캔들 수집 실패: request timed out
+java.net.http.HttpTimeoutException: request timed out
+15:00:49.116 [scheduler-7] ERROR c.c.a.service.MarketDataSyncService - 시장 데이터 동기화 실패: KRW-IOTA H1 - 캔들 데이터 수집 실패
+15:00:49.837 [scheduler-1] INFO  c.c.api.service.PaperTradingService - 모의투자 신호 (sessionId=522): COMPOSITE_MOMENTUM_ICHIMOKU_V2 KRW-IOTA → HOLD (점수 미달 buy=0.00 sell=0.05 [MACD:HOLD(0) SUPERTREND:SELL
+15:00:49.850 [scheduler-1] INFO  c.c.api.service.PaperTradingService - 모의투자 신호 (sessionId=523): COMPOSITE_MTF_MOMENTUM KRW-IOTA → HOLD (점수 미달 buy=0.00 sell=0.05 [MACD:HOLD(0) SUPERTREND:SELL(50) GRI
+15:00:49.863 [scheduler-1] INFO  c.c.api.service.PaperTradingService - 모의투자 신호 (sessionId=524): COMPOSITE_MTF_MOMENTUM_CLOSED KRW-IOTA → HOLD (점수 미달 buy=0.00 sell=0.05 [MACD:HOLD(0) SUPERTREND:SELL(
+15:00:49.881 [scheduler-1] INFO  c.c.api.service.PaperTradingService - 모의투자 신호 (sessionId=525): COMPOSITE_MTF_MOMENTUM KRW-WAVES → HOLD (점수 미달 buy=0.00 sell=0.05 [MACD:HOLD(0) SUPERTREND:SELL(50) GR
+15:00:49.893 [scheduler-1] INFO  c.c.api.service.PaperTradingService - 모의투자 신호 (sessionId=526): COMPOSITE_MTF_MOMENTUM_CLOSED KRW-WAVES → HOLD (점수 미달 buy=0.00 sell=0.05 [MACD:HOLD(0) SUPERTREND:SELL
+15:00:49.906 [scheduler-1] INFO  c.c.api.service.PaperTradingService - 모의투자 신호 (sessionId=527): COMPOSITE_MOMENTUM_ICHIMOKU_V2 KRW-WAVES → HOLD (점수 미달 buy=0.00 sell=0.05 [MACD:HOLD(0) SUPERTREND:SEL
+15:00:49.925 [scheduler-1] INFO  c.c.api.service.PaperTradingService - 모의투자 신호 (sessionId=528): COMPOSITE_MTF_MOMENTUM_CLOSED KRW-CRO → HOLD (점수 미달 buy=0.00 sell=0.04 [MACD:HOLD(0) SUPERTREND:SELL(4
+15:00:49.937 [scheduler-1] INFO  c.c.api.service.PaperTradingService - 모의투자 신호 (sessionId=529): COMPOSITE_MOMENTUM_ICHIMOKU_V2 KRW-CRO → HOLD (점수 미달 buy=0.00 sell=0.04 [MACD:HOLD(0) SUPERTREND:SELL(
+15:00:49.950 [scheduler-1] INFO  c.c.api.service.PaperTradingService - 모의투자 신호 (sessionId=530): COMPOSITE_MTF_MOMENTUM KRW-CRO → HOLD (점수 미달 buy=0.00 sell=0.04 [MACD:HOLD(0) SUPERTREND:SELL(44) GRID
+15:01:04.121 [scheduler-7] ERROR c.c.e.upbit.UpbitCandleCollector - 캔들 수집 실패: request timed out
+java.net.http.HttpTimeoutException: request timed out
+15:01:04.122 [scheduler-7] ERROR c.c.a.service.MarketDataSyncService - 시장 데이터 동기화 실패: KRW-WAVES H1 - 캔들 데이터 수집 실패
+15:01:12.676 [scheduler-5] WARN  c.c.a.service.ExchangeHealthMonitor - 거래소 연결 실패 (1/3회): request timed out (10001ms)
+15:01:19.127 [scheduler-7] ERROR c.c.e.upbit.UpbitCandleCollector - 캔들 수집 실패: request timed out
+java.net.http.HttpTimeoutException: request timed out
+15:01:19.127 [scheduler-7] ERROR c.c.a.service.MarketDataSyncService - 시장 데이터 동기화 실패: KRW-CRO H1 - 캔들 데이터 수집 실패
+15:02:34.996 [scheduler-5] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-IOTA H1 7 건
+15:02:35.128 [scheduler-5] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-WAVES H1 6 건
+15:02:35.257 [scheduler-5] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-CRO H1 7 건
+15:03:38.829 [scheduler-6] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-IOTA H1 6 건
+15:03:38.959 [scheduler-6] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-WAVES H1 7 건
+15:03:39.091 [scheduler-6] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-CRO H1 6 건
+15:04:42.644 [scheduler-4] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-IOTA H1 6 건
+15:04:42.774 [scheduler-4] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-WAVES H1 6 건
+15:04:42.913 [scheduler-4] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-CRO H1 6 건
+15:05:46.439 [scheduler-6] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-IOTA H1 6 건
+15:05:46.565 [scheduler-6] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-WAVES H1 6 건
+15:05:46.704 [scheduler-6] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-CRO H1 6 건
+15:06:50.250 [scheduler-8] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-IOTA H1 6 건
+15:06:50.380 [scheduler-8] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-WAVES H1 6 건
+15:06:50.511 [scheduler-8] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-CRO H1 6 건
+15:07:54.046 [scheduler-8] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-IOTA H1 6 건
+15:07:54.191 [scheduler-8] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-WAVES H1 6 건
+15:07:54.321 [scheduler-8] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-CRO H1 6 건
+15:08:57.850 [scheduler-2] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-IOTA H1 6 건
+15:08:57.980 [scheduler-2] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-WAVES H1 6 건
+15:08:58.111 [scheduler-2] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-CRO H1 6 건
+15:10:01.651 [scheduler-3] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-IOTA H1 6 건
+15:10:01.781 [scheduler-3] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-WAVES H1 6 건
+15:10:01.913 [scheduler-3] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-CRO H1 6 건
+15:11:05.439 [scheduler-7] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-IOTA H1 6 건
+15:11:05.573 [scheduler-7] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-WAVES H1 6 건
+15:11:05.703 [scheduler-7] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-CRO H1 6 건
+15:12:09.239 [scheduler-4] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-IOTA H1 6 건
+15:12:09.367 [scheduler-4] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-WAVES H1 6 건
+15:12:09.497 [scheduler-4] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-CRO H1 6 건
+15:13:13.095 [scheduler-8] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-IOTA H1 6 건
+15:13:13.224 [scheduler-8] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-WAVES H1 6 건
+15:13:13.355 [scheduler-8] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-CRO H1 6 건
+15:14:16.917 [scheduler-4] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-IOTA H1 6 건
+15:14:17.048 [scheduler-4] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-WAVES H1 6 건
+15:14:17.177 [scheduler-4] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-CRO H1 6 건
+15:15:20.698 [scheduler-1] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-IOTA H1 6 건
+15:15:20.826 [scheduler-1] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-WAVES H1 6 건
+15:15:20.954 [scheduler-1] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-CRO H1 6 건
+15:16:24.499 [scheduler-8] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-IOTA H1 6 건
+15:16:24.628 [scheduler-8] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-WAVES H1 6 건
+15:16:24.756 [scheduler-8] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-CRO H1 6 건
+15:17:28.292 [scheduler-2] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-IOTA H1 6 건
+15:17:28.426 [scheduler-2] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-WAVES H1 6 건
+15:17:28.556 [scheduler-2] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-CRO H1 6 건
+15:18:32.073 [scheduler-8] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-IOTA H1 6 건

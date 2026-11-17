@@ -1,0 +1,60 @@
+
+Running 2 tests using 1 worker
+
+  x  1 e2e\chart-title-contrast.spec.ts:75:7 › 차트 제목 대비 — light (7.5s)
+  x  2 e2e\chart-title-contrast.spec.ts:75:7 › 차트 제목 대비 — dark (5.3s)
+
+
+  1) e2e\chart-title-contrast.spec.ts:75:7 › 차트 제목 대비 — light ──────────────────────────────────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByRole('heading', { name: '가격 차트 (매수/매도 시점)' })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for getByRole('heading', { name: '가격 차트 (매수/매도 시점)' })
+
+
+      83 |     await page.goto(`/paper-trading/${SID}`);
+      84 |     const h = page.getByRole('heading', { name: TITLE });
+    > 85 |     await expect(h).toBeVisible();
+         |                     ^
+      86 |     const c = await contrast(page);
+      87 |     fs.writeFileSync(path.join(OUT, `${theme}.json`), JSON.stringify(c, null, 2));
+      88 |     console.log(`[대비] ${theme} ${JSON.stringify(c)}`);
+        at D:\tmp\fe-chart-0e1d2a02\crypto-trader-frontend\e2e\chart-title-contrast.spec.ts:85:21
+
+    Error Context: test-results\chart-title-contrast-차트-제목-대비-—-light\error-context.md
+
+  2) e2e\chart-title-contrast.spec.ts:75:7 › 차트 제목 대비 — dark ───────────────────────────────────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByRole('heading', { name: '가격 차트 (매수/매도 시점)' })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for getByRole('heading', { name: '가격 차트 (매수/매도 시점)' })
+
+
+      83 |     await page.goto(`/paper-trading/${SID}`);
+      84 |     const h = page.getByRole('heading', { name: TITLE });
+    > 85 |     await expect(h).toBeVisible();
+         |                     ^
+      86 |     const c = await contrast(page);
+      87 |     fs.writeFileSync(path.join(OUT, `${theme}.json`), JSON.stringify(c, null, 2));
+      88 |     console.log(`[대비] ${theme} ${JSON.stringify(c)}`);
+        at D:\tmp\fe-chart-0e1d2a02\crypto-trader-frontend\e2e\chart-title-contrast.spec.ts:85:21
+
+    Error Context: test-results\chart-title-contrast-차트-제목-대비-—-dark\error-context.md
+
+  2 failed
+    e2e\chart-title-contrast.spec.ts:75:7 › 차트 제목 대비 — light ───────────────────────────────────────
+    e2e\chart-title-contrast.spec.ts:75:7 › 차트 제목 대비 — dark ────────────────────────────────────────

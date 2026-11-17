@@ -1,0 +1,71 @@
+test_401_stops (test_ab_create_v42.Create.test_401_stops) ... ok
+test_500_stops (test_ab_create_v42.Create.test_500_stops) ... ok
+test_all_ok (test_ab_create_v42.Create.test_all_ok) ... ok
+test_outside_window_sends_nothing (test_ab_create_v42.Create.test_outside_window_sends_nothing) ... ok
+test_plan_only_sends_nothing (test_ab_create_v42.Create.test_plan_only_sends_nothing) ... ok
+test_preexisting_same_signature_sends_nothing (test_ab_create_v42.Create.test_preexisting_same_signature_sends_nothing) ... ok
+test_stored_value_mismatch_stops (test_ab_create_v42.Create.test_stored_value_mismatch_stops) ... ok
+test_success_false_with_http_200_stops (test_ab_create_v42.Create.test_success_false_with_http_200_stops) ... ok
+test_unknown_response_but_created_is_provisional_only_and_not_resent (test_ab_create_v42.Create.test_unknown_response_but_created_is_provisional_only_and_not_resent) ... ok
+test_v41_session_cap (test_ab_create_v42.Create.test_v41_session_cap)
+RUNNING(2, 사전 등록 포함) + 8 > 상한이면 보내지 않는다. 같으면 보낸다. ... ok
+test_c1_malformed_or_incomplete_reconcile_meta (test_ab_create_v42.CreateMock.test_c1_malformed_or_incomplete_reconcile_meta) ... ok
+test_c1_reconcile_failure_after_8_ok_is_not_success (test_ab_create_v42.CreateMock.test_c1_reconcile_failure_after_8_ok_is_not_success) ... ok
+test_c2_overseer_form_unknown_body_sha_also_blocks (test_ab_create_v42.CreateMock.test_c2_overseer_form_unknown_body_sha_also_blocks) ... ok
+test_c2_unresolved_intent_blocks_all_sends (test_ab_create_v42.CreateMock.test_c2_unresolved_intent_blocks_all_sends) ... ok
+test_concurrent_run_lock (test_ab_create_v42.CreateMock.test_concurrent_run_lock) ... ok
+test_corrupt_or_foreign_journal_rejected_before_send (test_ab_create_v42.CreateMock.test_corrupt_or_foreign_journal_rejected_before_send) ... ok
+test_crash_after_post_before_result_write_then_rerun_sends_nothing (test_ab_create_v42.CreateMock.test_crash_after_post_before_result_write_then_rerun_sends_nothing) ... ok
+test_intent_write_failure_sends_nothing_for_that_body (test_ab_create_v42.CreateMock.test_intent_write_failure_sends_nothing_for_that_body) ... ok
+test_killed_process_leaves_lock_and_intent (test_ab_create_v42.CreateMock.test_killed_process_leaves_lock_and_intent) ... ok
+test_malformed_post_responses_are_fixed_unknown (test_ab_create_v42.CreateMock.test_malformed_post_responses_are_fixed_unknown) ... ok
+test_unknown_then_list_candidate_is_provisional_not_attributed (test_ab_create_v42.CreateMock.test_unknown_then_list_candidate_is_provisional_not_attributed) ... ok
+test_v41_bad_db_args_send_nothing (test_ab_create_v42.CreateMock.test_v41_bad_db_args_send_nothing) ... ok
+test_v41_concurrent_other_creation_recorded_not_attributed (test_ab_create_v42.CreateMock.test_v41_concurrent_other_creation_recorded_not_attributed)
+같은 때 다른 생성(서명 다름)은 other_new_ids 로 남고 대조 성공을 막지 않는다. 같은 서명이면 예상 밖으로 실패. ... ok
+test_v41_new_id_must_exceed_preflight_max (test_ab_create_v42.CreateMock.test_v41_new_id_must_exceed_preflight_max)
+POST 응답 id 가 사전 max_id 이하(예: 다른 DB 의 ID 체계)면 응답 불명 — 더 보내지 않는다. ... ok
+test_v41_other_db_meta_fails_reconcile (test_ab_create_v42.CreateMock.test_v41_other_db_meta_fails_reconcile)
+생성기의 메타 DB 가 API 서버의 DB 와 다르다(같은 ID 없음/다른 시각) → 대조 실패, 추가 POST 0. ... ok
+test_v41_preflight_meta_failure_sends_nothing (test_ab_create_v42.CreateMock.test_v41_preflight_meta_failure_sends_nothing) ... ok
+test_v41_prereg_id_response_is_unknown (test_ab_create_v42.CreateMock.test_v41_prereg_id_response_is_unknown) ... ok
+test_window_only_preflight_journal_can_rerun (test_ab_create_v42.CreateMock.test_window_only_preflight_journal_can_rerun) ... ok
+test_window_rechecked_before_each_request (test_ab_create_v42.CreateMock.test_window_rechecked_before_each_request) ... ----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 5666)
+Traceback (most recent call last):
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\socketserver.py", line 362, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\socketserver.py", line 766, in __init__
+    self.handle()
+    ~~~~~~~~~~~^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\http\server.py", line 447, in handle
+    self.handle_one_request()
+    ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\http\server.py", line 435, in handle_one_request
+    method()
+    ~~~~~~^^
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v42-20261117\create\standin_server.py", line 110, in do_POST
+    return self._send(200, {"success": True, "data": resp, "error": None})
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v42-20261117\create\standin_server.py", line 65, in _send
+    self.wfile.write(b)
+    ~~~~~~~~~~~~~~~~^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\socketserver.py", line 845, in write
+    self._sock.sendall(b)
+    ~~~~~~~~~~~~~~~~~~^^^
+ConnectionAbortedError: [WinError 10053] 현재 연결은 사용자의 호스트 시스템의 소프트웨어의 의해 중단되었습니다
+----------------------------------------
+ok
+test_client_refuses_get (test_ab_create_v42.Structural.test_client_refuses_get) ... ok
+test_no_list_request_in_source (test_ab_create_v42.Structural.test_no_list_request_in_source) ... ok
+test_v42_client_never_follows_redirects (test_ab_create_v42.Structural.test_v42_client_never_follows_redirects)
+v4.2(총괄 v1.178 R1): 기본 리다이렉트 처리기·환경 프록시를 쓰지 않는다. 실제 요청 시험은 test_redirect_r1.py. ... ok
+
+----------------------------------------------------------------------
+Ran 32 tests in 7.545s
+
+OK

@@ -1,0 +1,48 @@
+test_after_meta_failure_and_other_db (test_sma20.Create.test_after_meta_failure_and_other_db) ... ok
+test_body_rules (test_sma20.Create.test_body_rules) ... ok
+test_complete_negatives (test_sma20.Create.test_complete_negatives) ... ok
+test_db_cmd_password_rejected (test_sma20.Create.test_db_cmd_password_rejected) ... ok
+test_journal_lock_failures (test_sma20.Create.test_journal_lock_failures) ... ok
+test_non_ok_responses_stop_without_resend (test_sma20.Create.test_non_ok_responses_stop_without_resend) ... ok
+test_ok_then_complete_and_no_repeat (test_sma20.Create.test_ok_then_complete_and_no_repeat) ... ok
+test_plan_only (test_sma20.Create.test_plan_only) ... ----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 7961)
+Traceback (most recent call last):
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\socketserver.py", line 362, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\socketserver.py", line 766, in __init__
+    self.handle()
+    ~~~~~~~~~~~^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\http\server.py", line 447, in handle
+    self.handle_one_request()
+    ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\http\server.py", line 435, in handle_one_request
+    method()
+    ~~~~~~^^
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v42-20261117\sma20\test_sma20.py", line 84, in do_POST
+    return self._send(200, {"success": True, "data": resp, "error": None})
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v42-20261117\sma20\test_sma20.py", line 54, in _send
+    self.wfile.write(b)
+    ~~~~~~~~~~~~~~~~^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\socketserver.py", line 845, in write
+    self._sock.sendall(b)
+    ~~~~~~~~~~~~~~~~~~^^^
+ConnectionAbortedError: [WinError 10053] 현재 연결은 사용자의 호스트 시스템의 소프트웨어의 의해 중단되었습니다
+----------------------------------------
+ok
+test_preflight_stops (test_sma20.Create.test_preflight_stops) ... ok
+test_t0_change_in_same_journal_rejected (test_sma20.Create.test_t0_change_in_same_journal_rejected) ... ok
+test_window_and_t0_rules_send_nothing (test_sma20.Create.test_window_and_t0_rules_send_nothing) ... ok
+test_window_boundary_0100_utc_ok (test_sma20.Create.test_window_boundary_0100_utc_ok) ... ok
+test_token_perm_platform (test_sma20.Structural.test_token_perm_platform) ... ok
+test_transport_and_sources (test_sma20.Structural.test_transport_and_sources) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 9.250s
+
+OK

@@ -1,0 +1,7 @@
+구간 2026-11-16T19:55:00Z~2026-11-16T20:10:00Z 줄 531 · ERROR 1 · WARN 1
+20:00:02.452 [scheduler-5] ERROR c.c.api.llm.provider.ClaudeProvider - [ClaudeProvider] 요청 실패
+java.io.IOException: Connection reset
+	at com.cryptoautotrader.api.llm.provider.ClaudeProvider.complete(ClaudeProvider.java:96)
+	at com.cryptoautotrader.api.llm.LlmTaskRouter.route(LlmTaskRouter.java:75)
+Caused by: java.net.SocketException: Connection reset
+20:00:02.453 [scheduler-5] WARN  c.c.api.llm.LlmTaskRouter - [LlmTaskRouter] 응답 실패 — task=REPORT_NARRATION provider=CLAUDE error=Connection reset

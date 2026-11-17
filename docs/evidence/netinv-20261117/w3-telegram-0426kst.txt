@@ -1,0 +1,5 @@
+구간 2026-11-16T19:20:00Z~2026-11-16T19:40:00Z 줄 625 · ERROR 1 · WARN 4
+19:26:31.698 [telegram-1] ERROR c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 중 오류(응답 미수신): Connection reset
+19:26:31.699 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] CANDLE_REFRESH_REPORT 전송 실패(NO_RESPONSE) — 2000ms 후 재시도 (1/3)
+19:26:34.671 [telegram-1] INFO  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 성공
+19:26:34.671 [telegram-1] INFO  c.c.a.s.TelegramNotificationService - [Telegram] CANDLE_REFRESH_REPORT 재전송 성공 (2번째 시도)

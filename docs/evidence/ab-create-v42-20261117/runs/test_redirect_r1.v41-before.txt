@@ -1,0 +1,352 @@
+test_redirect_mid_run_stops (__main__.CreatorRun.test_redirect_mid_run_stops) ... skipped '생성기 전체 실행은 보완 뒤 모듈만'
+test_no_second_request_any_code_any_target (__main__.Redirect.test_no_second_request_any_code_any_target) ... 
+  test_no_second_request_any_code_any_target (__main__.Redirect.test_no_second_request_any_code_any_target) (code=301, target='same') ... FAIL
+  test_no_second_request_any_code_any_target (__main__.Redirect.test_no_second_request_any_code_any_target) (code=301, target='list') ... FAIL
+  test_no_second_request_any_code_any_target (__main__.Redirect.test_no_second_request_any_code_any_target) (code=301, target='relative_list') ... FAIL
+  test_no_second_request_any_code_any_target (__main__.Redirect.test_no_second_request_any_code_any_target) (code=301, target='other_host') ... FAIL
+  test_no_second_request_any_code_any_target (__main__.Redirect.test_no_second_request_any_code_any_target) (code=302, target='same') ... FAIL
+  test_no_second_request_any_code_any_target (__main__.Redirect.test_no_second_request_any_code_any_target) (code=302, target='list') ... FAIL
+  test_no_second_request_any_code_any_target (__main__.Redirect.test_no_second_request_any_code_any_target) (code=302, target='relative_list') ... FAIL
+  test_no_second_request_any_code_any_target (__main__.Redirect.test_no_second_request_any_code_any_target) (code=302, target='other_host') ... FAIL
+  test_no_second_request_any_code_any_target (__main__.Redirect.test_no_second_request_any_code_any_target) (code=303, target='same') ... FAIL
+  test_no_second_request_any_code_any_target (__main__.Redirect.test_no_second_request_any_code_any_target) (code=303, target='list') ... FAIL
+  test_no_second_request_any_code_any_target (__main__.Redirect.test_no_second_request_any_code_any_target) (code=303, target='relative_list') ... FAIL
+  test_no_second_request_any_code_any_target (__main__.Redirect.test_no_second_request_any_code_any_target) (code=303, target='other_host') ... FAIL
+  test_no_second_request_any_code_any_target (__main__.Redirect.test_no_second_request_any_code_any_target) (code=307, target='same') ... FAIL
+  test_no_second_request_any_code_any_target (__main__.Redirect.test_no_second_request_any_code_any_target) (code=307, target='list') ... FAIL
+  test_no_second_request_any_code_any_target (__main__.Redirect.test_no_second_request_any_code_any_target) (code=307, target='relative_list') ... FAIL
+  test_no_second_request_any_code_any_target (__main__.Redirect.test_no_second_request_any_code_any_target) (code=307, target='other_host') ... FAIL
+  test_no_second_request_any_code_any_target (__main__.Redirect.test_no_second_request_any_code_any_target) (code=308, target='same') ... FAIL
+  test_no_second_request_any_code_any_target (__main__.Redirect.test_no_second_request_any_code_any_target) (code=308, target='list') ... FAIL
+  test_no_second_request_any_code_any_target (__main__.Redirect.test_no_second_request_any_code_any_target) (code=308, target='relative_list') ... FAIL
+  test_no_second_request_any_code_any_target (__main__.Redirect.test_no_second_request_any_code_any_target) (code=308, target='other_host') ... FAIL
+
+======================================================================
+FAIL: test_no_second_request_any_code_any_target (__main__.Redirect.test_no_second_request_any_code_any_target) (code=301, target='same')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v42-20261117\create\test_redirect_r1.py", line 127, in test_no_second_request_any_code_any_target
+    self.assertEqual(reqs, [("POST", ENDPOINT)], f"두 번째 요청이 생겼다: {reqs}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: [('PO[19 chars]-trading/sessions'), ('GET', '/api/v1/paper-trading/sessions')] != [('PO[19 chars]-trading/sessions')]
+
+First list contains 1 additional elements.
+First extra element 1:
+('GET', '/api/v1/paper-trading/sessions')
+
+- [('POST', '/api/v1/paper-trading/sessions'),
+?                                            ^
+
++ [('POST', '/api/v1/paper-trading/sessions')]
+?                                            ^
+
+-  ('GET', '/api/v1/paper-trading/sessions')] : 두 번째 요청이 생겼다: [('POST', '/api/v1/paper-trading/sessions'), ('GET', '/api/v1/paper-trading/sessions')]
+
+======================================================================
+FAIL: test_no_second_request_any_code_any_target (__main__.Redirect.test_no_second_request_any_code_any_target) (code=301, target='list')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v42-20261117\create\test_redirect_r1.py", line 127, in test_no_second_request_any_code_any_target
+    self.assertEqual(reqs, [("POST", ENDPOINT)], f"두 번째 요청이 생겼다: {reqs}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: [('PO[33 chars]ons'), ('GET', '/api/v1/paper-trading/sessions[13 chars]NG')] != [('PO[33 chars]ons')]
+
+First list contains 1 additional elements.
+First extra element 1:
+('GET', '/api/v1/paper-trading/sessions?status=RUNNING')
+
+- [('POST', '/api/v1/paper-trading/sessions'),
+?                                            ^
+
++ [('POST', '/api/v1/paper-trading/sessions')]
+?                                            ^
+
+-  ('GET', '/api/v1/paper-trading/sessions?status=RUNNING')] : 두 번째 요청이 생겼다: [('POST', '/api/v1/paper-trading/sessions'), ('GET', '/api/v1/paper-trading/sessions?status=RUNNING')]
+
+======================================================================
+FAIL: test_no_second_request_any_code_any_target (__main__.Redirect.test_no_second_request_any_code_any_target) (code=301, target='relative_list')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v42-20261117\create\test_redirect_r1.py", line 127, in test_no_second_request_any_code_any_target
+    self.assertEqual(reqs, [("POST", ENDPOINT)], f"두 번째 요청이 생겼다: {reqs}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: [('PO[26 chars]g/sessions'), ('GET', '/api/v1/paper-trading/sessions?page=0')] != [('PO[26 chars]g/sessions')]
+
+First list contains 1 additional elements.
+First extra element 1:
+('GET', '/api/v1/paper-trading/sessions?page=0')
+
+- [('POST', '/api/v1/paper-trading/sessions'),
+?                                            ^
+
++ [('POST', '/api/v1/paper-trading/sessions')]
+?                                            ^
+
+-  ('GET', '/api/v1/paper-trading/sessions?page=0')] : 두 번째 요청이 생겼다: [('POST', '/api/v1/paper-trading/sessions'), ('GET', '/api/v1/paper-trading/sessions?page=0')]
+
+======================================================================
+FAIL: test_no_second_request_any_code_any_target (__main__.Redirect.test_no_second_request_any_code_any_target) (code=301, target='other_host')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v42-20261117\create\test_redirect_r1.py", line 127, in test_no_second_request_any_code_any_target
+    self.assertEqual(reqs, [("POST", ENDPOINT)], f"두 번째 요청이 생겼다: {reqs}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: [('PO[25 chars]ng/sessions'), ('OTHER-GET', '/api/v1/paper-trading/sessions')] != [('PO[25 chars]ng/sessions')]
+
+First list contains 1 additional elements.
+First extra element 1:
+('OTHER-GET', '/api/v1/paper-trading/sessions')
+
+- [('POST', '/api/v1/paper-trading/sessions'),
+?                                            ^
+
++ [('POST', '/api/v1/paper-trading/sessions')]
+?                                            ^
+
+-  ('OTHER-GET', '/api/v1/paper-trading/sessions')] : 두 번째 요청이 생겼다: [('POST', '/api/v1/paper-trading/sessions'), ('OTHER-GET', '/api/v1/paper-trading/sessions')]
+
+======================================================================
+FAIL: test_no_second_request_any_code_any_target (__main__.Redirect.test_no_second_request_any_code_any_target) (code=302, target='same')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v42-20261117\create\test_redirect_r1.py", line 127, in test_no_second_request_any_code_any_target
+    self.assertEqual(reqs, [("POST", ENDPOINT)], f"두 번째 요청이 생겼다: {reqs}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: [('PO[19 chars]-trading/sessions'), ('GET', '/api/v1/paper-trading/sessions')] != [('PO[19 chars]-trading/sessions')]
+
+First list contains 1 additional elements.
+First extra element 1:
+('GET', '/api/v1/paper-trading/sessions')
+
+- [('POST', '/api/v1/paper-trading/sessions'),
+?                                            ^
+
++ [('POST', '/api/v1/paper-trading/sessions')]
+?                                            ^
+
+-  ('GET', '/api/v1/paper-trading/sessions')] : 두 번째 요청이 생겼다: [('POST', '/api/v1/paper-trading/sessions'), ('GET', '/api/v1/paper-trading/sessions')]
+
+======================================================================
+FAIL: test_no_second_request_any_code_any_target (__main__.Redirect.test_no_second_request_any_code_any_target) (code=302, target='list')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v42-20261117\create\test_redirect_r1.py", line 127, in test_no_second_request_any_code_any_target
+    self.assertEqual(reqs, [("POST", ENDPOINT)], f"두 번째 요청이 생겼다: {reqs}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: [('PO[33 chars]ons'), ('GET', '/api/v1/paper-trading/sessions[13 chars]NG')] != [('PO[33 chars]ons')]
+
+First list contains 1 additional elements.
+First extra element 1:
+('GET', '/api/v1/paper-trading/sessions?status=RUNNING')
+
+- [('POST', '/api/v1/paper-trading/sessions'),
+?                                            ^
+
++ [('POST', '/api/v1/paper-trading/sessions')]
+?                                            ^
+
+-  ('GET', '/api/v1/paper-trading/sessions?status=RUNNING')] : 두 번째 요청이 생겼다: [('POST', '/api/v1/paper-trading/sessions'), ('GET', '/api/v1/paper-trading/sessions?status=RUNNING')]
+
+======================================================================
+FAIL: test_no_second_request_any_code_any_target (__main__.Redirect.test_no_second_request_any_code_any_target) (code=302, target='relative_list')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v42-20261117\create\test_redirect_r1.py", line 127, in test_no_second_request_any_code_any_target
+    self.assertEqual(reqs, [("POST", ENDPOINT)], f"두 번째 요청이 생겼다: {reqs}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: [('PO[26 chars]g/sessions'), ('GET', '/api/v1/paper-trading/sessions?page=0')] != [('PO[26 chars]g/sessions')]
+
+First list contains 1 additional elements.
+First extra element 1:
+('GET', '/api/v1/paper-trading/sessions?page=0')
+
+- [('POST', '/api/v1/paper-trading/sessions'),
+?                                            ^
+
++ [('POST', '/api/v1/paper-trading/sessions')]
+?                                            ^
+
+-  ('GET', '/api/v1/paper-trading/sessions?page=0')] : 두 번째 요청이 생겼다: [('POST', '/api/v1/paper-trading/sessions'), ('GET', '/api/v1/paper-trading/sessions?page=0')]
+
+======================================================================
+FAIL: test_no_second_request_any_code_any_target (__main__.Redirect.test_no_second_request_any_code_any_target) (code=302, target='other_host')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v42-20261117\create\test_redirect_r1.py", line 127, in test_no_second_request_any_code_any_target
+    self.assertEqual(reqs, [("POST", ENDPOINT)], f"두 번째 요청이 생겼다: {reqs}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: [('PO[25 chars]ng/sessions'), ('OTHER-GET', '/api/v1/paper-trading/sessions')] != [('PO[25 chars]ng/sessions')]
+
+First list contains 1 additional elements.
+First extra element 1:
+('OTHER-GET', '/api/v1/paper-trading/sessions')
+
+- [('POST', '/api/v1/paper-trading/sessions'),
+?                                            ^
+
++ [('POST', '/api/v1/paper-trading/sessions')]
+?                                            ^
+
+-  ('OTHER-GET', '/api/v1/paper-trading/sessions')] : 두 번째 요청이 생겼다: [('POST', '/api/v1/paper-trading/sessions'), ('OTHER-GET', '/api/v1/paper-trading/sessions')]
+
+======================================================================
+FAIL: test_no_second_request_any_code_any_target (__main__.Redirect.test_no_second_request_any_code_any_target) (code=303, target='same')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v42-20261117\create\test_redirect_r1.py", line 127, in test_no_second_request_any_code_any_target
+    self.assertEqual(reqs, [("POST", ENDPOINT)], f"두 번째 요청이 생겼다: {reqs}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: [('PO[19 chars]-trading/sessions'), ('GET', '/api/v1/paper-trading/sessions')] != [('PO[19 chars]-trading/sessions')]
+
+First list contains 1 additional elements.
+First extra element 1:
+('GET', '/api/v1/paper-trading/sessions')
+
+- [('POST', '/api/v1/paper-trading/sessions'),
+?                                            ^
+
++ [('POST', '/api/v1/paper-trading/sessions')]
+?                                            ^
+
+-  ('GET', '/api/v1/paper-trading/sessions')] : 두 번째 요청이 생겼다: [('POST', '/api/v1/paper-trading/sessions'), ('GET', '/api/v1/paper-trading/sessions')]
+
+======================================================================
+FAIL: test_no_second_request_any_code_any_target (__main__.Redirect.test_no_second_request_any_code_any_target) (code=303, target='list')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v42-20261117\create\test_redirect_r1.py", line 127, in test_no_second_request_any_code_any_target
+    self.assertEqual(reqs, [("POST", ENDPOINT)], f"두 번째 요청이 생겼다: {reqs}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: [('PO[33 chars]ons'), ('GET', '/api/v1/paper-trading/sessions[13 chars]NG')] != [('PO[33 chars]ons')]
+
+First list contains 1 additional elements.
+First extra element 1:
+('GET', '/api/v1/paper-trading/sessions?status=RUNNING')
+
+- [('POST', '/api/v1/paper-trading/sessions'),
+?                                            ^
+
++ [('POST', '/api/v1/paper-trading/sessions')]
+?                                            ^
+
+-  ('GET', '/api/v1/paper-trading/sessions?status=RUNNING')] : 두 번째 요청이 생겼다: [('POST', '/api/v1/paper-trading/sessions'), ('GET', '/api/v1/paper-trading/sessions?status=RUNNING')]
+
+======================================================================
+FAIL: test_no_second_request_any_code_any_target (__main__.Redirect.test_no_second_request_any_code_any_target) (code=303, target='relative_list')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v42-20261117\create\test_redirect_r1.py", line 127, in test_no_second_request_any_code_any_target
+    self.assertEqual(reqs, [("POST", ENDPOINT)], f"두 번째 요청이 생겼다: {reqs}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: [('PO[26 chars]g/sessions'), ('GET', '/api/v1/paper-trading/sessions?page=0')] != [('PO[26 chars]g/sessions')]
+
+First list contains 1 additional elements.
+First extra element 1:
+('GET', '/api/v1/paper-trading/sessions?page=0')
+
+- [('POST', '/api/v1/paper-trading/sessions'),
+?                                            ^
+
++ [('POST', '/api/v1/paper-trading/sessions')]
+?                                            ^
+
+-  ('GET', '/api/v1/paper-trading/sessions?page=0')] : 두 번째 요청이 생겼다: [('POST', '/api/v1/paper-trading/sessions'), ('GET', '/api/v1/paper-trading/sessions?page=0')]
+
+======================================================================
+FAIL: test_no_second_request_any_code_any_target (__main__.Redirect.test_no_second_request_any_code_any_target) (code=303, target='other_host')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v42-20261117\create\test_redirect_r1.py", line 127, in test_no_second_request_any_code_any_target
+    self.assertEqual(reqs, [("POST", ENDPOINT)], f"두 번째 요청이 생겼다: {reqs}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: [('PO[25 chars]ng/sessions'), ('OTHER-GET', '/api/v1/paper-trading/sessions')] != [('PO[25 chars]ng/sessions')]
+
+First list contains 1 additional elements.
+First extra element 1:
+('OTHER-GET', '/api/v1/paper-trading/sessions')
+
+- [('POST', '/api/v1/paper-trading/sessions'),
+?                                            ^
+
++ [('POST', '/api/v1/paper-trading/sessions')]
+?                                            ^
+
+-  ('OTHER-GET', '/api/v1/paper-trading/sessions')] : 두 번째 요청이 생겼다: [('POST', '/api/v1/paper-trading/sessions'), ('OTHER-GET', '/api/v1/paper-trading/sessions')]
+
+======================================================================
+FAIL: test_no_second_request_any_code_any_target (__main__.Redirect.test_no_second_request_any_code_any_target) (code=307, target='same')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v42-20261117\create\test_redirect_r1.py", line 128, in test_no_second_request_any_code_any_target
+    self.assertIsNone(js, "3xx 응답 본문·따라간 응답을 반환하면 안 된다")
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'success': True, 'data': [{'id': 560, 'status': 'RUNNING', 'totalReturnPct': 12.34, 'realizedPnl': 5678}]} is not None : 3xx 응답 본문·따라간 응답을 반환하면 안 된다
+
+======================================================================
+FAIL: test_no_second_request_any_code_any_target (__main__.Redirect.test_no_second_request_any_code_any_target) (code=307, target='list')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v42-20261117\create\test_redirect_r1.py", line 128, in test_no_second_request_any_code_any_target
+    self.assertIsNone(js, "3xx 응답 본문·따라간 응답을 반환하면 안 된다")
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'success': True, 'data': [{'id': 560, 'status': 'RUNNING', 'totalReturnPct': 12.34, 'realizedPnl': 5678}]} is not None : 3xx 응답 본문·따라간 응답을 반환하면 안 된다
+
+======================================================================
+FAIL: test_no_second_request_any_code_any_target (__main__.Redirect.test_no_second_request_any_code_any_target) (code=307, target='relative_list')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v42-20261117\create\test_redirect_r1.py", line 128, in test_no_second_request_any_code_any_target
+    self.assertIsNone(js, "3xx 응답 본문·따라간 응답을 반환하면 안 된다")
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'success': True, 'data': [{'id': 560, 'status': 'RUNNING', 'totalReturnPct': 12.34, 'realizedPnl': 5678}]} is not None : 3xx 응답 본문·따라간 응답을 반환하면 안 된다
+
+======================================================================
+FAIL: test_no_second_request_any_code_any_target (__main__.Redirect.test_no_second_request_any_code_any_target) (code=307, target='other_host')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v42-20261117\create\test_redirect_r1.py", line 128, in test_no_second_request_any_code_any_target
+    self.assertIsNone(js, "3xx 응답 본문·따라간 응답을 반환하면 안 된다")
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'success': True, 'data': [{'id': 560, 'status': 'RUNNING', 'totalReturnPct': 12.34, 'realizedPnl': 5678}]} is not None : 3xx 응답 본문·따라간 응답을 반환하면 안 된다
+
+======================================================================
+FAIL: test_no_second_request_any_code_any_target (__main__.Redirect.test_no_second_request_any_code_any_target) (code=308, target='same')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v42-20261117\create\test_redirect_r1.py", line 128, in test_no_second_request_any_code_any_target
+    self.assertIsNone(js, "3xx 응답 본문·따라간 응답을 반환하면 안 된다")
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'success': True, 'data': [{'id': 560, 'status': 'RUNNING', 'totalReturnPct': 12.34, 'realizedPnl': 5678}]} is not None : 3xx 응답 본문·따라간 응답을 반환하면 안 된다
+
+======================================================================
+FAIL: test_no_second_request_any_code_any_target (__main__.Redirect.test_no_second_request_any_code_any_target) (code=308, target='list')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v42-20261117\create\test_redirect_r1.py", line 128, in test_no_second_request_any_code_any_target
+    self.assertIsNone(js, "3xx 응답 본문·따라간 응답을 반환하면 안 된다")
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'success': True, 'data': [{'id': 560, 'status': 'RUNNING', 'totalReturnPct': 12.34, 'realizedPnl': 5678}]} is not None : 3xx 응답 본문·따라간 응답을 반환하면 안 된다
+
+======================================================================
+FAIL: test_no_second_request_any_code_any_target (__main__.Redirect.test_no_second_request_any_code_any_target) (code=308, target='relative_list')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v42-20261117\create\test_redirect_r1.py", line 128, in test_no_second_request_any_code_any_target
+    self.assertIsNone(js, "3xx 응답 본문·따라간 응답을 반환하면 안 된다")
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'success': True, 'data': [{'id': 560, 'status': 'RUNNING', 'totalReturnPct': 12.34, 'realizedPnl': 5678}]} is not None : 3xx 응답 본문·따라간 응답을 반환하면 안 된다
+
+======================================================================
+FAIL: test_no_second_request_any_code_any_target (__main__.Redirect.test_no_second_request_any_code_any_target) (code=308, target='other_host')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v42-20261117\create\test_redirect_r1.py", line 128, in test_no_second_request_any_code_any_target
+    self.assertIsNone(js, "3xx 응답 본문·따라간 응답을 반환하면 안 된다")
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'success': True, 'data': [{'id': 560, 'status': 'RUNNING', 'totalReturnPct': 12.34, 'realizedPnl': 5678}]} is not None : 3xx 응답 본문·따라간 응답을 반환하면 안 된다
+
+----------------------------------------------------------------------
+Ran 2 tests in 16.344s
+
+FAILED (failures=20, skipped=1)
+R1_TARGET=v41 SRC=ab-create-v41-20261116/create/ab_create.py

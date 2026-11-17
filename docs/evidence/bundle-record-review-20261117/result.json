@@ -1,0 +1,8 @@
+{
+  "source_sha256": "1c4bb697cefd17a7705a6c128ed361ba8723764ba88ef686fa35f1dc65985005",
+  "scope": "보존 실행 틀의 함수만 호출. 실제 단계/도구/서버/DB/네트워크는 호출하지 않음",
+  "failure_injection": "finish의 마지막 steps.log 쓰기를 실패시킴(steps.log를 디렉터리로 둠)",
+  "stdout": "finish_exit=8 rc_file=0\nnext-step-allowed\nnext_stage_guard_exit=0\n",
+  "observed_stale_success": true,
+  "stderr_log_write_failure": true
+}

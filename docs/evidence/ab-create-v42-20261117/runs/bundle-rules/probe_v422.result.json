@@ -1,0 +1,8 @@
+{
+  "source": "bundle/run_bundle.sh",
+  "source_sha256": "660e2332433c50aadcf68b4e92b03d1ae2509e76a34f610ba0217e000c5653c7",
+  "same_injection_as": "bundle-record-review-20261117/probe_record.py",
+  "stdout": "finish_exit=8 rc_file=없음\nnext_stage_guard_exit=8\n",
+  "stderr": "main: line 7: C:/Users/SangJoon_Lee/AppData/Local/Temp/record-probe-azsr4ihb/steps.log: Is a directory\n2026-11-17T00:53:14Z STEP=2 끝 rc=0 [steps.log 기록 실패 → 이 줄 무효, 종료 8]\nmain: line 7: C:/Users/SangJoon_Lee/AppData/Local/Temp/record-probe-azsr4ihb/steps.log: Is a directory\n2026-11-17T00:53:14Z STEP=3 🔴 앞 단계 STEP=2 rc=없음 — 이 단계 부르지 않음 [steps.log 기록 실패 → 이 줄 무효, 종료 8]\n",
+  "stale_success_closed": true
+}

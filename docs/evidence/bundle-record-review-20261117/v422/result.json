@@ -1,0 +1,316 @@
+{
+  "source_sha256": "660e2332433c50aadcf68b4e92b03d1ae2509e76a34f610ba0217e000c5653c7",
+  "scope": "보존 함수만 호출. guard_probe_calls는 실제 도구가 아닌 다음 선행 조건 통과 표지다. 개발 전체 실행 틀 시험은 보존 결과만 대조했다.",
+  "checks": [
+    {
+      "name": "normal: first exit",
+      "passed": true
+    },
+    {
+      "name": "normal: next guard exit",
+      "passed": true
+    },
+    {
+      "name": "normal: final marker",
+      "passed": true
+    },
+    {
+      "name": "normal: temporary marker",
+      "passed": true
+    },
+    {
+      "name": "normal: guard call",
+      "passed": true
+    },
+    {
+      "name": "last_log_failure: first exit",
+      "passed": true
+    },
+    {
+      "name": "last_log_failure: next guard exit",
+      "passed": true
+    },
+    {
+      "name": "last_log_failure: final marker",
+      "passed": true
+    },
+    {
+      "name": "last_log_failure: temporary marker",
+      "passed": true
+    },
+    {
+      "name": "last_log_failure: guard call",
+      "passed": true
+    },
+    {
+      "name": "rc_content_write_failure: first exit",
+      "passed": true
+    },
+    {
+      "name": "rc_content_write_failure: next guard exit",
+      "passed": true
+    },
+    {
+      "name": "rc_content_write_failure: final marker",
+      "passed": true
+    },
+    {
+      "name": "rc_content_write_failure: temporary marker",
+      "passed": true
+    },
+    {
+      "name": "rc_content_write_failure: guard call",
+      "passed": true
+    },
+    {
+      "name": "rc_rename_failure: first exit",
+      "passed": true
+    },
+    {
+      "name": "rc_rename_failure: next guard exit",
+      "passed": true
+    },
+    {
+      "name": "rc_rename_failure: final marker",
+      "passed": true
+    },
+    {
+      "name": "rc_rename_failure: temporary marker",
+      "passed": true
+    },
+    {
+      "name": "rc_rename_failure: guard call",
+      "passed": true
+    },
+    {
+      "name": "tool3_last_log_failure: first exit",
+      "passed": true
+    },
+    {
+      "name": "tool3_last_log_failure: next guard exit",
+      "passed": true
+    },
+    {
+      "name": "tool3_last_log_failure: final marker",
+      "passed": true
+    },
+    {
+      "name": "tool3_last_log_failure: temporary marker",
+      "passed": true
+    },
+    {
+      "name": "tool3_last_log_failure: guard call",
+      "passed": true
+    },
+    {
+      "name": "tool3_rc_content_write_failure: first exit",
+      "passed": true
+    },
+    {
+      "name": "tool3_rc_content_write_failure: next guard exit",
+      "passed": true
+    },
+    {
+      "name": "tool3_rc_content_write_failure: final marker",
+      "passed": true
+    },
+    {
+      "name": "tool3_rc_content_write_failure: temporary marker",
+      "passed": true
+    },
+    {
+      "name": "tool3_rc_content_write_failure: guard call",
+      "passed": true
+    },
+    {
+      "name": "killed_before_rename: first exit",
+      "passed": true
+    },
+    {
+      "name": "killed_before_rename: next guard exit",
+      "passed": true
+    },
+    {
+      "name": "killed_before_rename: final marker",
+      "passed": true
+    },
+    {
+      "name": "killed_before_rename: temporary marker",
+      "passed": true
+    },
+    {
+      "name": "killed_before_rename: guard call",
+      "passed": true
+    },
+    {
+      "name": "stored run2: 29 assertion lines",
+      "passed": true
+    },
+    {
+      "name": "stored run2: summary and exit",
+      "passed": true
+    },
+    {
+      "name": "stored run2: no failing assertion",
+      "passed": true
+    },
+    {
+      "name": "T20: stored first exit",
+      "passed": true
+    },
+    {
+      "name": "T20: stored next exit",
+      "passed": true
+    },
+    {
+      "name": "T20: no next completion",
+      "passed": true
+    },
+    {
+      "name": "T21: stored first exit",
+      "passed": true
+    },
+    {
+      "name": "T21: stored next exit",
+      "passed": true
+    },
+    {
+      "name": "T21: no next completion",
+      "passed": true
+    },
+    {
+      "name": "T22: stored first exit",
+      "passed": true
+    },
+    {
+      "name": "T22: stored next exit",
+      "passed": true
+    },
+    {
+      "name": "T22: no next completion",
+      "passed": true
+    },
+    {
+      "name": "T23: stored first exit",
+      "passed": true
+    },
+    {
+      "name": "T23: stored next exit",
+      "passed": true
+    },
+    {
+      "name": "T23: no next completion",
+      "passed": true
+    },
+    {
+      "name": "T24: stored first exit",
+      "passed": true
+    },
+    {
+      "name": "T24: stored next exit",
+      "passed": true
+    },
+    {
+      "name": "T24: no next completion",
+      "passed": true
+    },
+    {
+      "name": "T25: stored first exit",
+      "passed": true
+    },
+    {
+      "name": "T25: stored next exit",
+      "passed": true
+    },
+    {
+      "name": "T25: no next completion",
+      "passed": true
+    }
+  ],
+  "passed": 56,
+  "failed": 0,
+  "function_cases": [
+    {
+      "case": "normal",
+      "first_exit": 0,
+      "next_guard_exit": 0,
+      "rc_file": "0\n",
+      "temporary_file": null,
+      "guard_probe_calls": 1,
+      "stdout": "2026-11-17T01:00:13Z STEP=2 끝 rc=0\n__FIRST__=0\n__NEXT__=0\n",
+      "stderr": ""
+    },
+    {
+      "case": "last_log_failure",
+      "first_exit": 8,
+      "next_guard_exit": 8,
+      "rc_file": null,
+      "temporary_file": null,
+      "guard_probe_calls": 0,
+      "stdout": "__FIRST__=8\n__NEXT__=8\n",
+      "stderr": "main: line 7: D:/Claude Code/projects/crypto-auto-trader/docs/evidence/bundle-record-review-20261117/v422/function-probe-w_vblpiq/steps.log: Is a directory\n2026-11-17T01:00:13Z STEP=2 끝 rc=0 [steps.log 기록 실패 → 이 줄 무효, 종료 8]\nmain: line 7: D:/Claude Code/projects/crypto-auto-trader/docs/evidence/bundle-record-review-20261117/v422/function-probe-w_vblpiq/steps.log: Is a directory\n2026-11-17T01:00:13Z STEP=3 🔴 앞 단계 STEP=2 rc=없음 — 이 단계 부르지 않음 [steps.log 기록 실패 → 이 줄 무효, 종료 8]\n"
+    },
+    {
+      "case": "rc_content_write_failure",
+      "first_exit": 8,
+      "next_guard_exit": 6,
+      "rc_file": null,
+      "temporary_file": "",
+      "guard_probe_calls": 0,
+      "stdout": "2026-11-17T01:00:13Z STEP=2 끝 rc=0\n2026-11-17T01:00:13Z STEP=3 🔴 앞 단계 STEP=2 rc 확정 실패 흔적(2.rc.tmp) — 이 단계 부르지 않음\n__FIRST__=8\n__NEXT__=6\n",
+      "stderr": "2026-11-17T01:00:13Z STEP=2 rc 파일 확정 실패(원래 rc=0)\n"
+    },
+    {
+      "case": "rc_rename_failure",
+      "first_exit": 8,
+      "next_guard_exit": 6,
+      "rc_file": null,
+      "temporary_file": "0\n",
+      "guard_probe_calls": 0,
+      "stdout": "2026-11-17T01:00:13Z STEP=2 끝 rc=0\n2026-11-17T01:00:13Z STEP=3 🔴 앞 단계 STEP=2 rc 확정 실패 흔적(2.rc.tmp) — 이 단계 부르지 않음\n__FIRST__=8\n__NEXT__=6\n",
+      "stderr": "2026-11-17T01:00:13Z STEP=2 rc 파일 확정 실패(원래 rc=0)\n"
+    },
+    {
+      "case": "tool3_last_log_failure",
+      "first_exit": 3,
+      "next_guard_exit": 8,
+      "rc_file": null,
+      "temporary_file": null,
+      "guard_probe_calls": 0,
+      "stdout": "__FIRST__=3\n__NEXT__=8\n",
+      "stderr": "main: line 7: D:/Claude Code/projects/crypto-auto-trader/docs/evidence/bundle-record-review-20261117/v422/function-probe-3rhj76le/steps.log: Is a directory\n2026-11-17T01:00:13Z STEP=2 끝 rc=3 [steps.log 기록 실패 → 이 줄 무효, 종료 3]\nmain: line 7: D:/Claude Code/projects/crypto-auto-trader/docs/evidence/bundle-record-review-20261117/v422/function-probe-3rhj76le/steps.log: Is a directory\n2026-11-17T01:00:13Z STEP=3 🔴 앞 단계 STEP=2 rc=없음 — 이 단계 부르지 않음 [steps.log 기록 실패 → 이 줄 무효, 종료 8]\n"
+    },
+    {
+      "case": "tool3_rc_content_write_failure",
+      "first_exit": 3,
+      "next_guard_exit": 6,
+      "rc_file": null,
+      "temporary_file": "",
+      "guard_probe_calls": 0,
+      "stdout": "2026-11-17T01:00:14Z STEP=2 끝 rc=3\n2026-11-17T01:00:14Z STEP=3 🔴 앞 단계 STEP=2 rc 확정 실패 흔적(2.rc.tmp) — 이 단계 부르지 않음\n__FIRST__=3\n__NEXT__=6\n",
+      "stderr": "2026-11-17T01:00:14Z STEP=2 rc 파일 확정 실패(원래 rc=3)\n"
+    },
+    {
+      "case": "killed_before_rename",
+      "first_exit": 137,
+      "next_guard_exit": 6,
+      "rc_file": null,
+      "temporary_file": "0\n",
+      "guard_probe_calls": 0,
+      "stdout": "2026-11-17T01:00:14Z STEP=2 끝 rc=0\n2026-11-17T01:00:14Z STEP=3 🔴 앞 단계 STEP=2 rc 확정 실패 흔적(2.rc.tmp) — 이 단계 부르지 않음\n__FIRST__=137\n__NEXT__=6\n",
+      "stderr": "/usr/bin/bash: line 43:  4532 Killed                  ( finish 0 )\n"
+    }
+  ],
+  "reviewed_developer_file_hashes": {
+    "bundle/run_bundle.sh": "660e2332433c50aadcf68b4e92b03d1ae2509e76a34f610ba0217e000c5653c7",
+    "bundle/test_run_bundle.sh": "5326029c531727e4de2eae5bbf57c6ee717663ee45b2e9666f3be82afa2addfa",
+    "runs/bundle-rules/test_run_bundle.v422.run1.txt": "eef6c1499eda02d71056c21fc68e67b2018bff2d1484d3d55155368da7714af6",
+    "runs/bundle-rules/test_run_bundle.v422.run2.txt": "7c35d137a6e580d3adbf316f834597b75ce00e1d689d8e7beec0880f63226049",
+    "runs/bundle-rules/v422-cases.run2/T20.txt": "8bdcd291da229f82e3cec770c1964dfe559784fda1ff0b203347ea534b135554",
+    "runs/bundle-rules/v422-cases.run2/T21.txt": "38581eb8ed3c79364f02fe9e744df74fa67f9a36cf5f26eebbfe1a0fbc5dc0df",
+    "runs/bundle-rules/v422-cases.run2/T22.txt": "05964a87ca227c367db75cfd1b6b91b790da90105ec97672773f4ba9e7fbba92",
+    "runs/bundle-rules/v422-cases.run2/T23.txt": "3a2cc6c54f63593b66635c55ed1f4d1be0e9b668ac711f46a2ecb5b6d845a632",
+    "runs/bundle-rules/v422-cases.run2/T24.txt": "49ff231103561ce585885162e90ec83b874963d3e704f0248559d897fc302d33",
+    "runs/bundle-rules/v422-cases.run2/T25.txt": "fbbe75ea9eae55d253a5e38c3cdf818b35453f617929f50039d9ccf8b1d6f6cc"
+  }
+}
