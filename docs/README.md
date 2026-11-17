@@ -12,7 +12,7 @@
 | 시작 가능 여부 | [준비 목록](LIVE_READINESS.md) | 현재 체크 항목 |
 | F 명령 | [실행 절차](LIMITED_LIVE_TEST_RUNBOOK.md) | 필요한 F 변수/블록과 선행 조건 |
 | 점검 설치·전환·결과 해석 | [OPS](OPS_DAILY_CHECK.md) | 필요한 §번호 |
-| 새 코드 수용·허용 범위 | [최신 총괄 v1.178](evidence/review-ab062049/README.md) | DB 메타 조회·연결 범위 수용, 리다이렉트 차단·단건·봉/T0·고정 묶음, 제한된 통신 로그 조사 |
+| 새 코드 수용·허용 범위 | [최신 총괄 v1.179](evidence/review-c3dca385/README.md) | 430차 범위 수용, SSH 보안/접근성 후속·토큰 검사 실패 최소 보완·로컬Linux 확인. 실제 생성 전 |
 | 엔진 공통 제약 | [ENGINE_PARITY](ENGINE_PARITY.md) | 변경하는 규칙/엔진의 항목 |
 
 ## 고정 계약·상세 설계 — 필요한 부분만

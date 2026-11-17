@@ -1,0 +1,1811 @@
+{
+  "fixed_commit": "c3dca38571ba8545fb23cf4c671381755f4d6557",
+  "scope": "Git blobs, saved evidence and pure/fake/function checks; no product suite, DB, HTTP or production access",
+  "manifests": [
+    {
+      "folder": "ab-create-v42-20261117",
+      "list": "SHA256SUMS",
+      "entries": 281
+    },
+    {
+      "folder": "ab-create-v42-20261117",
+      "list": "bundle/SHA256SUMS.bundle",
+      "entries": 16
+    },
+    {
+      "folder": "n03-1117-1000",
+      "list": "SHA256SUMS",
+      "entries": 22
+    },
+    {
+      "folder": "netinv-20261117",
+      "list": "SHA256SUMS",
+      "entries": 18
+    },
+    {
+      "folder": "bundle-record-review-20261117",
+      "list": "SHA256SUMS",
+      "entries": 5
+    },
+    {
+      "folder": "bundle-record-review-20261117/v422",
+      "list": "SHA256SUMS",
+      "entries": 5
+    },
+    {
+      "folder": "review-ab062049",
+      "list": "SHA256SUMS",
+      "entries": 4
+    }
+  ],
+  "checks": [
+    {
+      "name": "ab-create-v42-20261117/SHA256SUMS: working list bytes",
+      "passed": true
+    },
+    {
+      "name": "ab-create-v42-20261117/SHA256SUMS: count",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/.gitattributes: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/README.md: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/bundle/SHA256SUMS.bundle: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/bundle/judge-runs/broken.out: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/bundle/judge-runs/cap_dup.judge.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/bundle/judge-runs/cap_over_n10.judge.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/bundle/judge-runs/enablement.judge.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/bundle/judge-runs/missing_gap3.judge.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/bundle/judge-runs/normal.judge.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/bundle/judge-runs/normal_nodup.judge.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/bundle/judge-runs/normal_nodup.out: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/bundle/judge-runs/stale_h1_0502_00.judge.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/bundle/judge_preflight.py: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/bundle/plan-ab.stdout.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/bundle/plan-ab/plan.json: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/bundle/plan-sma20-t0-shift-neg.stdout.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/bundle/plan-sma20-t0-shift-neg/plan.json: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/bundle/plan-sma20.stdout.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/bundle/plan-sma20/plan.json: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/bundle/run_bundle.sh: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/bundle/test_run_bundle.sh: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/chain_driver_v42.py: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/chart/after-candidate/dark-card.png: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/chart/after-candidate/dark-page.png: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/chart/after-candidate/dark.json: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/chart/after-candidate/light-card.png: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/chart/after-candidate/light-page.png: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/chart/after-candidate/light.json: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/chart/after-candidate/playwright.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/chart/before-0e1d2a02/dark-card.png: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/chart/before-0e1d2a02/dark-page.png: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/chart/before-0e1d2a02/dark.json: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/chart/before-0e1d2a02/light-card.png: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/chart/before-0e1d2a02/light-page.png: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/chart/before-0e1d2a02/light.json: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/chart/before-0e1d2a02/playwright.port3000-eacces.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/chart/before-0e1d2a02/playwright.port3311-cwd-missing.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/chart/before-0e1d2a02/playwright.port3311-junction-turbopack.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/chart/before-0e1d2a02/playwright.port3311-msw-notfound.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/chart/before-0e1d2a02/playwright.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/chart/candidate-7fbb8ab8.patch: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/chart/candidate-head.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/chart/port3311.config.ts: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/create/ab_complete.py: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/create/ab_create.py: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/create/extract_positions.sql: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/create/fake_meta.py: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/create/http_post.py: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/create/meta_after.sql: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/create/meta_preflight.sql: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/create/post_creation_check.sql: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/create/standin_server.py: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/create/test_ab_create_v42.py: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/create/test_redirect_r1.py: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/javaharness/chain_driver_v4.py: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/javatests/BundleMinCandlesTest.java: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/javatests/Sma20ChainPgTest.java: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/javatests/Sma20FirstNineT0PathTest.java: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/javatests/TEST-com.cryptoautotrader.api.service.BundleMinCandlesTest.xml: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/javatests/gradle-min.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/javatests/t0-path/run1/Sma20FirstNineT0PathTest.run1.java: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/javatests/t0-path/run1/TEST-com.cryptoautotrader.api.service.Sma20FirstNineT0PathTest.xml: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/javatests/t0-path/run1/gradle.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/javatests/t0-path/run1/sma20-first-0900-t0.tsv: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/javatests/t0-path/run2/TEST-com.cryptoautotrader.api.service.Sma20FirstNineT0PathTest.xml: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/javatests/t0-path/run2/gradle.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/javatests/t0-path/run2/sma20-first-0900-t0.tsv: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/check_cases.py: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/preflight_v2.sql: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/run_cases.sh: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg-attempt1/boundary_gap2.err: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg-attempt1/boundary_gap2.out: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg-attempt1/boundary_gap2.rc: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg-attempt1/cap_dup.err: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg-attempt1/cap_dup.out: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg-attempt1/cap_dup.rc: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg-attempt1/dbs.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg-attempt1/enablement.err: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg-attempt1/enablement.out: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg-attempt1/enablement.rc: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg-attempt1/grace_h1_0501_59.err: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg-attempt1/grace_h1_0501_59.out: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg-attempt1/grace_h1_0501_59.rc: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg-attempt1/missing_b3.err: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg-attempt1/missing_b3.out: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg-attempt1/missing_b3.rc: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg-attempt1/missing_gap3.err: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg-attempt1/missing_gap3.out: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg-attempt1/missing_gap3.rc: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg-attempt1/missing_history.err: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg-attempt1/missing_history.out: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg-attempt1/missing_history.rc: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg-attempt1/none_eth_m15.err: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg-attempt1/none_eth_m15.out: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg-attempt1/none_eth_m15.rc: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg-attempt1/normal.err: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg-attempt1/normal.out: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg-attempt1/normal.rc: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg-attempt1/run_cases.attempt1.sh: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg-attempt1/stale_btc_m15.err: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg-attempt1/stale_btc_m15.out: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg-attempt1/stale_btc_m15.rc: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg-attempt1/stale_h1_0502_00.err: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg-attempt1/stale_h1_0502_00.out: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg-attempt1/stale_h1_0502_00.rc: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg/boundary_gap2.err: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg/boundary_gap2.out: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg/boundary_gap2.rc: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg/cap_dup.err: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg/cap_dup.out: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg/cap_dup.rc: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg/cap_over_n10.err: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg/cap_over_n10.out: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg/cap_over_n10.rc: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg/check_cases.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg/dbs.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg/enablement.err: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg/enablement.out: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg/enablement.rc: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg/grace_h1_0501_59.err: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg/grace_h1_0501_59.out: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg/grace_h1_0501_59.rc: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg/missing_b3.err: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg/missing_b3.out: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg/missing_b3.rc: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg/missing_gap3.err: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg/missing_gap3.out: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg/missing_gap3.rc: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg/missing_history.err: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg/missing_history.out: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg/missing_history.rc: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg/none_eth_m15.err: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg/none_eth_m15.out: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg/none_eth_m15.rc: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg/normal.err: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg/normal.out: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg/normal.rc: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg/run_cases.stderr.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg/stale_btc_m15.err: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg/stale_btc_m15.out: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg/stale_btc_m15.rc: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg/stale_h1_0502_00.err: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg/stale_h1_0502_00.out: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/runs-pg/stale_h1_0502_00.rc: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/seed_base.sql: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/run_pgchain42.sh: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/run_sma20_chain.sh: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/bundle-rules/attempt1-defect.md: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/bundle-rules/probe_v422.py: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/bundle-rules/probe_v422.result.json: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/bundle-rules/test_run_bundle.run2.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/bundle-rules/test_run_bundle.v422.run1.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/bundle-rules/test_run_bundle.v422.run2.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/bundle-rules/v422-cases.run2/T20.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/bundle-rules/v422-cases.run2/T21.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/bundle-rules/v422-cases.run2/T22.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/bundle-rules/v422-cases.run2/T23.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/bundle-rules/v422-cases.run2/T24.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/bundle-rules/v422-cases.run2/T25.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-a-seed/TEST-com.cryptoautotrader.api.service.AbChainV4PgTest.xml: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-a-seed/arms.csv: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-a-seed/arms.csv.meta.json: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-a-seed/arms.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-a-seed/create/creation_log.draft.json: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-a-seed/create/journal.jsonl: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-a-seed/create/plan.json: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-a-seed/createdb.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-a-seed/gradle.log.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-a-seed/gradle.rc: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-a-seed/local-test-token.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-a-seed/marks.csv: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-a-seed/neg_fp_missing.complete.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-a-seed/neg_fp_missing.db_check.out: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-a-seed/neg_fp_missing.psql.stderr.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-a-seed/neg_fp_multiple.complete.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-a-seed/neg_fp_multiple.db_check.out: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-a-seed/neg_fp_multiple.psql.stderr.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-a-seed/neg_one_row_1us.complete.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-a-seed/neg_one_row_1us.db_check.out: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-a-seed/neg_one_row_1us.psql.stderr.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-a-seed/neg_stored_ratio.complete.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-a-seed/neg_stored_ratio.db_check.out: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-a-seed/neg_stored_ratio.psql.stderr.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-a-seed/neg_trade_before_t0.complete.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-a-seed/neg_trade_before_t0.db_check.out: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-a-seed/neg_trade_before_t0.psql.stderr.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-a-seed/ok.aggregate.json: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-a-seed/ok.complete.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-a-seed/ok.creation_log.json: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-a-seed/ok.db_check.out: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-a-seed/ok.positions.csv: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-a-seed/ok.psql.stderr.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-a-seed/started_utc.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-a-seed/transcript.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-a-seed/worktree_head.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-b-main/TEST-com.cryptoautotrader.api.service.AbChainV4PgTest.xml: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-b-main/arms.csv: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-b-main/arms.csv.meta.json: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-b-main/arms.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-b-main/create/creation_log.draft.json: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-b-main/create/journal.jsonl: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-b-main/create/plan.json: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-b-main/createdb.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-b-main/gradle.log.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-b-main/gradle.rc: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-b-main/local-test-token.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-b-main/marks.csv: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-b-main/neg_fp_missing.complete.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-b-main/neg_fp_missing.db_check.out: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-b-main/neg_fp_missing.psql.stderr.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-b-main/neg_fp_multiple.complete.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-b-main/neg_fp_multiple.db_check.out: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-b-main/neg_fp_multiple.psql.stderr.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-b-main/neg_one_row_1us.complete.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-b-main/neg_one_row_1us.db_check.out: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-b-main/neg_one_row_1us.psql.stderr.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-b-main/neg_other_db.complete.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-b-main/neg_other_db.db_check.out: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-b-main/neg_other_db.psql.stderr.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-b-main/neg_stored_ratio.complete.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-b-main/neg_stored_ratio.db_check.out: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-b-main/neg_stored_ratio.psql.stderr.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-b-main/neg_trade_before_t0.complete.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-b-main/neg_trade_before_t0.db_check.out: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-b-main/neg_trade_before_t0.psql.stderr.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-b-main/ok.aggregate.json: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-b-main/ok.complete.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-b-main/ok.creation_log.json: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-b-main/ok.db_check.out: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-b-main/ok.positions.csv: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-b-main/ok.psql.stderr.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-b-main/started_utc.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-b-main/transcript.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/pgchain42/run-b-main/worktree_head.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/sma20chain/run1/TEST-com.cryptoautotrader.api.service.Sma20ChainPgTest.xml: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/sma20chain/run1/create-rerun-new/journal.jsonl: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/sma20chain/run1/create-rerun-new/plan.json: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/sma20chain/run1/create/journal.jsonl: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/sma20chain/run1/create/plan.json: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/sma20chain/run1/create/sma20_creation.draft.json: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/sma20chain/run1/createdb.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/sma20chain/run1/gradle.log.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/sma20chain/run1/gradle.rc: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/sma20chain/run1/local-test-token.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/sma20chain/run1/neg_1us.complete.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/sma20chain/run1/neg_1us.db_check.out: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/sma20chain/run1/neg_1us.psql.stderr.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/sma20chain/run1/neg_order_before_t0.complete.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/sma20chain/run1/neg_order_before_t0.db_check.out: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/sma20chain/run1/neg_order_before_t0.psql.stderr.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/sma20chain/run1/neg_other_db.complete.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/sma20chain/run1/neg_other_db.db_check.out: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/sma20chain/run1/neg_other_db.psql.stderr.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/sma20chain/run1/neg_position.complete.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/sma20chain/run1/neg_position.db_check.out: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/sma20chain/run1/neg_position.psql.stderr.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/sma20chain/run1/ok.complete.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/sma20chain/run1/ok.db_check.out: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/sma20chain/run1/ok.psql.stderr.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/sma20chain/run1/ok.sma20_creation_log.json: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/sma20chain/run1/started_utc.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/sma20chain/run1/transcript.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/sma20chain/run1/worktree_head.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/test_ab_create_v42.run1.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/test_ab_v42.run1.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/test_redirect_r1.v41-before.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/test_redirect_r1.v42-after.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/test_sma20.run2.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/runs/v41-classify-307.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/session-gap/README.md: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/session-gap/usage-limit-extract.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/sma20/body.json: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/sma20/sma20_chain_driver.py: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/sma20/sma20_check.sql: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/sma20/sma20_complete.py: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/sma20/sma20_create.py: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/sma20/sma20_meta_preflight.sql: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/sma20/test_sma20.py: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/tool/ab_arms.py: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/tool/protocol.json: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/tool/test_ab_v42.py: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "ab-create-v42-20261117/bundle/SHA256SUMS.bundle: working list bytes",
+      "passed": true
+    },
+    {
+      "name": "ab-create-v42-20261117/bundle/SHA256SUMS.bundle: count",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/create/ab_create.py: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/create/http_post.py: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/create/ab_complete.py: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/create/meta_preflight.sql: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/create/meta_after.sql: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/create/post_creation_check.sql: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/tool/protocol.json: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/tool/ab_arms.py: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/sma20/sma20_create.py: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/sma20/sma20_complete.py: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/sma20/body.json: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/sma20/sma20_meta_preflight.sql: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/sma20/sma20_check.sql: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/preflight/preflight_v2.sql: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/bundle/judge_preflight.py: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v42-20261117/bundle/run_bundle.sh: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "n03-1117-1000/SHA256SUMS: working list bytes",
+      "passed": true
+    },
+    {
+      "name": "n03-1117-1000/SHA256SUMS: count",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-1000/20261117-1000.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-1000/20261117-1000.txt.msg: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-1000/20261117-1000.txt.raw: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-1000/README.md: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-1000/error_lines.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-1000/frontend-image.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-1000/install_state.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-1000/last_send: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-1000/ledger-20261117.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-1000/ledger-files.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-1000/local-sha256.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-1000/observations-supp.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-1000/observations.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-1000/read-stderr.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-1000/read.sh: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-1000/run-time.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-1000/sched/n03run.sh: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-1000/sched/ssh-shim2.sh: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-1000/sched/wait_then.sh: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-1000/server-files.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-1000/ssh-path.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-1000/token-check.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "netinv-20261117/SHA256SUMS: working list bytes",
+      "passed": true
+    },
+    {
+      "name": "netinv-20261117/SHA256SUMS: count",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/netinv-20261117/README.md: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/netinv-20261117/inv-stderr.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/netinv-20261117/inv.sh: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/netinv-20261117/net-minutes.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/netinv-20261117/run-time.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/netinv-20261117/sched/scheduled-command.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/netinv-20261117/sched/ssh-shim2.sh: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/netinv-20261117/sched/wait_then.sh: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/netinv-20261117/ssh-journal.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/netinv-20261117/ssh-supp.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/netinv-20261117/supp-run-time.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/netinv-20261117/supp-stderr.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/netinv-20261117/supp.sh: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/netinv-20261117/token-check.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/netinv-20261117/w1-candle-0000kst.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/netinv-20261117/w2-news-0050kst.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/netinv-20261117/w3-telegram-0426kst.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/netinv-20261117/w4-claude-0500kst.txt: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "bundle-record-review-20261117/SHA256SUMS: working list bytes",
+      "passed": true
+    },
+    {
+      "name": "bundle-record-review-20261117/SHA256SUMS: count",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/bundle-record-review-20261117/.gitattributes: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/bundle-record-review-20261117/probe_record.py: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/bundle-record-review-20261117/README.md: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/bundle-record-review-20261117/result.json: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/bundle-record-review-20261117/run_bundle.v421.reviewed.sh: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "bundle-record-review-20261117/v422/SHA256SUMS: working list bytes",
+      "passed": true
+    },
+    {
+      "name": "bundle-record-review-20261117/v422/SHA256SUMS: count",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/bundle-record-review-20261117/v422/.gitattributes: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/bundle-record-review-20261117/v422/audit_record.py: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/bundle-record-review-20261117/v422/README.md: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/bundle-record-review-20261117/v422/result.json: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/bundle-record-review-20261117/v422/run_bundle.v422.reviewed.sh: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "review-ab062049/SHA256SUMS: working list bytes",
+      "passed": true
+    },
+    {
+      "name": "review-ab062049/SHA256SUMS: count",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/review-ab062049/.gitattributes: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/review-ab062049/README.md: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/review-ab062049/audit_review.py: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/review-ab062049/checks.json: blob sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "HEAD fixed submission",
+      "passed": true
+    },
+    {
+      "name": "local origin/main fixed submission",
+      "passed": true
+    },
+    {
+      "name": "SMA test SHA has no outside-test differences",
+      "passed": true
+    },
+    {
+      "name": "AB plan bytes unchanged",
+      "passed": true
+    },
+    {
+      "name": "SMA body bytes unchanged",
+      "passed": true
+    },
+    {
+      "name": "redirect 301 /same: one fake POST, no body, UNKNOWN",
+      "passed": true
+    },
+    {
+      "name": "redirect 301 /same: handler refuses second request",
+      "passed": true
+    },
+    {
+      "name": "redirect 301 /api/paper-trading: one fake POST, no body, UNKNOWN",
+      "passed": true
+    },
+    {
+      "name": "redirect 301 /api/paper-trading: handler refuses second request",
+      "passed": true
+    },
+    {
+      "name": "redirect 301 ../relative: one fake POST, no body, UNKNOWN",
+      "passed": true
+    },
+    {
+      "name": "redirect 301 ../relative: handler refuses second request",
+      "passed": true
+    },
+    {
+      "name": "redirect 301 http://example.invalid/other: one fake POST, no body, UNKNOWN",
+      "passed": true
+    },
+    {
+      "name": "redirect 301 http://example.invalid/other: handler refuses second request",
+      "passed": true
+    },
+    {
+      "name": "redirect 302 /same: one fake POST, no body, UNKNOWN",
+      "passed": true
+    },
+    {
+      "name": "redirect 302 /same: handler refuses second request",
+      "passed": true
+    },
+    {
+      "name": "redirect 302 /api/paper-trading: one fake POST, no body, UNKNOWN",
+      "passed": true
+    },
+    {
+      "name": "redirect 302 /api/paper-trading: handler refuses second request",
+      "passed": true
+    },
+    {
+      "name": "redirect 302 ../relative: one fake POST, no body, UNKNOWN",
+      "passed": true
+    },
+    {
+      "name": "redirect 302 ../relative: handler refuses second request",
+      "passed": true
+    },
+    {
+      "name": "redirect 302 http://example.invalid/other: one fake POST, no body, UNKNOWN",
+      "passed": true
+    },
+    {
+      "name": "redirect 302 http://example.invalid/other: handler refuses second request",
+      "passed": true
+    },
+    {
+      "name": "redirect 303 /same: one fake POST, no body, UNKNOWN",
+      "passed": true
+    },
+    {
+      "name": "redirect 303 /same: handler refuses second request",
+      "passed": true
+    },
+    {
+      "name": "redirect 303 /api/paper-trading: one fake POST, no body, UNKNOWN",
+      "passed": true
+    },
+    {
+      "name": "redirect 303 /api/paper-trading: handler refuses second request",
+      "passed": true
+    },
+    {
+      "name": "redirect 303 ../relative: one fake POST, no body, UNKNOWN",
+      "passed": true
+    },
+    {
+      "name": "redirect 303 ../relative: handler refuses second request",
+      "passed": true
+    },
+    {
+      "name": "redirect 303 http://example.invalid/other: one fake POST, no body, UNKNOWN",
+      "passed": true
+    },
+    {
+      "name": "redirect 303 http://example.invalid/other: handler refuses second request",
+      "passed": true
+    },
+    {
+      "name": "redirect 307 /same: one fake POST, no body, UNKNOWN",
+      "passed": true
+    },
+    {
+      "name": "redirect 307 /same: handler refuses second request",
+      "passed": true
+    },
+    {
+      "name": "redirect 307 /api/paper-trading: one fake POST, no body, UNKNOWN",
+      "passed": true
+    },
+    {
+      "name": "redirect 307 /api/paper-trading: handler refuses second request",
+      "passed": true
+    },
+    {
+      "name": "redirect 307 ../relative: one fake POST, no body, UNKNOWN",
+      "passed": true
+    },
+    {
+      "name": "redirect 307 ../relative: handler refuses second request",
+      "passed": true
+    },
+    {
+      "name": "redirect 307 http://example.invalid/other: one fake POST, no body, UNKNOWN",
+      "passed": true
+    },
+    {
+      "name": "redirect 307 http://example.invalid/other: handler refuses second request",
+      "passed": true
+    },
+    {
+      "name": "redirect 308 /same: one fake POST, no body, UNKNOWN",
+      "passed": true
+    },
+    {
+      "name": "redirect 308 /same: handler refuses second request",
+      "passed": true
+    },
+    {
+      "name": "redirect 308 /api/paper-trading: one fake POST, no body, UNKNOWN",
+      "passed": true
+    },
+    {
+      "name": "redirect 308 /api/paper-trading: handler refuses second request",
+      "passed": true
+    },
+    {
+      "name": "redirect 308 ../relative: one fake POST, no body, UNKNOWN",
+      "passed": true
+    },
+    {
+      "name": "redirect 308 ../relative: handler refuses second request",
+      "passed": true
+    },
+    {
+      "name": "redirect 308 http://example.invalid/other: one fake POST, no body, UNKNOWN",
+      "passed": true
+    },
+    {
+      "name": "redirect 308 http://example.invalid/other: handler refuses second request",
+      "passed": true
+    },
+    {
+      "name": "saved preflight replay bundle/judge-runs/normal_nodup.out",
+      "passed": true
+    },
+    {
+      "name": "saved preflight replay bundle/judge-runs/broken.out",
+      "passed": true
+    },
+    {
+      "name": "saved preflight replay preflight/runs-pg/normal.out",
+      "passed": true
+    },
+    {
+      "name": "saved preflight replay preflight/runs-pg/missing_gap3.out",
+      "passed": true
+    },
+    {
+      "name": "saved preflight replay preflight/runs-pg/stale_h1_0502_00.out",
+      "passed": true
+    },
+    {
+      "name": "saved preflight replay preflight/runs-pg/cap_over_n10.out",
+      "passed": true
+    },
+    {
+      "name": "saved preflight replay preflight/runs-pg/enablement.out",
+      "passed": true
+    },
+    {
+      "name": "SMA local chain XML 1/0/0/0",
+      "passed": true
+    },
+    {
+      "name": "SMA local chain rc",
+      "passed": true
+    },
+    {
+      "name": "T0 six-case XML",
+      "passed": true
+    },
+    {
+      "name": "chart stored dark measurement changed",
+      "passed": true
+    },
+    {
+      "name": "SSH MaxStartups raw line",
+      "passed": true
+    },
+    {
+      "name": "SSH accepted publickey count",
+      "passed": true
+    },
+    {
+      "name": "SSH failed minute sum",
+      "passed": true
+    },
+    {
+      "name": "SSH source count is masked prefix",
+      "passed": true
+    },
+    {
+      "name": "SSH mask happens before grouping",
+      "passed": true
+    },
+    {
+      "name": "SSH mask merges distinct fixture addresses",
+      "passed": true
+    },
+    {
+      "name": "Claude failure present, recovery absent in saved window",
+      "passed": true
+    },
+    {
+      "name": "secret scan function observation normal_no_match",
+      "passed": true
+    },
+    {
+      "name": "secret scan function observation missing_pattern_file",
+      "passed": true
+    },
+    {
+      "name": "secret scan function observation grep_read_error",
+      "passed": true
+    },
+    {
+      "name": "secret scan function observation fixture_match",
+      "passed": true
+    }
+  ],
+  "passed": 432,
+  "failed": 0,
+  "secret_scan_probes": [
+    {
+      "case": "normal_no_match",
+      "first_exit": 0,
+      "next_guard_exit": 0,
+      "guard_marker": 1,
+      "final_rc": "0\n",
+      "stdout": "2026-11-17T01:29:12Z STEP=2 토큰 문자열 포함 파일 수=0\n2026-11-17T01:29:12Z STEP=2 끝 rc=0\n__FIRST__=0\n__NEXT__=0\n",
+      "stderr": ""
+    },
+    {
+      "case": "missing_pattern_file",
+      "first_exit": 0,
+      "next_guard_exit": 0,
+      "guard_marker": 1,
+      "final_rc": "0\n",
+      "stdout": "2026-11-17T01:29:12Z STEP=2 토큰 문자열 포함 파일 수=0\n2026-11-17T01:29:12Z STEP=2 끝 rc=0\n__FIRST__=0\n__NEXT__=0\n",
+      "stderr": ""
+    },
+    {
+      "case": "grep_read_error",
+      "first_exit": 0,
+      "next_guard_exit": 0,
+      "guard_marker": 1,
+      "final_rc": "0\n",
+      "stdout": "2026-11-17T01:29:13Z STEP=2 토큰 문자열 포함 파일 수=0\n2026-11-17T01:29:13Z STEP=2 끝 rc=0\n__FIRST__=0\n__NEXT__=0\n",
+      "stderr": ""
+    },
+    {
+      "case": "fixture_match",
+      "first_exit": 9,
+      "next_guard_exit": 6,
+      "guard_marker": 0,
+      "final_rc": "9\n",
+      "stdout": "2026-11-17T01:29:13Z STEP=2 토큰 문자열 포함 파일 수=1\n2026-11-17T01:29:13Z STEP=2 🔴 토큰 노출 — 멈춤\n2026-11-17T01:29:13Z STEP=2 끝 rc=9\n2026-11-17T01:29:13Z STEP=3 🔴 앞 단계 STEP=2 rc=9 — 이 단계 부르지 않음\n__FIRST__=9\n__NEXT__=6\n",
+      "stderr": ""
+    }
+  ]
+}

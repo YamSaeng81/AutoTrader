@@ -1,0 +1,72 @@
+== A 서버 시각
+server 2026-11-17 10:40:59 KST
+server_utc 2026-11-17 01:40:59
+rc[A]=0
+== B 최근 5분 SSH 서비스 로그
+rc[B.journal]=0
+줄 수=129
+grep[B.failed] 개수=49 rc=0(일치)
+grep[B.maxstartups] 개수=0 rc=1(일치없음)
+grep[B.accepted] 개수=1 rc=0(일치)
+grep[B.journal_denied] 개수=0 rc=1(일치없음)
+B 고유 출발지 수(실패, 전체 IP 서버 안 집계)=22
+B 마지막 MaxStartups 줄(가림):
+== C 07:50~08:10 KST(22:50~23:10Z) 원본 정확 IP 집계
+rc[C.journal]=0
+Failed(출발지 있는 줄)=20754
+고유 출발지 IP 수=28
+고유 /16(a.b) 수=21
+IP별 상위 5(건수 · 가린 IP · 순위 표지):
+20708	143.198.x.x
+5	203.245.x.x
+4	211.253.x.x
+4	106.248.x.x
+3	222.122.x.x
+143.198 /16 안 고유 IP 수=1, 그 건수=20708
+== D 성공 로그인 귀속(같은 구간)
+     21 manicstr|publickey|ED25519 SHA256:zBMiDGBScKnk15hazQGwuiH1lJvs7/eW5Feo6PKxoQc|지금접속과같은IP
+rc[D.accepted_loop]=0
+D 지금 접속 IP(가림)=220.118.x.x
+D 이 계정 authorized_keys 지문(주석 제외):
+256 SHA256:zBMiDGBScKnk15hazQGwuiH1lJvs7/eW5Feo6PKxoQc (ED25519)
+rc[D.authkeys]=0
+D authorized_keys 줄 수(주석·빈 줄 제외)=1
+-rw------- manicstr manicstr
+D 7일 Accepted 종류·사용자(전체 기간 아님, 출발지 가림):
+    244 Accepted publickey for manicstr
+rc[D.7d]=0
+D 로그인 가능한 셸 계정(사용자명만):
+root manicstr 
+== E OpenSSH 판·서비스
+OpenSSH_8.9p1 Ubuntu-3ubuntu0.18, OpenSSL 3.0.2 15 Mar 2022
+openssh-server 1:8.9p1-3ubuntu0.18
+rc[E.dpkg]=0
+active inactive active 
+enabled disabled 
+ExecStart={ path=/usr/sbin/sshd ; argv[]=/usr/sbin/sshd -D $SSHD_OPTS ; ignore_errors=no ; start_time=[n/a] ; stop_time=[n/a] ; pid=0 ; code=(null) ; status=0/0 }
+ActiveEnterTimestamp=Mon 2026-10-19 08:14:18 KST
+Listen=[::]:22 (Stream)
+sshd 프로세스 인자:
+      1 sshd: /usr/sbin/sshd -D [listener] 0 of 10-100 startups
+== F 읽을 수 있는 설정(관련 키만, 주석 제외)
+-rw-r--r-- root root /etc/ssh/sshd_config
+-rw------- root root 50-cloud-init.conf
+-- /etc/ssh/sshd_config grep rc=0(일치)
+12:Include /etc/ssh/sshd_config.d/*.conf
+62:KbdInteractiveAuthentication no
+85:UsePAM yes
+-- /etc/ssh/sshd_config.d/50-cloud-init.conf grep rc=2(검사실패)
+grep: /etc/ssh/sshd_config.d/50-cloud-init.conf: Permission denied
+sshd -T(권한):
+rc[F.sudo_sshd_T]=1
+rc[F.sudo_n]=1
+== G 방화벽·대기 포트
+active inactive inactive inactive (ufw nftables firewalld fail2ban)
+ERROR: You need to be root to run this script
+rc[G.ufw]=1
+*:9090 0.0.x.x:22 0.0.x.x:25600 0.0.x.x:3000 0.0.x.x:3001 0.0.x.x:3080 0.0.x.x:4330 0.0.x.x:44321 0.0.x.x:44322 0.0.x.x:44323 0.0.x.x:5432 0.0.x.x:5678 0.0.x.x:8080 0.0.x.x:8090 127.0.x.x%lo:53 127.0.x.x:9091 [::]:22 [::]:25600 [::]:3000 [::]:3080 [::]:4330 [::]:44321 [::]:44322 [::]:44323 [::]:5432 [::]:5678 [::]:8080 [::]:8090 
+rc[G.ss]=0
+IPv6 전역 주소 수=0
+adm sudo docker (관련 그룹)
+== 끝
+server 2026-11-17 10:42:07 KST

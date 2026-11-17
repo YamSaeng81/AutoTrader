@@ -1,0 +1,25 @@
+사례 T25
+첫 호출 종료값=8
+다음 단계 직접 호출 종료값=8
+도구 호출(python 대역) 누계=1 · psql 대역 누계=1
+--- 남은 파일(OUT)
+total 24
+drwxr-xr-x  3 yhdeabba yhdeabba 4096 Nov 17 10:48 .
+drwx------ 55 yhdeabba yhdeabba 4096 Nov 17 10:48 ..
+-rw-r--r--  1 yhdeabba yhdeabba    2 Nov 17 10:48 0.rc
+-rw-r--r--  1 yhdeabba yhdeabba   14 Nov 17 10:48 1-judge.txt
+-rw-r--r--  1 yhdeabba yhdeabba    0 Nov 17 10:48 1-preflight.err
+-rw-r--r--  1 yhdeabba yhdeabba    7 Nov 17 10:48 1-preflight.out
+drwxr-xr-x  2 yhdeabba yhdeabba 4096 Nov 17 10:48 steps.log
+--- 0.rc: 0
+--- steps.log
+(파일 아님 — 기록 실패 주입으로 폴더)
+--- 다음 단계 화면 출력
+/tmp/v423.86HR/bundle/run_bundle.sh: line 45: /tmp/tmp.ufspjJOZGP/out26/steps.log: Is a directory
+2026-11-17T01:48:34Z STEP=2 🔴 앞 단계 STEP=1 rc=없음 — 이 단계 부르지 않음 [steps.log 기록 실패 → 이 줄 무효, 종료 8]
+--- 첫 호출 화면 출력
+2026-11-17T01:48:34Z STEP=1 preflight psql rc=0
+{"ok":"stub"}
+2026-11-17T01:48:34Z STEP=1 판정 rc=0
+/tmp/v423.86HR/bundle/run_bundle.sh: line 45: /tmp/tmp.ufspjJOZGP/out26/steps.log: Is a directory
+2026-11-17T01:48:34Z STEP=1 끝 rc=0 [steps.log 기록 실패 → 이 줄 무효, 종료 8]

@@ -1,0 +1,26 @@
+사례 T23
+첫 호출 종료값=3
+다음 단계 직접 호출 종료값=6
+도구 호출(python 대역) 누계=1 · psql 대역 누계=0
+--- 남은 파일(OUT)
+total 20
+drwxr-xr-x  2 yhdeabba yhdeabba 4096 Nov 17 10:48 .
+drwx------ 51 yhdeabba yhdeabba 4096 Nov 17 10:48 ..
+-rw-r--r--  1 yhdeabba yhdeabba    2 Nov 17 10:48 1.rc
+-rw-r--r--  1 yhdeabba yhdeabba    2 Nov 17 10:48 2.rc
+-rw-r--r--  1 yhdeabba yhdeabba  446 Nov 17 10:48 steps.log
+--- 1.rc: 0
+--- 2.rc: 3
+--- steps.log
+2026-11-17T01:48:34Z STEP=2 ab_create rc=3 (0=8개 OK·DB 메타 대조 성공, 2=보낸 것 없음, 3=멈춤/부분/불명, 4=기록부·잠금)
+2026-11-17T01:48:34Z STEP=2 토큰 검사 grep rc=1(정상 불일치) · 포함 파일 수=0
+2026-11-17T01:48:34Z STEP=2 🔴 ab_create 기록(tee) 실패 rc=1 · 도구 rc=3
+2026-11-17T01:48:34Z STEP=2 끝 rc=3
+2026-11-17T01:48:34Z STEP=3 🔴 앞 단계 STEP=2 rc=3 — 이 단계 부르지 않음
+--- 다음 단계 화면 출력
+2026-11-17T01:48:34Z STEP=3 🔴 앞 단계 STEP=2 rc=3 — 이 단계 부르지 않음
+--- 첫 호출 화면 출력
+2026-11-17T01:48:34Z STEP=2 ab_create rc=3 (0=8개 OK·DB 메타 대조 성공, 2=보낸 것 없음, 3=멈춤/부분/불명, 4=기록부·잠금)
+2026-11-17T01:48:34Z STEP=2 토큰 검사 grep rc=1(정상 불일치) · 포함 파일 수=0
+2026-11-17T01:48:34Z STEP=2 🔴 ab_create 기록(tee) 실패 rc=1 · 도구 rc=3
+2026-11-17T01:48:34Z STEP=2 끝 rc=3

@@ -1,0 +1,32 @@
+사례 T30-s4
+첫 호출 종료값=0
+다음 단계 직접 호출 종료값=2
+도구 호출(python 대역) 누계=1 · psql 대역 누계=0
+--- 남은 파일(OUT)
+total 24
+drwxr-xr-x  2 yhdeabba yhdeabba 4096 Nov 17 10:48 .
+drwx------ 73 yhdeabba yhdeabba 4096 Nov 17 10:48 ..
+-rw-r--r--  1 yhdeabba yhdeabba    2 Nov 17 10:48 3.rc
+-rw-r--r--  1 yhdeabba yhdeabba    0 Nov 17 10:48 4-sma20-create.txt
+-rw-r--r--  1 yhdeabba yhdeabba    2 Nov 17 10:48 4.rc
+-rw-r--r--  1 yhdeabba yhdeabba    2 Nov 17 10:48 5.rc
+-rw-r--r--  1 yhdeabba yhdeabba  265 Nov 17 10:48 steps.log
+--- 3.rc: 0
+--- 4.rc: 0
+--- 5.rc: 2
+--- steps.log
+2026-11-17T01:48:34Z STEP=4 sma20_create rc=0
+2026-11-17T01:48:34Z STEP=4 토큰 검사 grep rc=1(정상 불일치) · 포함 파일 수=0
+2026-11-17T01:48:34Z STEP=4 끝 rc=0
+2026-11-17T01:48:34Z STEP=5 초안 ID 읽기 실패
+2026-11-17T01:48:34Z STEP=5 끝 rc=2
+--- 다음 단계 화면 출력
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+FileNotFoundError: [Errno 2] No such file or directory: '/tmp/tmp.ufspjJOZGP/out35/sma20-create/sma20_creation.draft.json'
+2026-11-17T01:48:34Z STEP=5 초안 ID 읽기 실패
+2026-11-17T01:48:34Z STEP=5 끝 rc=2
+--- 첫 호출 화면 출력
+2026-11-17T01:48:34Z STEP=4 sma20_create rc=0
+2026-11-17T01:48:34Z STEP=4 토큰 검사 grep rc=1(정상 불일치) · 포함 파일 수=0
+2026-11-17T01:48:34Z STEP=4 끝 rc=0
