@@ -1,0 +1,828 @@
+{
+  "fixed_commit": "13a8229981eecf8e7d35381bcc9a5e95d04ad6f5",
+  "scope": "Git blobs, saved evidence and isolated Bash functions only; no product suite/DB/HTTP/production",
+  "manifests": [
+    {
+      "folder": "sshsec-20261117",
+      "list": "SHA256SUMS",
+      "matched": 7
+    },
+    {
+      "folder": "ab-create-v423-20261117",
+      "list": "SHA256SUMS",
+      "matched": 50
+    },
+    {
+      "folder": "ab-create-v423-20261117",
+      "list": "bundle/SHA256SUMS.bundle",
+      "matched": 16
+    },
+    {
+      "folder": "review-c3dca385",
+      "list": "SHA256SUMS",
+      "matched": 4
+    }
+  ],
+  "passed": 149,
+  "failed": 0,
+  "checks": [
+    {
+      "name": "docs/evidence/sshsec-20261117/SHA256SUMS: working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshsec-20261117/SHA256SUMS: count",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshsec-20261117/.gitattributes: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshsec-20261117/README.md: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshsec-20261117/out.txt: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshsec-20261117/read-stderr.txt: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshsec-20261117/read.sh: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshsec-20261117/remote.sh: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshsec-20261117/run-time.txt: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/SHA256SUMS: working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/SHA256SUMS: count",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/.gitattributes: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/README.md: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/bundle/SHA256SUMS.bundle: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/bundle/judge_preflight.py: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/bundle/run_bundle.sh: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/bundle/test_run_bundle.sh: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/create/ab_complete.py: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/create/ab_create.py: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/create/http_post.py: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/create/meta_after.sql: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/create/meta_preflight.sql: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/create/post_creation_check.sql: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/preflight/preflight_v2.sql: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/runs/linux-keep/L-perm400.txt: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/runs/linux-keep/L-perm600.txt: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/runs/linux-keep/L-perm644.txt: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/runs/linux-keep/L04.txt: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/runs/linux-keep/L05.txt: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/runs/linux-keep/T20.txt: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/runs/linux-keep/T21.txt: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/runs/linux-keep/T22.txt: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/runs/linux-keep/T23.txt: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/runs/linux-keep/T24.txt: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/runs/linux-keep/T25.txt: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/runs/linux-keep/T30-s2.txt: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/runs/linux-keep/T30-s4.txt: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/runs/linux-keep/T31-s2.txt: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/runs/linux-keep/T31-s4.txt: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/runs/linux-keep/T32-s2.txt: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/runs/linux-keep/T32-s4.txt: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/runs/linux-keep/T33-s2.txt: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/runs/linux-keep/T33-s4.txt: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/runs/linux-keep/T34-s2.txt: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/runs/linux-keep/T34-s4.txt: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/runs/linux-keep/T35-s2.txt: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/runs/linux-keep/T35-s4.txt: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/runs/linux-keep/T36-s2.txt: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/runs/linux-keep/T36-s4.txt: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/runs/linux-wsl-test.txt: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/runs/old-660e2332-with-v423-tests.txt: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/runs/run_bundle-660e2332-to-v423.diff: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/runs/win-gitbash-test.txt: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/runs/wsl_run.sh: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/sma20/body.json: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/sma20/sma20_check.sql: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/sma20/sma20_complete.py: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/sma20/sma20_create.py: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/sma20/sma20_meta_preflight.sql: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/tool/ab_arms.py: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/tool/protocol.json: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/bundle/SHA256SUMS.bundle: working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/bundle/SHA256SUMS.bundle: count",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/create/ab_create.py: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/create/http_post.py: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/create/ab_complete.py: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/create/meta_preflight.sql: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/create/meta_after.sql: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/create/post_creation_check.sql: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/tool/protocol.json: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/tool/ab_arms.py: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/sma20/sma20_create.py: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/sma20/sma20_complete.py: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/sma20/body.json: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/sma20/sma20_meta_preflight.sql: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/sma20/sma20_check.sql: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/preflight/preflight_v2.sql: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/bundle/judge_preflight.py: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/bundle/run_bundle.sh: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/review-c3dca385/SHA256SUMS: working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/review-c3dca385/SHA256SUMS: count",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/review-c3dca385/.gitattributes: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/review-c3dca385/README.md: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/review-c3dca385/audit_review.py: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/review-c3dca385/checks.json: committed sha and working bytes",
+      "passed": true
+    },
+    {
+      "name": "fixed local HEAD",
+      "passed": true
+    },
+    {
+      "name": "local origin/main ref (no fetch)",
+      "passed": true
+    },
+    {
+      "name": "16 paths unchanged",
+      "passed": true
+    },
+    {
+      "name": "only executable member changed is runner",
+      "passed": true
+    },
+    {
+      "name": "unchanged executable member create/ab_create.py",
+      "passed": true
+    },
+    {
+      "name": "unchanged executable member create/http_post.py",
+      "passed": true
+    },
+    {
+      "name": "unchanged executable member create/ab_complete.py",
+      "passed": true
+    },
+    {
+      "name": "unchanged executable member create/meta_preflight.sql",
+      "passed": true
+    },
+    {
+      "name": "unchanged executable member create/meta_after.sql",
+      "passed": true
+    },
+    {
+      "name": "unchanged executable member create/post_creation_check.sql",
+      "passed": true
+    },
+    {
+      "name": "unchanged executable member tool/protocol.json",
+      "passed": true
+    },
+    {
+      "name": "unchanged executable member tool/ab_arms.py",
+      "passed": true
+    },
+    {
+      "name": "unchanged executable member sma20/sma20_create.py",
+      "passed": true
+    },
+    {
+      "name": "unchanged executable member sma20/sma20_complete.py",
+      "passed": true
+    },
+    {
+      "name": "unchanged executable member sma20/body.json",
+      "passed": true
+    },
+    {
+      "name": "unchanged executable member sma20/sma20_meta_preflight.sql",
+      "passed": true
+    },
+    {
+      "name": "unchanged executable member sma20/sma20_check.sql",
+      "passed": true
+    },
+    {
+      "name": "unchanged executable member preflight/preflight_v2.sql",
+      "passed": true
+    },
+    {
+      "name": "unchanged executable member bundle/judge_preflight.py",
+      "passed": true
+    },
+    {
+      "name": "step dispatch and calls unchanged",
+      "passed": true
+    },
+    {
+      "name": "other recording/guard functions unchanged",
+      "passed": true
+    },
+    {
+      "name": "fixed new runner sha",
+      "passed": true
+    },
+    {
+      "name": "runner bash syntax only",
+      "passed": true
+    },
+    {
+      "name": "saved Linux 49/49, uid1000 and rc0",
+      "passed": true
+    },
+    {
+      "name": "saved Windows 43/43",
+      "passed": true
+    },
+    {
+      "name": "saved old baseline 29/43",
+      "passed": true
+    },
+    {
+      "name": "saved Linux actual read error L04",
+      "passed": true
+    },
+    {
+      "name": "saved Linux actual read error L05",
+      "passed": true
+    },
+    {
+      "name": "SSH saved fact: server 2026-11-17 10:40:59 KST",
+      "passed": true
+    },
+    {
+      "name": "SSH saved fact: server 2026-11-17 10:42:07 KST",
+      "passed": true
+    },
+    {
+      "name": "SSH saved fact: Failed(출발지 있는 줄)=20754",
+      "passed": true
+    },
+    {
+      "name": "SSH saved fact: 고유 출발지 IP 수=28",
+      "passed": true
+    },
+    {
+      "name": "SSH saved fact: 20708\t143.198.x.x",
+      "passed": true
+    },
+    {
+      "name": "SSH saved fact: 143.198 /16 안 고유 IP 수=1, 그 건수=20708",
+      "passed": true
+    },
+    {
+      "name": "SSH saved fact: 개수=49",
+      "passed": true
+    },
+    {
+      "name": "SSH saved fact: 출발지 수(실패, 전체 IP 서버 안 집계)=22",
+      "passed": true
+    },
+    {
+      "name": "SSH saved fact: grep[B.maxstartups] 개수=0 rc=1",
+      "passed": true
+    },
+    {
+      "name": "SSH saved fact: 21 manicstr|publickey|ED25519 SHA256:zBMiDG",
+      "passed": true
+    },
+    {
+      "name": "SSH saved fact: 244 Accepted publickey for manicstr",
+      "passed": true
+    },
+    {
+      "name": "SSH saved fact: rc[F.sudo_sshd_T]=1",
+      "passed": true
+    },
+    {
+      "name": "SSH saved fact: rc[G.ufw]=1",
+      "passed": true
+    },
+    {
+      "name": "SSH IP grouping before mask",
+      "passed": true
+    },
+    {
+      "name": "7-day grouping does not include fingerprints",
+      "passed": true
+    },
+    {
+      "name": "root-only include content not read",
+      "passed": true
+    },
+    {
+      "name": "STEP2 function normal_no_match: exit, next guard, marker, rc",
+      "passed": true
+    },
+    {
+      "name": "STEP2 function missing_token: exit, next guard, marker, rc",
+      "passed": true
+    },
+    {
+      "name": "STEP2 function empty_token: exit, next guard, marker, rc",
+      "passed": true
+    },
+    {
+      "name": "STEP2 function grep_error_2: exit, next guard, marker, rc",
+      "passed": true
+    },
+    {
+      "name": "STEP2 function grep_error_3: exit, next guard, marker, rc",
+      "passed": true
+    },
+    {
+      "name": "STEP2 function grep_1_with_output: exit, next guard, marker, rc",
+      "passed": true
+    },
+    {
+      "name": "STEP2 function fixture_match: exit, next guard, marker, rc",
+      "passed": true
+    },
+    {
+      "name": "STEP2 function tool_3_and_scan_error: exit, next guard, marker, rc",
+      "passed": true
+    },
+    {
+      "name": "STEP2 function tool_3_no_match: exit, next guard, marker, rc",
+      "passed": true
+    },
+    {
+      "name": "STEP2 function tool_3_fixture_match: exit, next guard, marker, rc",
+      "passed": true
+    },
+    {
+      "name": "STEP4 function normal_no_match: exit, next guard, marker, rc",
+      "passed": true
+    },
+    {
+      "name": "STEP4 function missing_token: exit, next guard, marker, rc",
+      "passed": true
+    },
+    {
+      "name": "STEP4 function empty_token: exit, next guard, marker, rc",
+      "passed": true
+    },
+    {
+      "name": "STEP4 function grep_error_2: exit, next guard, marker, rc",
+      "passed": true
+    },
+    {
+      "name": "STEP4 function grep_error_3: exit, next guard, marker, rc",
+      "passed": true
+    },
+    {
+      "name": "STEP4 function grep_1_with_output: exit, next guard, marker, rc",
+      "passed": true
+    },
+    {
+      "name": "STEP4 function fixture_match: exit, next guard, marker, rc",
+      "passed": true
+    },
+    {
+      "name": "STEP4 function tool_3_and_scan_error: exit, next guard, marker, rc",
+      "passed": true
+    },
+    {
+      "name": "STEP4 function tool_3_no_match: exit, next guard, marker, rc",
+      "passed": true
+    },
+    {
+      "name": "STEP4 function tool_3_fixture_match: exit, next guard, marker, rc",
+      "passed": true
+    }
+  ],
+  "probes": [
+    {
+      "step": 2,
+      "case": "normal_no_match",
+      "exit": 0,
+      "next_guard_exit": 0,
+      "guard_marker": 1,
+      "final_rc": "0",
+      "stdout": "2026-11-17T01:58:07Z STEP=2 토큰 검사 grep rc=1(정상 불일치) · 포함 파일 수=0\n2026-11-17T01:58:07Z STEP=2 끝 rc=0\n__FIRST__=0\n__NEXT__=0\n",
+      "stderr": ""
+    },
+    {
+      "step": 2,
+      "case": "missing_token",
+      "exit": 10,
+      "next_guard_exit": 6,
+      "guard_marker": 0,
+      "final_rc": "10",
+      "stdout": "2026-11-17T01:58:08Z STEP=2 🔴 토큰 검사 미완료: 토큰 파일 없음/읽기 불가/빈 파일 — 멈춤(도구 rc=0)\n2026-11-17T01:58:08Z STEP=2 끝 rc=10\n2026-11-17T01:58:08Z STEP=3 🔴 앞 단계 STEP=2 rc=10 — 이 단계 부르지 않음\n__FIRST__=10\n__NEXT__=6\n",
+      "stderr": ""
+    },
+    {
+      "step": 2,
+      "case": "empty_token",
+      "exit": 10,
+      "next_guard_exit": 6,
+      "guard_marker": 0,
+      "final_rc": "10",
+      "stdout": "2026-11-17T01:58:08Z STEP=2 🔴 토큰 검사 미완료: 토큰 파일 없음/읽기 불가/빈 파일 — 멈춤(도구 rc=0)\n2026-11-17T01:58:08Z STEP=2 끝 rc=10\n2026-11-17T01:58:08Z STEP=3 🔴 앞 단계 STEP=2 rc=10 — 이 단계 부르지 않음\n__FIRST__=10\n__NEXT__=6\n",
+      "stderr": ""
+    },
+    {
+      "step": 2,
+      "case": "grep_error_2",
+      "exit": 10,
+      "next_guard_exit": 6,
+      "guard_marker": 0,
+      "final_rc": "10",
+      "stdout": "2026-11-17T01:58:08Z STEP=2 🔴 토큰 검사 미완료: grep rc=2(읽기 오류 등) — 멈춤(도구 rc=0)\n2026-11-17T01:58:08Z STEP=2 끝 rc=10\n2026-11-17T01:58:08Z STEP=3 🔴 앞 단계 STEP=2 rc=10 — 이 단계 부르지 않음\n__FIRST__=10\n__NEXT__=6\n",
+      "stderr": ""
+    },
+    {
+      "step": 2,
+      "case": "grep_error_3",
+      "exit": 10,
+      "next_guard_exit": 6,
+      "guard_marker": 0,
+      "final_rc": "10",
+      "stdout": "2026-11-17T01:58:08Z STEP=2 🔴 토큰 검사 미완료: grep rc=3(읽기 오류 등) — 멈춤(도구 rc=0)\n2026-11-17T01:58:08Z STEP=2 끝 rc=10\n2026-11-17T01:58:08Z STEP=3 🔴 앞 단계 STEP=2 rc=10 — 이 단계 부르지 않음\n__FIRST__=10\n__NEXT__=6\n",
+      "stderr": ""
+    },
+    {
+      "step": 2,
+      "case": "grep_1_with_output",
+      "exit": 10,
+      "next_guard_exit": 6,
+      "guard_marker": 0,
+      "final_rc": "10",
+      "stdout": "2026-11-17T01:58:08Z STEP=2 🔴 토큰 검사 미완료: grep rc=1 인데 출력 있음 — 멈춤(도구 rc=0)\n2026-11-17T01:58:08Z STEP=2 끝 rc=10\n2026-11-17T01:58:09Z STEP=3 🔴 앞 단계 STEP=2 rc=10 — 이 단계 부르지 않음\n__FIRST__=10\n__NEXT__=6\n",
+      "stderr": ""
+    },
+    {
+      "step": 2,
+      "case": "fixture_match",
+      "exit": 9,
+      "next_guard_exit": 6,
+      "guard_marker": 0,
+      "final_rc": "9",
+      "stdout": "2026-11-17T01:58:09Z STEP=2 토큰 검사 grep rc=0 · 포함 파일 수=1 — 🔴 토큰 노출 — 멈춤(도구 rc=0)\n2026-11-17T01:58:09Z STEP=2 끝 rc=9\n2026-11-17T01:58:09Z STEP=3 🔴 앞 단계 STEP=2 rc=9 — 이 단계 부르지 않음\n__FIRST__=9\n__NEXT__=6\n",
+      "stderr": ""
+    },
+    {
+      "step": 2,
+      "case": "tool_3_and_scan_error",
+      "exit": 3,
+      "next_guard_exit": 6,
+      "guard_marker": 0,
+      "final_rc": "3",
+      "stdout": "2026-11-17T01:58:09Z STEP=2 🔴 토큰 검사 미완료: grep rc=2(읽기 오류 등) — 멈춤(도구 rc=3)\n2026-11-17T01:58:09Z STEP=2 끝 rc=3\n2026-11-17T01:58:09Z STEP=3 🔴 앞 단계 STEP=2 rc=3 — 이 단계 부르지 않음\n__FIRST__=3\n__NEXT__=6\n",
+      "stderr": ""
+    },
+    {
+      "step": 2,
+      "case": "tool_3_no_match",
+      "exit": 3,
+      "next_guard_exit": 6,
+      "guard_marker": 0,
+      "final_rc": "3",
+      "stdout": "2026-11-17T01:58:09Z STEP=2 토큰 검사 grep rc=1(정상 불일치) · 포함 파일 수=0\n2026-11-17T01:58:09Z STEP=2 끝 rc=3\n2026-11-17T01:58:09Z STEP=3 🔴 앞 단계 STEP=2 rc=3 — 이 단계 부르지 않음\n__FIRST__=3\n__NEXT__=6\n",
+      "stderr": ""
+    },
+    {
+      "step": 2,
+      "case": "tool_3_fixture_match",
+      "exit": 9,
+      "next_guard_exit": 6,
+      "guard_marker": 0,
+      "final_rc": "9",
+      "stdout": "2026-11-17T01:58:09Z STEP=2 토큰 검사 grep rc=0 · 포함 파일 수=1 — 🔴 토큰 노출 — 멈춤(도구 rc=3)\n2026-11-17T01:58:09Z STEP=2 끝 rc=9\n2026-11-17T01:58:09Z STEP=3 🔴 앞 단계 STEP=2 rc=9 — 이 단계 부르지 않음\n__FIRST__=9\n__NEXT__=6\n",
+      "stderr": ""
+    },
+    {
+      "step": 4,
+      "case": "normal_no_match",
+      "exit": 0,
+      "next_guard_exit": 0,
+      "guard_marker": 1,
+      "final_rc": "0",
+      "stdout": "2026-11-17T01:58:10Z STEP=4 토큰 검사 grep rc=1(정상 불일치) · 포함 파일 수=0\n2026-11-17T01:58:10Z STEP=4 끝 rc=0\n__FIRST__=0\n__NEXT__=0\n",
+      "stderr": ""
+    },
+    {
+      "step": 4,
+      "case": "missing_token",
+      "exit": 10,
+      "next_guard_exit": 6,
+      "guard_marker": 0,
+      "final_rc": "10",
+      "stdout": "2026-11-17T01:58:10Z STEP=4 🔴 토큰 검사 미완료: 토큰 파일 없음/읽기 불가/빈 파일 — 멈춤(도구 rc=0)\n2026-11-17T01:58:10Z STEP=4 끝 rc=10\n2026-11-17T01:58:10Z STEP=5 🔴 앞 단계 STEP=4 rc=10 — 이 단계 부르지 않음\n__FIRST__=10\n__NEXT__=6\n",
+      "stderr": ""
+    },
+    {
+      "step": 4,
+      "case": "empty_token",
+      "exit": 10,
+      "next_guard_exit": 6,
+      "guard_marker": 0,
+      "final_rc": "10",
+      "stdout": "2026-11-17T01:58:10Z STEP=4 🔴 토큰 검사 미완료: 토큰 파일 없음/읽기 불가/빈 파일 — 멈춤(도구 rc=0)\n2026-11-17T01:58:10Z STEP=4 끝 rc=10\n2026-11-17T01:58:10Z STEP=5 🔴 앞 단계 STEP=4 rc=10 — 이 단계 부르지 않음\n__FIRST__=10\n__NEXT__=6\n",
+      "stderr": ""
+    },
+    {
+      "step": 4,
+      "case": "grep_error_2",
+      "exit": 10,
+      "next_guard_exit": 6,
+      "guard_marker": 0,
+      "final_rc": "10",
+      "stdout": "2026-11-17T01:58:10Z STEP=4 🔴 토큰 검사 미완료: grep rc=2(읽기 오류 등) — 멈춤(도구 rc=0)\n2026-11-17T01:58:10Z STEP=4 끝 rc=10\n2026-11-17T01:58:10Z STEP=5 🔴 앞 단계 STEP=4 rc=10 — 이 단계 부르지 않음\n__FIRST__=10\n__NEXT__=6\n",
+      "stderr": ""
+    },
+    {
+      "step": 4,
+      "case": "grep_error_3",
+      "exit": 10,
+      "next_guard_exit": 6,
+      "guard_marker": 0,
+      "final_rc": "10",
+      "stdout": "2026-11-17T01:58:10Z STEP=4 🔴 토큰 검사 미완료: grep rc=3(읽기 오류 등) — 멈춤(도구 rc=0)\n2026-11-17T01:58:10Z STEP=4 끝 rc=10\n2026-11-17T01:58:10Z STEP=5 🔴 앞 단계 STEP=4 rc=10 — 이 단계 부르지 않음\n__FIRST__=10\n__NEXT__=6\n",
+      "stderr": ""
+    },
+    {
+      "step": 4,
+      "case": "grep_1_with_output",
+      "exit": 10,
+      "next_guard_exit": 6,
+      "guard_marker": 0,
+      "final_rc": "10",
+      "stdout": "2026-11-17T01:58:11Z STEP=4 🔴 토큰 검사 미완료: grep rc=1 인데 출력 있음 — 멈춤(도구 rc=0)\n2026-11-17T01:58:11Z STEP=4 끝 rc=10\n2026-11-17T01:58:11Z STEP=5 🔴 앞 단계 STEP=4 rc=10 — 이 단계 부르지 않음\n__FIRST__=10\n__NEXT__=6\n",
+      "stderr": ""
+    },
+    {
+      "step": 4,
+      "case": "fixture_match",
+      "exit": 9,
+      "next_guard_exit": 6,
+      "guard_marker": 0,
+      "final_rc": "9",
+      "stdout": "2026-11-17T01:58:11Z STEP=4 토큰 검사 grep rc=0 · 포함 파일 수=1 — 🔴 토큰 노출 — 멈춤(도구 rc=0)\n2026-11-17T01:58:11Z STEP=4 끝 rc=9\n2026-11-17T01:58:11Z STEP=5 🔴 앞 단계 STEP=4 rc=9 — 이 단계 부르지 않음\n__FIRST__=9\n__NEXT__=6\n",
+      "stderr": ""
+    },
+    {
+      "step": 4,
+      "case": "tool_3_and_scan_error",
+      "exit": 3,
+      "next_guard_exit": 6,
+      "guard_marker": 0,
+      "final_rc": "3",
+      "stdout": "2026-11-17T01:58:11Z STEP=4 🔴 토큰 검사 미완료: grep rc=2(읽기 오류 등) — 멈춤(도구 rc=3)\n2026-11-17T01:58:11Z STEP=4 끝 rc=3\n2026-11-17T01:58:11Z STEP=5 🔴 앞 단계 STEP=4 rc=3 — 이 단계 부르지 않음\n__FIRST__=3\n__NEXT__=6\n",
+      "stderr": ""
+    },
+    {
+      "step": 4,
+      "case": "tool_3_no_match",
+      "exit": 3,
+      "next_guard_exit": 6,
+      "guard_marker": 0,
+      "final_rc": "3",
+      "stdout": "2026-11-17T01:58:11Z STEP=4 토큰 검사 grep rc=1(정상 불일치) · 포함 파일 수=0\n2026-11-17T01:58:11Z STEP=4 끝 rc=3\n2026-11-17T01:58:11Z STEP=5 🔴 앞 단계 STEP=4 rc=3 — 이 단계 부르지 않음\n__FIRST__=3\n__NEXT__=6\n",
+      "stderr": ""
+    },
+    {
+      "step": 4,
+      "case": "tool_3_fixture_match",
+      "exit": 9,
+      "next_guard_exit": 6,
+      "guard_marker": 0,
+      "final_rc": "9",
+      "stdout": "2026-11-17T01:58:12Z STEP=4 토큰 검사 grep rc=0 · 포함 파일 수=1 — 🔴 토큰 노출 — 멈춤(도구 rc=3)\n2026-11-17T01:58:12Z STEP=4 끝 rc=9\n2026-11-17T01:58:12Z STEP=5 🔴 앞 단계 STEP=4 rc=9 — 이 단계 부르지 않음\n__FIRST__=9\n__NEXT__=6\n",
+      "stderr": ""
+    }
+  ]
+}

@@ -1,0 +1,179 @@
+== A 시각·판
+server 2026-11-17 03:54:32 UTC
+server_utc 2026-11-17 03:54:32
+openssh-server 1:8.9p1-3ubuntu0.18
+rc[A.dpkg]=0
+조건 값(가림): user=manicstr addr=127.0.x.x laddr=127.0.x.x lport=22 ext=203.0.x.x
+== B 구문 검사
+rc[sshd_t]=0
+== C 조건별 유효 설정(sshd -T -C). host 는 UseDNS no 기준으로 주소와 같게 준다
+-- C1 개발계정·개발 PC 출발
+rc[sshd_T.dev]=0
+  stderr 줄 수=0
+  grep[keys.dev] 줄수=19 rc=0(일치)
+  port 22
+  addressfamily any
+  listenaddress [::]:22
+  listenaddress 0.0.x.x:22
+  usepam yes
+  logingracetime 120
+  maxauthtries 6
+  permitrootlogin without-password
+  hostbasedauthentication no
+  pubkeyauthentication yes
+  gssapiauthentication no
+  passwordauthentication yes
+  kbdinteractiveauthentication no
+  permitemptypasswords no
+  authorizedkeyscommand none
+  authorizedkeyscommanduser none
+  authorizedkeysfile .ssh/authorized_keys .ssh/authorized_keys2
+  authenticationmethods any
+  maxstartups 10:30:100
+-- C2 개발계정·외부 출발
+rc[sshd_T.dev_ext]=0
+  stderr 줄 수=0
+  grep[keys.dev_ext] 줄수=19 rc=0(일치)
+  port 22
+  addressfamily any
+  listenaddress [::]:22
+  listenaddress 0.0.x.x:22
+  usepam yes
+  logingracetime 120
+  maxauthtries 6
+  permitrootlogin without-password
+  hostbasedauthentication no
+  pubkeyauthentication yes
+  gssapiauthentication no
+  passwordauthentication yes
+  kbdinteractiveauthentication no
+  permitemptypasswords no
+  authorizedkeyscommand none
+  authorizedkeyscommanduser none
+  authorizedkeysfile .ssh/authorized_keys .ssh/authorized_keys2
+  authenticationmethods any
+  maxstartups 10:30:100
+-- C3 root·외부 출발
+rc[sshd_T.root_ext]=0
+  stderr 줄 수=0
+  grep[keys.root_ext] 줄수=19 rc=0(일치)
+  port 22
+  addressfamily any
+  listenaddress [::]:22
+  listenaddress 0.0.x.x:22
+  usepam yes
+  logingracetime 120
+  maxauthtries 6
+  permitrootlogin without-password
+  hostbasedauthentication no
+  pubkeyauthentication yes
+  gssapiauthentication no
+  passwordauthentication yes
+  kbdinteractiveauthentication no
+  permitemptypasswords no
+  authorizedkeyscommand none
+  authorizedkeyscommanduser none
+  authorizedkeysfile .ssh/authorized_keys .ssh/authorized_keys2
+  authenticationmethods any
+  maxstartups 10:30:100
+-- C4 root·개발 PC 출발
+rc[sshd_T.root_dev]=0
+  stderr 줄 수=0
+  grep[keys.root_dev] 줄수=19 rc=0(일치)
+  port 22
+  addressfamily any
+  listenaddress [::]:22
+  listenaddress 0.0.x.x:22
+  usepam yes
+  logingracetime 120
+  maxauthtries 6
+  permitrootlogin without-password
+  hostbasedauthentication no
+  pubkeyauthentication yes
+  gssapiauthentication no
+  passwordauthentication yes
+  kbdinteractiveauthentication no
+  permitemptypasswords no
+  authorizedkeyscommand none
+  authorizedkeyscommanduser none
+  authorizedkeysfile .ssh/authorized_keys .ssh/authorized_keys2
+  authenticationmethods any
+  maxstartups 10:30:100
+-- C5 없는 사용자·외부 출발
+rc[sshd_T.nouser]=0
+  stderr 줄 수=0
+  grep[keys.nouser] 줄수=19 rc=0(일치)
+  port 22
+  addressfamily any
+  listenaddress [::]:22
+  listenaddress 0.0.x.x:22
+  usepam yes
+  logingracetime 120
+  maxauthtries 6
+  permitrootlogin without-password
+  hostbasedauthentication no
+  pubkeyauthentication yes
+  gssapiauthentication no
+  passwordauthentication yes
+  kbdinteractiveauthentication no
+  permitemptypasswords no
+  authorizedkeyscommand none
+  authorizedkeyscommanduser none
+  authorizedkeysfile .ssh/authorized_keys .ssh/authorized_keys2
+  authenticationmethods any
+  maxstartups 10:30:100
+-- C1 과 C2 의 키 줄 차이(Match Address 등 출발지 조건 효과)
+rc[diff.dev_vs_ext]=0
+== D 설정 파일(관련 줄만, 주석 제외) · 소유/권한 · 해시
+-- /etc/ssh/sshd_config 644 root:root 3254바이트
+  sha256 e8efe17e55e5cae9bb4c06fe66dedeeeaf7c4052b3da4447be23f7a587b781bb
+  grep rc=0(일치)
+  12:Include /etc/ssh/sshd_config.d/*.conf
+  62:KbdInteractiveAuthentication no
+  85:UsePAM yes
+-- /etc/ssh/sshd_config.d/50-cloud-init.conf 600 root:root 85바이트
+  sha256 0b9a10005e7314d489af3f793dcf5628bef7813920e06f8a4125c83f1439cd22
+  grep rc=0(일치)
+  1:PasswordAuthentication yes
+  2:Match Address 203.0.x.x/24
+  3:  PasswordAuthentication yes
+00-cat-hardening.conf 없음(변경 전제 충족)
+sshd_config.d 파일 목록 해시(이름·sha256 정렬)=dcd01f69f103dd7f29e163e64c126225fcbdfbbac53aedfbf3815f35bc6a2600
+== E 서비스 인자
+대역: show ssh.service -p ExecStart -p ExecReload -p DropInPaths -p MainPID -p ActiveState --no-pager
+rc[E.show]=0
+대역: is-active ssh.socket
+대역: is-enabled ssh.socket
+5:SSHD_OPTS=
+rc[E.default_opts]=0
+      1 sshd: /usr/sbin/sshd [listener] 0 of 10-100 startups
+== F PAM 인증 줄(sshd) · MFA 모듈 사용 파일 수
+4:@include common-auth
+14:@include common-account
+28:@include common-session
+55:@include common-password
+rc[F.pam_sshd]=0
+MFA 모듈(google_authenticator/oath/duo/u2f/yubico) 쓰는 pam 파일 수=0
+== G authorized_keys(키 본문 출력 안 함: 줄 수·지문·해시만)
+-- manicstr authorized_keys 600 manicstr:manicstr 키줄=1 sha256=de7591c0847772d03c78e7b05c6de406e56ca6d43e2d7f400ceb1b206c0a3766
+  256 SHA256:MjgTPhypDC/oZvnUEf3mqh+hOTHJGmFeDEn1yTyiPto (ED25519)
+-- manicstr authorized_keys2 없음
+-- manicstr .ssh 폴더 700 manicstr:manicstr
+-- root authorized_keys 없음
+-- root authorized_keys2 없음
+-- root .ssh 폴더 755 root:root
+== H 방화벽·Docker 경계
+admin_read.sh: line 104: ufw: command not found
+rc[H.ufw]=127
+admin_read.sh: line 105: iptables: command not found
+rc[H.ipt_input]=127
+admin_read.sh: line 106: iptables: command not found
+rc[H.ipt_docker_user]=127
+admin_read.sh: line 107: docker: command not found
+rc[H.docker_ps]=127
+IPv6 전역 주소 수=0
+== I 지금 상태(개수만)
+22 수립 연결 수=0
+== 끝
+server 2026-11-17 03:54:33 UTC
+가림 확인: 전체 IPv4 남은 줄=0 · 키 본문 줄=0

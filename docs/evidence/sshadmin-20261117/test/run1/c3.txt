@@ -1,0 +1,26 @@
+2026-11-17 03:54:27 UTC [precheck] 파일 전제 일치(sshd_config·목록·00 없음·묶음 conf·authorized_keys)
+2026-11-17 03:54:27 UTC [precheck] sshd -t rc=0
+2026-11-17 03:54:27 UTC [precheck] sshd -T[dev] rc=0
+2026-11-17 03:54:27 UTC [precheck]   [dev] 기대 'passwordauthentication no' 아님 → 실제: passwordauthentication yes 
+2026-11-17 03:54:27 UTC [precheck]   [dev] 기대 'authenticationmethods publickey' 아님 → 실제: authenticationmethods any 
+2026-11-17 03:54:27 UTC [precheck]   [dev] 기대 'permitrootlogin no' 아님 → 실제: permitrootlogin without-password 
+2026-11-17 03:54:27 UTC [precheck]   [dev] allowusers 가 'manicstr' 하나가 아님 → 
+2026-11-17 03:54:27 UTC [precheck] sshd -T[dev_ext] rc=0
+2026-11-17 03:54:27 UTC [precheck]   [dev_ext] 기대 'passwordauthentication no' 아님 → 실제: passwordauthentication yes 
+2026-11-17 03:54:27 UTC [precheck]   [dev_ext] 기대 'authenticationmethods publickey' 아님 → 실제: authenticationmethods any 
+2026-11-17 03:54:27 UTC [precheck]   [dev_ext] 기대 'permitrootlogin no' 아님 → 실제: permitrootlogin without-password 
+2026-11-17 03:54:27 UTC [precheck]   [dev_ext] allowusers 가 'manicstr' 하나가 아님 → 
+2026-11-17 03:54:27 UTC [precheck] sshd -T[root_ext] rc=0
+2026-11-17 03:54:27 UTC [precheck]   [root_ext] 기대 'passwordauthentication no' 아님 → 실제: passwordauthentication yes 
+2026-11-17 03:54:27 UTC [precheck]   [root_ext] 기대 'authenticationmethods publickey' 아님 → 실제: authenticationmethods any 
+2026-11-17 03:54:27 UTC [precheck]   [root_ext] 기대 'permitrootlogin no' 아님 → 실제: permitrootlogin without-password 
+2026-11-17 03:54:27 UTC [precheck] sshd -T[root_dev] rc=0
+2026-11-17 03:54:27 UTC [precheck]   [root_dev] 기대 'passwordauthentication no' 아님 → 실제: passwordauthentication yes 
+2026-11-17 03:54:27 UTC [precheck]   [root_dev] 기대 'authenticationmethods publickey' 아님 → 실제: authenticationmethods any 
+2026-11-17 03:54:27 UTC [precheck]   [root_dev] 기대 'permitrootlogin no' 아님 → 실제: permitrootlogin without-password 
+2026-11-17 03:54:27 UTC [precheck] sshd -T[nouser] rc=0
+2026-11-17 03:54:27 UTC [precheck]   [nouser] 기대 'passwordauthentication no' 아님 → 실제: passwordauthentication yes 
+2026-11-17 03:54:27 UTC [precheck]   [nouser] 기대 'authenticationmethods publickey' 아님 → 실제: authenticationmethods any 
+2026-11-17 03:54:27 UTC [precheck]   [nouser] 기대 'permitrootlogin no' 아님 → 실제: permitrootlogin without-password 
+2026-11-17 03:54:27 UTC [precheck] 기대값 불일치 있음
+2026-11-17 03:54:27 UTC [precheck] 참고: 적용 전 check 불일치는 정상(현재 값 기록용)

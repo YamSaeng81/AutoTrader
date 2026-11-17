@@ -1,0 +1,49 @@
+debconf: delaying package configuration, since apt-utils is not installed
+openssh-server 1:8.9p1-3ubuntu0.18
+== R 운영자 읽기
+PASS R1 인자 없음 → 2 (rc=2)
+PASS R2 빈 출발주소 → 2 (rc=2)
+PASS R3 조건 끼워넣기 → 2 (rc=2)
+PASS R4 외부=출발 → 2 (rc=2)
+PASS R5 root 아님 → 3 (rc=3)
+PASS R6 정상 읽기 (rc=0)
+PASS R6a sshd -T 종료값 줄
+PASS R6b 50 조각의 yes 가 유효 값으로 보임
+PASS R6c 가림 확인 0
+PASS R6d 변경 전제 표시
+읽기에서 얻은 값: main=e8efe17e55e5 dlist=8dcdeee15a4c ak=de7591c08477
+== V 적용 전 기준(개발 PC 쪽 스크립트를 컨테이너 안에서)
+PASS V1 before (rc=0)
+PASS V1a 적용 전 password 알림
+== C 변경 묶음
+PASS C0 단계 이름 이상 → 2 (rc=2)
+PASS C1 sshd_config 해시 다름 → 7 (rc=7)
+PASS C2 백업 없이 stage → 7 (rc=7)
+PASS C3 precheck (rc=0)
+PASS C4 backup (rc=0)
+PASS C5 백업 다시 → 5(백업 폴더 있음, 덮어쓰지 않음) (rc=5)
+PASS C6 새 키 지문 다름 → 7 (rc=7)
+PASS C7 addkey (rc=0)
+PASS V2 새 키 단독 접속 (rc=0)
+PASS C8 stage(검사 통과) (rc=0)
+PASS C8a 5조건 기대값
+PASS C9 stage 다시 → 7(이미 있음) (rc=7)
+PASS C10 reload (rc=0)
+PASS V3 after(두 키 성공·publickey 만) (rc=0)
+PASS V3a password 사라짐
+sshd pid 3582 → 3582
+PASS C11 rollback (rc=0)
+PASS V4 복구 뒤 접속 (rc=0)
+PASS V4a 원래 방식으로 돌아옴
+PASS C12 rollback-key (rc=0)
+PASS V5 키 복구 뒤 새 키 거절 (rc=1)
+PASS C12a authorized_keys 바이트 복구 (rc=0)
+== M Match 블록 음성(외부 출발에 password yes)
+PASS M1 읽기 (rc=0)
+PASS M1a(참고) 적용 전엔 C1·C2 키 줄이 같음
+PASS M2 새 백업 (rc=0)
+PASS M3 stage 검사 실패 → 4 (rc=4)
+PASS M3a 외부 출발 조건에서 잡음
+PASS M3b 놓은 파일 지워짐 (rc=0)
+PASS M3c reload 없음
+== 합계 PASS=40 FAIL=0

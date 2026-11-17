@@ -1,0 +1,9 @@
+2026-11-17 03:54:28 UTC [stage] 놓음: /etc/ssh/sshd_config.d/00-cat-hardening.conf 644 root:root
+2026-11-17 03:54:28 UTC [stage] sshd -t rc=0
+2026-11-17 03:54:28 UTC [stage] sshd -T[dev] rc=0
+2026-11-17 03:54:28 UTC [stage] sshd -T[dev_ext] rc=0
+2026-11-17 03:54:28 UTC [stage] sshd -T[root_ext] rc=0
+2026-11-17 03:54:28 UTC [stage] sshd -T[root_dev] rc=0
+2026-11-17 03:54:28 UTC [stage] sshd -T[nouser] rc=0
+2026-11-17 03:54:28 UTC [stage] 조건별 기대값 모두 일치
+2026-11-17 03:54:28 UTC [stage] reload 전 단계 끝 — 결과 보고 뒤 reload
