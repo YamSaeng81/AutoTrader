@@ -1,0 +1,12 @@
+# Linux 6.6.87.2-microsoft-standard-WSL2 · GNU bash, version 5.2.21(1)-release (x86_64-pc-linux-gnu) · 2026-11-18 08:50:07 KST
+PASS L4 정상 → 0 · ssh 2 · 기록 9줄 · 완료 줄 (rc=0 ssh=2 기록줄=9)
+PASS L1 첫 기록 실패 → 8 · 원격 호출 0 (rc=8 ssh=0 기록줄=없음)
+PASS L2 첫 원격 호출 직후 기록 실패 → 8 · 원격 검증 ssh 미실행 · 미확인 표시 (rc=8 ssh=1 기록줄=4)
+PASS L5 마지막 완료 기록 실패 → 8 (성공 아님) (rc=8 ssh=2 기록줄=8)
+PASS L6 원격 해시 출력 기록 실패 → 8 · 완료 줄 없음 (rc=8 ssh=2 기록줄=6)
+PASS L3 원격 tar 실패 + 기록 실패 → 원래 6 유지 (rc=6 ssh=1 기록줄=4)
+PASS L3b ssh 접속 실패 + 기록 실패 → 원래 255 유지 (rc=255 ssh=1 기록줄=4)
+PASS L3c git archive 실패 + 기록 실패 → 원래 3 유지 · 원격 호출 0 (rc=3 ssh=0 기록줄=없음)
+통과 8/8
+R1 옛 b3db2858 첫 기록부터 실패: rc=0 ssh=2 기록줄=없음 (현행 공백 재현, 통과 수 아님)
+rc=0

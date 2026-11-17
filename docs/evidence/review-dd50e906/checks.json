@@ -1,0 +1,818 @@
+{
+  "fixed_commit": "dd50e9068b4362852629c42de5f9027a82d1d6ce",
+  "scope": "Git blobs, saved outputs, exact branches rebound to private files/functions, pure clock functions. No production/DB/HTTP/SSH/container.",
+  "manifests": [
+    {
+      "folder": "sshfix-20261118",
+      "list": "SHA256SUMS",
+      "matched": 35
+    },
+    {
+      "folder": "ab-create-v424-20261118",
+      "list": "SHA256SUMS",
+      "matched": 30
+    },
+    {
+      "folder": "n03-1117-2200",
+      "list": "SHA256SUMS",
+      "matched": 24
+    },
+    {
+      "folder": "review-bc5a39d9",
+      "list": "SHA256SUMS",
+      "matched": 5
+    },
+    {
+      "folder": "ab-create-v424-20261118",
+      "list": "bundle/SHA256SUMS.bundle",
+      "matched": 16
+    },
+    {
+      "folder": "ab-create-v423-20261117",
+      "list": "bundle/SHA256SUMS.bundle",
+      "matched": 16
+    }
+  ],
+  "passed": 172,
+  "failed": 0,
+  "checks": [
+    {
+      "name": "docs/evidence/sshfix-20261118/SHA256SUMS working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshfix-20261118/.gitattributes committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshfix-20261118/README.md committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshfix-20261118/admin_read_add.sh committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshfix-20261118/change/00-cat-hardening.conf committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshfix-20261118/change/ssh_change.sh committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshfix-20261118/change/verify_local.sh committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshfix-20261118/test/admin-read-add.container.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshfix-20261118/test/in_container_v2.sh committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshfix-20261118/test/run1/console.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshfix-20261118/test/run1/steps/n1-addkey.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshfix-20261118/test/run1/steps/n1-after.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshfix-20261118/test/run1/steps/n1-backup.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshfix-20261118/test/run1/steps/n1-precheck.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshfix-20261118/test/run1/steps/n1-rbkey.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshfix-20261118/test/run1/steps/n1-rbkey2.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshfix-20261118/test/run1/steps/n1-reload.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshfix-20261118/test/run1/steps/n1-rollback.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshfix-20261118/test/run1/steps/n1-stage.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshfix-20261118/test/run1/steps/n10-reload.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshfix-20261118/test/run1/steps/n11-stage.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshfix-20261118/test/run1/steps/n12-stage.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshfix-20261118/test/run1/steps/n13a-stage.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshfix-20261118/test/run1/steps/n13b-stage.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshfix-20261118/test/run1/steps/n13c-stage.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshfix-20261118/test/run1/steps/n14-rollback.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshfix-20261118/test/run1/steps/n2-rollback.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshfix-20261118/test/run1/steps/n3-reload.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshfix-20261118/test/run1/steps/n3-rollback.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshfix-20261118/test/run1/steps/n4-rollback.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshfix-20261118/test/run1/steps/n5-rbkey.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshfix-20261118/test/run1/steps/n6-rbkey.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshfix-20261118/test/run1/steps/n7-reload.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshfix-20261118/test/run1/steps/n8-reload.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshfix-20261118/test/run1/steps/n9-rollback.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshfix-20261118/test/v1-same-tests.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/SHA256SUMS working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/.gitattributes committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/README.md committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/bundle/SHA256SUMS.bundle committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/bundle/judge_preflight.py committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/bundle/run_bundle.sh committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/bundle/test_run_bundle.sh committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/create/ab_complete.py committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/create/ab_create.py committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/create/http_post.py committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/create/meta_after.sql committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/create/meta_preflight.sql committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/create/post_creation_check.sql committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/deploy-20261118.sh committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/preflight/preflight_v2.sql committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/sma20/body.json committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/sma20/sma20_check.sql committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/sma20/sma20_complete.py committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/sma20/sma20_create.py committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/sma20/sma20_meta_preflight.sql committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/steps-20261118.sh committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/test/test_deploy_standin.out.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/test/test_deploy_standin.sh committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/test/test_steps_guard.out.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/test/test_steps_guard.sh committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/test/test_v424_bundle.gitbash.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/test/test_v424_bundle.sh committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/test/test_v424_window.out.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/test/test_v424_window.py committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/tool/ab_arms.py committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/tool/protocol.json committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-2200/SHA256SUMS working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-2200/.gitattributes committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-2200/20261117-2200.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-2200/20261117-2200.txt.msg committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-2200/20261117-2200.txt.raw committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-2200/README.md committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-2200/error_lines.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-2200/frontend-image.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-2200/install_state.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-2200/last_send committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-2200/late-run-time.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-2200/local-sha256.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-2200/observations-supp.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-2200/observations.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-2200/read-stderr.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-2200/read.sh committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-2200/run-time.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-2200/sched/n03run.sh committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-2200/sched/not-run.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-2200/sched/scheduled.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-2200/sched/ssh-shim2.sh committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-2200/sched/wait_then.sh committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-2200/server-files.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-2200/ssh-path.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/n03-1117-2200/token-check.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/review-bc5a39d9/SHA256SUMS working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/review-bc5a39d9/.gitattributes committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/review-bc5a39d9/README.md committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/review-bc5a39d9/audit_review.py committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/review-bc5a39d9/checks.json committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/review-bc5a39d9/audit-attempt2.json committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/bundle/SHA256SUMS.bundle working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/create/ab_create.py committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/create/http_post.py committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/create/ab_complete.py committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/create/meta_preflight.sql committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/create/meta_after.sql committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/create/post_creation_check.sql committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/tool/protocol.json committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/tool/ab_arms.py committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/sma20/sma20_create.py committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/sma20/sma20_complete.py committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/sma20/body.json committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/sma20/sma20_meta_preflight.sql committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/sma20/sma20_check.sql committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/preflight/preflight_v2.sql committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/bundle/judge_preflight.py committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/bundle/run_bundle.sh committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/bundle/SHA256SUMS.bundle working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/create/ab_create.py committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/create/http_post.py committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/create/ab_complete.py committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/create/meta_preflight.sql committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/create/meta_after.sql committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/create/post_creation_check.sql committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/tool/protocol.json committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/tool/ab_arms.py committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/sma20/sma20_create.py committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/sma20/sma20_complete.py committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/sma20/body.json committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/sma20/sma20_meta_preflight.sql committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/sma20/sma20_check.sql committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/preflight/preflight_v2.sql committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/bundle/judge_preflight.py committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v423-20261117/bundle/run_bundle.sh committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "local HEAD and local origin/main ref",
+      "passed": true
+    },
+    {
+      "name": "docs-only tracked scope since frozen base",
+      "passed": true
+    },
+    {
+      "name": "only two of sixteen bundle files changed",
+      "passed": true
+    },
+    {
+      "name": "frozen old creator unchanged in Git",
+      "passed": true
+    },
+    {
+      "name": "SSH unchanged change/00-cat-hardening.conf",
+      "passed": true
+    },
+    {
+      "name": "SSH unchanged change/verify_local.sh",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshfix-20261118/change/ssh_change.sh syntax only",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/sshfix-20261118/admin_read_add.sh syntax only",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/bundle/run_bundle.sh syntax only",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/steps-20261118.sh syntax only",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/deploy-20261118.sh syntax only",
+      "passed": true
+    },
+    {
+      "name": "saved SSH 52/52 and version",
+      "passed": true
+    },
+    {
+      "name": "saved v1 same checks 29/52",
+      "passed": true
+    },
+    {
+      "name": "saved test/test_v424_window.out.txt",
+      "passed": true
+    },
+    {
+      "name": "saved test/test_v424_bundle.gitbash.txt",
+      "passed": true
+    },
+    {
+      "name": "saved test/test_steps_guard.out.txt",
+      "passed": true
+    },
+    {
+      "name": "saved test/test_deploy_standin.out.txt",
+      "passed": true
+    },
+    {
+      "name": "isolated exact SSH branch normal",
+      "passed": true
+    },
+    {
+      "name": "isolated exact SSH branch third_conf",
+      "passed": true
+    },
+    {
+      "name": "isolated exact SSH branch changed_main",
+      "passed": true
+    },
+    {
+      "name": "isolated exact SSH branch extra_dropin",
+      "passed": true
+    },
+    {
+      "name": "isolated exact SSH branch missing_state",
+      "passed": true
+    },
+    {
+      "name": "isolated exact SSH branch third_key",
+      "passed": true
+    },
+    {
+      "name": "isolated exact SSH branch inactive",
+      "passed": true
+    },
+    {
+      "name": "isolated exact SSH branch unknown",
+      "passed": true
+    },
+    {
+      "name": "approval function 2026-11-18T14:06:00+09:00",
+      "passed": true
+    },
+    {
+      "name": "approval function 2026-11-18T14:12:00+09:00",
+      "passed": true
+    },
+    {
+      "name": "approval function 2026-11-18T14:05:59+09:00",
+      "passed": true
+    },
+    {
+      "name": "approval function 2026-11-18T14:12:01+09:00",
+      "passed": true
+    },
+    {
+      "name": "approval function 2026-11-18T14:21:30+09:00",
+      "passed": true
+    },
+    {
+      "name": "approval function 2026-11-19T14:06:30+09:00",
+      "passed": true
+    },
+    {
+      "name": "deploy observation control",
+      "passed": true
+    },
+    {
+      "name": "deploy observation record failure still succeeds",
+      "passed": true
+    },
+    {
+      "name": "N03 saved report scope",
+      "passed": true
+    },
+    {
+      "name": "N03 saved transmission",
+      "passed": true
+    },
+    {
+      "name": "N03 server/local 20261117-2200.txt",
+      "passed": true
+    },
+    {
+      "name": "N03 server/local 20261117-2200.txt.msg",
+      "passed": true
+    },
+    {
+      "name": "N03 server/local 20261117-2200.txt.raw",
+      "passed": true
+    },
+    {
+      "name": "N03 server/local last_send",
+      "passed": true
+    },
+    {
+      "name": "N03 compressed log saved server digest only",
+      "passed": true
+    }
+  ],
+  "probes": [
+    {
+      "case": "normal",
+      "exit": 0,
+      "expected": 0,
+      "reloads": 1,
+      "unchanged": false,
+      "stdout": "기록 staged.dst=removed-by-rollback\n지움: D:/Claude Code/projects/crypto-auto-trader/docs/evidence/review-dd50e906/ssh-vty1bwcl/dropins/00-cat-hardening.conf(이번 stage 산출물 확인 뒤)\nsshd -t rc=0\nreload 명령 rc=0 · MainPID 이전=123\n서비스 is-active='active'(rc=0) · MainPID='123'(rc=0)\n설정 되돌림·reload·서비스 active 확인\n",
+      "stderr": ""
+    },
+    {
+      "case": "third_conf",
+      "exit": 7,
+      "expected": 7,
+      "reloads": 0,
+      "unchanged": true,
+      "stdout": "STOP 7 D:/Claude Code/projects/crypto-auto-trader/docs/evidence/review-dd50e906/ssh-kiocuutv/dropins/00-cat-hardening.conf 가 이번 stage 산출물이 아님(제3 내용 또는 기록 없음) — 지우지 않음, reload 없음\n",
+      "stderr": ""
+    },
+    {
+      "case": "changed_main",
+      "exit": 7,
+      "expected": 7,
+      "reloads": 0,
+      "unchanged": true,
+      "stdout": "STOP 7 sshd_config 가 백업과 다름(이 묶음 밖 변경) — 변경·reload 없음, 사람 판단\n",
+      "stderr": ""
+    },
+    {
+      "case": "extra_dropin",
+      "exit": 7,
+      "expected": 7,
+      "reloads": 0,
+      "unchanged": true,
+      "stdout": "STOP 7 00-cat-hardening.conf 밖 sshd_config.d 목록이 백업과 다름(제3 파일) — 변경·reload 없음\n",
+      "stderr": ""
+    },
+    {
+      "case": "missing_state",
+      "exit": 7,
+      "expected": 7,
+      "reloads": 0,
+      "unchanged": true,
+      "stdout": "STOP 7 D:/Claude Code/projects/crypto-auto-trader/docs/evidence/review-dd50e906/ssh-1lzw_o5k/dropins/00-cat-hardening.conf 가 이번 stage 산출물이 아님(제3 내용 또는 기록 없음) — 지우지 않음, reload 없음\n",
+      "stderr": ""
+    },
+    {
+      "case": "third_key",
+      "exit": 7,
+      "expected": 7,
+      "reloads": 0,
+      "unchanged": true,
+      "stdout": "STOP 7 authorized_keys 가 addkey 직후와 다름(후속 키/제3 변경, 키 줄 1) — 덮어쓰지 않음, 사람 판단\n",
+      "stderr": ""
+    },
+    {
+      "case": "inactive",
+      "exit": 6,
+      "expected": 6,
+      "reloads": 1,
+      "unchanged": false,
+      "stdout": "기록 staged.dst=removed-by-rollback\n지움: D:/Claude Code/projects/crypto-auto-trader/docs/evidence/review-dd50e906/ssh-6n53lq3t/dropins/00-cat-hardening.conf(이번 stage 산출물 확인 뒤)\nsshd -t rc=0\nreload 명령 rc=0 · MainPID 이전=123\n서비스 is-active='inactive'(rc=3) · MainPID='123'(rc=0)\nSTOP 6 reload 뒤 서비스가 active 아님 — 성공 아님, 열어 둔 세션에서 확인\n",
+      "stderr": ""
+    },
+    {
+      "case": "unknown",
+      "exit": 9,
+      "expected": 9,
+      "reloads": 1,
+      "unchanged": false,
+      "stdout": "기록 staged.dst=removed-by-rollback\n지움: D:/Claude Code/projects/crypto-auto-trader/docs/evidence/review-dd50e906/ssh-1ouoqyp7/dropins/00-cat-hardening.conf(이번 stage 산출물 확인 뒤)\nsshd -t rc=0\nreload 명령 rc=0 · MainPID 이전=123\n서비스 is-active=''(rc=1) · MainPID='123'(rc=0)\nSTOP 9 reload 뒤 서비스 상태 조회 불명 — 성공 아님, 열어 둔 세션에서 확인\n",
+      "stderr": ""
+    },
+    {
+      "case": "deploy_control",
+      "exit": 0,
+      "fake_ssh_calls": 2,
+      "log_exists": true,
+      "stdout": "",
+      "stderr": "2026-11-17T23:39:18Z 로컬 git archive rc=0\n2026-11-17T23:39:18Z 로컬 풀기 rc=0\n2026-11-17T23:39:18Z 로컬 묶음 16개 해시 rc=0\n2026-11-17T23:39:18Z 목록 해시 list-fixture · 단계 파일 해시 steps-fixture\n2026-11-17T23:39:18Z 원격 만들기·풀기 ssh rc=0 (10 이미 있음 · 11 mkdir 실패 · 12 tar 실패 · 255 접속)\n2026-11-17T23:39:18Z 원격 검증 ssh rc=0\nlist-fixture -\nsteps-fixture -\n2026-11-17T23:39:18Z 배치 완료 — 서버 ~/fixture, 다음은 steps-20261118.sh 0\n"
+    },
+    {
+      "case": "deploy_record_failure",
+      "exit": 0,
+      "fake_ssh_calls": 2,
+      "log_exists": false,
+      "stdout": "",
+      "stderr": "list-fixture -\nsteps-fixture -\n"
+    }
+  ]
+}
