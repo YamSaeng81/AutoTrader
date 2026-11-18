@@ -27,7 +27,7 @@
 | 태그 형식만 읽기 | **11-16 12:58**, Docker API GET | 전체 상태·실자금 확인과 구분. 운영 변경 없음 |
 | 다음 운영 읽기 | 운영자 제한 읽기 진행 가능, 11-18 22:00 N03은22:12 이후 | 각 권한/읽기 실패는 미확인. 예약 실제 결과·시각은 별도 확인(개발 PC 절전 시 예약 소멸) |
 | 실행 결과(수용) | [v168-run-20261116](evidence/v168-run-20261116/README.md). 보존 rc0·U0 rc0·U1 rc1·U1되돌림 rc1. 재기동 전 중단 | 원문133/133·N03 17/17·앞 검토26/26. 리소스97개 Git LF와 일치, 798항목 기존 해시와 일치 |
-| 지금 이어 갈 작업 | [v1.189](evidence/review-87126a31/README.md) §2·3: P7 v5 [제출](evidence/dec-reconcile-v5-20261118/README.md). 금액/BTC 독립 후보·파일 월 성적표/최소 알림안·매도 PG(새 시계 메타데이터 기록) | 실제 생성·실전 금액/시작·운영 변경은 별도 승인 |
+| 지금 이어 갈 작업 | [v1.189](evidence/review-87126a31/README.md) §2·3 네 항목 제출: [P7 v5](evidence/dec-reconcile-v5-20261118/README.md)·[금액/BTC](evidence/dec-amtbtc-20261118/README.md)(로컬 c70a8330·통합 aff357e2)·[성적표/알림안](evidence/dec-scorecard-20261118/README.md)·[매도 PG](evidence/dec-pg-sell-20261118/README.md). 총괄 판정 대기. REAL/PAPER 저장 실현손익 정의 차이는 판단 요청 | 실제 생성·실전 금액/시작·운영 변경은 별도 승인 |
 | 화면 읽기 | **11-16 16:50~16:53**, 운영 frontend 헤드리스 렌더링(로그인 뒤 GET만) | LIVE·DYNAMIC 목록, 203·93·종이 518. 522~587 요청 0, 운영 변경 없음 |
 | N05 최종판 | K14~K23 39/39 대응 수용, G4 0e1d2a02 확인 완료 | G2·G3 미확정. 11-23~27에는 운영 SHA가 같은지 확인해 연결 |
 | 핀·복구 | F NEW0e1d2a02, IMGF1 2c5d8427, ~/maint-v172/image-new.txt | 복구b5cd1d0·backend52e12428·frontend837db515, V96 유지·기존 상태 관문. 최종S 미확정 |

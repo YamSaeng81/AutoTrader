@@ -1,0 +1,171 @@
+{
+ "why": "기간 안 새 배정 100,000 → 기말 100,500: 손익 500, 수익률 0.50%",
+ "input": {
+  "version": "scorecard-input-1",
+  "period": {
+   "from": "2026-12-01T00:00:00+09:00",
+   "to": "2027-01-01T00:00:00+09:00"
+  },
+  "sessions": [
+   {
+    "kind": "DYNAMIC",
+    "id": 16,
+    "mode": "REAL",
+    "strategy_type": "COMPOSITE_BREAKOUT",
+    "timeframe": "H1",
+    "status_end": "RUNNING",
+    "provenance": {
+     "code_sha": "0e1d2a02",
+     "code_sha_source": "외부 등록표(가상)",
+     "ruleset_hash": "aaaaaaaaaaaa",
+     "registry_ref": "reg-가상-1"
+    },
+    "start": null,
+    "end": {
+     "available_krw": "100500",
+     "positions": []
+    },
+    "flows": [
+     {
+      "at": "2026-12-03T00:00:00+09:00",
+      "amount_krw": "100000",
+      "kind": "ALLOCATE"
+     }
+    ],
+    "trades": [],
+    "market_regime": [
+     {
+      "at": "2026-12-02T09:00:00+09:00",
+      "regime": "TREND_UP",
+      "source": "position.market_regime",
+      "rule_version": "제품 정의"
+     }
+    ],
+    "started_in_period": true
+   }
+  ],
+  "benchmarks": {
+   "btc_price_start": null,
+   "btc_price_end": null
+  }
+ },
+ "result": {
+  "version": "scorecard-1",
+  "period": {
+   "from": "2026-12-01T00:00:00+09:00",
+   "to": "2027-01-01T00:00:00+09:00"
+  },
+  "sessions": [
+   {
+    "session": "DYNAMIC#16",
+    "mode": "REAL",
+    "strategy": "COMPOSITE_BREAKOUT",
+    "timeframe": "H1",
+    "status_end": "RUNNING",
+    "trade_state": "거래0",
+    "start_equity": "0",
+    "end_equity": "100500",
+    "net_flows": "100000",
+    "month_pnl": "500",
+    "month_pnl_status": "확정",
+    "unconfirmed_reasons": [],
+    "month_return_pct": "0.50",
+    "realized_from_orders": "0",
+    "unrealized_derived": "500",
+    "fees_paid": "0",
+    "fee_note": "손익에 이미 반영(매도 수수료는 대금에서, 매수 수수료는 평균가에) — 다시 빼지 않음",
+    "buy_funds": "0",
+    "round_trips": 0,
+    "wins": 0,
+    "losses": 0,
+    "holding_hours_median": null,
+    "round_trip_pnl": [],
+    "stored_realized_mismatch": [],
+    "drawdown": {
+     "value_krw": null,
+     "pct": null,
+     "label": "미확인(일별 평가 표본 없음 — 복원하지 않음)"
+    },
+    "provenance": {
+     "code_sha": "0e1d2a02",
+     "code_sha_source": "외부 등록표(가상)",
+     "ruleset_hashes": [
+      "aaaaaaaaaaaa"
+     ],
+     "registry_ref": "reg-가상-1"
+    },
+    "market_regime": [
+     {
+      "at": "2026-12-02T09:00:00+09:00",
+      "regime": "TREND_UP",
+      "source": "position.market_regime",
+      "rule_version": "제품 정의"
+     }
+    ],
+    "benchmark": {
+     "cash_pnl": "0",
+     "btc_hold_pnl": "미확인"
+    },
+    "flags": []
+   }
+  ],
+  "aggregates": [
+   {
+    "group": "all",
+    "name": "전체",
+    "sessions": [
+     "DYNAMIC#16"
+    ],
+    "month_pnl": "500",
+    "status": "확정",
+    "known_part_sum": "500",
+    "unconfirmed_sessions": [],
+    "note": null
+   },
+   {
+    "group": "engine",
+    "name": "DYNAMIC",
+    "sessions": [
+     "DYNAMIC#16"
+    ],
+    "month_pnl": "500",
+    "status": "확정",
+    "known_part_sum": "500",
+    "unconfirmed_sessions": [],
+    "note": null
+   },
+   {
+    "group": "strategy",
+    "name": "COMPOSITE_BREAKOUT",
+    "sessions": [
+     "DYNAMIC#16"
+    ],
+    "month_pnl": "500",
+    "status": "확정",
+    "known_part_sum": "500",
+    "unconfirmed_sessions": [],
+    "note": null
+   }
+  ],
+  "account": {
+   "month_pnl": null,
+   "status": "미확인(계좌 기초/기말 없음)"
+  },
+  "account_minus_sessions": "미확인(계좌 또는 세션 합계 미확정)",
+  "included": {
+   "sessions": 1,
+   "zero_trade": 1,
+   "loss": 0,
+   "stopped": 0,
+   "unconfirmed": 0
+  },
+  "rules": [
+   "월손익=기말−기초−순입금",
+   "CLOSING·가격 없음은 미확정",
+   "수수료는 손익에 이미 반영 — 표시만",
+   "손실·거래0·중단 포함",
+   "일별 표본 없으면 낙폭 미확인",
+   "없는 출처는 미확인"
+  ]
+ }
+}

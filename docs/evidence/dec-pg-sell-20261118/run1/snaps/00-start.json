@@ -1,0 +1,114 @@
+{
+  "label" : "00-start",
+  "steps" : [ {
+    "step" : "db_fp_pre",
+    "start" : "2026-11-18T05:34:09.550433800Z",
+    "end" : "2026-11-18T05:34:09.554473800Z"
+  }, {
+    "step" : "exchange_before",
+    "start" : "2026-11-18T05:34:09.581013800Z",
+    "end" : "2026-11-18T05:34:09.581013800Z"
+  }, {
+    "step" : "db_extract",
+    "start" : "2026-11-18T05:34:09.611245700Z",
+    "end" : "2026-11-18T05:34:09.615501200Z"
+  }, {
+    "step" : "exchange_after",
+    "start" : "2026-11-18T05:34:09.641520500Z",
+    "end" : "2026-11-18T05:34:09.641520500Z"
+  }, {
+    "step" : "db_fp_post",
+    "start" : "2026-11-18T05:34:09.672921500Z",
+    "end" : "2026-11-18T05:34:09.675756600Z"
+  } ],
+  "clock_samples" : [ {
+    "pair" : [ "db", "collector" ],
+    "step" : "db_fp_pre",
+    "c0" : "2026-11-18T05:34:09.528329600Z",
+    "d" : "2026-11-18T05:34:09.487992Z",
+    "c1" : "2026-11-18T05:34:09.531980200Z",
+    "mono_rtt_ms" : "3.9460"
+  }, {
+    "pair" : [ "db", "collector" ],
+    "step" : "exchange_before",
+    "c0" : "2026-11-18T05:34:09.565625600Z",
+    "d" : "2026-11-18T05:34:09.524181Z",
+    "c1" : "2026-11-18T05:34:09.565625600Z",
+    "mono_rtt_ms" : "1.5209"
+  }, {
+    "pair" : [ "db", "collector" ],
+    "step" : "db_extract",
+    "c0" : "2026-11-18T05:34:09.596200700Z",
+    "d" : "2026-11-18T05:34:09.554411Z",
+    "c1" : "2026-11-18T05:34:09.597743800Z",
+    "mono_rtt_ms" : "1.5857"
+  }, {
+    "pair" : [ "db", "collector" ],
+    "step" : "exchange_after",
+    "c0" : "2026-11-18T05:34:09.626154500Z",
+    "d" : "2026-11-18T05:34:09.584240Z",
+    "c1" : "2026-11-18T05:34:09.627892700Z",
+    "mono_rtt_ms" : "1.7203"
+  }, {
+    "pair" : [ "db", "collector" ],
+    "step" : "db_fp_post",
+    "c0" : "2026-11-18T05:34:09.657297300Z",
+    "d" : "2026-11-18T05:34:09.615777Z",
+    "c1" : "2026-11-18T05:34:09.659547200Z",
+    "mono_rtt_ms" : "2.2239"
+  }, {
+    "pair" : [ "db", "collector" ],
+    "step" : "db_fp_post",
+    "c0" : "2026-11-18T05:34:09.688638800Z",
+    "d" : "2026-11-18T05:34:09.646503Z",
+    "c1" : "2026-11-18T05:34:09.690378600Z",
+    "mono_rtt_ms" : "1.8935"
+  } ],
+  "db_fp_pre" : "2edf2958166561c5c08cd228e53bbcdc",
+  "exchange_before" : {
+    "accounts" : {
+      "KRW" : {
+        "locked" : "0",
+        "balance" : "1000000.00"
+      },
+      "XRP" : {
+        "locked" : "0",
+        "balance" : "5"
+      }
+    },
+    "open_orders" : [ ],
+    "done_order_ids" : [ ]
+  },
+  "db" : {
+    "observed_at" : "2026-11-18T05:34:09.570280Z",
+    "snapshot" : "7502:7502:",
+    "flyway_version" : 96,
+    "fingerprint" : "2edf2958166561c5c08cd228e53bbcdc",
+    "sessions" : [ ],
+    "orders" : [ ],
+    "positions" : [ ],
+    "unresolved_discrepancies" : [ ]
+  },
+  "exchange_after" : {
+    "accounts" : {
+      "KRW" : {
+        "locked" : "0",
+        "balance" : "1000000.00"
+      },
+      "XRP" : {
+        "locked" : "0",
+        "balance" : "5"
+      }
+    },
+    "open_orders" : [ ],
+    "done_order_ids" : [ ]
+  },
+  "db_fp_post" : "2edf2958166561c5c08cd228e53bbcdc",
+  "supplement" : {
+    "positions" : [ ],
+    "dynamic_sell_settlement" : [ ],
+    "orders" : [ ],
+    "live_sessions" : [ ],
+    "dynamic_sessions" : [ ]
+  }
+}

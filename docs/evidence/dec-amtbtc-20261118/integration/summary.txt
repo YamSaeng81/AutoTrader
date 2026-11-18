@@ -1,0 +1,64 @@
+com.cryptoautotrader.api.service.DynamicBlackSwanCooldownCrossKindTest.xml tests 6 failures 0 errors 0 skipped 0
+ok   대조 — PAPER 틱 없이 같은 회복 캔들의 REAL 틱은 BLACK_SWAN 쿨다운으로 막히지 않는다 | 
+ok   기동 복원 — PAPER 가 만든 쿨다운은 재기동 뒤 PAPER 지도에 복원되고 REAL 지도에는 들어가지 않는다 | 
+ok   재기동 전후 같은 결과 — 종류마다 회복 틱의 차단 여부가 재기동 전과 같다 | 
+ok   기동 복원 — REAL 이 만든 쿨다운은 재기동 뒤 REAL 지도에 복원되고 PAPER 지도에는 들어가지 않는다 | 
+ok   격리 — PAPER 가 급락 봉을 평가해 쿨다운을 기록해도 PAPER 지도에만 남고, 회복 뒤 REAL 의 BUY 는 그 사유로 막히지 않는다 | 
+ok   REAL 자체 보호 유지 · REAL→PAPER 무간섭 — REAL 급락 차단 뒤 REAL 은 쿨다운으로 막히고 PAPER 는 막히지 않는다 | 
+com.cryptoautotrader.api.service.DynamicBlackSwanCooldownRestoreTest.xml tests 7 failures 0 errors 0 skipped 0
+ok   쿨다운(240분)은 지났지만 24시간 내면 진입가 가드용으로 계속 복원한다 | 
+ok   차단 시점가가 없는 구 로그도 복원은 되지만 기준가는 남기지 않는다 | 
+ok   재기동 후 쿨다운 구간 내 가드 차단 종목이 복원된다 | 
+ok   진입가 가드 기간(24시간)이 지난 차단은 복원하지 않는다 | 
+ok   차단이 여러 번이면 가장 최근 시각을 채택한다 — 쿨다운이 조기 만료되지 않는다 | 
+ok   쿨다운이 만든 차단 로그는 복원 대상이 아니다 — 자기 연장으로 영구 차단되는 것을 막는다 | 
+ok   LIVE 세션의 차단 로그는 동적 세션 쿨다운에 섞이지 않는다 | 
+com.cryptoautotrader.api.service.DynamicEntryLimitsTest.xml tests 23 failures 0 errors 0 skipped 0
+ok   상한 뒤 최소 주문: 감액 4,000 은 기존 규칙대로 5,000 으로 올리고(상한 5,000 안), 정상 사이즈도 5,000 미만이면 차단 | 
+ok   상한: 요청 20,000.80 → 10,000 으로 줄여 예약·주문(같은 조건, 키 없는 세션은 종전대로 포지션당 상한 거절) | 
+ok   생성: 유효한 값은 정규화(제외 목록 정렬·상한 정수)해 저장하고, 다시 읽어도 같은 값·같은 지문 | 
+ok   평가 회차: 감시 목록에 BTC 가 있어도 다른 코인을 산다. BTC 급락 관문 입력은 제외하지 않는다(BTC 봉이 없으면 판정 불가로 전체 차단) | 
+ok   예약 보호 불변: 생성 뒤 포지션당 상한이 15,000 으로 내려가면 상한 20,000 요청도 예약 서비스가 거절 | 
+ok   기존 보유 매도 유지: 제외 설정 세션의 KRW-BTC 보유 포지션은 그대로 청산된다(PAPER) | 
+ok   제외: 최종 진입·감시 목록·회차 승인에서 KRW-BTC 신규 매수 0, 다른 코인은 그대로 | 
+ok   생성: 두 키가 없으면 strategy_params 가 그대로(null·기존 키), 지문은 제품 변경 전과 같다 | 
+ok   PAPER 도 같은 식: 요청 20,000.80 → 10,000 체결 | 
+ok   거절: 상한만 | 
+ok   거절: 제외 목록만 | 
+ok   거절: 상한 null | 
+ok   거절: 제외 목록 null | 
+ok   거절: 상한 문자열 | 
+ok   거절: 상한 불리언 | 
+ok   거절: 상한 4999(최소 주문 미만) | 
+ok   거절: 상한 소수 | 
+ok   거절: 상한 NaN | 
+ok   거절: REAL 포지션당 상한 20000 초과 | 
+ok   거절: 제외 목록 문자열 | 
+ok   거절: 제외 코인 소문자 | 
+ok   거절: 제외 코인 중복 | 
+ok   거절: 제외 코인 숫자 | 
+com.cryptoautotrader.api.service.DynamicTradingModeInputTest.xml tests 15 failures 0 errors 0 skipped 0
+ok   API: 모드 누락 요청은 기존 오류 형식(INVALID_REQUEST)으로 거절되고 행이 생기지 않는다 | 
+ok   API: 소문자 paper 는 실자금 세션이 되지 않고 거절된다 | 
+ok   정확한 REAL 은 실자금 세션으로 생성되고 기존대로 배정 검사를 지난다 | 
+ok   [1] tradingMode='null' | 
+ok   [2] tradingMode='' | 
+ok   [3] tradingMode=' ' | 
+ok   [4] tradingMode='paper' | 
+ok   [5] tradingMode='Paper' | 
+ok   [6] tradingMode='real' | 
+ok   [7] tradingMode='Real' | 
+ok   [8] tradingMode='PAPPER' | 
+ok   [9] tradingMode='REAL ' | 
+ok   [10] tradingMode=' PAPER' | 
+ok   [11] tradingMode='LIVE' | 
+ok   정확한 PAPER 는 모의 세션으로 생성되고 실자금 배정·계좌 동기화를 거치지 않는다 | 
+com.cryptoautotrader.api.service.SessionKindIsolationTest.xml tests 8 failures 0 errors 0 skipped 0
+ok   N-2: ENABLED 전략은 정상적으로 라이브/동적 세션 생성이 허용된다 | 
+ok   N-2: BLOCKED 전략은 라이브 세션 생성이 거부된다 | 
+ok   신규 동적 세션은 time stop이 켜진 상태(maxHoldHours=24)로 생성된다 | 
+ok   실전매매 전역 요약은 DYNAMIC 포지션/주문/손익을 집계하지 않는다 | 
+ok   N-1: 같은 sessionId를 가진 LIVE/DYNAMIC 포지션은 kind-aware 조회로 서로 격리된다 | 
+ok   실전매매 초기화는 DYNAMIC 포지션/주문을 지우지 않는다 | 
+ok   여러 세션이 같은 코인을 보유해도 미실현 손익은 각자 갱신된다 | 
+ok   N-2: BLOCKED 전략은 동적 멀티코인 세션 생성도 거부된다 | 

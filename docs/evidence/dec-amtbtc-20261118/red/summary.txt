@@ -1,0 +1,24 @@
+com.cryptoautotrader.api.service.DynamicEntryLimitsTest.xml tests 23 failures 19 errors 0 skipped 0
+ok   상한 뒤 최소 주문: 감액 4,000 은 기존 규칙대로 5,000 으로 올리고(상한 5,000 안), 정상 사이즈도 5,000 미만이면 차단 | 
+FAIL 상한: 요청 20,000.80 → 10,000 으로 줄여 예약·주문(같은 조건, 키 없는 세션은 종전대로 포지션당 상한 거절) | org.opentest4j.AssertionFailedError:  expected: null  but was: "공유 풀 예약 거절(PER_POSITION_CAP): 매수금 20000.80 > 포지션당 상한 20000"
+FAIL 생성: 유효한 값은 정규화(제외 목록 정렬·상한 정수)해 저장하고, 다시 읽어도 같은 값·같은 지문 | org.opentest4j.AssertionFailedError: [정렬된 목록]  expected: ["KRW-BTC", "KRW-XRP"]  but was: ["KRW-XRP", "KRW-BTC"]
+FAIL 평가 회차: 감시 목록에 BTC 가 있어도 다른 코인을 산다. BTC 급락 관문 입력은 제외하지 않는다(BTC 봉이 없으면 판정 불가로 전체 차단) | org.assertj.core.error.AssertJMultipleFailuresError:  [대조 — BTC 봉이 최신이면 제외되지 않은 코인을 산다 check single element] (1 failure) -- failure 1 -- expected: "KRW-IOTA"  but was: "KRW-BTC" at DynamicEntryLimitsTest.lambda$scan
+ok   예약 보호 불변: 생성 뒤 포지션당 상한이 15,000 으로 내려가면 상한 20,000 요청도 예약 서비스가 거절 | 
+ok   기존 보유 매도 유지: 제외 설정 세션의 KRW-BTC 보유 포지션은 그대로 청산된다(PAPER) | 
+FAIL 제외: 최종 진입·감시 목록·회차 승인에서 KRW-BTC 신규 매수 0, 다른 코인은 그대로 | org.opentest4j.AssertionFailedError: [감시 목록]  Expecting actual:   ["KRW-BTC", "KRW-ETH"] to contain exactly (and in same order):   ["KRW-ETH"] but some elements were not expected:   ["KRW-BTC"] 
+ok   생성: 두 키가 없으면 strategy_params 가 그대로(null·기존 키), 지문은 제품 변경 전과 같다 | 
+FAIL PAPER 도 같은 식: 요청 20,000.80 → 10,000 체결 | org.assertj.core.error.AssertJMultipleFailuresError:  [List check single element] (1 failure) -- failure 1 -- expected: 10000  but was: 20000.80000000 at DynamicEntryLimitsTest.lambda$paperSameFormula$6(DynamicEntry
+FAIL 거절: 상한만 | java.lang.AssertionError:  Expecting code to raise a throwable.
+FAIL 거절: 제외 목록만 | java.lang.AssertionError:  Expecting code to raise a throwable.
+FAIL 거절: 상한 null | java.lang.AssertionError:  Expecting code to raise a throwable.
+FAIL 거절: 제외 목록 null | java.lang.AssertionError:  Expecting code to raise a throwable.
+FAIL 거절: 상한 문자열 | java.lang.AssertionError:  Expecting code to raise a throwable.
+FAIL 거절: 상한 불리언 | java.lang.AssertionError:  Expecting code to raise a throwable.
+FAIL 거절: 상한 4999(최소 주문 미만) | java.lang.AssertionError:  Expecting code to raise a throwable.
+FAIL 거절: 상한 소수 | java.lang.AssertionError:  Expecting code to raise a throwable.
+FAIL 거절: 상한 NaN | java.lang.AssertionError:  Expecting code to raise a throwable.
+FAIL 거절: REAL 포지션당 상한 20000 초과 | java.lang.AssertionError:  Expecting code to raise a throwable.
+FAIL 거절: 제외 목록 문자열 | java.lang.AssertionError:  Expecting code to raise a throwable.
+FAIL 거절: 제외 코인 소문자 | java.lang.AssertionError:  Expecting code to raise a throwable.
+FAIL 거절: 제외 코인 중복 | java.lang.AssertionError:  Expecting code to raise a throwable.
+FAIL 거절: 제외 코인 숫자 | java.lang.AssertionError:  Expecting code to raise a throwable.

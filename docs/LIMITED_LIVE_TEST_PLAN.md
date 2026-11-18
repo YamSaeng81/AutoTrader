@@ -58,7 +58,7 @@ SSH 대량 인증 실패·MaxStartups 제한은 별도🔴 후속이다. 11-17 1
 | 수용 | **V172D4 절차 보완·고정 출처** | ce6df2fa의 [424차 제출](evidence/v172d4-20261116/README.md) 수용. R1~R3·두 번째 로그 보완, 대역 r2 100/0·실행 틀12/12. 근거42/42·압축9,212파일 일치 |
 | 1 | **SSH 관리자 제한 읽기** | v2 범위 수용. admin_read + admin_read_add 개별 종료값·UseDNS/Host/Include/서비스 인자, 운영자 답4개 확인. 실제 변경 전 |
 | 2 | **새 모의9세션 실행 판단** | 11-18 날짜는 만료 보존. [11-19 제안](evidence/ab-create-v424-20261119/README.md)의 단계db0bc080·배치298d49d1 범위 수용. 실제 승인 기한11-19 12:00, 생성/토큰/배치 전 |
-| 3 | **12월 병행 실전 준비** | [v1.189](evidence/review-87126a31/README.md): P7 v4·매수 PG·모드/쿨다운ac52715e 로컬 범위 수용. P7 시계 축 v5 [제출](evidence/dec-reconcile-v5-20261118/README.md)(263/263·변형12/12, 판정 전). 금액/BTC 독립 후보·월 성적표/최소 알림안을 병행하고 매도 PG만 보충. 운영 대조기 사용·배포 전 |
+| 3 | **12월 병행 실전 준비** | [v1.189](evidence/review-87126a31/README.md): P7 v4·매수 PG·모드/쿨다운ac52715e 로컬 범위 수용. P7 시계 축 v5 [제출](evidence/dec-reconcile-v5-20261118/README.md)(263/263·변형12/12), [금액/BTC](evidence/dec-amtbtc-20261118/README.md) c70a8330·통합aff357e2, [성적표/알림안](evidence/dec-scorecard-20261118/README.md), [매도 PG](evidence/dec-pg-sell-20261118/README.md) 24/24 — 모두 판정 전. 운영 대조기 사용·배포 전 |
 | 완료 | **문서 정리·F5-3v** | b12f19f8·729cdbe2 수용. 종전F15개 보존, 새 출처 추출 대역15/15. 장부 시험의 공통 자료 실패9건은 남음 |
 | 수용 | **대기 대상 정리·독립 시험 보완** | [409차](evidence/v164-wait20-20261113/README.md). 합집합21·실제18클래스87곳. 실패42는 대기 경합40과 G1 시험 읽기2로 구분. 후속3f9cc926에서 음성 단언3곳 보완·관련19클래스 성공230/건너뜀4, 실패0 |
 | 수용 | **N05 최종판·화면** | [N05](evidence/n05-final-0e1d2a02/README.md) K14~K23 39/39 대응, G4 운영0e1d2a02 확인 완료. G2·G3 미확정. [화면](evidence/screen-0e1d2a02/README.md) 7개 확인 수용, 대비 결함은 독립 frontend 후보로 보완 |

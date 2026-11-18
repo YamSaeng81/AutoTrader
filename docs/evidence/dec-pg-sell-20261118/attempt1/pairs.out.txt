@@ -1,0 +1,32 @@
+impl reconcile.py sha256=2ca03476eed179baeee3c7a7ab63bdb3991a0cf2ce32cc87c1a84b5d29fd79a0
+PASS | L12_sell_submitted | HOLD | EXCHANGE_OPEN_ORDERS,ORDER_EFFECT_PENDING,ORDER_IN_FLIGHT,POSITION_CLOSING | KRW Δ거래소=0.00 Δ장부=0 원시=0.00 설명=0 조정=0.00 [보류] RND Δ거래소=0 체결=0 포지션=0E-8
+PASS | L23_sell_partial_active | HOLD | EXCHANGE_OPEN_ORDERS,ORDER_EFFECT_PENDING,ORDER_IN_FLIGHT,POSITION_CLOSING | KRW Δ거래소=3098.45 Δ장부=0 원시=3098.45 설명=0 조정=3098.45 [보류] RND Δ거래소=-10 체결=0 포지션=0E-8
+PASS | L14_partial_cancel_remaining_kept | OK |  | KRW Δ거래소=3098.45 Δ장부=3098.45 원시=0.00 설명=0E-8 조정=0E-8 [일치] RND Δ거래소=-10 체결=-10.00000000 포지션=-10.00000000
+PASS | L45_reliquidated | OK |  | KRW Δ거래소=4647.675 Δ장부=4647.68 원시=-0.005 설명=-0.00500000 조정=0E-8 [일치] RND Δ거래소=-15 체결=-15.00000000 포지션=-15.00000000
+PASS | L56_sell_fee_corrections | OK |  | KRW Δ거래소=-0.006 Δ장부=-0.01 원시=0.004 설명=0.00400000 조정=0E-8 [일치] RND Δ거래소=0 체결=0E-8 포지션=0
+PASS | L67_same_response_repeated | OK |  | KRW Δ거래소=0.000 Δ장부=0 원시=0.000 설명=0 조정=0.000 [일치] RND Δ거래소=None 체결=None 포지션=None
+PASS | L17_full_sell_window | OK |  | KRW Δ거래소=7746.119 Δ장부=7746.12 원시=-0.001 설명=-0.00100000 조정=0E-8 [일치] RND Δ거래소=-25 체결=-25.00000000 포지션=-25.00000000
+PASS | LN1_exchange_krw_minus_1 | ANOMALY | ACCOUNT_KRW_MISMATCH | KRW Δ거래소=3097.45 Δ장부=3098.45 원시=-1.00 설명=0E-8 조정=-1.00000000 [불일치] RND Δ거래소=-10 체결=-10.00000000 포지션=-10.00000000
+PASS | LN2_exchange_coin_plus | ANOMALY | ACCOUNT_COIN_MISMATCH | KRW Δ거래소=3098.45 Δ장부=3098.45 원시=0.00 설명=0E-8 조정=0E-8 [일치] RND Δ거래소=-9.9 체결=-10.00000000 포지션=-10.00000000
+PASS | LN3_sell_correction_not_on_exchange | ANOMALY | ACCOUNT_KRW_MISMATCH | KRW Δ거래소=0.000 Δ장부=-0.01 원시=0.010 설명=0.00400000 조정=0.00600000 [불일치] RND Δ거래소=0 체결=0E-8 포지션=0
+PASS | LN4_session_ledger_plus_1c | ANOMALY | SESSION_LEDGER_MISMATCH | KRW Δ거래소=0.000 Δ장부=0 원시=0.000 설명=0 조정=0.000 [일치] RND Δ거래소=None 체결=None 포지션=None
+PASS | LN5_position_size_plus_1 | ANOMALY | ACCOUNT_COIN_MISMATCH,ACCOUNT_COIN_UNBACKED | KRW Δ거래소=3098.45 Δ장부=3098.45 원시=0.00 설명=0E-8 조정=0E-8 [일치] RND Δ거래소=-10 체결=-10.00000000 포지션=-9.00000000
+PASS | D12_sell_submitted | HOLD | EXCHANGE_OPEN_ORDERS,ORDER_EFFECT_PENDING,ORDER_IN_FLIGHT,POSITION_CLOSING | KRW Δ거래소=0.000 Δ장부=0 원시=0.000 설명=0 조정=0.000 [보류] RND Δ거래소=0 체결=0 포지션=0E-8
+PASS | D23_sell_partial_active | HOLD | EXCHANGE_OPEN_ORDERS,ORDER_EFFECT_PENDING,ORDER_IN_FLIGHT,POSITION_CLOSING | KRW Δ거래소=3098.450 Δ장부=0 원시=3098.450 설명=0 조정=3098.450 [보류] RND Δ거래소=-10 체결=0 포지션=0E-8
+PASS | D14_partial_cancel_remaining_kept | OK |  | KRW Δ거래소=3098.450 Δ장부=3098.45 원시=0.000 설명=0E-8 조정=0E-8 [일치] RND Δ거래소=-10 체결=-10.00000000 포지션=-10.00000000
+PASS | D45_reliquidated | OK |  | KRW Δ거래소=4647.675 Δ장부=4647.68 원시=-0.005 설명=-0.00500000 조정=0E-8 [일치] RND Δ거래소=-15 체결=-15.00000000 포지션=-15.00000000
+PASS | D56_sell_fee_corrections | OK |  | KRW Δ거래소=-0.006 Δ장부=-0.01 원시=0.004 설명=0.00400000 조정=0E-8 [일치] RND Δ거래소=0 체결=0E-8 포지션=0
+FAIL | D67_same_response_repeated | HOLD | CLOCK_AXIS_UNCONFIRMED | KRW Δ거래소=0.000 Δ장부=0 원시=0.000 설명=0 조정=0.000 [일치] RND Δ거래소=None 체결=None 포지션=None | overall HOLD≠OK; 이상/보류 있음
+FAIL | D17_full_sell_window | HOLD | CLOCK_AXIS_UNCONFIRMED | KRW Δ거래소=7746.119 Δ장부=7746.12 원시=-0.001 설명=-0.00100000 조정=0E-8 [일치] RND Δ거래소=-25 체결=-25.00000000 포지션=-25.00000000 | overall HOLD≠OK; 이상/보류 있음
+PASS | DN1_exchange_krw_minus_1 | ANOMALY | ACCOUNT_KRW_MISMATCH | KRW Δ거래소=3097.450 Δ장부=3098.45 원시=-1.000 설명=0E-8 조정=-1.00000000 [불일치] RND Δ거래소=-10 체결=-10.00000000 포지션=-10.00000000
+PASS | DN2_exchange_coin_plus | ANOMALY | ACCOUNT_COIN_MISMATCH | KRW Δ거래소=3098.450 Δ장부=3098.45 원시=0.000 설명=0E-8 조정=0E-8 [일치] RND Δ거래소=-9.9 체결=-10.00000000 포지션=-10.00000000
+PASS | DN3_sell_correction_not_on_exchange | ANOMALY | ACCOUNT_KRW_MISMATCH | KRW Δ거래소=0.000 Δ장부=-0.01 원시=0.010 설명=0.00400000 조정=0.00600000 [불일치] RND Δ거래소=0 체결=0E-8 포지션=0
+PASS | DN4_session_ledger_plus_1c | ANOMALY | CLOCK_AXIS_UNCONFIRMED,SESSION_LEDGER_MISMATCH | KRW Δ거래소=0.000 Δ장부=0 원시=0.000 설명=0 조정=0.000 [일치] RND Δ거래소=None 체결=None 포지션=None
+PASS | DN5_position_size_plus_1 | ANOMALY | ACCOUNT_COIN_MISMATCH,ACCOUNT_COIN_UNBACKED | KRW Δ거래소=3098.450 Δ장부=3098.45 원시=0.000 설명=0E-8 조정=0E-8 [일치] RND Δ거래소=-10 체결=-10.00000000 포지션=-9.00000000
+합계 24 통과 22 실패 2
+보충 L4-sell-cancel-partial: 저장 실현=98.45000000 주문 원천=96.95 차=1.5 매수 수수료=3.75000000
+보충 L5-reliquidated: 저장 실현=246.12500000 주문 원천=242.375 차=3.75 매수 수수료=3.75000000
+보충 L6-sell-corrected: 저장 실현=246.11900000 주문 원천=242.369 차=3.75 매수 수수료=3.75000000
+보충 D4-sell-cancel-partial: 저장 실현=98.45000000 주문 원천=96.95 차=1.5 매수 수수료=3.75000000
+보충 D5-reliquidated: 저장 실현=246.12500000 주문 원천=242.375 차=3.75 매수 수수료=3.75000000
+보충 D6-sell-corrected: 저장 실현=246.11900000 주문 원천=242.369 차=3.75 매수 수수료=3.75000000
