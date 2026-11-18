@@ -1,0 +1,18 @@
+수정 전(0e1d2a02 + 새 시험만) — 실패 재현
+DynamicTradingModeInputTest tests=15 fail=13 err=0 skip=0 time=1.572s ts=2026-11-18T01:01:50
+  FAIL API: 모드 누락 요청은 기존 오류 형식(INVALID_REQUEST)으로 거절되고 행이 생기지 않는다 :: java.lang.AssertionError: JSON path "$.success" expected:<false> but was:<true>
+  FAIL API: 소문자 paper 는 실자금 세션이 되지 않고 거절된다 :: java.lang.AssertionError: JSON path "$.success" expected:<false> but was:<true>
+  ok   정확한 REAL 은 실자금 세션으로 생성되고 기존대로 배정 검사를 지난다
+  FAIL [1] tradingMode='null' :: java.lang.AssertionError:  Expecting code to raise a throwable.
+  FAIL [2] tradingMode='' :: java.lang.AssertionError:  Expecting code to raise a throwable.
+  FAIL [3] tradingMode=' ' :: java.lang.AssertionError:  Expecting code to raise a throwable.
+  FAIL [4] tradingMode='paper' :: java.lang.AssertionError:  Expecting code to raise a throwable.
+  FAIL [5] tradingMode='Paper' :: java.lang.AssertionError:  Expecting code to raise a throwable.
+  FAIL [6] tradingMode='real' :: java.lang.AssertionError:  Expecting code to raise a throwable.
+  FAIL [7] tradingMode='Real' :: java.lang.AssertionError:  Expecting code to raise a throwable.
+  FAIL [8] tradingMode='PAPPER' :: java.lang.AssertionError:  Expecting code to raise a throwable.
+  FAIL [9] tradingMode='REAL ' :: java.lang.AssertionError:  Expecting code to raise a throwable.
+  FAIL [10] tradingMode=' PAPER' :: java.lang.AssertionError:  Expecting code to raise a throwable.
+  FAIL [11] tradingMode='LIVE' :: java.lang.AssertionError:  Expecting code to raise a throwable.
+  ok   정확한 PAPER 는 모의 세션으로 생성되고 실자금 배정·계좌 동기화를 거치지 않는다
+합계 tests=15 fail=13 err=0 skip=0

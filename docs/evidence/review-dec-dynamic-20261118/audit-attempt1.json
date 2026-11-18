@@ -1,0 +1,194 @@
+{
+  "production_source": "0e1d2a021ab2f3c759a9b2be9c4f09430f93c80d",
+  "scope": "static Git/working-file reads and Decimal examples only; no network, DB, Java tests, build or scheduled task execution",
+  "passed": 21,
+  "failed": 2,
+  "checks": [
+    {
+      "name": "exact PAPER selects paper branch",
+      "passed": true
+    },
+    {
+      "name": "non-PAPER selects default",
+      "passed": true
+    },
+    {
+      "name": "default is REAL",
+      "passed": true
+    },
+    {
+      "name": "mode field has no validation annotation",
+      "passed": true
+    },
+    {
+      "name": "available money times effective ratio",
+      "passed": true
+    },
+    {
+      "name": "EMA multiplier can reduce full ratio",
+      "passed": true
+    },
+    {
+      "name": "registered cap rejects oversize",
+      "passed": true
+    },
+    {
+      "name": "allocation includes CREATED",
+      "passed": true
+    },
+    {
+      "name": "coin exposure lookup scoped by session kind",
+      "passed": true
+    },
+    {
+      "name": "pure sizing 25000 multiplier 1",
+      "passed": true
+    },
+    {
+      "name": "pure sizing 25001 multiplier 1",
+      "passed": true
+    },
+    {
+      "name": "pure sizing 25001 multiplier 0.5",
+      "passed": true
+    },
+    {
+      "name": "pure sizing 25000.01 multiplier 1",
+      "passed": true
+    },
+    {
+      "name": "installed checker hash is known shell hash",
+      "passed": false
+    },
+    {
+      "name": "checker expects zero outside SID",
+      "passed": false
+    },
+    {
+      "name": "SQL outside-SID query includes DYNAMIC",
+      "passed": true
+    },
+    {
+      "name": "current runbook equals committed source",
+      "passed": true
+    },
+    {
+      "name": "F1 requires only SID203 eligible",
+      "passed": true
+    },
+    {
+      "name": "F3 whole-account KRW compares to SID only",
+      "passed": true
+    },
+    {
+      "name": "other-coin DYNAMIC movement alone breaks old F3 KRW equation",
+      "passed": true
+    },
+    {
+      "name": "reader fixed digest",
+      "passed": true
+    },
+    {
+      "name": "wrapper report and ledger arguments",
+      "passed": true
+    },
+    {
+      "name": "saved schedule 10:13 KST",
+      "passed": true
+    }
+  ],
+  "sources": [
+    {
+      "revision": "0e1d2a021ab2f3c759a9b2be9c4f09430f93c80d",
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java",
+      "sha256": "a438d116f592e7fe7cedc6fdfb45646a953d19c487bef489d2fff7cd12dab984"
+    },
+    {
+      "revision": "0e1d2a021ab2f3c759a9b2be9c4f09430f93c80d",
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/dto/DynamicSessionRequest.java",
+      "sha256": "49ef6f869207de4be5638a8f0c1949c6778ed80790bd18d9d840ed0db80767d5"
+    },
+    {
+      "revision": "0e1d2a021ab2f3c759a9b2be9c4f09430f93c80d",
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/entity/DynamicSessionEntity.java",
+      "sha256": "eac89e022db4f846ae25e925d0c0186d36c0c9036311a96fdd1a08ebca18a337"
+    },
+    {
+      "revision": "0e1d2a021ab2f3c759a9b2be9c4f09430f93c80d",
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/CapitalReservationService.java",
+      "sha256": "c9bc02e8d1513a0b88ad2af46c6dd2f562bc9bdb37f1e13cc9b7054af336f66b"
+    },
+    {
+      "revision": "0e1d2a021ab2f3c759a9b2be9c4f09430f93c80d",
+      "path": "scripts/ops/daily_check.sh",
+      "sha256": "1e2c6c0a24db8dc68c86e24085c562e12bd81002848cc6501d39fe41cb209c9c"
+    },
+    {
+      "revision": "0e1d2a021ab2f3c759a9b2be9c4f09430f93c80d",
+      "path": "scripts/ops/daily_checks.sql",
+      "sha256": "7c815cfa5fec4e23b84a5f8c1dd63e9bb2167ade08c19a364ea75614b0e4413a"
+    },
+    {
+      "revision": "e0119f0a",
+      "path": "docs/LIMITED_LIVE_TEST_RUNBOOK.md",
+      "sha256": "fe16cb2eb01c56dd727ce9b053b7d75ed40316223cc463b773e1b205403f32c0"
+    },
+    {
+      "path": "docs/evidence/n03-1118-1000/read.sh",
+      "sha256": "41e4f33747f47ed4089ffe8ca192964529cfea24b8d150a7b1a8300c572f73ad",
+      "scope": "prepared, execution not observed"
+    },
+    {
+      "path": "docs/evidence/n03-1118-1000/sched/n03run.sh",
+      "sha256": "404d4a6ce2afbe09e090f07937789409ccb2a23abf1f89d3388a10af90bb4dd9",
+      "scope": "prepared, execution not observed"
+    },
+    {
+      "path": "docs/evidence/n03-1118-1000/sched/scheduled.txt",
+      "sha256": "ca6c03ed5df6ff1a1c3881fc0922d02f3bb6a51c0fd8c759dd3ad8201c1cc9e2",
+      "scope": "prepared, execution not observed"
+    },
+    {
+      "path": "docs\\evidence\\dec-dynamic-path-20261118\\README.md",
+      "sha256": "085c2e2ab66a43df382dcb506e27d074458d1ca4692614945125df54bbfc89f3",
+      "scope": "uncommitted draft snapshot, no final acceptance"
+    }
+  ],
+  "probes": [
+    {
+      "available": "25000",
+      "ratio": "0.8",
+      "multiplier": "1",
+      "request": "20000.00",
+      "over_20000": false
+    },
+    {
+      "available": "25001",
+      "ratio": "0.8",
+      "multiplier": "1",
+      "request": "20000.80",
+      "over_20000": true
+    },
+    {
+      "available": "25001",
+      "ratio": "0.8",
+      "multiplier": "0.5",
+      "request": "10000.40",
+      "over_20000": false
+    },
+    {
+      "available": "25000.01",
+      "ratio": "0.8",
+      "multiplier": "1",
+      "request": "20000.00",
+      "over_20000": false
+    },
+    {
+      "case": "parallel_F3_equation_only",
+      "SID203_delta": "0",
+      "other_coin_dynamic_account_KRW_delta": "-10000",
+      "old_F3_KRW_match": false,
+      "scope": "pure equation illustration, no actual order/fee model or product execution"
+    }
+  ]
+}

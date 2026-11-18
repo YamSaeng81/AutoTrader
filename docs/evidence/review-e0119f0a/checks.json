@@ -1,0 +1,502 @@
+{
+  "fixed_commit": "e0119f0a4eff0432ddc47e13393b3cbf4e84bfd1",
+  "scope": "Git blobs, saved WSL outputs, script flow below LOGF with private paths and harmless command functions; no SSH/DB/HTTP/archive/container",
+  "manifests": [
+    {
+      "folder": "docs/evidence/ab-create-v424-20261118/",
+      "list": "SHA256SUMS",
+      "matched": 33
+    },
+    {
+      "folder": "docs/evidence/ab-create-v424-20261118/",
+      "list": "bundle/SHA256SUMS.bundle",
+      "matched": 16
+    },
+    {
+      "folder": "docs/evidence/review-dd50e906/",
+      "list": "SHA256SUMS",
+      "matched": 4
+    }
+  ],
+  "passed": 94,
+  "failed": 0,
+  "checks": [
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/SHA256SUMS working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/.gitattributes committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/README.md committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/bundle/SHA256SUMS.bundle committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/bundle/judge_preflight.py committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/bundle/run_bundle.sh committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/bundle/test_run_bundle.sh committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/create/ab_complete.py committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/create/ab_create.py committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/create/http_post.py committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/create/meta_after.sql committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/create/meta_preflight.sql committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/create/post_creation_check.sql committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/deploy-20261118.sh committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/preflight/preflight_v2.sql committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/sma20/body.json committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/sma20/sma20_check.sql committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/sma20/sma20_complete.py committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/sma20/sma20_create.py committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/sma20/sma20_meta_preflight.sql committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/steps-20261118.sh committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/test/test_deploy_logfail.sh committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/test/test_deploy_logfail.wsl.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/test/test_deploy_standin.out.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/test/test_deploy_standin.sh committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/test/test_deploy_standin.wsl.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/test/test_steps_guard.out.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/test/test_steps_guard.sh committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/test/test_v424_bundle.gitbash.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/test/test_v424_bundle.sh committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/test/test_v424_window.out.txt committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/test/test_v424_window.py committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/tool/ab_arms.py committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/tool/protocol.json committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/bundle/SHA256SUMS.bundle working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/create/ab_create.py committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/create/http_post.py committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/create/ab_complete.py committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/create/meta_preflight.sql committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/create/meta_after.sql committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/create/post_creation_check.sql committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/tool/protocol.json committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/tool/ab_arms.py committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/sma20/sma20_create.py committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/sma20/sma20_complete.py committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/sma20/body.json committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/sma20/sma20_meta_preflight.sql committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/sma20/sma20_check.sql committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/preflight/preflight_v2.sql committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/bundle/judge_preflight.py committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/ab-create-v424-20261118/bundle/run_bundle.sh committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/review-dd50e906/SHA256SUMS working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/review-dd50e906/.gitattributes committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/review-dd50e906/audit_review.py committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/review-dd50e906/checks.json committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "docs/evidence/review-dd50e906/README.md committed digest and working bytes",
+      "passed": true
+    },
+    {
+      "name": "HEAD and local origin/main refs",
+      "passed": true
+    },
+    {
+      "name": "no product/build changes",
+      "passed": true
+    },
+    {
+      "name": "sixteen-file bundle unchanged",
+      "passed": true
+    },
+    {
+      "name": "unchanged frozen input create/ab_create.py",
+      "passed": true
+    },
+    {
+      "name": "unchanged frozen input create/http_post.py",
+      "passed": true
+    },
+    {
+      "name": "unchanged frozen input create/ab_complete.py",
+      "passed": true
+    },
+    {
+      "name": "unchanged frozen input create/meta_preflight.sql",
+      "passed": true
+    },
+    {
+      "name": "unchanged frozen input create/meta_after.sql",
+      "passed": true
+    },
+    {
+      "name": "unchanged frozen input create/post_creation_check.sql",
+      "passed": true
+    },
+    {
+      "name": "unchanged frozen input tool/protocol.json",
+      "passed": true
+    },
+    {
+      "name": "unchanged frozen input tool/ab_arms.py",
+      "passed": true
+    },
+    {
+      "name": "unchanged frozen input sma20/sma20_create.py",
+      "passed": true
+    },
+    {
+      "name": "unchanged frozen input sma20/sma20_complete.py",
+      "passed": true
+    },
+    {
+      "name": "unchanged frozen input sma20/body.json",
+      "passed": true
+    },
+    {
+      "name": "unchanged frozen input sma20/sma20_meta_preflight.sql",
+      "passed": true
+    },
+    {
+      "name": "unchanged frozen input sma20/sma20_check.sql",
+      "passed": true
+    },
+    {
+      "name": "unchanged frozen input preflight/preflight_v2.sql",
+      "passed": true
+    },
+    {
+      "name": "unchanged frozen input bundle/judge_preflight.py",
+      "passed": true
+    },
+    {
+      "name": "unchanged frozen input bundle/run_bundle.sh",
+      "passed": true
+    },
+    {
+      "name": "dated step file unchanged",
+      "passed": true
+    },
+    {
+      "name": "new deploy digest",
+      "passed": true
+    },
+    {
+      "name": "bash syntax only",
+      "passed": true
+    },
+    {
+      "name": "saved WSL output test/test_deploy_logfail.wsl.txt",
+      "passed": true
+    },
+    {
+      "name": "saved WSL output test/test_deploy_standin.wsl.txt",
+      "passed": true
+    },
+    {
+      "name": "isolated exact deployment branch normal",
+      "passed": true
+    },
+    {
+      "name": "isolated exact deployment branch first_log",
+      "passed": true
+    },
+    {
+      "name": "isolated exact deployment branch after_first_ssh",
+      "passed": true
+    },
+    {
+      "name": "remote partial warning after_first_ssh",
+      "passed": true
+    },
+    {
+      "name": "isolated exact deployment branch remote_hash_output",
+      "passed": true
+    },
+    {
+      "name": "remote partial warning remote_hash_output",
+      "passed": true
+    },
+    {
+      "name": "isolated exact deployment branch final_log",
+      "passed": true
+    },
+    {
+      "name": "remote partial warning final_log",
+      "passed": true
+    },
+    {
+      "name": "isolated exact deployment branch archive_failure_and_log",
+      "passed": true
+    },
+    {
+      "name": "isolated exact deployment branch first_ssh_failure_and_log",
+      "passed": true
+    },
+    {
+      "name": "isolated exact deployment branch remote_tar_failure_and_log",
+      "passed": true
+    },
+    {
+      "name": "isolated exact deployment branch existing_remote_and_log",
+      "passed": true
+    },
+    {
+      "name": "isolated exact deployment branch remote_verify_failure_and_log",
+      "passed": true
+    },
+    {
+      "name": "isolated exact deployment branch local_hash_failure_and_log",
+      "passed": true
+    }
+  ],
+  "probes": [
+    {
+      "case": "normal",
+      "exit": 0,
+      "expected_exit": 0,
+      "fake_ssh_calls": 2,
+      "log_lines": 9,
+      "stdout": "",
+      "stderr": "2026-11-18T00:13:36Z 로컬 git archive rc=0\n2026-11-18T00:13:36Z 로컬 풀기 rc=0\n2026-11-18T00:13:36Z 로컬 묶음 16개 해시 rc=0\n2026-11-18T00:13:36Z 목록 해시 list-fixture · 단계 파일 해시 steps-fixture\n2026-11-18T00:13:36Z 원격 만들기·풀기 ssh rc=0 (10 이미 있음 · 11 mkdir 실패 · 12 tar 실패 · 255 접속)\n2026-11-18T00:13:36Z 원격 검증 ssh rc=0\nlist-fixture -\nsteps-fixture -\n2026-11-18T00:13:37Z 배치 완료 — 서버 ~/fixture, 다음은 steps-20261118.sh 0\n"
+    },
+    {
+      "case": "first_log",
+      "exit": 8,
+      "expected_exit": 8,
+      "fake_ssh_calls": 0,
+      "log_lines": 0,
+      "stdout": "",
+      "stderr": "STOP 8: 기록 실패(docs/evidence/ab-create-v424-20261118/deploy-20261118-run.log) — 원격 호출 전, 남은 단계 실행 안 함\n"
+    },
+    {
+      "case": "after_first_ssh",
+      "exit": 8,
+      "expected_exit": 8,
+      "fake_ssh_calls": 1,
+      "log_lines": 4,
+      "stdout": "",
+      "stderr": "2026-11-18T00:13:37Z 로컬 git archive rc=0\n2026-11-18T00:13:37Z 로컬 풀기 rc=0\n2026-11-18T00:13:37Z 로컬 묶음 16개 해시 rc=0\n2026-11-18T00:13:37Z 목록 해시 list-fixture · 단계 파일 해시 steps-fixture\nSTOP 8: 기록 실패(docs/evidence/ab-create-v424-20261118/deploy-20261118-run.log) — 원격 상태 미확인/부분, 읽기로 확인하기 전 재실행 금지, 남은 단계 실행 안 함\n"
+    },
+    {
+      "case": "remote_hash_output",
+      "exit": 8,
+      "expected_exit": 8,
+      "fake_ssh_calls": 2,
+      "log_lines": 6,
+      "stdout": "",
+      "stderr": "2026-11-18T00:13:37Z 로컬 git archive rc=0\n2026-11-18T00:13:38Z 로컬 풀기 rc=0\n2026-11-18T00:13:38Z 로컬 묶음 16개 해시 rc=0\n2026-11-18T00:13:38Z 목록 해시 list-fixture · 단계 파일 해시 steps-fixture\n2026-11-18T00:13:38Z 원격 만들기·풀기 ssh rc=0 (10 이미 있음 · 11 mkdir 실패 · 12 tar 실패 · 255 접속)\n2026-11-18T00:13:38Z 원격 검증 ssh rc=0\nSTOP 8: 기록 실패(docs/evidence/ab-create-v424-20261118/deploy-20261118-run.log) — 원격 상태 미확인/부분, 읽기로 확인하기 전 재실행 금지, 남은 단계 실행 안 함\n"
+    },
+    {
+      "case": "final_log",
+      "exit": 8,
+      "expected_exit": 8,
+      "fake_ssh_calls": 2,
+      "log_lines": 8,
+      "stdout": "",
+      "stderr": "2026-11-18T00:13:38Z 로컬 git archive rc=0\n2026-11-18T00:13:38Z 로컬 풀기 rc=0\n2026-11-18T00:13:39Z 로컬 묶음 16개 해시 rc=0\n2026-11-18T00:13:39Z 목록 해시 list-fixture · 단계 파일 해시 steps-fixture\n2026-11-18T00:13:39Z 원격 만들기·풀기 ssh rc=0 (10 이미 있음 · 11 mkdir 실패 · 12 tar 실패 · 255 접속)\n2026-11-18T00:13:39Z 원격 검증 ssh rc=0\nlist-fixture -\nsteps-fixture -\nSTOP 8: 기록 실패(docs/evidence/ab-create-v424-20261118/deploy-20261118-run.log) — 원격 상태 미확인/부분, 읽기로 확인하기 전 재실행 금지, 남은 단계 실행 안 함\n"
+    },
+    {
+      "case": "archive_failure_and_log",
+      "exit": 3,
+      "expected_exit": 3,
+      "fake_ssh_calls": 0,
+      "log_lines": 0,
+      "stdout": "",
+      "stderr": "기록 실패(docs/evidence/ab-create-v424-20261118/deploy-20261118-run.log) — 앞 단계 실패 종료값 3 유지\n"
+    },
+    {
+      "case": "first_ssh_failure_and_log",
+      "exit": 255,
+      "expected_exit": 255,
+      "fake_ssh_calls": 1,
+      "log_lines": 4,
+      "stdout": "",
+      "stderr": "2026-11-18T00:13:39Z 로컬 git archive rc=0\n2026-11-18T00:13:40Z 로컬 풀기 rc=0\n2026-11-18T00:13:40Z 로컬 묶음 16개 해시 rc=0\n2026-11-18T00:13:40Z 목록 해시 list-fixture · 단계 파일 해시 steps-fixture\n기록 실패(docs/evidence/ab-create-v424-20261118/deploy-20261118-run.log) — 앞 단계 실패 종료값 255 유지\n"
+    },
+    {
+      "case": "remote_tar_failure_and_log",
+      "exit": 6,
+      "expected_exit": 6,
+      "fake_ssh_calls": 1,
+      "log_lines": 4,
+      "stdout": "",
+      "stderr": "2026-11-18T00:13:40Z 로컬 git archive rc=0\n2026-11-18T00:13:40Z 로컬 풀기 rc=0\n2026-11-18T00:13:40Z 로컬 묶음 16개 해시 rc=0\n2026-11-18T00:13:40Z 목록 해시 list-fixture · 단계 파일 해시 steps-fixture\n기록 실패(docs/evidence/ab-create-v424-20261118/deploy-20261118-run.log) — 앞 단계 실패 종료값 6 유지\n"
+    },
+    {
+      "case": "existing_remote_and_log",
+      "exit": 5,
+      "expected_exit": 5,
+      "fake_ssh_calls": 1,
+      "log_lines": 4,
+      "stdout": "",
+      "stderr": "2026-11-18T00:13:41Z 로컬 git archive rc=0\n2026-11-18T00:13:41Z 로컬 풀기 rc=0\n2026-11-18T00:13:41Z 로컬 묶음 16개 해시 rc=0\n2026-11-18T00:13:41Z 목록 해시 list-fixture · 단계 파일 해시 steps-fixture\n기록 실패(docs/evidence/ab-create-v424-20261118/deploy-20261118-run.log) — 앞 단계 실패 종료값 5 유지\n"
+    },
+    {
+      "case": "remote_verify_failure_and_log",
+      "exit": 7,
+      "expected_exit": 7,
+      "fake_ssh_calls": 2,
+      "log_lines": 5,
+      "stdout": "",
+      "stderr": "2026-11-18T00:13:41Z 로컬 git archive rc=0\n2026-11-18T00:13:42Z 로컬 풀기 rc=0\n2026-11-18T00:13:42Z 로컬 묶음 16개 해시 rc=0\n2026-11-18T00:13:42Z 목록 해시 list-fixture · 단계 파일 해시 steps-fixture\n2026-11-18T00:13:42Z 원격 만들기·풀기 ssh rc=0 (10 이미 있음 · 11 mkdir 실패 · 12 tar 실패 · 255 접속)\n기록 실패(docs/evidence/ab-create-v424-20261118/deploy-20261118-run.log) — 앞 단계 실패 종료값 7 유지\n"
+    },
+    {
+      "case": "local_hash_failure_and_log",
+      "exit": 4,
+      "expected_exit": 4,
+      "fake_ssh_calls": 0,
+      "log_lines": 2,
+      "stdout": "",
+      "stderr": "2026-11-18T00:13:42Z 로컬 git archive rc=0\n2026-11-18T00:13:42Z 로컬 풀기 rc=0\n기록 실패(docs/evidence/ab-create-v424-20261118/deploy-20261118-run.log) — 앞 단계 실패 종료값 4 유지\n"
+    }
+  ]
+}

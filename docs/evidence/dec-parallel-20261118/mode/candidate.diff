@@ -1,0 +1,304 @@
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/dto/DynamicSessionRequest.java b/web-api/src/main/java/com/cryptoautotrader/api/dto/DynamicSessionRequest.java
+index 426fb1b3..f9be342b 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/dto/DynamicSessionRequest.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/dto/DynamicSessionRequest.java
+@@ -68,8 +68,9 @@ public class DynamicSessionRequest {
+     private java.util.Map<String, Object> strategyParams;
+ 
+     /**
+-     * REAL(실거래, 기본값) | PAPER(모의) — (2026-08-06).
++     * REAL(실거래) | PAPER(모의) — (2026-08-06).
+      * PAPER는 전략/게이트/SL·TP/time stop을 REAL과 동일하게 적용하되 체결만 시뮬레이션한다.
++     * 🔴 필수, 정확한 두 값만 허용 — 누락·소문자·오타는 생성 전에 거절한다(총괄 v1.185 §3-3, 기본값 REAL 폐지).
+      */
+     private String tradingMode;
+ }
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
+index 972555bd..9d72c041 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
+@@ -476,9 +476,18 @@ public class DynamicTradingService {
+ 
+     @Transactional
+     public DynamicSessionEntity createSession(DynamicSessionRequest req) {
++        // 🔴 매매 모드는 정확한 REAL/PAPER 두 값만 받는다 (총괄 v1.185 §3-3). 종전에는 "PAPER" 가 아니면 모두 실자금이라
++        //    누락·빈 값·소문자 paper·오타가 실자금 세션으로 저장되고 배정까지 받았다. 저장·계좌 동기화·배정보다 먼저 거절한다.
++        //    새 생성 요청에만 적용 — 기존 행과 재기동 복원(엔티티 기본값)은 바꾸지 않는다.
++        String mode = req.getTradingMode();
++        if (!"REAL".equals(mode) && !"PAPER".equals(mode)) {
++            throw new IllegalArgumentException("tradingMode 는 정확히 REAL 또는 PAPER 여야 합니다 (받은 값: "
++                    + (mode == null ? "없음" : "'" + mode + "'") + ")");
++        }
++
+         StrategyRegistry.get(req.getStrategyType()); // 유효성 검증
+ 
+-        boolean isPaper = "PAPER".equals(req.getTradingMode());
++        boolean isPaper = "PAPER".equals(mode);
+ 
+         // 비활성 전략 차단 — strategy_type_enabled에서 꺼진 전략은 세션 생성 거부.
+         // (UI 드롭다운 필터만으로는 select 표시/상태 불일치 등으로 우회될 수 있어 서버에서 강제)
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/CapitalPoolLimitTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/CapitalPoolLimitTest.java
+index c71c5dfb..b71d5953 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/CapitalPoolLimitTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/CapitalPoolLimitTest.java
+@@ -290,6 +290,7 @@ class CapitalPoolLimitTest extends IntegrationTestBase {
+         dyn.setStrategyType("COMPOSITE_MTF_BTC");
+         dyn.setTimeframe("H1");
+         dyn.setInitialCapital(new BigDecimal("60000"));
++        dyn.setTradingMode("REAL"); // 총괄 v1.185 §3-3: 모드 필수(기본값 REAL 폐지)
+         assertThatThrownBy(() -> dynamicTradingService.createSession(dyn))
+                 .as("🔴 실자금 동적 세션은 종전에 자본 검사가 전혀 없었다 — LIVE 60,000 + DYNAMIC 60,000 > 100,000")
+                 .hasMessageContaining(CapitalReservationService.POOL_CAP);
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicTradingModeInputTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicTradingModeInputTest.java
+new file mode 100644
+index 00000000..eebdfdf0
+--- /dev/null
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicTradingModeInputTest.java
+@@ -0,0 +1,151 @@
++package com.cryptoautotrader.api.service;
++
++import com.cryptoautotrader.api.dto.DynamicSessionRequest;
++import com.cryptoautotrader.api.repository.DynamicSessionRepository;
++import com.cryptoautotrader.api.repository.OrderRepository;
++import com.cryptoautotrader.api.repository.PositionRepository;
++import com.cryptoautotrader.api.repository.RiskConfigRepository;
++import com.cryptoautotrader.api.repository.TradeLogRepository;
++import com.cryptoautotrader.api.support.IntegrationTestBase;
++import org.junit.jupiter.api.AfterEach;
++import org.junit.jupiter.api.BeforeEach;
++import org.junit.jupiter.api.DisplayName;
++import org.junit.jupiter.api.Test;
++import org.junit.jupiter.params.ParameterizedTest;
++import org.junit.jupiter.params.provider.NullSource;
++import org.junit.jupiter.params.provider.ValueSource;
++import org.springframework.beans.factory.annotation.Autowired;
++import org.springframework.boot.test.mock.mockito.MockBean;
++import org.springframework.boot.test.mock.mockito.SpyBean;
++import org.springframework.http.MediaType;
++
++import java.math.BigDecimal;
++
++import static org.assertj.core.api.Assertions.assertThat;
++import static org.assertj.core.api.Assertions.assertThatThrownBy;
++import static org.mockito.ArgumentMatchers.any;
++import static org.mockito.Mockito.atLeastOnce;
++import static org.mockito.Mockito.clearInvocations;
++import static org.mockito.Mockito.verify;
++import static org.mockito.Mockito.verifyNoInteractions;
++import static org.mockito.Mockito.when;
++import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
++import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
++
++/**
++ * 총괄 v1.185 §3-3 — DYNAMIC 생성 요청의 매매 모드는 정확한 {@code REAL}/{@code PAPER} 두 값만 받는다.
++ *
++ * <p>0e1d2a02 에서는 {@code "PAPER".equals(mode)} 가 아니면 모두 실자금(REAL) 세션이 됐다 — 누락·null·빈 값·소문자
++ * {@code paper}·오타가 모의 의도였어도 실자금 세션으로 저장되고 공유 풀 배정까지 받았다. 이 시험은 그런 입력이
++ * <b>저장·계좌 동기화·자본 배정 전에</b> 거절되는지(행 0·배정 호출 0·계좌 동기화 0) 와 정상 두 값이 그대로
++ * 동작하는지를 본다. 기존 행·재기동 복원(엔티티 기본값)은 이 시험의 범위가 아니다.</p>
++ */
++class DynamicTradingModeInputTest extends IntegrationTestBase {
++
++    private static final String STRATEGY = "COMPOSITE_BREAKOUT"; // StrategyLiveStatusRegistry: ENABLED
++
++    @Autowired private DynamicTradingService dynamicTradingService;
++    @Autowired private DynamicSessionRepository dynamicSessionRepository;
++    @Autowired private PositionRepository positionRepository;
++    @Autowired private OrderRepository orderRepository;
++    @Autowired private RiskConfigRepository riskConfigRepository;
++
++    @MockBean private TradeLogRepository tradeLogRepository;
++    @SpyBean private CapitalReservationService capitalReservationService;
++    @SpyBean private PortfolioSyncService portfolioSyncService;
++
++    @BeforeEach
++    void setUp() {
++        when(tradeLogRepository.sumRealizedPnlSince(any())).thenReturn(BigDecimal.ZERO);
++        when(tradeLogRepository.sumRealizedLossSince(any())).thenReturn(BigDecimal.ZERO);
++        cleanup();
++        clearInvocations(capitalReservationService, portfolioSyncService);
++    }
++
++    @AfterEach
++    void tearDown() { cleanup(); }
++
++    private void cleanup() {
++        orderRepository.deleteAll();
++        positionRepository.deleteAll();
++        dynamicSessionRepository.deleteAll();
++        riskConfigRepository.deleteAll();
++        riskConfigRepository.save(com.cryptoautotrader.api.entity.RiskConfigEntity.builder().build());
++    }
++
++    private static DynamicSessionRequest request(String mode) {
++        DynamicSessionRequest req = new DynamicSessionRequest();
++        req.setStrategyType(STRATEGY);
++        req.setTimeframe("H1");
++        req.setInitialCapital(new BigDecimal("10000"));
++        req.setTradingMode(mode);
++        return req;
++    }
++
++    @ParameterizedTest(name = "[{index}] tradingMode=''{0}''")
++    @NullSource
++    @ValueSource(strings = {"", " ", "paper", "Paper", "real", "Real", "PAPPER", "REAL ", " PAPER", "LIVE"})
++    @DisplayName("서비스 직접 호출: 정확한 REAL/PAPER 가 아니면 저장·계좌 동기화·배정 전에 거절한다")
++    void rejectsInvalidModeBeforeAnySideEffect(String mode) {
++        assertThatThrownBy(() -> dynamicTradingService.createSession(request(mode)))
++                .isInstanceOf(IllegalArgumentException.class)
++                .hasMessageContaining("tradingMode");
++
++        assertThat(dynamicSessionRepository.count()).as("생성 행 0").isZero();
++        verifyNoInteractions(capitalReservationService);   // 배정 검사 0
++        verifyNoInteractions(portfolioSyncService);        // 거래소 계좌 동기화 0
++    }
++
++    @Test
++    @DisplayName("정확한 PAPER 는 모의 세션으로 생성되고 실자금 배정·계좌 동기화를 거치지 않는다")
++    void exactPaperCreatesPaper() {
++        var s = dynamicTradingService.createSession(request("PAPER"));
++
++        assertThat(s.getId()).isNotNull();
++        assertThat(s.getTradingMode()).isEqualTo("PAPER");
++        assertThat(s.getStatus()).isEqualTo("CREATED");
++        verifyNoInteractions(capitalReservationService);
++        verifyNoInteractions(portfolioSyncService);
++    }
++
++    @Test
++    @DisplayName("정확한 REAL 은 실자금 세션으로 생성되고 기존대로 배정 검사를 지난다")
++    void exactRealCreatesRealWithAllocationCheck() {
++        var s = dynamicTradingService.createSession(request("REAL"));
++
++        assertThat(s.getId()).isNotNull();
++        assertThat(s.getTradingMode()).isEqualTo("REAL");
++        assertThat(s.getStatus()).isEqualTo("CREATED");
++        verify(capitalReservationService, atLeastOnce())
++                .checkSessionAllocation(any(), any(), any(), any());
++    }
++
++    @Test
++    @DisplayName("API: 모드 누락 요청은 기존 오류 형식(INVALID_REQUEST)으로 거절되고 행이 생기지 않는다")
++    void apiRejectsMissingMode() throws Exception {
++        String body = "{\"strategyType\":\"" + STRATEGY + "\",\"timeframe\":\"H1\",\"initialCapital\":10000}";
++
++        mockMvc.perform(post("/api/v1/dynamic-sessions")
++                        .contentType(MediaType.APPLICATION_JSON).content(body))
++                .andExpect(jsonPath("$.success").value(false))
++                .andExpect(jsonPath("$.error.code").value("INVALID_REQUEST"));
++
++        assertThat(dynamicSessionRepository.count()).isZero();
++        verifyNoInteractions(capitalReservationService);
++        verifyNoInteractions(portfolioSyncService);
++    }
++
++    @Test
++    @DisplayName("API: 소문자 paper 는 실자금 세션이 되지 않고 거절된다")
++    void apiRejectsLowercasePaper() throws Exception {
++        String body = "{\"strategyType\":\"" + STRATEGY + "\",\"timeframe\":\"H1\",\"initialCapital\":10000,"
++                + "\"tradingMode\":\"paper\"}";
++
++        mockMvc.perform(post("/api/v1/dynamic-sessions")
++                        .contentType(MediaType.APPLICATION_JSON).content(body))
++                .andExpect(jsonPath("$.success").value(false))
++                .andExpect(jsonPath("$.error.code").value("INVALID_REQUEST"));
++
++        assertThat(dynamicSessionRepository.count()).isZero();
++    }
++}
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/SessionKindIsolationTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/SessionKindIsolationTest.java
+index f574c722..30591e48 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/SessionKindIsolationTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/SessionKindIsolationTest.java
+@@ -270,6 +270,7 @@ class SessionKindIsolationTest extends IntegrationTestBase {
+         req.setStrategyType("COMPOSITE_MTF_BTC");
+         req.setTimeframe("H1");
+         req.setInitialCapital(new BigDecimal("10000"));
++        req.setTradingMode("REAL"); // 총괄 v1.185 §3-3: 모드 필수(기본값 REAL 폐지)
+ 
+         var session = dynamicTradingService.createSession(req);
+ 
+@@ -282,6 +283,7 @@ class SessionKindIsolationTest extends IntegrationTestBase {
+         explicit.setStrategyType("COMPOSITE_MTF_BTC");
+         explicit.setTimeframe("H1");
+         explicit.setInitialCapital(new BigDecimal("10000"));
++        explicit.setTradingMode("REAL"); // 총괄 v1.185 §3-3: 모드 필수(기본값 REAL 폐지)
+         explicit.setMaxHoldHours(12);
+ 
+         assertThat(dynamicTradingService.createSession(explicit).getMaxHoldHours())
+@@ -295,6 +297,7 @@ class SessionKindIsolationTest extends IntegrationTestBase {
+         req.setStrategyType("MACD"); // StrategyLiveStatusRegistry: BLOCKED
+         req.setTimeframe("H1");
+         req.setInitialCapital(new BigDecimal("100000"));
++        req.setTradingMode("REAL"); // 총괄 v1.185 §3-3: 모드 필수(기본값 REAL 폐지)
+ 
+         assertThatThrownBy(() -> dynamicTradingService.createSession(req))
+                 .hasMessageContaining("MACD")
+@@ -315,6 +318,7 @@ class SessionKindIsolationTest extends IntegrationTestBase {
+         dynReq.setStrategyType("COMPOSITE_BREAKOUT"); // ENABLED
+         dynReq.setTimeframe("H1");
+         dynReq.setInitialCapital(new BigDecimal("100000"));
++        dynReq.setTradingMode("REAL"); // 총괄 v1.185 §3-3: 모드 필수(기본값 REAL 폐지)
+         assertThat(dynamicTradingService.createSession(dynReq).getId()).isNotNull();
+     }
+ }
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/StrategyEnablementGateTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/StrategyEnablementGateTest.java
+index 83aa8ab0..27893380 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/StrategyEnablementGateTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/StrategyEnablementGateTest.java
+@@ -82,6 +82,7 @@ class StrategyEnablementGateTest extends IntegrationTestBase {
+         req.setStrategyType(STRATEGY);
+         req.setTimeframe("H1");
+         req.setInitialCapital(new BigDecimal("10000"));
++        req.setTradingMode("REAL"); // 총괄 v1.185 §3-3: 모드 필수(기본값 REAL 폐지)
+         return req;
+     }
+ 
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/WalkForwardGateDisabledSessionCreationTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/WalkForwardGateDisabledSessionCreationTest.java
+index c06b0a0d..462dfff0 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/WalkForwardGateDisabledSessionCreationTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/WalkForwardGateDisabledSessionCreationTest.java
+@@ -67,6 +67,7 @@ class WalkForwardGateDisabledSessionCreationTest extends IntegrationTestBase {
+         req.setStrategyType(STRATEGY);
+         req.setTimeframe("H1");
+         req.setInitialCapital(new BigDecimal("10000"));
++        req.setTradingMode("REAL"); // 총괄 v1.185 §3-3: 모드 필수(기본값 REAL 폐지)
+ 
+         var session = dynamicTradingService.createSession(req);
+ 
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/WalkForwardGateEnabledSessionCreationTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/WalkForwardGateEnabledSessionCreationTest.java
+index 8d58697b..16e6ac70 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/WalkForwardGateEnabledSessionCreationTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/WalkForwardGateEnabledSessionCreationTest.java
+@@ -78,6 +78,7 @@ class WalkForwardGateEnabledSessionCreationTest extends IntegrationTestBase {
+         req.setStrategyType(STRATEGY);
+         req.setTimeframe("H1");
+         req.setInitialCapital(new BigDecimal("10000"));
++        req.setTradingMode("REAL"); // 총괄 v1.185 §3-3: 모드 필수(기본값 REAL 폐지)
+ 
+         assertThatThrownBy(() -> dynamicTradingService.createSession(req))
+                 .isInstanceOf(IllegalArgumentException.class)
+@@ -94,6 +95,7 @@ class WalkForwardGateEnabledSessionCreationTest extends IntegrationTestBase {
+         req.setStrategyType(STRATEGY);
+         req.setTimeframe("H1");
+         req.setInitialCapital(new BigDecimal("10000"));
++        req.setTradingMode("REAL"); // 총괄 v1.185 §3-3: 모드 필수(기본값 REAL 폐지)
+ 
+         var session = dynamicTradingService.createSession(req);
+         assertThat(session.getId()).isNotNull();
+@@ -108,6 +110,7 @@ class WalkForwardGateEnabledSessionCreationTest extends IntegrationTestBase {
+         req.setStrategyType(STRATEGY);
+         req.setTimeframe("H1");
+         req.setInitialCapital(new BigDecimal("10000"));
++        req.setTradingMode("REAL"); // 총괄 v1.185 §3-3: 모드 필수(기본값 REAL 폐지)
+ 
+         assertThatThrownBy(() -> dynamicTradingService.createSession(req))
+                 .isInstanceOf(IllegalArgumentException.class)
+@@ -123,6 +126,7 @@ class WalkForwardGateEnabledSessionCreationTest extends IntegrationTestBase {
+         req.setStrategyType(STRATEGY);
+         req.setTimeframe("H1");
+         req.setInitialCapital(new BigDecimal("10000"));
++        req.setTradingMode("REAL"); // 총괄 v1.185 §3-3: 모드 필수(기본값 REAL 폐지)
+ 
+         assertThatThrownBy(() -> dynamicTradingService.createSession(req))
+                 .isInstanceOf(IllegalArgumentException.class)
