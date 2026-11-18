@@ -301,6 +301,10 @@ public class DynamicTradingService {
     @Autowired(required = false)
     private CapitalReservationService capitalReservationService;
 
+    /** 매회 상한(maxOrderKrw)의 생성 검사 기준 — 실자금은 포지션당 상한 이하여야 한다(금액/BTC 후보, 총괄 v1.187 §3-4). */
+    @Autowired(required = false)
+    private CapitalPoolLimits capitalPoolLimits;
+
     /** 정지 시 미체결 매수의 닫기·복원을 한 트랜잭션으로 (2026-10-13). */
     @Autowired
     private OptimisticRetry optimisticRetry;
@@ -510,6 +514,12 @@ public class DynamicTradingService {
 
         boolean isPaper = "PAPER".equals(mode);
 
+        // 금액/BTC 후보 (총괄 v1.187 §3-4): maxOrderKrw·excludeCoins 는 새 세션에서만, 둘 다 명시해야 하고 저장 전에 검사한다.
+        //   상한 기준 — 실자금은 공유 풀 포지션당 상한, 모의는 초기 자본. 두 키가 없으면 strategy_params 를 그대로 둔다(기존 계약·지문 불변).
+        java.util.Map<String, Object> strategyParams = DynamicEntryLimits.normalizeForCreate(req.getStrategyParams(),
+                isPaper ? req.getInitialCapital()
+                        : (capitalPoolLimits != null ? capitalPoolLimits.getPerPositionCapKrw() : null));
+
         // 비활성 전략 차단 — strategy_type_enabled에서 꺼진 전략은 세션 생성 거부.
         // (UI 드롭다운 필터만으로는 select 표시/상태 불일치 등으로 우회될 수 있어 서버에서 강제)
         // 2026-08-18: 규칙을 StrategyEnablementGate로 추출 — LIVE·PAPER 경로도 같은 검사를 받는다.
@@ -549,7 +559,7 @@ public class DynamicTradingService {
                 .totalAssetKrw(req.getInitialCapital())
                 .investRatio(investRatio)
                 .stopLossPct(stopLoss)
-                .strategyParams(req.getStrategyParams())
+                .strategyParams(strategyParams)
                 .status("CREATED")
                 .scanState("SCANNING")
                 .tradingMode(isPaper ? "PAPER" : DynamicSessionEntity.DEFAULT_TRADING_MODE)
@@ -918,7 +928,11 @@ public class DynamicTradingService {
                 || !positionRepository.findBySessionKindAndSessionIdAndStatus(sessionKind(fresh), sid, "OPEN").isEmpty()) {
             result = "승인 차례에 이미 포지션이 있다";
         } else {
-            result = approvalTimeGate(fresh, coinPair, evalCandles);
+            // 금액/BTC 후보: 대기 중 회차도 제외 코인·손상 설정을 다시 본다(최종 진입에서도 한 번 더 막는다).
+            result = DynamicEntryLimits.of(fresh.getStrategyParams()).entryBlockReason(coinPair);
+            if (result == null) {
+                result = approvalTimeGate(fresh, coinPair, evalCandles);
+            }
             if (result == null) {
                 result = executeBuy(fresh, coinPair, evalCandles, signal, sizeMultiplier, entryExpiresAt);
             }
@@ -1092,6 +1106,9 @@ public class DynamicTradingService {
             evalParams.put("emaFilterDampenFactor", scanEmaDampenFactor);
             if (session.getStrategyParams() != null) {
                 evalParams.putAll(session.getStrategyParams());
+                // 금액/BTC 후보: 매회 상한·제외 코인은 엔진 설정이지 전략 입력이 아니다(지문에는 strategy.params 로 실린다).
+                evalParams.remove(DynamicEntryLimits.MAX_ORDER_KRW);
+                evalParams.remove(DynamicEntryLimits.EXCLUDE_COINS);
             }
             StrategySignal signal = strategy.evaluate(evalCandles, evalParams);
             BigDecimal evalPrice = evalCandles.get(evalCandles.size() - 1).getClose();
@@ -1267,6 +1284,15 @@ public class DynamicTradingService {
                 updateSignalQuality(signalLog, false, "SCANNING — 보유 포지션 없음(청산 대상 아님)");
             }
         }
+
+        // 금액/BTC 후보: 코인 선택 직전 제외 코인·손상 설정 재확인(감시 목록 캐시·공용 유니버스 경로 누락 방지). 빠진 후보의 신호 기록은 차단으로 남긴다.
+        DynamicEntryLimits entryLimits = DynamicEntryLimits.of(session.getStrategyParams());
+        buyCandidates.removeIf(c -> {
+            String why = entryLimits.entryBlockReason(c.coinPair());
+            if (why == null) return false;
+            updateSignalQuality(c.signalLog(), false, why);
+            return true;
+        });
 
         if (buyCandidates.isEmpty()) {
             log.info("[Dynamic] SCANNING 완료: 진입 조건 없음 (id={}, 감시 {}개) — "
@@ -1676,6 +1702,14 @@ public class DynamicTradingService {
         String kind = sessionKind(session);
         BigDecimal currentPrice = evalCandles.get(evalCandles.size() - 1).getClose();
 
+        // 금액/BTC 후보 (총괄 v1.187 §3-4): 어느 경로로 와도 제외 코인 신규 매수 0. 저장값이 계약 밖이면 신규 매수를 막는다.
+        DynamicEntryLimits entryLimits = DynamicEntryLimits.of(session.getStrategyParams());
+        String limitBlock = entryLimits.entryBlockReason(coinPair);
+        if (limitBlock != null) {
+            log.warn("[Dynamic] 매수 차단 (id={}, {}): {}", sid, coinPair, limitBlock);
+            return limitBlock;
+        }
+
         // 🔴 실자금 손실 관문 (총괄 v1.158 결정 2) — DYNAMIC REAL 즉시 진입·회차 승인이 모두 여기를 지난다. 기존·DYNAMIC REAL·전체 REAL
         //    세 보호식 중 하나라도 기존 한도를 넘거나 판정 불가면 신규 매수를 거절한다. PAPER 는 모의 한도 계약 그대로(REAL 자료로 막지 않는다).
         if (!session.isPaper()) {
@@ -1692,6 +1726,13 @@ public class DynamicTradingService {
         // 🔴 요청액은 예약 전에 둘째 자리 버림 — 이 금액으로 최소 주문·한도를 보고 예약한다 (리뷰 2026-10-31, {@link BalanceAmounts}).
         //    REAL·PAPER 모드가 같은 금액을 쓴다(엔진 동등).
         BigDecimal investAmount = BalanceAmounts.buyRequest(session.getAvailableKrw().multiply(effectiveRatio));
+        // 금액/BTC 후보: 매회 상한은 버림 직후·최소 주문 보정 앞에서 줄이기만 한다. 예약 서비스의 포지션당/총 상한 검사(최종 보호선)는 그대로다.
+        BigDecimal maxOrder = entryLimits.maxOrderKrw();
+        if (maxOrder != null && investAmount.compareTo(maxOrder) > 0) {
+            log.info("[Dynamic] 매회 상한 적용 (id={}, {}): 요청 {} → 상한 {}", sid, coinPair,
+                    investAmount.toPlainString(), maxOrder.toPlainString());
+            investAmount = maxOrder;
+        }
         BigDecimal minOrder = BigDecimal.valueOf(5000);
         // 감액 진입이 최소주문(5,000원) 미만이면, 정상 사이즈로는 최소주문을 넘는 한 최소주문액으로
         // 올려 진입을 살린다 — 소액 세션(자본 1만원)에서 절반 사이즈(4,000원)가 최소주문에 걸려
@@ -1704,6 +1745,9 @@ public class DynamicTradingService {
         if (investAmount.compareTo(minOrder) < 0) {
             log.warn("[Dynamic] 매수 불가: 가용 KRW 부족 (id={})", sid);
             return String.format("가용 KRW 부족: 투자가능 %s원 < 최소 5,000원", investAmount.setScale(0, RoundingMode.DOWN));
+        }
+        if (maxOrder != null && investAmount.compareTo(maxOrder) > 0) {   // 최소 주문 보정 뒤에도 상한 안 (maxOrderKrw ≥ 5,000 이라 정상이면 오지 않는다)
+            return "매회 상한 초과: " + investAmount.toPlainString() + " > maxOrderKrw " + maxOrder.toPlainString();
         }
 
         boolean hasPendingBuy = orderRepository.existsBySessionKindAndSessionIdAndCoinPairAndSideAndStateIn(
@@ -2207,6 +2251,11 @@ public class DynamicTradingService {
 
     @Transactional
     public List<String> resolveWatchlist(DynamicSessionEntity session) {
+        // 금액/BTC 후보: 제외 코인은 감시 후보에서 뺀다(신호 기록도 섞이지 않게). 기록용 watchlistJson 은 원래 목록 그대로 둔다.
+        return DynamicEntryLimits.of(session.getStrategyParams()).filter(resolveWatchlistUnfiltered(session));
+    }
+
+    private List<String> resolveWatchlistUnfiltered(DynamicSessionEntity session) {
         // 공용 유니버스가 켜져 있으면 세션별 갱신 시계를 타지 않는다 — 세션마다 다른 시각에
         // 갱신하면 같은 전략끼리도 서로 다른 코인을 보게 되어 성적 비교가 성립하지 않는다.
         // 캐싱은 SharedUniverseService 의 벽시계 버킷이 담당한다. 세션의 watchlistJson 은
