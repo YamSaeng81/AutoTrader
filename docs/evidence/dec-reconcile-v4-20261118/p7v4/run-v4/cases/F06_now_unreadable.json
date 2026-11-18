@@ -1,0 +1,32 @@
+{
+ "args": [
+  "--registry",
+  "reg.json",
+  "--base",
+  "base.json",
+  "--now",
+  "없음.json"
+ ],
+ "rc": 10,
+ "result": {
+  "overall": "HOLD",
+  "registry_status": "valid",
+  "observation": {
+   "base": "ok",
+   "now": "unreadable"
+  },
+  "observation_stable": false,
+  "anomalies": [],
+  "holds": [
+   {
+    "code": "OBSERVATION_UNREADABLE",
+    "blocks": [
+     "*"
+    ],
+    "at": "now",
+    "detail": "FileNotFoundError: [Errno 2] No such file or directory: 'run-v4\\\\files\\\\없음.json'"
+   }
+  ],
+  "account": null
+ }
+}

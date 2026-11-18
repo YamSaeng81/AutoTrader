@@ -1,0 +1,29 @@
+{
+ "args": [
+  "--registry",
+  "없음.json",
+  "--base",
+  "base.json",
+  "--now",
+  "now.json"
+ ],
+ "rc": 10,
+ "result": {
+  "overall": "HOLD",
+  "registry_status": "unreadable",
+  "observation": {
+   "base": "ok",
+   "now": "ok"
+  },
+  "observation_stable": false,
+  "anomalies": [],
+  "holds": [
+   {
+    "code": "REGISTRY_UNREADABLE",
+    "blocks": [],
+    "detail": "FileNotFoundError: [Errno 2] No such file or directory: 'run-v3-red\\\\files\\\\없음.json'"
+   }
+  ],
+  "account": null
+ }
+}

@@ -1,0 +1,32 @@
+{
+ "args": [
+  "--registry",
+  "reg.json",
+  "--base",
+  "base.json",
+  "--now",
+  "now_bad_utf8.json"
+ ],
+ "rc": 10,
+ "result": {
+  "overall": "HOLD",
+  "registry_status": "valid",
+  "observation": {
+   "base": "ok",
+   "now": "invalid"
+  },
+  "observation_stable": false,
+  "anomalies": [],
+  "holds": [
+   {
+    "code": "OBSERVATION_INVALID",
+    "blocks": [
+     "*"
+    ],
+    "at": "now",
+    "detail": "UTF-8 디코딩 실패(바이트 위치 160, 길이 2915)"
+   }
+  ],
+  "account": null
+ }
+}

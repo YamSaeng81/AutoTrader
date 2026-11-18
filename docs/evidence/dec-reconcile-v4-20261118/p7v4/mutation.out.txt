@@ -1,0 +1,11 @@
+V17_window_hold_off rc=1 잡힌 사례 4: U1a_no_new_fill_query_missing, U1b_no_new_fill_query_incomplete, U1c_query_starts_after_base, U1d_query_ends_before_now_read
+V18_window_range_ignored rc=1 잡힌 사례 2: U1c_query_starts_after_base, U1d_query_ends_before_now_read
+V19_window_end_at_db_extract rc=1 잡힌 사례 1: U1d_query_ends_before_now_read
+V20_unrecognized_state_settles rc=1 잡힌 사례 1: U2a_state_typo_with_fill
+V21_no_state_unrecognized_hold rc=1 잡힌 사례 2: U2a_state_typo_with_fill, U2b_state_lowercase
+V22_no_order_type_check rc=1 잡힌 사례 1: U2d_order_type_typo
+V23_no_position_status_check rc=1 잡힌 사례 1: U2e_position_status_typo
+V24_ledger_not_blocked_by_unrecognized rc=1 잡힌 사례 2: U2a_state_typo_with_fill, U2b_state_lowercase
+V25_decode_error_escapes rc=1 잡힌 사례 2: F08_registry_invalid_utf8, F09_now_invalid_utf8
+V26_decode_as_unreadable rc=1 잡힌 사례 2: F08_registry_invalid_utf8, F09_now_invalid_utf8
+V27_decode_leaks_bytes rc=1 잡힌 사례 2: F08_registry_invalid_utf8, F09_now_invalid_utf8

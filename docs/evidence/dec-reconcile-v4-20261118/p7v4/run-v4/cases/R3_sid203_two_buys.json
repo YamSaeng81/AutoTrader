@@ -1,0 +1,454 @@
+{
+ "source": "dec-reconcile-20261118/p7v2/out/R3_sid203_two_buys.json",
+ "source_sha256": "6c476a6bfd39f6f632d62e702459cd624859d33f6e56bd6bd39c448d33e1952e",
+ "expect": {
+  "overall": "ANOMALY",
+  "codes": [
+   "RULE_FILLED_BUYS",
+   "RULE_DUP_BUY_POSITION"
+  ],
+  "forbid": []
+ },
+ "input": {
+  "registry": {
+   "registry_version": "p7v2-draft-local",
+   "sessions": [
+    {
+     "kind": "LIVE",
+     "id": 203,
+     "mode": "REAL",
+     "strategy_type": "DAILY_SMA20",
+     "timeframe": "H1",
+     "initial_capital": "20200",
+     "coin_pair": "KRW-BTC",
+     "code_sha": "0e1d2a02",
+     "effective_from": "2026-11-01T00:00:00Z",
+     "effective_to": null,
+     "rules": {
+      "max_filled_buys_in_window": 1
+     },
+     "session_created_at": null
+    },
+    {
+     "kind": "DYNAMIC",
+     "id": 900,
+     "mode": "REAL",
+     "strategy_type": "COMPOSITE_BREAKOUT",
+     "timeframe": "H1",
+     "initial_capital": "20000",
+     "coin_pair": "DYNAMIC",
+     "code_sha": "0e1d2a02",
+     "effective_from": "2026-11-18T00:00:00Z",
+     "effective_to": null,
+     "rules": {
+      "max_open_positions": 1,
+      "excluded_coins": [
+       "KRW-BTC"
+      ],
+      "max_buy_request_krw": "20000"
+     },
+     "session_created_at": null
+    }
+   ],
+   "observation_source": {
+    "environment": "local-isolated",
+    "db": "cat-rt-pg/p7v2-scenario-copy",
+    "exchange_account": "fake-exchange-fixed-balances"
+   }
+  },
+  "base": {
+   "db_fp_pre": "66c2eba7d786d1b6b5866eddd0efede4",
+   "exchange_before": {
+    "accounts": {
+     "KRW": {
+      "balance": "100000",
+      "locked": "0"
+     }
+    },
+    "open_orders": [],
+    "done_order_ids": [],
+    "done_query": {
+     "from": "2026-10-01T00:00:00Z",
+     "to": "2026-11-18T01:56:21.566984Z",
+     "complete": true,
+     "pages": 1
+    }
+   },
+   "db": {
+    "observed_at": "2026-11-18T01:56:21.567984Z",
+    "snapshot": "5329:5329:",
+    "flyway_version": 94,
+    "fingerprint": "66c2eba7d786d1b6b5866eddd0efede4",
+    "sessions": [
+     {
+      "kind": "DYNAMIC",
+      "id": 900,
+      "mode": "REAL",
+      "strategy_type": "COMPOSITE_BREAKOUT",
+      "coin_pair": null,
+      "timeframe": "H1",
+      "initial_capital": "20000.00",
+      "available_krw": "20000.00",
+      "status": "RUNNING",
+      "created_at": "2026-11-18T01:56:21.319376+00:00",
+      "started_at": null,
+      "stopped_at": null
+     },
+     {
+      "kind": "LIVE",
+      "id": 203,
+      "mode": "REAL",
+      "strategy_type": "DAILY_SMA20",
+      "coin_pair": "KRW-BTC",
+      "timeframe": "H1",
+      "initial_capital": "20200.00",
+      "available_krw": "20200.00",
+      "status": "RUNNING",
+      "created_at": "2026-11-06T10:07:36.87044+00:00",
+      "started_at": "2026-10-27T23:50:00+00:00",
+      "stopped_at": null
+     }
+    ],
+    "orders": [],
+    "positions": [],
+    "unresolved_discrepancies": []
+   },
+   "exchange_after": {
+    "accounts": {
+     "KRW": {
+      "balance": "100000",
+      "locked": "0"
+     }
+    },
+    "open_orders": [],
+    "done_order_ids": [],
+    "done_query": {
+     "from": "2026-10-01T00:00:00Z",
+     "to": "2026-11-18T01:56:21.568984Z",
+     "complete": true,
+     "pages": 1
+    }
+   },
+   "db_fp_post": "66c2eba7d786d1b6b5866eddd0efede4",
+   "external_flows": [],
+   "query_errors": [],
+   "meta": {
+    "source": {
+     "environment": "local-isolated",
+     "db": "cat-rt-pg/p7v2-scenario-copy",
+     "exchange_account": "fake-exchange-fixed-balances"
+    },
+    "app_code_sha": "0e1d2a02",
+    "app_code_sha_ref": "로컬 가정: v2 시나리오의 등록 예시값. 운영 관측 출처 아님",
+    "steps": [
+     {
+      "step": "db_fp_pre",
+      "at": "2026-11-18T01:56:21.565984Z"
+     },
+     {
+      "step": "exchange_before",
+      "at": "2026-11-18T01:56:21.566984Z"
+     },
+     {
+      "step": "db_extract",
+      "at": "2026-11-18T01:56:21.567984Z"
+     },
+     {
+      "step": "exchange_after",
+      "at": "2026-11-18T01:56:21.568984Z"
+     },
+     {
+      "step": "db_fp_post",
+      "at": "2026-11-18T01:56:21.569984Z"
+     }
+    ]
+   }
+  },
+  "now": {
+   "db_fp_pre": "3f868b419bf8e80e88cc8b187e118ed2",
+   "exchange_before": {
+    "accounts": {
+     "KRW": {
+      "balance": "80000",
+      "locked": "0"
+     },
+     "BTC": {
+      "balance": "0.0002",
+      "locked": "0"
+     }
+    },
+    "open_orders": [],
+    "done_order_ids": [
+     "u-b1",
+     "u-b2"
+    ],
+    "done_query": {
+     "from": "2026-10-01T00:00:00Z",
+     "to": "2026-11-18T01:56:22.009859Z",
+     "complete": true,
+     "pages": 1
+    }
+   },
+   "db": {
+    "observed_at": "2026-11-18T01:56:22.010859Z",
+    "snapshot": "5330:5330:",
+    "flyway_version": 94,
+    "fingerprint": "3f868b419bf8e80e88cc8b187e118ed2",
+    "sessions": [
+     {
+      "kind": "DYNAMIC",
+      "id": 900,
+      "mode": "REAL",
+      "strategy_type": "COMPOSITE_BREAKOUT",
+      "coin_pair": null,
+      "timeframe": "H1",
+      "initial_capital": "20000.00",
+      "available_krw": "20000.00",
+      "status": "RUNNING",
+      "created_at": "2026-11-18T01:56:21.319376+00:00",
+      "started_at": null,
+      "stopped_at": null
+     },
+     {
+      "kind": "LIVE",
+      "id": 203,
+      "mode": "REAL",
+      "strategy_type": "DAILY_SMA20",
+      "coin_pair": "KRW-BTC",
+      "timeframe": "H1",
+      "initial_capital": "20200.00",
+      "available_krw": "200.00",
+      "status": "RUNNING",
+      "created_at": "2026-11-06T10:07:36.87044+00:00",
+      "started_at": "2026-10-27T23:50:00+00:00",
+      "stopped_at": null
+     }
+    ],
+    "orders": [
+     {
+      "id": 3,
+      "session_kind": "LIVE",
+      "session_id": 203,
+      "position_id": 8001,
+      "coin_pair": "KRW-BTC",
+      "side": "BUY",
+      "order_type": "MARKET",
+      "quantity": "10000.00000000",
+      "reserved_krw": "10000.00000000",
+      "client_order_id": "c-u-b1",
+      "state": "FILLED",
+      "filled_quantity": "0.00010000",
+      "exchange_order_id": "u-b1",
+      "created_at": "2026-11-18T01:56:21.794647+00:00",
+      "reported_executed_funds": "9995.00000000",
+      "reported_paid_fee": "5.00000000",
+      "applied_executed_funds": "9995.00000000",
+      "applied_paid_fee": "5.00000000",
+      "fill_accounting_pending": false
+     },
+     {
+      "id": 4,
+      "session_kind": "LIVE",
+      "session_id": 203,
+      "position_id": 8001,
+      "coin_pair": "KRW-BTC",
+      "side": "BUY",
+      "order_type": "MARKET",
+      "quantity": "10000.00000000",
+      "reserved_krw": "10000.00000000",
+      "client_order_id": "c-u-b2",
+      "state": "FILLED",
+      "filled_quantity": "0.00010000",
+      "exchange_order_id": "u-b2",
+      "created_at": "2026-11-18T01:56:21.794647+00:00",
+      "reported_executed_funds": "9995.00000000",
+      "reported_paid_fee": "5.00000000",
+      "applied_executed_funds": "9995.00000000",
+      "applied_paid_fee": "5.00000000",
+      "fill_accounting_pending": false
+     }
+    ],
+    "positions": [
+     {
+      "id": 8001,
+      "session_kind": "LIVE",
+      "session_id": 203,
+      "coin_pair": "KRW-BTC",
+      "status": "OPEN",
+      "size": "0.00020000",
+      "opened_at": "2026-11-18T01:56:21.794647+00:00"
+     }
+    ],
+    "unresolved_discrepancies": []
+   },
+   "exchange_after": {
+    "accounts": {
+     "KRW": {
+      "balance": "80000",
+      "locked": "0"
+     },
+     "BTC": {
+      "balance": "0.0002",
+      "locked": "0"
+     }
+    },
+    "open_orders": [],
+    "done_order_ids": [
+     "u-b1",
+     "u-b2"
+    ],
+    "done_query": {
+     "from": "2026-10-01T00:00:00Z",
+     "to": "2026-11-18T01:56:22.011859Z",
+     "complete": true,
+     "pages": 1
+    }
+   },
+   "db_fp_post": "3f868b419bf8e80e88cc8b187e118ed2",
+   "external_flows": [],
+   "query_errors": [],
+   "meta": {
+    "source": {
+     "environment": "local-isolated",
+     "db": "cat-rt-pg/p7v2-scenario-copy",
+     "exchange_account": "fake-exchange-fixed-balances"
+    },
+    "app_code_sha": "0e1d2a02",
+    "app_code_sha_ref": "로컬 가정: v2 시나리오의 등록 예시값. 운영 관측 출처 아님",
+    "steps": [
+     {
+      "step": "db_fp_pre",
+      "at": "2026-11-18T01:56:22.008859Z"
+     },
+     {
+      "step": "exchange_before",
+      "at": "2026-11-18T01:56:22.009859Z"
+     },
+     {
+      "step": "db_extract",
+      "at": "2026-11-18T01:56:22.010859Z"
+     },
+     {
+      "step": "exchange_after",
+      "at": "2026-11-18T01:56:22.011859Z"
+     },
+     {
+      "step": "db_fp_post",
+      "at": "2026-11-18T01:56:22.012859Z"
+     }
+    ]
+   }
+  }
+ },
+ "result": {
+  "overall": "ANOMALY",
+  "registry_status": "valid",
+  "observation": {
+   "base": "ok",
+   "now": "ok"
+  },
+  "observation_stable": true,
+  "anomalies": [
+   {
+    "code": "RULE_FILLED_BUYS",
+    "session": [
+     "LIVE",
+     203
+    ],
+    "count": 2,
+    "limit": 1
+   },
+   {
+    "code": "RULE_DUP_BUY_POSITION",
+    "session": [
+     "LIVE",
+     203
+    ],
+    "position": 8001,
+    "orders": [
+     3,
+     4
+    ]
+   }
+  ],
+  "holds": [],
+  "account": {
+   "krw": {
+    "exchange_delta": "-20000",
+    "external": "0",
+    "session_ledger_delta": "-20000.00000000",
+    "raw_residual": "0E-8",
+    "explained_rounding": "0E-8",
+    "adjusted_residual": "0E-8",
+    "quantum": "0",
+    "status": "일치"
+   },
+   "coins": {
+    "BTC": {
+     "exchange_delta_minus_external": "0.0002",
+     "net_filled": "0.00020000",
+     "open_position_delta": "0.00020000",
+     "match": true,
+     "status": "일치"
+    }
+   },
+   "base_holdings": {
+    "BTC": {
+     "amount": "0",
+     "source": "base.exchange_after"
+    }
+   },
+   "internal_allocations": [],
+   "sessions": {
+    "LIVE:203": {
+     "available_delta": "-20000.00",
+     "order_ledger_delta": "-20000.00000000",
+     "status": "일치"
+    },
+    "DYNAMIC:900": {
+     "available_delta": "0.00",
+     "order_ledger_delta": "0",
+     "status": "일치"
+    }
+   },
+   "backing": {
+    "BTC": {
+     "exchange_total": "0.0002",
+     "registered_need": "0.00020000",
+     "status": "일치"
+    },
+    "KRW": {
+     "exchange_total": "80000",
+     "registered_need": "20200.00",
+     "status": "일치"
+    }
+   },
+   "verdict": "일치"
+  },
+  "code": {
+   "base": "0e1d2a02",
+   "now": "0e1d2a02",
+   "base_ref": "로컬 가정: v2 시나리오의 등록 예시값. 운영 관측 출처 아님",
+   "now_ref": "로컬 가정: v2 시나리오의 등록 예시값. 운영 관측 출처 아님"
+  },
+  "exchange_coverage": {
+   "query": {
+    "from": "2026-10-01T00:00:00Z",
+    "to": "2026-11-18T01:56:22.011859Z",
+    "complete": true,
+    "pages": 1
+   },
+   "checked": [
+    3,
+    4
+   ],
+   "gaps": [],
+   "window": {
+    "from": "2026-11-18T01:56:21.566984Z",
+    "to": "2026-11-18T01:56:22.011859Z",
+    "status": "일치",
+    "reason": null
+   }
+  }
+ }
+}

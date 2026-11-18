@@ -1,0 +1,20 @@
+{
+ "args": [
+  "--registry",
+  "reg.json",
+  "--base",
+  "base.json",
+  "--now",
+  "now.json",
+  "--krw-quantum",
+  "NaN"
+ ],
+ "rc": 30,
+ "result": {
+  "overall": "ERROR",
+  "error": "Bad",
+  "message": "--krw-quantum 유한하지 않음('NaN')",
+  "anomalies": [],
+  "holds": []
+ }
+}

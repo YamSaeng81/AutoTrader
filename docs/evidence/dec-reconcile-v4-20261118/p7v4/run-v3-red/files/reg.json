@@ -1,0 +1,46 @@
+{
+ "registry_version": "p7v2-draft-local",
+ "sessions": [
+  {
+   "kind": "LIVE",
+   "id": 203,
+   "mode": "REAL",
+   "strategy_type": "DAILY_SMA20",
+   "timeframe": "H1",
+   "initial_capital": "20200",
+   "coin_pair": "KRW-BTC",
+   "code_sha": "0e1d2a02",
+   "effective_from": "2026-11-01T00:00:00Z",
+   "effective_to": null,
+   "rules": {
+    "max_filled_buys_in_window": 1
+   },
+   "session_created_at": null
+  },
+  {
+   "kind": "DYNAMIC",
+   "id": 900,
+   "mode": "REAL",
+   "strategy_type": "COMPOSITE_BREAKOUT",
+   "timeframe": "H1",
+   "initial_capital": "20000",
+   "coin_pair": "DYNAMIC",
+   "code_sha": "0e1d2a02",
+   "effective_from": "2026-11-18T00:00:00Z",
+   "effective_to": null,
+   "rules": {
+    "max_open_positions": 1,
+    "excluded_coins": [
+     "KRW-BTC"
+    ],
+    "max_buy_request_krw": "20000"
+   },
+   "session_created_at": null
+  }
+ ],
+ "observation_source": {
+  "environment": "local-isolated",
+  "db": "cat-rt-pg/p7v2-scenario-copy",
+  "exchange_account": "fake-exchange-fixed-balances"
+ }
+}

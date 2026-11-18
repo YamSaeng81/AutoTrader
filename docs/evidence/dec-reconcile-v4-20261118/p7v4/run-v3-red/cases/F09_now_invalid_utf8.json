@@ -1,0 +1,15 @@
+{
+ "args": [
+  "--registry",
+  "reg.json",
+  "--base",
+  "base.json",
+  "--now",
+  "now_bad_utf8.json"
+ ],
+ "rc": 1,
+ "result": {
+  "stdout": "",
+  "stderr": ", load_file(a.now), q)\r\n                                                             ~~~~~~~~~^^^^^^^\r\n  File \"D:\\Claude Code\\projects\\crypto-auto-trader\\docs\\evidence\\dec-reconcile-v3-20261118\\p7v3\\reconcile.py\", line 835, in load_file\r\n    text = f.read()\r\n  File \"<frozen codecs>\", line 325, in decode\r\nUnicodeDecodeError: 'utf-8' codec can't decode byte 0xff in position 160: invalid start byte\r\n"
+ }
+}

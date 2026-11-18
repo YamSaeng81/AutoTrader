@@ -1,0 +1,29 @@
+{
+ "args": [
+  "--registry",
+  "reg_is_dir.json",
+  "--base",
+  "base.json",
+  "--now",
+  "now.json"
+ ],
+ "rc": 10,
+ "result": {
+  "overall": "HOLD",
+  "registry_status": "unreadable",
+  "observation": {
+   "base": "ok",
+   "now": "ok"
+  },
+  "observation_stable": false,
+  "anomalies": [],
+  "holds": [
+   {
+    "code": "REGISTRY_UNREADABLE",
+    "blocks": [],
+    "detail": "PermissionError: [Errno 13] Permission denied: 'run-v4\\\\files\\\\reg_is_dir.json'"
+   }
+  ],
+  "account": null
+ }
+}

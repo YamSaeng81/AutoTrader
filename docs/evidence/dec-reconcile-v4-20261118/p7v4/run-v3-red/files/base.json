@@ -1,0 +1,108 @@
+{
+ "db_fp_pre": "66c2eba7d786d1b6b5866eddd0efede4",
+ "exchange_before": {
+  "accounts": {
+   "KRW": {
+    "balance": "100000",
+    "locked": "0"
+   }
+  },
+  "open_orders": [],
+  "done_order_ids": [],
+  "done_query": {
+   "from": "2026-10-01T00:00:00Z",
+   "to": "2026-11-18T01:55:35.396996Z",
+   "complete": true,
+   "pages": 1
+  }
+ },
+ "db": {
+  "observed_at": "2026-11-18T01:55:35.397996Z",
+  "snapshot": "5197:5197:",
+  "flyway_version": 94,
+  "fingerprint": "66c2eba7d786d1b6b5866eddd0efede4",
+  "sessions": [
+   {
+    "kind": "DYNAMIC",
+    "id": 900,
+    "mode": "REAL",
+    "strategy_type": "COMPOSITE_BREAKOUT",
+    "coin_pair": null,
+    "timeframe": "H1",
+    "initial_capital": "20000.00",
+    "available_krw": "20000.00",
+    "status": "RUNNING",
+    "created_at": "2026-11-18T01:55:35.161885+00:00",
+    "started_at": null,
+    "stopped_at": null
+   },
+   {
+    "kind": "LIVE",
+    "id": 203,
+    "mode": "REAL",
+    "strategy_type": "DAILY_SMA20",
+    "coin_pair": "KRW-BTC",
+    "timeframe": "H1",
+    "initial_capital": "20200.00",
+    "available_krw": "20200.00",
+    "status": "RUNNING",
+    "created_at": "2026-11-06T10:07:36.87044+00:00",
+    "started_at": "2026-10-27T23:50:00+00:00",
+    "stopped_at": null
+   }
+  ],
+  "orders": [],
+  "positions": [],
+  "unresolved_discrepancies": []
+ },
+ "exchange_after": {
+  "accounts": {
+   "KRW": {
+    "balance": "100000",
+    "locked": "0"
+   }
+  },
+  "open_orders": [],
+  "done_order_ids": [],
+  "done_query": {
+   "from": "2026-10-01T00:00:00Z",
+   "to": "2026-11-18T01:55:35.398996Z",
+   "complete": true,
+   "pages": 1
+  }
+ },
+ "db_fp_post": "66c2eba7d786d1b6b5866eddd0efede4",
+ "external_flows": [],
+ "query_errors": [],
+ "meta": {
+  "source": {
+   "environment": "local-isolated",
+   "db": "cat-rt-pg/p7v2-scenario-copy",
+   "exchange_account": "fake-exchange-fixed-balances"
+  },
+  "app_code_sha": "0e1d2a02",
+  "app_code_sha_ref": "로컬 가정: v2 시나리오의 등록 예시값. 운영 관측 출처 아님",
+  "steps": [
+   {
+    "step": "db_fp_pre",
+    "at": "2026-11-18T01:55:35.395996Z"
+   },
+   {
+    "step": "exchange_before",
+    "at": "2026-11-18T01:55:35.396996Z"
+   },
+   {
+    "step": "db_extract",
+    "at": "2026-11-18T01:55:35.397996Z"
+   },
+   {
+    "step": "exchange_after",
+    "at": "2026-11-18T01:55:35.398996Z"
+   },
+   {
+    "step": "db_fp_post",
+    "at": "2026-11-18T01:55:35.399996Z"
+   }
+  ]
+ }
+}
