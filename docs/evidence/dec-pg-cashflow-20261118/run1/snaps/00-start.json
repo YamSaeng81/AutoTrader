@@ -1,0 +1,69 @@
+{
+  "label" : "00-start",
+  "steps" : [ {
+    "step" : "db_fp_pre",
+    "at" : "2026-11-18T04:27:49.157588100Z",
+    "at_db" : "2026-11-18T04:27:50.655525Z",
+    "rtt_ms" : 5.6944
+  }, {
+    "step" : "exchange_before",
+    "at" : "2026-11-18T04:27:49.171632700Z",
+    "at_db" : "2026-11-18T04:27:50.666417Z",
+    "rtt_ms" : 1.6686
+  }, {
+    "step" : "db_extract",
+    "at" : "2026-11-18T04:27:49.179468800Z",
+    "at_db" : "2026-11-18T04:27:50.673284Z",
+    "rtt_ms" : 1.596
+  }, {
+    "step" : "exchange_after",
+    "at" : "2026-11-18T04:27:49.191471800Z",
+    "at_db" : "2026-11-18T04:27:50.684261Z",
+    "rtt_ms" : 1.5434
+  }, {
+    "step" : "db_fp_post",
+    "at" : "2026-11-18T04:27:49.198809400Z",
+    "at_db" : "2026-11-18T04:27:50.690647Z",
+    "rtt_ms" : 1.5614
+  } ],
+  "db_fp_pre" : "2edf2958166561c5c08cd228e53bbcdc",
+  "exchange_before" : {
+    "accounts" : {
+      "KRW" : {
+        "locked" : "0",
+        "balance" : "1000000.00"
+      },
+      "XRP" : {
+        "locked" : "0",
+        "balance" : "5"
+      }
+    },
+    "open_orders" : [ ],
+    "done_order_ids" : [ ]
+  },
+  "db" : {
+    "observed_at" : "2026-11-18T04:27:50.674631Z",
+    "snapshot" : "6996:6996:",
+    "flyway_version" : 96,
+    "fingerprint" : "2edf2958166561c5c08cd228e53bbcdc",
+    "sessions" : [ ],
+    "orders" : [ ],
+    "positions" : [ ],
+    "unresolved_discrepancies" : [ ]
+  },
+  "exchange_after" : {
+    "accounts" : {
+      "KRW" : {
+        "locked" : "0",
+        "balance" : "1000000.00"
+      },
+      "XRP" : {
+        "locked" : "0",
+        "balance" : "5"
+      }
+    },
+    "open_orders" : [ ],
+    "done_order_ids" : [ ]
+  },
+  "db_fp_post" : "2edf2958166561c5c08cd228e53bbcdc"
+}

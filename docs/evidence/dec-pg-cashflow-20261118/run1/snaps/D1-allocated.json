@@ -1,0 +1,131 @@
+{
+  "label" : "D1-allocated",
+  "steps" : [ {
+    "step" : "db_fp_pre",
+    "at" : "2026-11-18T04:27:49.891712400Z",
+    "at_db" : "2026-11-18T04:27:51.314099Z",
+    "rtt_ms" : 1.0503
+  }, {
+    "step" : "exchange_before",
+    "at" : "2026-11-18T04:27:49.900984Z",
+    "at_db" : "2026-11-18T04:27:51.322432Z",
+    "rtt_ms" : 1.1569
+  }, {
+    "step" : "db_extract",
+    "at" : "2026-11-18T04:27:49.907561Z",
+    "at_db" : "2026-11-18T04:27:51.328119Z",
+    "rtt_ms" : 0.5421
+  }, {
+    "step" : "exchange_after",
+    "at" : "2026-11-18T04:27:49.916311Z",
+    "at_db" : "2026-11-18T04:27:51.336279Z",
+    "rtt_ms" : 1.0546
+  }, {
+    "step" : "db_fp_post",
+    "at" : "2026-11-18T04:27:49.924169400Z",
+    "at_db" : "2026-11-18T04:27:51.342982Z",
+    "rtt_ms" : 0.0
+  } ],
+  "db_fp_pre" : "e69aeaa9a72b7dded6a5b0f091949c72",
+  "exchange_before" : {
+    "accounts" : {
+      "KRW" : {
+        "locked" : "0",
+        "balance" : "992346.16229815"
+      },
+      "RND" : {
+        "locked" : "0",
+        "balance" : "25.5"
+      },
+      "XRP" : {
+        "locked" : "0",
+        "balance" : "5"
+      }
+    },
+    "open_orders" : [ ],
+    "done_order_ids" : [ "p7-3deeac2e-4062-4897-8abd-afb80c54c1df" ]
+  },
+  "db" : {
+    "observed_at" : "2026-11-18T04:27:51.328850Z",
+    "snapshot" : "7010:7010:",
+    "flyway_version" : 96,
+    "fingerprint" : "e69aeaa9a72b7dded6a5b0f091949c72",
+    "sessions" : [ {
+      "kind" : "DYNAMIC",
+      "id" : 1,
+      "mode" : "REAL",
+      "strategy_type" : "COMPOSITE_MOMENTUM_ICHIMOKU_V2",
+      "coin_pair" : null,
+      "timeframe" : "H1",
+      "initial_capital" : "10000.37",
+      "available_krw" : "10000.37",
+      "status" : "RUNNING",
+      "created_at" : "2026-11-18T13:27:49.886541+09:00",
+      "started_at" : null,
+      "stopped_at" : null
+    }, {
+      "kind" : "LIVE",
+      "id" : 1,
+      "mode" : "REAL",
+      "strategy_type" : "COMPOSITE_BREAKOUT",
+      "coin_pair" : "KRW-RND",
+      "timeframe" : "H1",
+      "initial_capital" : "16240.37",
+      "available_krw" : "8586.53",
+      "status" : "RUNNING",
+      "created_at" : "2026-11-18T13:27:49.259291+09:00",
+      "started_at" : "2026-11-18T13:27:49.250527+09:00",
+      "stopped_at" : null
+    } ],
+    "orders" : [ {
+      "id" : 1,
+      "session_kind" : "LIVE",
+      "session_id" : 1,
+      "position_id" : 1,
+      "coin_pair" : "KRW-RND",
+      "side" : "BUY",
+      "order_type" : "MARKET",
+      "quantity" : "16159.16000000",
+      "reserved_krw" : "16159.16000000",
+      "client_order_id" : "cat-02fceb82-f5c2-4f7d-8d54-b54aa8e62050",
+      "state" : "FILLED",
+      "filled_quantity" : "25.50000000",
+      "exchange_order_id" : "p7-3deeac2e-4062-4897-8abd-afb80c54c1df",
+      "created_at" : "2026-11-18T13:27:49.475474+09:00",
+      "reported_executed_funds" : "7650.00370000",
+      "reported_paid_fee" : "3.83400185",
+      "applied_executed_funds" : "7650.00370000",
+      "applied_paid_fee" : "3.83400185",
+      "fill_accounting_pending" : false
+    } ],
+    "positions" : [ {
+      "id" : 1,
+      "session_kind" : "LIVE",
+      "session_id" : 1,
+      "coin_pair" : "KRW-RND",
+      "status" : "OPEN",
+      "size" : "25.50000000",
+      "opened_at" : "2026-11-18T13:27:49.391342+09:00"
+    } ],
+    "unresolved_discrepancies" : [ ]
+  },
+  "exchange_after" : {
+    "accounts" : {
+      "KRW" : {
+        "locked" : "0",
+        "balance" : "992346.16229815"
+      },
+      "RND" : {
+        "locked" : "0",
+        "balance" : "25.5"
+      },
+      "XRP" : {
+        "locked" : "0",
+        "balance" : "5"
+      }
+    },
+    "open_orders" : [ ],
+    "done_order_ids" : [ "p7-3deeac2e-4062-4897-8abd-afb80c54c1df" ]
+  },
+  "db_fp_post" : "e69aeaa9a72b7dded6a5b0f091949c72"
+}
