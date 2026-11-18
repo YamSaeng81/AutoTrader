@@ -1,0 +1,62 @@
+draft docs/evidence/dec-dynamic-path-20261118/README.md @ 76387b25 blob 1b5dbe774f57d7c708019ead01a0c442753adb22
+run docs/evidence/v168-final-20261115/runs/full-0e1d2a02/xml (0e1d2a02, H2 기본·PG 환경 변수 끔)
+와일드카드 DynamicBlackSwan*(3) → 원문 3개(표기 3개, 일치): DynamicBlackSwanCooldownCrossKindTest, DynamicBlackSwanCooldownRestoreTest, DynamicBlackSwanPriceGuardTest
+이름 | 출처 | tests/fail/err/skip | 판정 | 원문 XML sha256(앞12)
+WalkForwardGateDisabledSessionCreationTest | brace:WalkForwardGate{Disabled,Enabled}SessionCreationTest | 1/0/0/0 | 성공 | 37b125095646
+WalkForwardGateEnabledSessionCreationTest | brace:WalkForwardGate{Disabled,Enabled}SessionCreationTest | 4/0/0/0 | 성공 | 1b5cd2a2d317
+RealtimeProtectionFairnessTest | brace:RealtimeProtection{Fairness,Saturation}Test | 4/0/0/0 | 성공 | 4bb0a62e7095
+RealtimeProtectionSaturationTest | brace:RealtimeProtection{Fairness,Saturation}Test | 13/0/0/0 | 성공 | ccf2d2df91f3
+DynamicBlackSwanCooldownCrossKindTest | wild:DynamicBlackSwan*(3) | 4/0/0/0 | 성공 | 130364d6ec91
+DynamicBlackSwanCooldownRestoreTest | wild:DynamicBlackSwan*(3) | 7/0/0/0 | 성공 | f8ae449d1331
+DynamicBlackSwanPriceGuardTest | wild:DynamicBlackSwan*(3) | 7/0/0/0 | 성공 | d6bca389f461
+StrategyEnablementGateTest | plain | 4/0/0/0 | 성공 | 84225b5694d4
+DynamicPoolReservationTest | plain | 3/0/0/0 | 성공 | 624c98fe6034
+CapitalPoolLimitTest | plain | 8/0/0/0 | 성공 | 33ba431333e5
+DynamicScanTransitionGuardTest | plain | 7/0/0/0 | 성공 | 26aa00614eae
+DynamicCircuitBreakerTest | plain | 4/0/0/0 | 성공 | 8aad3e8d7194
+DynamicScanSelectionTest | plain | 3/0/0/0 | 성공 | 69501eef51dd
+DynamicPaperBuySameTickWatchlistTest | plain | 7/0/0/0 | 성공 | 1506e4bb9d76
+BtcGateUnknownEntryTest | plain | 3/0/0/0 | 성공 | 85199d75895f
+BtcGateSupplyEndToEndTest | plain | 3/0/0/0 | 성공 | cad9747e38b4
+CrossSessionExposureTest | plain | 6/0/0/0 | 성공 | eba7296f6425
+DynamicMinimumCandleGuardTest | plain | 5/0/0/0 | 성공 | 335c90403d76
+CandleFreshnessGuardTest | plain | 8/0/0/0 | 성공 | ce214ba28087
+EntryPriorityRoundsTest | plain | 10/0/0/0 | 성공 | 7b436051bf8c
+EntryPriorityEndToEndTest | plain | 2/0/0/0 | 성공 | 7baf5b34a297
+N15EntryExpiryTest | plain | 10/0/0/0 | 성공 | 1362f75ad86e
+N15FinalApprovalBoundaryTest | plain | 9/0/0/0 | 성공 | 7fffae19ae3d
+N15PgLockWaitExpiryTest | plain | 5/0/0/5 | 전부 건너뜀 | 46ac3a38e755
+RealLossThreeFormulaPgTest | plain | 8/0/0/8 | 전부 건너뜀 | 92cadf3d038b
+RealLossGlobalPgTest | plain | 3/0/0/3 | 전부 건너뜀 | c8578cde06d7
+LiveLossWindowPgTest | plain | 7/0/0/7 | 전부 건너뜀 | be954068dcf2
+DynamicBuyExternalSubmissionBoundaryTest | plain | 1/0/0/0 | 성공 | bbf29378a148
+DynamicBuyOuterWriteOrderingTest | plain | 1/0/0/0 | 성공 | 3fd2334125b1
+DynamicSessionRowLockContentionTest | plain | 1/0/0/0 | 성공 | 569d68252fc0
+DynamicBuyCompletesConsistentlyTest | plain | 1/0/0/0 | 성공 | 78b01e855ba8
+PositionLimitTest | plain | 13/0/0/0 | 성공 | 8fce78ae97f2
+PoolLossLimitTest | plain | 22/0/0/0 | 성공 | 26054b53a02c
+DynamicTakeProfitCapTest | plain | 4/0/0/0 | 성공 | 0de2072bb4f4
+DynamicStopLossWidthTest | plain | 6/0/0/0 | 성공 | c078abbb7511
+ExitRuleCalculatorTest | plain | 7/0/0/0 | 성공 | 292e82c954aa
+CandleGapExitTest | plain | 2/0/0/0 | 성공 | d05192a2ee73
+EngineParityTest | plain | 27/0/0/0 | 성공 | 320167eaf943
+RealtimeThrottleCrossingTest | plain | 21/0/0/0 | 성공 | bb3aeb018982
+StaleRealtimeExitTest | plain | 2/0/0/0 | 성공 | 5d47340ca1d0
+WsSubscriptionUnionTest | plain | 3/0/0/0 | 성공 | cf6e7b4a4247
+ClosingIntentAtomicityPgTest | plain | 5/0/0/5 | 전부 건너뜀 | 3ba1c8cb4820
+SubmitPollRaceTest | plain | 13/0/0/0 | 성공 | a48cfaa9a032
+DynamicStopRaceTest | plain | 6/0/0/0 | 성공 | 1508c6d527d0
+StopVersusInFlightExitRaceTest | plain | 7/0/0/0 | 성공 | 931b1bf37440
+DynamicFillAccountingTest | plain | 4/0/0/0 | 성공 | 160ad46b7330
+DynamicGhostPositionTest | plain | 4/0/0/0 | 성공 | 1c96bf365839
+DynamicBalanceLeakTest | plain | 4/0/0/0 | 성공 | b9d9fbc43aea
+DynamicUnlockedCapitalTest | plain | 7/0/0/0 | 성공 | f22614dd1c4d
+ConcurrentFillSettlementTest | plain | 4/0/0/0 | 성공 | 8ef87d5b10e5
+PartialSellRealizedPnlPgTest | plain | 7/0/0/7 | 전부 건너뜀 | 9b97ece6f2b7
+SettlementRoundingPgTest | plain | 8/0/0/8 | 전부 건너뜀 | adb4eda95a28
+DynamicTradingSlWatchdogRecoveryTest | plain | 6/0/0/0 | 성공 | 82408f2ebdd5
+CancelConfirmAndLateFillCleanupTest | plain | 74/0/0/0 | 성공 | 5e2972dc032a
+DynamicStopOptimisticLockTest | plain | 7/0/0/0 | 성공 | ac63df212ebd
+SellQuarantineReleaseTest | plain | 15/0/0/0 | 성공 | bd14f3692ff8
+집계(클래스) {'성공': 49, '전부 건너뜀': 7} 고유 클래스 56
+집계(시험 수) {'tests': 437, 'skipped': 43, 'failures': 0, 'errors': 0} 성공 394

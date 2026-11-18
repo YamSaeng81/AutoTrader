@@ -1,0 +1,10 @@
+cmd python -I scenarios.py out ; python -I mutate.py <p7v2> <scratch>/work4
+start 2026-11-18 10:55:32    
+pg PostgreSQL 15.13 on x86_64-pc-linux-musl, compiled by gcc (Alpine 13.2.1_git20240309) 13.2.1 20240309, 64-bit
+container_image sha256:b26180320dea45a27190318903f63cc2839f190315663a53b6429a937dd02196
+base_db p7v2_base = pg_dump rt_ledger (flyway 94, live_trading_session 1행)
+python 3.13.14
+scenarios rc=0
+mutation_start 2026-11-18 10:56:23    
+mutation rc=0 (mutate.py 자체 종료값 — 변형별 결과는 mutation.out.txt)
+end 2026-11-18 11:02:24    

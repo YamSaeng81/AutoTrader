@@ -1,0 +1,40 @@
+{
+ "registry_version": "p7v2-draft-example",
+ "_note": "로컬 예시. 값(전략·주기·자본·규칙 숫자)은 로컬 사본/가정값이며 운영 승인값이 아니다. 키=(kind,id); mode·strategy_type·timeframe·initial_capital·coin_pair·effective_from 이 DB 행과 모두 맞아야 등록 세션으로 인정.",
+ "sessions": [
+  {
+   "kind": "LIVE",
+   "id": 203,
+   "mode": "REAL",
+   "strategy_type": "DAILY_SMA20",
+   "timeframe": "H1",
+   "initial_capital": "20200",
+   "coin_pair": "KRW-BTC",
+   "code_sha": "0e1d2a02",
+   "effective_from": "2026-11-01T00:00:00Z",
+   "effective_to": null,
+   "rules": {
+    "max_filled_buys_in_window": 1
+   }
+  },
+  {
+   "kind": "DYNAMIC",
+   "id": 900,
+   "mode": "REAL",
+   "strategy_type": "COMPOSITE_BREAKOUT",
+   "timeframe": "H1",
+   "initial_capital": "20000",
+   "coin_pair": "DYNAMIC",
+   "code_sha": "0e1d2a02",
+   "effective_from": "2026-11-18T00:00:00Z",
+   "effective_to": null,
+   "rules": {
+    "max_open_positions": 1,
+    "excluded_coins": [
+     "KRW-BTC"
+    ],
+    "max_buy_request_krw": "20000"
+   }
+  }
+ ]
+}

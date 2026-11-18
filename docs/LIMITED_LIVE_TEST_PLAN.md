@@ -1,6 +1,6 @@
 # 12월 제한 실거래 시험 — 현재 계획
 
-정리 기준은 **2026-11-18, 총괄 v1.185 / DYNAMIC 경로 초안·병행 점검 검토**다. [12월 목표](DECEMBER_SMALL_LIVE_PLAN.md)·434차 도구 수용/e0119f0a는 유지한다. 마지막 실제 읽기는11-18 10:13:21(10:00 보고·09:30 장부, [N03 10:00](evidence/n03-1118-1000/README.md)), DB는보고 값이다. 그 이후 감시를 주장하지 않는다. [최신 지시](evidence/review-dec-dynamic-20261118/README.md)
+정리 기준은 **2026-11-18, 총괄 v1.186 / 435차 범위 수용·병행 대조 보완**이다. [12월 목표](DECEMBER_SMALL_LIVE_PLAN.md)·434차 도구 수용/e0119f0a는 유지한다. 마지막 실제 읽기는11-18 10:13:21(10:00 보고·09:30 장부, [N03 10:00](evidence/n03-1118-1000/README.md)), DB는보고 값이다. 그 이후 감시를 주장하지 않는다. [최신 지시](evidence/review-76387b25/README.md)
 
 **운영0e1d2a02·V96·frontend9d7f123a와 F1/N06 핀은 수용했다. 12월 소액 실전·다이나믹의 수익성 자료 수집을 준비한다. 총원금·월 손실 상한은 미확정이며 실제 생성/시작·토큰 준비·배치·설정/키 변경은 별도 승인 전이다.**
 
@@ -8,7 +8,7 @@
 |---|---|
 | 현재 상태·남은 작업·다음 일정 | 이 문서 |
 | F0~F6 시작·확인·정지·종료 명령 | [실행 절차](LIMITED_LIVE_TEST_RUNBOOK.md) — F 원문·현재 핀·F5-3v |
-| 현재 상세 판정과 허용 범위 | [v1.185 DYNAMIC 초안 검토](evidence/review-dec-dynamic-20261118/README.md) · [12월 준비](DECEMBER_SMALL_LIVE_PLAN.md) · [434차 수용](evidence/review-e0119f0a/README.md) |
+| 현재 상세 판정과 허용 범위 | [v1.186 병행 대조 검토](evidence/review-76387b25/README.md) · [12월 준비](DECEMBER_SMALL_LIVE_PLAN.md) · [434차 수용](evidence/review-e0119f0a/README.md) |
 | 완료된 배포, 옛 후보·판정, 정정 전 서술, 종전 §1~§7·§5-9 1~126 | [2026-11-12 전체 원문 보존본](LIMITED_LIVE_TEST_PLAN_ARCHIVE_20261112.md) — 이력 조회용 |
 | 전체 관리 목록·일별 점검 | [LIVE_READINESS](LIVE_READINESS.md) · [11월 관리표](NOVEMBER_LIVE_UPGRADE.md) · [OPS](OPS_DAILY_CHECK.md) |
 | 실행 결과와 작업 인계 | [PROGRESS](PROGRESS.md) · [현재 인계](CURRENT_HANDOFF.md) · 각 결과의 evidence/README |
@@ -33,7 +33,7 @@
 | D4·운영 결과 | **7fea1b89 결과 수용**, 실행ce6df2fa·보정c584166b | U2확인~뒤 관측rc0. 원래U2 rc1·U3 창1시간48분23초 지연은 보존.  [판정](evidence/review-7fea1b89/README.md) |
 | 독립 시험 보완 | **b987d7a7**, 시험41경로(88 대비) | 원문595/595·G1 236/236·앞 검토3/3 일치. 시험 격리·N15 보완 수용. 후속46클래스375성공·제품 경합1실패 |
 
-근거는 [84fb03d6 검증 검토](evidence/review-ade6cc28/README.md), [434차 수용](evidence/review-e0119f0a/README.md), [현재 지시](evidence/review-dec-dynamic-20261118/README.md)에 있다.
+근거는 [84fb03d6 검증 검토](evidence/review-ade6cc28/README.md), [434차 수용](evidence/review-e0119f0a/README.md), [현재 지시](evidence/review-76387b25/README.md)에 있다.
 
 ## 2. 지금 진행할 작업
 
@@ -58,7 +58,7 @@ SSH 대량 인증 실패·MaxStartups 제한은 별도🔴 후속이다. 11-17 1
 | 수용 | **V172D4 절차 보완·고정 출처** | ce6df2fa의 [424차 제출](evidence/v172d4-20261116/README.md) 수용. R1~R3·두 번째 로그 보완, 대역 r2 100/0·실행 틀12/12. 근거42/42·압축9,212파일 일치 |
 | 1 | **SSH 관리자 제한 읽기** | v2 범위 수용. admin_read + admin_read_add 개별 종료값·UseDNS/Host/Include/서비스 인자, 운영자 답4개 확인. 실제 변경 전 |
 | 2 | **새 모의9세션 실행 준비 완료** | 434차 배치57fefb0f 수용. e0119f0a 고정 출처. 10:12 읽기 결과와 운영자 동반/토큰 준비 가능 여부를 붙여 실제 생성 승인 판정.11-18 12:00 미승인 시 새 날짜 |
-| 3 | **12월 병행 실전 준비** | [v1.185](evidence/review-dec-dynamic-20261118/README.md): 상한 거절은 보호 계약, 모드 입력 후보·BTC 정책·N03/F3 병행 대조안은 로컬 준비. 금액 없이 진행 가능, 실제 운용 변경 전 |
+| 3 | **12월 병행 실전 준비** | [v1.186](evidence/review-76387b25/README.md): 435차 조사·모드 후보18f3a795 로컬 범위 수용. 436차 [제출](evidence/dec-reconcile-20261118/README.md): 원문 연결·P7 v2 대조기(격리 PG35/35·변형7/7)·쿨다운 이식89336440·알림/성적표/설정표. 총괄 판정 전, 실제 운용 변경 전 |
 | 완료 | **문서 정리·F5-3v** | b12f19f8·729cdbe2 수용. 종전F15개 보존, 새 출처 추출 대역15/15. 장부 시험의 공통 자료 실패9건은 남음 |
 | 수용 | **대기 대상 정리·독립 시험 보완** | [409차](evidence/v164-wait20-20261113/README.md). 합집합21·실제18클래스87곳. 실패42는 대기 경합40과 G1 시험 읽기2로 구분. 후속3f9cc926에서 음성 단언3곳 보완·관련19클래스 성공230/건너뜀4, 실패0 |
 | 수용 | **N05 최종판·화면** | [N05](evidence/n05-final-0e1d2a02/README.md) K14~K23 39/39 대응, G4 운영0e1d2a02 확인 완료. G2·G3 미확정. [화면](evidence/screen-0e1d2a02/README.md) 7개 확인 수용, 대비 결함은 독립 frontend 후보로 보완 |
@@ -130,7 +130,7 @@ SSH 대량 인증 실패·MaxStartups 제한은 별도🔴 후속이다. 11-17 1
 | 시점 | 할 일 |
 |---|---|
 | 다음 N03 | 10:00 보고는10:13:21 읽음([N03 10:00](evidence/n03-1118-1000/README.md), 🔴1 미분류 기존 반복). 다음은 11-18 22:00 보고를 22:12 이후 읽기. 실제 시각과 보고 값/직접 조회·미관측을 구분. 개발 PC 예약은 절전 시 소멸하므로 생존을 실행으로 쓰지 않음 |
-| 다음 작업 | 435차 [병행 점검·모드 후보·P1](evidence/dec-parallel-20261118/README.md) 총괄 판정 대기. 81b0e7a7 간섭 검토·운용안·월 성적표를 금액 없이 계속. 총원금/월 손실 상한 미정,11-18 12:00 기한 유지 |
+| 다음 작업 | 436차 [제출](evidence/dec-reconcile-20261118/README.md) 판정 대기. 판정 전에도 운용안 초안(고정1+동적1)·DYNAMIC 매수 실행 차이 기록 빈틈 확인 등 허용 로컬 작업을 이어 감. 총원금/월 손실 상한 미정,11-18 12:00 기한 유지 |
 | 11-23~11-27 | N05 운영 SHA 재확인 후 이번 최종판 근거 연결, 변경 시 영향 범위 대조 |
 | 11-30 | N06: 최종 원본 S, 운영 핀·설치판·역할·실행 사본·복구 기준 고정. 최종 S에서 F3를 다시 추출 |
 | 12-01 08:30 KST | F1 실제 직전 확인·휴대폰 수신 확인 |

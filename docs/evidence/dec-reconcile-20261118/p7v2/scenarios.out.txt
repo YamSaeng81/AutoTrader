@@ -1,0 +1,36 @@
+PASS | A1_eth_hold | 정상 ETH 보유 | 기대 OK / 결과 OK | 코드 - | 원시 -0.00364783 설명 -0.00364783 조정 0E-8 | 초안 ±세션수원 통과
+PASS | A2_eth_roundtrip | 정상 ETH 왕복 | 기대 OK / 결과 OK | 코드 - | 원시 0.00110217 설명 0.00110217 조정 0E-8 | 초안 ±세션수원 통과
+PASS | B1_preexisting_btc | 기존 BTC 보유 | 기대 OK / 결과 OK | 코드 - | 원시 0.000 설명 0 조정 0.000 | 초안 ±세션수원 통과
+PASS | B2_preexisting_btc_plus_eth | 기존 BTC 보유+병행 ETH | 기대 OK / 결과 OK | 코드 - | 원시 -0.00364783 설명 -0.00364783 조정 0E-8 | 초안 ±세션수원 통과
+PASS | C1_start_stop_window | 서로 다른 시작/정지 | 기대 OK / 결과 OK | 코드 - | 원시 0.00110217 설명 0.00110217 조정 0E-8 | 초안 ±세션수원 통과
+PASS | C2_stopped_session_unsettled_cash | 정지 세션 잔액 불일치 | 기대 ANOMALY / 결과 ANOMALY | 코드 SESSION_LEDGER_MISMATCH | 원시 0.00110217 설명 0.00110217 조정 0E-8 | 초안 ±세션수원 통과
+PASS | D1_contract_mismatch_timeframe | 등록 계약 불일치(주기) | 기대 ANOMALY / 결과 ANOMALY | 코드 ACCOUNT_COIN_MISMATCH,ACCOUNT_KRW_MISMATCH,REGISTRY_CONTRACT_MISMATCH,UNREGISTERED_REAL_ORDER,UNREGISTERED_REAL_POSITION,UNREGISTERED_REAL_SESSION_ACTIVE | 원시 -15999.98364783 설명 0 조정 -15999.98364783 | 초안 ±세션수원 불통과
+PASS | D2_same_id_other_kind | 같은 ID 다른 종류 | 기대 ANOMALY / 결과 ANOMALY | 코드 ACCOUNT_COIN_MISMATCH,ACCOUNT_KRW_MISMATCH,REGISTERED_SESSION_ROW_MISSING,UNREGISTERED_REAL_ORDER,UNREGISTERED_REAL_POSITION,UNREGISTERED_REAL_SESSION_ACTIVE | 원시 -15999.98364783 설명 0 조정 -15999.98364783 | 초안 ±세션수원 불통과
+PASS | D3_registry_duplicate_key | 잘못된 등록표(중복 키) | 기대 ANOMALY / 결과 ANOMALY | 코드 ACCOUNT_COIN_MISMATCH,ACCOUNT_KRW_MISMATCH,REGISTRY_INVALID,UNREGISTERED_REAL_ORDER,UNREGISTERED_REAL_POSITION,UNREGISTERED_REAL_SESSION_ACTIVE | 원시 -15999.98364783 설명 0 조정 -15999.98364783 | 초안 ±세션수원 불통과
+PASS | D4_db_mode_lowercase_paper | 잘못된 모드 값(paper 소문자) | 기대 ANOMALY / 결과 ANOMALY | 코드 ACCOUNT_COIN_MISMATCH,ACCOUNT_KRW_MISMATCH,REGISTRY_CONTRACT_MISMATCH,UNREGISTERED_REAL_ORDER,UNREGISTERED_REAL_POSITION,UNREGISTERED_REAL_SESSION_ACTIVE | 원시 -15999.98364783 설명 0 조정 -15999.98364783 | 초안 ±세션수원 불통과
+PASS | D5_registry_unknown_rule | 잘못된 등록표(알 수 없는 규칙) | 기대 ANOMALY / 결과 ANOMALY | 코드 ACCOUNT_COIN_MISMATCH,ACCOUNT_KRW_MISMATCH,REGISTRY_INVALID,UNREGISTERED_REAL_ORDER,UNREGISTERED_REAL_POSITION,UNREGISTERED_REAL_SESSION_ACTIVE | 원시 -15999.98364783 설명 0 조정 -15999.98364783 | 초안 ±세션수원 불통과
+PASS | E1_unregistered_session_order | 미등록 세션 주문 | 기대 ANOMALY / 결과 ANOMALY | 코드 ACCOUNT_COIN_MISMATCH,ACCOUNT_KRW_MISMATCH,UNREGISTERED_REAL_ORDER,UNREGISTERED_REAL_POSITION,UNREGISTERED_REAL_SESSION_ACTIVE | 원시 -5000.00239783 설명 -0.00364783 조정 -4999.99875000 | 초안 ±세션수원 불통과
+PASS | E2_orphan_order_deleted_session | 세션 행 없는 주문 | 기대 ANOMALY / 결과 ANOMALY | 코드 EXCHANGE_OPEN_ORDERS,ORDER_IN_FLIGHT,UNREGISTERED_REAL_ORDER | 원시 -0.00364783 설명 -0.00364783 조정 0E-8 | 초안 ±세션수원 통과
+PASS | E3_exchange_order_not_in_db | 거래소에만 있는 주문(수동 매매) | 기대 ANOMALY / 결과 ANOMALY | 코드 ACCOUNT_COIN_MISMATCH,ACCOUNT_KRW_MISMATCH,EXCHANGE_ORDER_NOT_IN_DB | 원시 -5000.00239783 설명 -0.00364783 조정 -4999.99875000 | 초안 ±세션수원 불통과
+PASS | E4_manual_trade_declared | 수동 매매 신고 | 기대 OK / 결과 OK | 코드 - | 원시 -0.00364783 설명 -0.00364783 조정 0E-8 | 초안 ±세션수원 통과
+PASS | F1_deposit_declared | 외부 입금 신고 | 기대 OK / 결과 OK | 코드 - | 원시 -0.00364783 설명 -0.00364783 조정 0E-8 | 초안 ±세션수원 통과
+PASS | F2_deposit_undeclared | 외부 입금 미신고 | 기대 ANOMALY / 결과 ANOMALY | 코드 ACCOUNT_KRW_MISMATCH | 원시 49999.99635217 설명 -0.00364783 조정 50000.00000000 | 초안 ±세션수원 불통과
+PASS | F3_flows_unknown | 입출금 이력 미확인 | 기대 HOLD / 결과 HOLD | 코드 EXTERNAL_FLOWS_UNCONFIRMED | 원시 -0.00364783 설명 -0.00364783 조정 0E-8 | 초안 ±세션수원 통과
+PASS | F4_coin_withdraw_declared | 코인 출금 신고 | 기대 ANOMALY / 결과 ANOMALY | 코드 ACCOUNT_COIN_UNBACKED | 원시 0.000 설명 0 조정 0.000 | 초안 ±세션수원 통과
+PASS | G1_partial_fill_cancel | 부분 체결 후 취소 | 기대 OK / 결과 OK | 코드 - | 원시 -0.00351773 설명 -0.00351773 조정 0E-8 | 초안 ±세션수원 통과
+PASS | G2_unexplained_1_50_two_sessions | 원 단위 2세션 설명 불가 1.50원 | 기대 ANOMALY / 결과 ANOMALY | 코드 ACCOUNT_KRW_MISMATCH | 원시 -1.50000000 설명 0E-8 조정 -1.50000000 | 초안 ±세션수원 통과
+PASS | G3_exact_two_sessions | 원 단위 2세션 정확 | 기대 OK / 결과 OK | 코드 - | 원시 0E-8 설명 0E-8 조정 0E-8 | 초안 ±세션수원 통과
+PASS | G4_settlement_correction_between | 구간 사이 수수료 정정 | 기대 OK / 결과 OK | 코드 - | 원시 -0.00599383 설명 -0.00599383 조정 0E-8 | 초안 ±세션수원 통과
+PASS | H1_unknown_order | UNKNOWN 주문 | 기대 ANOMALY / 결과 ANOMALY | 코드 ORDER_EFFECT_PENDING,ORDER_UNKNOWN | 원시 0.01635217 설명 0 조정 0.01635217 | 초안 ±세션수원 통과
+PASS | H2_closing_inflight | CLOSING·진행 중 매도 | 기대 HOLD / 결과 HOLD | 코드 EXCHANGE_OPEN_ORDERS,ORDER_EFFECT_PENDING,ORDER_IN_FLIGHT,POSITION_CLOSING | 원시 -0.00364783 설명 -0.00364783 조정 0E-8 | 초안 ±세션수원 통과
+PASS | H3_accounting_pending | 회계 반영 대기 | 기대 HOLD / 결과 HOLD | 코드 ACCOUNTING_PENDING,ORDER_EFFECT_PENDING | 원시 0.01635217 설명 0 조정 0.01635217 | 초안 ±세션수원 통과
+PASS | H4_query_failed | 거래소 조회 실패 | 기대 HOLD / 결과 HOLD | 코드 OBSERVATION_MISSING,QUERY_FAILED | 원시 -84000.02000000 설명 -0.00364783 조정 -84000.01635217 | 초안 ±세션수원 불통과
+PASS | H5_hold_plus_known_anomaly | 보류+이미 확인된 정산 불일치 | 기대 ANOMALY / 결과 ANOMALY | 코드 EXCHANGE_OPEN_ORDERS,ORDER_EFFECT_PENDING,ORDER_IN_FLIGHT,POSITION_CLOSING,SETTLEMENT_MISMATCH | 원시 -0.00364783 설명 0.00234600 조정 -0.00599383 | 초안 ±세션수원 통과
+PASS | H6_unresolved_discrepancy | 미해결 정산 불일치 행 | 기대 ANOMALY / 결과 ANOMALY | 코드 SETTLEMENT_DISCREPANCY_UNRESOLVED | 원시 -0.00364783 설명 -0.00364783 조정 0E-8 | 초안 ±세션수원 통과
+PASS | H7_unstable_db_between_reads | 읽는 사이 DB 변경 | 기대 HOLD / 결과 HOLD | 코드 ORDER_EFFECT_PENDING,ORDER_IN_FLIGHT,UNSTABLE_DB | 원시 2999.99635217 설명 -0.00364783 조정 3000.00000000 | 초안 ±세션수원 불통과
+PASS | H8_unstable_exchange_between_reads | 읽는 사이 거래소 변경 | 기대 HOLD / 결과 HOLD | 코드 UNSTABLE_EXCHANGE | 원시 -0.00364783 설명 -0.00364783 조정 0E-8 | 초안 ±세션수원 통과
+PASS | R1_dynamic_excluded_coin_buy | DYNAMIC BTC 진입(제외 코인) | 기대 ANOMALY / 결과 ANOMALY | 코드 RULE_EXCLUDED_COIN_BUY | 원시 0E-8 설명 0E-8 조정 0E-8 | 초안 ±세션수원 통과
+PASS | R2_dynamic_two_buys_ok | DYNAMIC 구간 매수 2회(단독 규칙 미적용) | 기대 OK / 결과 OK | 코드 - | 원시 0.00235217 설명 0.00235217 조정 0E-8 | 초안 ±세션수원 통과
+PASS | R3_sid203_two_buys | SID203 구간 매수 2회 | 기대 ANOMALY / 결과 ANOMALY | 코드 RULE_DUP_BUY_POSITION,RULE_FILLED_BUYS | 원시 0E-8 설명 0E-8 조정 0E-8 | 초안 ±세션수원 통과
+PASS | R4_dynamic_request_over_cap | DYNAMIC 요청액 상한 초과 | 기대 ANOMALY / 결과 ANOMALY | 코드 RULE_BUY_REQUEST_CAP | 원시 0E-8 설명 0E-8 조정 0E-8 | 초안 ±세션수원 통과
+합계 35 시나리오, 통과 35, 실패 0

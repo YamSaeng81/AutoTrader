@@ -1,0 +1,5 @@
+cmd ./gradlew :web-api:cleanTest :web-api:test --tests '*DynamicBlackSwan*' --tests '*DynamicPaperLiveRuleParityTest' --tests '*EngineParityTest' --continue
+HEAD 893364406e4cbbf2ca129680af18d8995e7c90a9 dirty=0
+env N15_PG_URL=unset TEST_NET_GUARD=unset
+start 2026-11-18 11:04:00
+rc=0 end 2026-11-18 11:04:43

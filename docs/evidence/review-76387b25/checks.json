@@ -1,0 +1,434 @@
+{
+  "scope": "fixed Git blobs, submitted summaries and pure Decimal examples only",
+  "submission": "76387b25f45dfdf85827c72a1c8a9ea75be3b0f9",
+  "mode": "18f3a7956ae28b59a6f4235889fe60cb00c399fa",
+  "P1": "2302104c5bc78f82c7f890960a67d39a21540dac",
+  "manifests": {
+    "dec-parallel-20261118": 16,
+    "n03-1118-1000": 23,
+    "review-dec-dynamic-20261118": 6
+  },
+  "summary": {
+    "passed": 80,
+    "failed": 0
+  },
+  "counterexamples": {
+    "existing_BTC_at_dynamic_baseline": {
+      "baseline_position": "0.0002",
+      "end_position": "0.0002",
+      "interval_net_fills": "0",
+      "account_coin_delta": "0",
+      "delta_positions_matches": true,
+      "current_positions_equals_delta": false
+    },
+    "session_count_tolerance": {
+      "sessions": 2,
+      "known_rounding": "0",
+      "unexplained_cash_gap": "1.50",
+      "draft_2_won_tolerance_accepts": true,
+      "exact_ledger_matches": false
+    }
+  },
+  "checks": [
+    {
+      "name": "docs/evidence/dec-parallel-20261118/README.md",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/dec-parallel-20261118/daily_checks.c669ccdc.sql",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/dec-parallel-20261118/draft-test-links.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/dec-parallel-20261118/f3_calc.out.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/dec-parallel-20261118/f3_calc.py",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/dec-parallel-20261118/fixture.sql",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/dec-parallel-20261118/mode/candidate.diff",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/dec-parallel-20261118/mode/green-summary.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/dec-parallel-20261118/mode/red-summary.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/dec-parallel-20261118/n03-base.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/dec-parallel-20261118/n03-parallel-eth-xrp.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/dec-parallel-20261118/n03-parallel-eth.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/dec-parallel-20261118/p1/attempt1-netguard.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/dec-parallel-20261118/p1/p1-lines.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/dec-parallel-20261118/p1/summary.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/dec-parallel-20261118/p1/test.diff",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/dec-parallel-20261118 coverage",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1118-1000/20261118-1000.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1118-1000/20261118-1000.txt.msg",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1118-1000/20261118-1000.txt.raw",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1118-1000/README.md",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1118-1000/error_lines.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1118-1000/frontend-image.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1118-1000/install_state.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1118-1000/last_send",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1118-1000/ledger-20261118.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1118-1000/ledger-files.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1118-1000/local-sha256.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1118-1000/observations-supp.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1118-1000/observations.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1118-1000/read-stderr.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1118-1000/read.sh",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1118-1000/run-time.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1118-1000/sched/n03run.sh",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1118-1000/sched/scheduled.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1118-1000/sched/ssh-shim2.sh",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1118-1000/sched/wait_then.sh",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1118-1000/server-files.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1118-1000/ssh-path.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1118-1000/token-check.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/n03-1118-1000 coverage",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/review-dec-dynamic-20261118/.gitattributes",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/review-dec-dynamic-20261118/audit-attempt1.json",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/review-dec-dynamic-20261118/audit_review.py",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/review-dec-dynamic-20261118/checks.json",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/review-dec-dynamic-20261118/README.md",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/review-dec-dynamic-20261118/submitted-draft.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "docs/evidence/review-dec-dynamic-20261118 coverage",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "local refs",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "mode parent",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "P1 parent",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "submitted mode diff",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "submitted P1 diff",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "mode scope",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "P1 test only",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "mode rejected before strategy and allocation",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "existing mode default retained",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "test callers explicit REAL",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "red saved summary",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "green saved summary",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "P1 saved summary",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "installed SQL exact",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "saved local SQL n03-base.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "saved local SQL n03-parallel-eth.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "saved local SQL n03-parallel-eth-xrp.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "sizing exact boundary",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "ETH cash conflict",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "baseline counterexample",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "tolerance counterexample",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "server/local hash 20261118-1000.txt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "server/local hash 20261118-1000.txt.msg",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "server/local hash 20261118-1000.txt.raw",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "server/local hash last_send",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "ledger hash",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "N03 transmitted and SID state",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "N03 classification retained",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "read actual time and rc",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "P0 saved observation",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "correction commit scope",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "correction text identical excluding line endings",
+      "ok": true,
+      "detail": null
+    }
+  ]
+}

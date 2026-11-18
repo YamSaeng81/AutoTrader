@@ -1,0 +1,7 @@
+M1_no_round_explain rc=1 잡힌 시나리오 9: A1_eth_hold, A2_eth_roundtrip, B2_preexisting_btc_plus_eth, C1_start_stop_window, E4_manual_trade_declared, F1_deposit_declared, G1_partial_fill_cancel, G4_settlement_correction_between, R2_dynamic_two_buys_ok
+M2_hold_hides_anomaly rc=1 잡힌 시나리오 3: E2_orphan_order_deleted_session, H1_unknown_order, H5_hold_plus_known_anomaly
+M3_current_not_delta rc=1 잡힌 시나리오 4: B1_preexisting_btc, B2_preexisting_btc_plus_eth, F4_coin_withdraw_declared, G4_settlement_correction_between
+M4_id_only_key rc=1 잡힌 시나리오 2: D1_contract_mismatch_timeframe, D4_db_mode_lowercase_paper
+M5_skip_orphans rc=1 잡힌 시나리오 1: E2_orphan_order_deleted_session
+M6_no_stability rc=1 잡힌 시나리오 4: H2_closing_inflight, H4_query_failed, H7_unstable_db_between_reads, H8_unstable_exchange_between_reads
+M7_one_won_tolerance rc=1 잡힌 시나리오 1: G2_unexplained_1_50_two_sessions

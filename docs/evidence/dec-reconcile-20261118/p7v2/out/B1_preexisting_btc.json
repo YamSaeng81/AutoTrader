@@ -1,0 +1,348 @@
+{
+ "scenario": {
+  "name": "B1_preexisting_btc",
+  "group": "기존 BTC 보유",
+  "expect": "OK",
+  "codes": [],
+  "forbid": [
+   "ACCOUNT_COIN_MISMATCH"
+  ],
+  "reg": {
+   "registry_version": "p7v2-draft-local",
+   "sessions": [
+    {
+     "kind": "LIVE",
+     "id": 203,
+     "mode": "REAL",
+     "strategy_type": "DAILY_SMA20",
+     "timeframe": "H1",
+     "initial_capital": "20200",
+     "coin_pair": "KRW-BTC",
+     "code_sha": "0e1d2a02",
+     "effective_from": "2026-11-01T00:00:00Z",
+     "effective_to": null,
+     "rules": {
+      "max_filled_buys_in_window": 1
+     }
+    },
+    {
+     "kind": "DYNAMIC",
+     "id": 900,
+     "mode": "REAL",
+     "strategy_type": "COMPOSITE_BREAKOUT",
+     "timeframe": "H1",
+     "initial_capital": "20000",
+     "coin_pair": "DYNAMIC",
+     "code_sha": "0e1d2a02",
+     "effective_from": "2026-11-18T00:00:00Z",
+     "effective_to": null,
+     "rules": {
+      "max_open_positions": 1,
+      "excluded_coins": [
+       "KRW-BTC"
+      ],
+      "max_buy_request_krw": "20000"
+     }
+    }
+   ]
+  },
+  "base_ex": {
+   "accounts": {
+    "KRW": {
+     "balance": "80000.005",
+     "locked": "0"
+    },
+    "BTC": {
+     "balance": "0.0002",
+     "locked": "0"
+    }
+   },
+   "open_orders": [],
+   "done_order_ids": [
+    "u-btc-203"
+   ]
+  },
+  "now_ex": {
+   "accounts": {
+    "KRW": {
+     "balance": "80000.005",
+     "locked": "0"
+    },
+    "BTC": {
+     "balance": "0.0002",
+     "locked": "0"
+    }
+   },
+   "open_orders": [],
+   "done_order_ids": [
+    "u-btc-203"
+   ]
+  },
+  "flows": [],
+  "now_ex_before": null,
+  "now_query_errors": null,
+  "note": "기초 보유 BTC 0.0002 기록, 구간 BTC 증감 0"
+ },
+ "base_sql": "INSERT INTO position (id,session_kind,session_id,coin_pair,side,entry_price,avg_price,size,status,opened_at) VALUES (8001,'LIVE',203,'KRW-BTC','LONG',1,1,0.0002,'OPEN',now());\nINSERT INTO \"order\" (session_kind,session_id,position_id,coin_pair,side,order_type,quantity,reserved_krw,client_order_id,state,filled_quantity,reported_executed_funds,reported_paid_fee,applied_executed_funds,applied_paid_fee,fill_accounting_pending,exchange_order_id,created_at) VALUES ('LIVE',203,8001,'KRW-BTC','BUY','MARKET',20000.00,20000.00,'c-u-btc-203','FILLED',0.0002,19990.00,9.995,19990.00,9.995,false,'u-btc-203',now());\nUPDATE live_trading_session SET available_krw=200.01 WHERE id=203;\n",
+ "now_sql": "INSERT INTO dynamic_session (id,strategy_type,timeframe,initial_capital,available_krw,total_asset_krw,status,trading_mode,created_at) VALUES (900,'COMPOSITE_BREAKOUT','H1',20000,20000,20000,'CREATED','REAL',now());\n",
+ "now_hook": null,
+ "base": {
+  "db_fp_pre": "1a693963b8bb5d3f29e9b6ad6eba6972",
+  "exchange_before": {
+   "accounts": {
+    "KRW": {
+     "balance": "80000.005",
+     "locked": "0"
+    },
+    "BTC": {
+     "balance": "0.0002",
+     "locked": "0"
+    }
+   },
+   "open_orders": [],
+   "done_order_ids": [
+    "u-btc-203"
+   ]
+  },
+  "db": {
+   "observed_at": "2026-11-18T01:55:37.939122Z",
+   "snapshot": "5205:5205:",
+   "flyway_version": 94,
+   "fingerprint": "1a693963b8bb5d3f29e9b6ad6eba6972",
+   "sessions": [
+    {
+     "kind": "LIVE",
+     "id": 203,
+     "mode": "REAL",
+     "strategy_type": "DAILY_SMA20",
+     "coin_pair": "KRW-BTC",
+     "timeframe": "H1",
+     "initial_capital": "20200.00",
+     "available_krw": "200.01",
+     "status": "RUNNING",
+     "created_at": "2026-11-06T10:07:36.87044+00:00",
+     "started_at": "2026-10-27T23:50:00+00:00",
+     "stopped_at": null
+    }
+   ],
+   "orders": [
+    {
+     "id": 3,
+     "session_kind": "LIVE",
+     "session_id": 203,
+     "position_id": 8001,
+     "coin_pair": "KRW-BTC",
+     "side": "BUY",
+     "order_type": "MARKET",
+     "quantity": "20000.00000000",
+     "reserved_krw": "20000.00000000",
+     "client_order_id": "c-u-btc-203",
+     "state": "FILLED",
+     "filled_quantity": "0.00020000",
+     "exchange_order_id": "u-btc-203",
+     "created_at": "2026-11-18T01:55:37.70649+00:00",
+     "reported_executed_funds": "19990.00000000",
+     "reported_paid_fee": "9.99500000",
+     "applied_executed_funds": "19990.00000000",
+     "applied_paid_fee": "9.99500000",
+     "fill_accounting_pending": false
+    }
+   ],
+   "positions": [
+    {
+     "id": 8001,
+     "session_kind": "LIVE",
+     "session_id": 203,
+     "coin_pair": "KRW-BTC",
+     "status": "OPEN",
+     "size": "0.00020000",
+     "opened_at": "2026-11-18T01:55:37.70649+00:00"
+    }
+   ],
+   "unresolved_discrepancies": []
+  },
+  "exchange_after": {
+   "accounts": {
+    "KRW": {
+     "balance": "80000.005",
+     "locked": "0"
+    },
+    "BTC": {
+     "balance": "0.0002",
+     "locked": "0"
+    }
+   },
+   "open_orders": [],
+   "done_order_ids": [
+    "u-btc-203"
+   ]
+  },
+  "db_fp_post": "1a693963b8bb5d3f29e9b6ad6eba6972",
+  "external_flows": [],
+  "query_errors": []
+ },
+ "now": {
+  "db_fp_pre": "348d37d59c871e22b158ed284c260b20",
+  "exchange_before": {
+   "accounts": {
+    "KRW": {
+     "balance": "80000.005",
+     "locked": "0"
+    },
+    "BTC": {
+     "balance": "0.0002",
+     "locked": "0"
+    }
+   },
+   "open_orders": [],
+   "done_order_ids": [
+    "u-btc-203"
+   ]
+  },
+  "db": {
+   "observed_at": "2026-11-18T01:55:38.446735Z",
+   "snapshot": "5206:5206:",
+   "flyway_version": 94,
+   "fingerprint": "348d37d59c871e22b158ed284c260b20",
+   "sessions": [
+    {
+     "kind": "DYNAMIC",
+     "id": 900,
+     "mode": "REAL",
+     "strategy_type": "COMPOSITE_BREAKOUT",
+     "coin_pair": null,
+     "timeframe": "H1",
+     "initial_capital": "20000.00",
+     "available_krw": "20000.00",
+     "status": "CREATED",
+     "created_at": "2026-11-18T01:55:38.183693+00:00",
+     "started_at": null,
+     "stopped_at": null
+    },
+    {
+     "kind": "LIVE",
+     "id": 203,
+     "mode": "REAL",
+     "strategy_type": "DAILY_SMA20",
+     "coin_pair": "KRW-BTC",
+     "timeframe": "H1",
+     "initial_capital": "20200.00",
+     "available_krw": "200.01",
+     "status": "RUNNING",
+     "created_at": "2026-11-06T10:07:36.87044+00:00",
+     "started_at": "2026-10-27T23:50:00+00:00",
+     "stopped_at": null
+    }
+   ],
+   "orders": [
+    {
+     "id": 3,
+     "session_kind": "LIVE",
+     "session_id": 203,
+     "position_id": 8001,
+     "coin_pair": "KRW-BTC",
+     "side": "BUY",
+     "order_type": "MARKET",
+     "quantity": "20000.00000000",
+     "reserved_krw": "20000.00000000",
+     "client_order_id": "c-u-btc-203",
+     "state": "FILLED",
+     "filled_quantity": "0.00020000",
+     "exchange_order_id": "u-btc-203",
+     "created_at": "2026-11-18T01:55:37.70649+00:00",
+     "reported_executed_funds": "19990.00000000",
+     "reported_paid_fee": "9.99500000",
+     "applied_executed_funds": "19990.00000000",
+     "applied_paid_fee": "9.99500000",
+     "fill_accounting_pending": false
+    }
+   ],
+   "positions": [
+    {
+     "id": 8001,
+     "session_kind": "LIVE",
+     "session_id": 203,
+     "coin_pair": "KRW-BTC",
+     "status": "OPEN",
+     "size": "0.00020000",
+     "opened_at": "2026-11-18T01:55:37.70649+00:00"
+    }
+   ],
+   "unresolved_discrepancies": []
+  },
+  "exchange_after": {
+   "accounts": {
+    "KRW": {
+     "balance": "80000.005",
+     "locked": "0"
+    },
+    "BTC": {
+     "balance": "0.0002",
+     "locked": "0"
+    }
+   },
+   "open_orders": [],
+   "done_order_ids": [
+    "u-btc-203"
+   ]
+  },
+  "db_fp_post": "348d37d59c871e22b158ed284c260b20",
+  "external_flows": [],
+  "query_errors": []
+ },
+ "result": {
+  "overall": "OK",
+  "registry_valid": true,
+  "observation_stable": true,
+  "anomalies": [],
+  "holds": [],
+  "account": {
+   "krw": {
+    "exchange_delta": "0.000",
+    "external": "0",
+    "session_ledger_delta": "0",
+    "raw_residual": "0.000",
+    "explained_rounding": "0",
+    "adjusted_residual": "0.000",
+    "quantum": "0"
+   },
+   "coins": {
+    "BTC": {
+     "exchange_delta_minus_external": "0.0000",
+     "net_filled": "0",
+     "open_position_delta": "0E-8",
+     "match": true
+    }
+   },
+   "base_holdings": {
+    "BTC": {
+     "amount": "0.0002",
+     "source": "base.exchange_after"
+    }
+   },
+   "internal_allocations": [
+    {
+     "session": [
+      "DYNAMIC",
+      900
+     ],
+     "allocated": "20000.00",
+     "note": "구간 안 새 배정 — 거래소 유입 아님"
+    }
+   ],
+   "backing": {
+    "BTC": {
+     "exchange_total": "0.0002",
+     "registered_open": "0.00020000",
+     "ok": true
+    },
+    "KRW": {
+     "exchange_total": "80000.005",
+     "registered_available": "20200.01",
+     "ok": true
+    }
+   },
+   "verdict": "일치"
+  }
+ }
+}
