@@ -1,0 +1,111 @@
+{
+  "A_sign_flip" : {
+    "live" : {
+      "kind" : "LIVE",
+      "session_id" : 1,
+      "avg_price" : "300.00000000",
+      "invested_krw" : "7503.75000000",
+      "stored_realized_pnl" : "1.00000000",
+      "net_sell_proceeds" : "7501.00",
+      "cost_basis_realized_arith" : "-2.75",
+      "available_krw_after" : "16237.62"
+    },
+    "dynamic_real" : {
+      "kind" : "DYNAMIC",
+      "session_id" : 1,
+      "avg_price" : "300.00000000",
+      "invested_krw" : "7503.75000000",
+      "stored_realized_pnl" : "1.00000000",
+      "net_sell_proceeds" : "7501.00",
+      "cost_basis_realized_arith" : "-2.75",
+      "available_krw_after" : "9997.62"
+    },
+    "dyn_paper" : {
+      "kind" : "DYN_PAPER",
+      "session_id" : 2,
+      "entry_fill_price" : "305.30500000",
+      "avg_price" : "305.45772891",
+      "size" : "26.19115263",
+      "stored_realized_pnl" : "-2.40008770",
+      "net_sell_proceeds_arith" : "7997.889912191190",
+      "real_convention_arith" : "1.6000584890400000"
+    },
+    "guards_at_0_01pct" : {
+      "sumLiveSessionRealizedLossSince" : "0",
+      "sumDynamicRealSessionRealizedLossSince" : "0",
+      "checkRealLossGuard" : {
+        "approved" : true,
+        "reason" : "null"
+      },
+      "checkRisk" : {
+        "approved" : true,
+        "reason" : "null"
+      }
+    },
+    "circuit_breakers_limit1" : [ {
+      "session" : "LIVE#1",
+      "triggered" : false,
+      "reason" : "null"
+    }, {
+      "session" : "DYNAMIC#1",
+      "triggered" : false,
+      "reason" : "null"
+    }, {
+      "session" : "DYNAMIC#2",
+      "triggered" : true,
+      "reason" : "연속 손실 1회 초과 (한도: 1회)"
+    } ]
+  },
+  "B_true_loss" : {
+    "live" : {
+      "kind" : "LIVE",
+      "session_id" : 2,
+      "avg_price" : "300.00000000",
+      "invested_krw" : "7503.75000000",
+      "stored_realized_pnl" : "-103.70000000",
+      "net_sell_proceeds" : "7396.30",
+      "cost_basis_realized_arith" : "-107.45",
+      "available_krw_after" : "16132.92"
+    },
+    "dynamic_real" : {
+      "kind" : "DYNAMIC",
+      "session_id" : 3,
+      "avg_price" : "300.00000000",
+      "invested_krw" : "7503.75000000",
+      "stored_realized_pnl" : "-103.70000000",
+      "net_sell_proceeds" : "7396.30",
+      "cost_basis_realized_arith" : "-107.45",
+      "available_krw_after" : "9892.92"
+    },
+    "guards_since_B_at_0_01pct" : {
+      "sumLiveSessionRealizedLossSince" : "-103.7000000000000000",
+      "sumDynamicRealSessionRealizedLossSince" : "-103.7000000000000000",
+      "checkRealLossGuard" : {
+        "approved" : false,
+        "reason" : "일일 손실 한도 초과: 0.32% > 0.01%"
+      },
+      "checkRisk" : {
+        "approved" : false,
+        "reason" : "일일 손실 한도 초과: 0.32% > 0.01%"
+      }
+    },
+    "circuit_breakers_limit1" : [ {
+      "session" : "LIVE#2",
+      "triggered" : true,
+      "reason" : "연속 손실 1회 초과 (한도: 1회)"
+    }, {
+      "session" : "DYNAMIC#3",
+      "triggered" : true,
+      "reason" : "연속 손실 1회 초과 (한도: 1회)"
+    } ]
+  },
+  "C_stop_loss_line" : {
+    "price" : "285.10",
+    "avg_real_convention" : "300",
+    "avg_cost_basis" : "300.15000000",
+    "stopHit_real" : false,
+    "stopHit_cost" : true,
+    "pnlPct_real" : "-4.966700",
+    "pnlPct_cost" : "-5.014200"
+  }
+}

@@ -1,0 +1,7 @@
+v1 dec-scorecard-20261118/scorecard/scorecard.py sha256 89fe3fee0f9d48abd9a3f57cfba9157ee847fdd842fa3e1b1b4f03c5d7598d8f
+입력 review-f14ff757/observations.json sha256 50047e629af1293f1729c5c48e5b220e4656bf6a2edf926d55e61fc762fd3b54
+FAIL(재현) | S1_carry_in_unrealized | 어긴 계약: 기말 미실현 칸이 0 또는 별도 칸; -10 은 증감 칸으로만
+FAIL(재현) | S2_out_of_period_flow | 어긴 계약: 월 밖 배정을 손익에서 빼지 않음
+FAIL(재현) | S3_paper_real_account_mix | 어긴 계약: 실계좌−실자금 세션 = 0; 실자금·모의 혼합 전체 합 없음
+FAIL(재현) | S4_drawdown_percentage | 어긴 계약: 최대 비율 낙폭 −50%(금액 최대 지점의 −40% 아님)
+반례 4 중 v1 실패 재현 4

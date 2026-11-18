@@ -1,0 +1,80 @@
+{
+ "why": "v1 이름 date(시각·시간대 없음) → 계약 위반",
+ "input": {
+  "version": "scorecard-input-2",
+  "period": {
+   "from": "2026-12-01T00:00:00+09:00",
+   "to": "2027-01-01T00:00:00+09:00"
+  },
+  "sessions": [
+   {
+    "kind": "DYNAMIC",
+    "id": 937,
+    "mode": "REAL",
+    "strategy_type": "COMPOSITE_BREAKOUT",
+    "timeframe": "H1",
+    "status_end": "RUNNING",
+    "provenance": {
+     "code_sha": "0e1d2a02",
+     "code_sha_source": "외부 등록표(가상)",
+     "ruleset_hash": "aaaaaaaaaaaa",
+     "registry_ref": "reg-가상-1"
+    },
+    "start": {
+     "available_krw": "100000",
+     "positions": [],
+     "pending_buys": []
+    },
+    "end": {
+     "available_krw": "101949",
+     "positions": [],
+     "pending_buys": []
+    },
+    "flows": [],
+    "trades": [
+     {
+      "buy": {
+       "settled_at": "2026-12-02T09:00:00+09:00",
+       "qty": "0.001",
+       "funds": "50000",
+       "fee": "25"
+      },
+      "sells": [
+       {
+        "settled_at": "2026-12-05T09:00:00+09:00",
+        "qty": "0.001",
+        "funds": "52000",
+        "fee": "26",
+        "stored_realized_pnl": "1949"
+       }
+      ],
+      "position_fee_stored": "51"
+     }
+    ],
+    "market_regime": [
+     {
+      "at": "2026-12-02T09:00:00+09:00",
+      "regime": "TREND_UP",
+      "source": "position.market_regime",
+      "rule_version": "제품 정의"
+     }
+    ],
+    "daily_equity": [
+     {
+      "date": "2026-12-01",
+      "equity": "1"
+     },
+     {
+      "date": "2026-12-02",
+      "equity": "1"
+     }
+    ]
+   }
+  ],
+  "benchmarks": {
+   "btc_price_start": null,
+   "btc_price_end": null
+  }
+ },
+ "rejected": "DYNAMIC#937.daily_equity[0]: v1 이름 date — 표본 시각 at(시간대 포함) 필수"
+}

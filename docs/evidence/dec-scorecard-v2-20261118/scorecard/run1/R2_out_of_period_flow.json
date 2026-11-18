@@ -1,0 +1,57 @@
+{
+ "why": "[총괄 S2] 12월 기초/기말100, 1월 배정50 → 12월 손익 −50 확정이 아니라 계약 위반 거절",
+ "input": {
+  "version": "scorecard-input-2",
+  "period": {
+   "from": "2026-12-01T00:00:00+09:00",
+   "to": "2027-01-01T00:00:00+09:00"
+  },
+  "sessions": [
+   {
+    "kind": "DYNAMIC",
+    "id": 910,
+    "mode": "REAL",
+    "strategy_type": "COMPOSITE_BREAKOUT",
+    "timeframe": "H1",
+    "status_end": "RUNNING",
+    "provenance": {
+     "code_sha": "0e1d2a02",
+     "code_sha_source": "외부 등록표(가상)",
+     "ruleset_hash": "aaaaaaaaaaaa",
+     "registry_ref": "reg-가상-1"
+    },
+    "start": {
+     "available_krw": "100",
+     "positions": [],
+     "pending_buys": []
+    },
+    "end": {
+     "available_krw": "100",
+     "positions": [],
+     "pending_buys": []
+    },
+    "flows": [
+     {
+      "at": "2027-01-02T00:00:00+09:00",
+      "amount_krw": "50",
+      "kind": "ALLOCATE"
+     }
+    ],
+    "trades": [],
+    "market_regime": [
+     {
+      "at": "2026-12-02T09:00:00+09:00",
+      "regime": "TREND_UP",
+      "source": "position.market_regime",
+      "rule_version": "제품 정의"
+     }
+    ]
+   }
+  ],
+  "benchmarks": {
+   "btc_price_start": null,
+   "btc_price_end": null
+  }
+ },
+ "rejected": "DYNAMIC#910.flows[0].at 2027-01-02T00:00:00+09:00: 기간 [from,to) 밖 입출금 — 이 달 성적표에 넣지 않는다(다른 달 입력으로)"
+}

@@ -1,0 +1,374 @@
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
+index 972555bd..152fb716 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
+@@ -3185,7 +3185,7 @@ public class DynamicTradingService {
+                     sessionId, pos.getId(), isPartial, pos.getCoinPair(), soldQty, fillPrice, realizedPnl, fee);
+             if (credited) {
+                 telegramService.bufferTradeEvent(
+-                        "동적#" + sessionId, pos.getCoinPair(), "SELL",
++                        TelegramNotificationService.sessionLabel(pos.getSessionKind(), sessionId), pos.getCoinPair(), "SELL",
+                         fillPrice, soldQty, fee, realizedPnl, "동적 세션 매도");
+             }
+         }
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
+index a69fb8fd..6968a045 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
+@@ -3361,7 +3361,7 @@ public class LiveTradingService {
+                     sessionId, pos.getId(), isPartial, pos.getCoinPair(),
+                     soldQty, fillPrice, realizedPnl, fee);
+             telegramService.bufferTradeEvent(
+-                    "세션#" + sessionId, pos.getCoinPair(), "SELL",
++                    TelegramNotificationService.sessionLabel("LIVE", sessionId), pos.getCoinPair(), "SELL",
+                     fillPrice, soldQty, fee, realizedPnl, isPartial ? "전략 매도(부분체결)" : "전략 매도");
+ 
+             // §14 drift 기록 — 청산 트리거 시점 가격(order.signalPrice) vs 실제 체결가.
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/OrderExecutionEngine.java b/web-api/src/main/java/com/cryptoautotrader/api/service/OrderExecutionEngine.java
+index 033eeed2..063f74dd 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/OrderExecutionEngine.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/OrderExecutionEngine.java
+@@ -2286,7 +2286,7 @@ public class OrderExecutionEngine {
+ 
+             if (order.getSessionId() != null && telegramService != null) {
+                 telegramService.bufferTradeEvent(
+-                        "세션#" + order.getSessionId(), order.getCoinPair(), "BUY",
++                        TelegramNotificationService.sessionLabel(order.getSessionKind(), order.getSessionId()), order.getCoinPair(), "BUY",
+                         avgFillPrice, filledQty, buyFee, null, order.getSignalReason());
+             }
+ 
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java
+index 3dd19745..a4c46211 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java
+@@ -1943,7 +1943,7 @@ public class PaperTradingService {
+                     sessionId, coinPair, fQty, fPrice, fSl, fTp, fFee);
+             if (tg) {
+                 telegramService.bufferTradeEvent(
+-                        "[모의투자] 세션#" + sessionId, coinPair, "BUY",
++                        TelegramNotificationService.sessionLabel("PAPER", sessionId), coinPair, "BUY",
+                         fPrice, fQty, fFee, null, sigReason);
+             }
+         };
+@@ -2011,7 +2011,7 @@ public class PaperTradingService {
+                     pos.getSessionId(), pos.getCoinPair(), pos.getSize(), currentPrice, realizedPnl);
+             if (tg) {
+                 telegramService.bufferTradeEvent(
+-                        "[모의투자] 세션#" + pos.getSessionId(), pos.getCoinPair(), "SELL",
++                        TelegramNotificationService.sessionLabel("PAPER", pos.getSessionId()), pos.getCoinPair(), "SELL",
+                         currentPrice, pos.getSize(), fFee, realizedPnl, reason);
+             }
+         };
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/TelegramNotificationService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/TelegramNotificationService.java
+index 2b1a0121..63a96a33 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/TelegramNotificationService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/TelegramNotificationService.java
+@@ -92,6 +92,26 @@ public class TelegramNotificationService {
+     /** 매수/매도 이벤트 버퍼 (스레드 세이프) */
+     private final List<TradeEvent> tradeBuffer = new CopyOnWriteArrayList<>();
+ 
++    /**
++     * 이 서비스(= 앱 프로세스)가 뜬 시각 — 최소 알림(총괄 v1.190 §4-2, 2026-11-19).
++     * 버퍼는 메모리라 재기동 앞 거래가 사라진다. 요약 구간 안에서 재기동했으면 요약 머리에 그 사실을 한 줄 적는다.
++     * 버퍼를 영속화하지 않는다 — 원본은 DB 주문/정산이다.
++     */
++    private volatile Instant startedAt = Instant.now();
++
++    /** 알림 꺼짐일 때 버퍼에 넣지 않고 버린 거래 이벤트 수 — 요약 시각에 로그로만 남기고 0 으로 되돌린다. */
++    private final java.util.concurrent.atomic.AtomicLong droppedWhileDisabled = new java.util.concurrent.atomic.AtomicLong();
++
++    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
++
++    /**
++     * 거래 요약의 세션 표시 — {@code 종류#ID} 로 통일한다(총괄 v1.190 §4-2). LIVE·DYNAMIC 세션 id 는 독립 시퀀스라
++     * {@code "세션#5"} 처럼 종류 없이 쓰면 LIVE#5 와 DYNAMIC#5 의 거래가 한 묶음에 섞인다. 종류를 모르면 그렇다고 적는다.
++     */
++    public static String sessionLabel(String kind, Long sessionId) {
++        return (kind == null || kind.isBlank() ? "종류미상" : kind) + "#" + sessionId;
++    }
++
+     // ── 버퍼링 대상: 매수/매도 이벤트 ─────────────────────────────────────────
+ 
+     /**
+@@ -101,6 +121,11 @@ public class TelegramNotificationService {
+     public void bufferTradeEvent(String sessionLabel, String coinPair, String side,
+                                   BigDecimal price, BigDecimal quantity, BigDecimal fee,
+                                   BigDecimal realizedPnl, String reason) {
++        if (!enabled) {
++            // 꺼짐이면 요약이 돌지 않아 아무도 비우지 않는다 — 쌓지 않고 개수만 센다.
++            droppedWhileDisabled.incrementAndGet();
++            return;
++        }
+         tradeBuffer.add(new TradeEvent(sessionLabel, coinPair, side, price, quantity, fee, realizedPnl, reason, Instant.now()));
+         log.debug("[Telegram] 거래 버퍼 적재: {} {} {} @ {}", sessionLabel, side, coinPair, price);
+     }
+@@ -488,45 +513,78 @@ public class TelegramNotificationService {
+     /** 매일 정오(12:00 KST) 오전 거래 요약 전송 */
+     @Scheduled(cron = "0 0 12 * * *", zone = "Asia/Seoul")
+     public void sendNoonSummary() {
+-        sendDailySummary("오전 거래 요약 (자정~정오)");
++        sendDailySummary("오전 거래 요약 (자정~정오)", Instant.now());
+     }
+ 
+     /** 매일 자정(00:00 KST) 오후 거래 요약 전송 */
+     @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
+     public void sendMidnightSummary() {
+-        sendDailySummary("오후 거래 요약 (정오~자정)");
++        sendDailySummary("오후 거래 요약 (정오~자정)", Instant.now());
+     }
+ 
+-    private void sendDailySummary(String periodLabel) {
+-        if (!enabled) return;
++    private void sendDailySummary(String periodLabel, Instant now) {
++        for (String[] m : buildDailySummaries(periodLabel, now)) {
++            sendMarkdownAndLog(m[1], "TRADE_SUMMARY", m[0]);
++            log.info("[Telegram] {} {} 요약 전송", periodLabel, m[0] == null ? "거래 없음" : m[0]);
++        }
++    }
++
++    /** 요약 구간 시작 — 요약 시각을 KST 0시/12시로 내린 뒤 12시간 앞. 늦게 돈 회차(12:00:00.5)도 같은 구간을 가리킨다. */
++    static Instant periodStart(Instant now) {
++        java.time.ZonedDateTime z = now.atZone(KST).truncatedTo(java.time.temporal.ChronoUnit.HOURS);
++        return z.withHour(z.getHour() < 12 ? 0 : 12).minusHours(12).toInstant();
++    }
++
++    /**
++     * 요약 메시지를 만든다(전송은 호출자) — [세션 표시 또는 null(거래 없음), 본문]. 꺼낸 거래는 버퍼에서 비운다.
++     * 알림 꺼짐이면 아무것도 만들지 않고, 버퍼에 남은 것(꺼지기 전 적재분)을 버리며 버린 개수를 로그로만 남긴다.
++     */
++    List<String[]> buildDailySummaries(String periodLabel, Instant now) {
++        List<String[]> out = new ArrayList<>();
++        if (!enabled) {
++            int left = tradeBuffer.size();
++            tradeBuffer.clear();
++            long dropped = droppedWhileDisabled.getAndSet(0) + left;
++            if (dropped > 0) {
++                log.info("[Telegram] 알림 꺼짐 — {} 요약 생략, 적재하지 않은 거래 이벤트 {}건(원본은 DB 주문/정산)", periodLabel, dropped);
++            }
++            return out;
++        }
+ 
+         List<TradeEvent> events = new ArrayList<>(tradeBuffer);
+         tradeBuffer.removeAll(events);
++        String restart = restartNote(now);
+ 
+         if (events.isEmpty()) {
+-            String msg = String.format("📊 *%s*\n\n• 해당 시간대 매매 없음\n• 기준 시각: `%s`\n",
+-                    periodLabel, KST_FMT.format(Instant.now()));
+-            sendMarkdownAndLog(msg, "TRADE_SUMMARY", null);
+-            log.info("[Telegram] {} - 거래 없음 요약 전송", periodLabel);
+-            return;
++            String msg = String.format("📊 *%s*\n%s\n• 해당 시간대 매매 없음\n• 기준 시각: `%s`\n",
++                    periodLabel, restart, KST_FMT.format(now));
++            out.add(new String[]{null, msg});
++            return out;
+         }
+ 
+-        // 세션별로 그룹화하여 개별 메시지 전송
++        // 세션별로 그룹화 — 세션 하나에 메시지 하나
+         Map<String, List<TradeEvent>> bySession = events.stream()
+                 .collect(Collectors.groupingBy(TradeEvent::sessionLabel, LinkedHashMap::new, Collectors.toList()));
+-
+         for (Map.Entry<String, List<TradeEvent>> entry : bySession.entrySet()) {
+-            String sessionLabel = entry.getKey();
+-            List<TradeEvent> sessionEvents = entry.getValue();
+-            String msg = buildSessionSummary(periodLabel, sessionLabel, sessionEvents);
+-            sendMarkdownAndLog(msg, "TRADE_SUMMARY", sessionLabel);
+-            log.info("[Telegram] {} {} 요약 전송 완료: {}건", periodLabel, sessionLabel, sessionEvents.size());
++            out.add(new String[]{entry.getKey(), buildSessionSummary(periodLabel, entry.getKey(), entry.getValue(), restart, now)});
++        }
++        return out;
++    }
++
++    /** 요약 구간 안에 재기동했으면 그 한 줄(줄바꿈 포함), 아니면 빈 문자열. MarkdownV2 예약 문자(. ( ) - 등)는 쓰지 않는다. */
++    private String restartNote(Instant now) {
++        Instant s = startedAt;
++        if (s.isAfter(periodStart(now)) && !s.isAfter(now)) {
++            return String.format("⚠️ `%s` 재기동 — 그 앞 거래는 이 요약에 없음 · 원본은 DB 주문/정산\n", KST_TIME_FMT.format(s));
+         }
++        return "";
+     }
+ 
+-    private String buildSessionSummary(String periodLabel, String sessionLabel, List<TradeEvent> events) {
++    private String buildSessionSummary(String periodLabel, String sessionLabel, List<TradeEvent> events,
++                                       String restart, Instant now) {
+         StringBuilder sb = new StringBuilder();
+         sb.append(String.format("📊 *%s*\n", periodLabel));
++        sb.append(restart);
+         sb.append(String.format("📌 세션: `%s`\n\n", escapeMarkdownV2(sessionLabel)));
+ 
+         long buyCount  = events.stream().filter(e -> "BUY".equals(e.side())).count();
+@@ -545,7 +603,7 @@ public class TelegramNotificationService {
+         sb.append(String.format("• 누적 수수료: `%,.0f KRW`\n", totalFee.doubleValue()));
+         sb.append(String.format("• 실현 손익 합계: `%s%,.0f KRW`\n",
+                 totalPnl.compareTo(BigDecimal.ZERO) >= 0 ? "+" : "", totalPnl.doubleValue()));
+-        sb.append(String.format("• 기준 시각: `%s`\n\n", KST_FMT.format(Instant.now())));
++        sb.append(String.format("• 기준 시각: `%s`\n\n", KST_FMT.format(now)));
+ 
+         sb.append("*상세 내역*\n");
+         events.stream().limit(10).forEach(e -> {
+@@ -982,6 +1040,12 @@ public class TelegramNotificationService {
+             com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+     record SendMessageRequest(String chat_id, String text, String parse_mode) {}
+ 
++    int bufferedTradeEvents() { return tradeBuffer.size(); }
++
++    long droppedWhileDisabled() { return droppedWhileDisabled.get(); }
++
++    void setStartedAtForTest(Instant v) { this.startedAt = v; }
++
+     record TradeEvent(
+             String sessionLabel, String coinPair, String side,
+             BigDecimal price, BigDecimal quantity, BigDecimal fee,
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/TelegramMinimalAlertTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/TelegramMinimalAlertTest.java
+new file mode 100644
+index 00000000..1e2abeb8
+--- /dev/null
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/TelegramMinimalAlertTest.java
+@@ -0,0 +1,146 @@
++package com.cryptoautotrader.api.service;
++
++import com.cryptoautotrader.api.repository.TelegramNotificationLogRepository;
++import org.junit.jupiter.api.BeforeEach;
++import org.junit.jupiter.api.DisplayName;
++import org.junit.jupiter.api.Test;
++import org.springframework.test.util.ReflectionTestUtils;
++
++import java.math.BigDecimal;
++import java.nio.charset.StandardCharsets;
++import java.nio.file.Files;
++import java.nio.file.Path;
++import java.time.Instant;
++import java.util.List;
++
++import static org.assertj.core.api.Assertions.assertThat;
++import static org.mockito.Mockito.mock;
++
++/**
++ * 최소 알림 후보(총괄 v1.190 §4-2) — 대역 시험. 전송·HTTP·DB 없이 요약 메시지 생성만 본다.
++ * 범위: 같은 ID 의 LIVE/DYNAMIC 분리, 재기동 첫 요약 표시, 알림 꺼짐 경계. 즉시 체결 알림·정지/위험 알림 정책은 바꾸지 않았다.
++ */
++@DisplayName("최소 알림 — 종류#ID·재기동 표시·꺼짐 버퍼")
++class TelegramMinimalAlertTest {
++
++    private TelegramNotificationService svc;
++
++    // 2026-12-02 00:00:00 KST = 12-01 15:00Z (자정 요약 → 구간 12-01 12:00~24:00 KST)
++    private static final Instant MIDNIGHT = Instant.parse("2026-12-01T15:00:00Z");
++    // 2026-12-02 12:00:00.4 KST (정오 요약이 조금 늦게 돈 회차 → 구간 12-02 00:00~12:00 KST)
++    private static final Instant NOON_LATE = Instant.parse("2026-12-02T03:00:00.400Z");
++
++    @BeforeEach
++    void setUp() {
++        svc = new TelegramNotificationService(mock(TelegramNotificationLogRepository.class));
++        ReflectionTestUtils.setField(svc, "enabled", true);
++        svc.setStartedAtForTest(Instant.parse("2026-11-01T00:00:00Z"));   // 기본: 구간 훨씬 전에 기동
++    }
++
++    private void trade(String label, String side) {
++        svc.bufferTradeEvent(label, "KRW-BTC", side, new BigDecimal("100000000"), new BigDecimal("0.0001"),
++                new BigDecimal("5"), "SELL".equals(side) ? new BigDecimal("-12") : null, "시험");
++    }
++
++    @Test
++    @DisplayName("표시 함수 — 종류#ID, 종류 없으면 '종류미상'")
++    void label() {
++        assertThat(TelegramNotificationService.sessionLabel("LIVE", 5L)).isEqualTo("LIVE#5");
++        assertThat(TelegramNotificationService.sessionLabel("DYNAMIC", 5L)).isEqualTo("DYNAMIC#5");
++        assertThat(TelegramNotificationService.sessionLabel("DYN_PAPER", 5L)).isEqualTo("DYN_PAPER#5");
++        assertThat(TelegramNotificationService.sessionLabel(null, 5L)).isEqualTo("종류미상#5");
++        assertThat(TelegramNotificationService.sessionLabel(" ", 5L)).isEqualTo("종류미상#5");
++    }
++
++    @Test
++    @DisplayName("같은 ID 5 의 LIVE·DYNAMIC 거래는 두 요약으로 나뉜다(종전 '세션#5' 하나로 섞임)")
++    void sameIdSplit() {
++        trade(TelegramNotificationService.sessionLabel("LIVE", 5L), "BUY");
++        trade(TelegramNotificationService.sessionLabel("DYNAMIC", 5L), "BUY");
++        trade(TelegramNotificationService.sessionLabel("DYNAMIC", 5L), "SELL");
++        trade(TelegramNotificationService.sessionLabel("LIVE", 5L), "SELL");
++        List<String[]> msgs = svc.buildDailySummaries("오후 거래 요약 (정오~자정)", MIDNIGHT);
++        assertThat(msgs).extracting(m -> m[0]).containsExactly("LIVE#5", "DYNAMIC#5");
++        assertThat(msgs.get(0)[1]).contains("세션: `LIVE\\#5`").contains("매수: `1회` / 매도: `1회`");
++        assertThat(msgs.get(1)[1]).contains("세션: `DYNAMIC\\#5`").contains("매수: `1회` / 매도: `1회`");
++        assertThat(svc.bufferedTradeEvents()).isZero();
++    }
++
++    @Test
++    @DisplayName("구간 경계 — 0시/12시로 내린 뒤 12시간 앞, 늦게 돈 회차도 같은 구간")
++    void periodStart() {
++        assertThat(TelegramNotificationService.periodStart(MIDNIGHT)).isEqualTo(Instant.parse("2026-12-01T03:00:00Z"));
++        assertThat(TelegramNotificationService.periodStart(NOON_LATE)).isEqualTo(Instant.parse("2026-12-01T15:00:00Z"));
++    }
++
++    @Test
++    @DisplayName("구간 안 재기동 — 첫 요약(거래 있음·없음 모두) 머리에 재기동 줄, 구간 전 기동이면 없음")
++    void restartNote() {
++        svc.setStartedAtForTest(Instant.parse("2026-12-01T09:30:00Z"));   // 12-01 18:30 KST — 자정 요약 구간 안
++        List<String[]> empty = svc.buildDailySummaries("오후 거래 요약 (정오~자정)", MIDNIGHT);
++        assertThat(empty).hasSize(1);
++        assertThat(empty.get(0)[0]).isNull();
++        assertThat(empty.get(0)[1]).contains("`18:30` 재기동").contains("그 앞 거래는 이 요약에 없음").contains("매매 없음");
++
++        trade(TelegramNotificationService.sessionLabel("LIVE", 1L), "BUY");
++        List<String[]> withTrade = svc.buildDailySummaries("오후 거래 요약 (정오~자정)", MIDNIGHT);
++        assertThat(withTrade.get(0)[1]).contains("`18:30` 재기동");
++
++        // 다음 구간(정오 요약)에는 같은 기동 시각이 구간 전이므로 표시 없음
++        List<String[]> next = svc.buildDailySummaries("오전 거래 요약 (자정~정오)", NOON_LATE);
++        assertThat(next.get(0)[1]).doesNotContain("재기동");
++
++        // 구간 시작 정각 기동(12:00:00 KST)은 구간 '안'이 아니다 — 앞 구간 거래가 버퍼에 남을 수 없으므로 표시하지 않는다
++        svc.setStartedAtForTest(Instant.parse("2026-12-01T03:00:00Z"));
++        assertThat(svc.buildDailySummaries("오후 거래 요약 (정오~자정)", MIDNIGHT).get(0)[1]).doesNotContain("재기동");
++    }
++
++    @Test
++    @DisplayName("재기동 줄은 MarkdownV2 예약 문자(. ( ) - 등)를 새로 쓰지 않는다")
++    void restartNoteMarkdownSafe() {
++        svc.setStartedAtForTest(Instant.parse("2026-12-01T09:30:00Z"));
++        String m = svc.buildDailySummaries("오후 거래 요약 (정오~자정)", MIDNIGHT).get(0)[1];
++        String line = m.lines().filter(l -> l.contains("재기동")).findFirst().orElseThrow();
++        assertThat(line).doesNotContainPattern("[_\\[\\]()~>#+\\-=|{}.!]");
++    }
++
++    @Test
++    @DisplayName("알림 꺼짐 — 적재하지 않고 개수만 세며, 요약은 만들지 않고 개수를 0 으로 되돌린다")
++    void disabledDoesNotAccumulate() {
++        ReflectionTestUtils.setField(svc, "enabled", false);
++        for (int i = 0; i < 1000; i++) trade(TelegramNotificationService.sessionLabel("LIVE", 1L), "BUY");
++        assertThat(svc.bufferedTradeEvents()).isZero();
++        assertThat(svc.droppedWhileDisabled()).isEqualTo(1000);
++        assertThat(svc.buildDailySummaries("오후 거래 요약 (정오~자정)", MIDNIGHT)).isEmpty();
++        assertThat(svc.droppedWhileDisabled()).isZero();
++    }
++
++    @Test
++    @DisplayName("켜진 상태에서 쌓인 뒤 꺼지면 요약 시각에 버린다(남지 않음)")
++    void disabledAfterBufferedClears() {
++        trade(TelegramNotificationService.sessionLabel("DYNAMIC", 2L), "BUY");
++        assertThat(svc.bufferedTradeEvents()).isEqualTo(1);
++        ReflectionTestUtils.setField(svc, "enabled", false);
++        assertThat(svc.buildDailySummaries("오후 거래 요약 (정오~자정)", MIDNIGHT)).isEmpty();
++        assertThat(svc.bufferedTradeEvents()).isZero();
++    }
++
++    @Test
++    @DisplayName("호출 5곳이 표시 함수를 쓴다 — 종전 '세션#'·'동적#'·'[모의투자] 세션#' 문자열이 버퍼 호출에 남지 않음")
++    void callSitesUseLabel() throws Exception {
++        Path dir = Path.of("src/main/java/com/cryptoautotrader/api/service");
++        int uses = 0;
++        for (String f : List.of("OrderExecutionEngine.java", "DynamicTradingService.java", "LiveTradingService.java", "PaperTradingService.java")) {
++            List<String> lines = Files.readAllLines(dir.resolve(f), StandardCharsets.UTF_8);
++            for (int i = 0; i < lines.size(); i++) {
++                if (lines.get(i).contains("telegramService.bufferTradeEvent(")) {
++                    String arg = lines.get(i + 1);
++                    assertThat(arg).as("%s:%d", f, i + 2).contains("TelegramNotificationService.sessionLabel(")
++                            .doesNotContain("\"세션#\"").doesNotContain("\"동적#\"").doesNotContain("[모의투자] 세션#");
++                    uses++;
++                }
++            }
++        }
++        assertThat(uses).isEqualTo(5);
++    }
++}

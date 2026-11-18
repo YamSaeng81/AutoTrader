@@ -1,0 +1,4272 @@
+{
+ "fixed_head": "f14ff7576fe58564ab95f3158e33e9d3130872e3",
+ "anchors": {
+  "docs\\evidence\\dec-reconcile-v5-20261118\\p7v5\\reconcile.py": "2ca03476eed179baeee3c7a7ab63bdb3991a0cf2ce32cc87c1a84b5d29fd79a0",
+  "docs\\evidence\\dec-reconcile-v5-20261118\\p7v5\\cases_v5.py": "c26a082125568c40bad544c87bf877ab60f499dcc124f2c45fa16feb47ec91e1",
+  "amount_patch_id": "84a0e5d2c04601f09c61180c32c13acd0191a4fa",
+  "integration_patch_id": "84a0e5d2c04601f09c61180c32c13acd0191a4fa",
+  "docs\\evidence\\dec-scorecard-20261118\\scorecard\\scorecard.py": "89fe3fee0f9d48abd9a3f57cfba9157ee847fdd842fa3e1b1b4f03c5d7598d8f",
+  "docs\\evidence\\dec-scorecard-20261118\\scorecard\\cases_scorecard.py": "2177ccd4eb8c26b09067851d07255900c5f619e7e931c59737859eadf88bc290",
+  "0e1d2a021ab2f3c759a9b2be9c4f09430f93c80d:web-api/src/main/java/com/cryptoautotrader/api/repository/OrderRepository.java": "a1a9f42cb17d6817ec68381da4a02f67301fe92d5e00ba7b3d17abffc7900e9f",
+  "0e1d2a021ab2f3c759a9b2be9c4f09430f93c80d:web-api/src/main/java/com/cryptoautotrader/api/service/RiskManagementService.java": "e87879c9413c3fc8f8a761be9caa7b103ad197b03f7e197f0b5fc0e5e837d47e"
+ },
+ "passed": 844,
+ "failed": 0,
+ "checks": [
+  {
+   "check": "fixed HEAD",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "saved origin/main",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "manifest count:dec-reconcile-v5-20261118",
+   "passed": true,
+   "detail": 152
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/.gitattributes",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/README.md",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/cases_v5.py",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/mutate_v5.py",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/mutation.out.txt",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/reconcile.py",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases.out.txt",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/F11_v5_files_pg04.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/F12_v5_constant_offset_file.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/F13_v4_files_no_axis.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K01D_01b_measured.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K01L_01b_measured.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K02_01b_app_clock_unknown.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K03_app_same_declared_one_side.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K04_01b_v4_input_no_axis.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K05_zero_diff_same_axis.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K06_negative_confirmed.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K07_boundary_overlap.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K08_positive_confirmed_50ms.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K09_stale_samples.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K10_missing_samples.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K11_shift_mono_vs_wall.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K12_shift_between_samples.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K13_mono_consistent.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K14_db_time_outside_confirmed.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K15_09_v4_input.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K16_09_measured.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K17_clock_hold_plus_krw_minus_1_50.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K18_clock_hold_plus_unbacked.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K19_clock_hold_plus_strategy_mismatch.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K20_order_window_app_unknown.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K21_order_before_effective_confirmed.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K22_exchange_clock_unknown.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K23_query_ends_before_db_extract.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K24_rule_cap_window_unknown.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K25_rule_cap_confirmed.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K26_base_last_end_recorded.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K27_constant_offset_rejected.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K28_registry_axis_undeclared.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K29_not_bracketed.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K30_stale_sample_not_bracket.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K31_mono_gap_widens_range.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_D01_new_allocation.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_D01b_new_allocation_db_axis_limit.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_D02_submitted_in_flight.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_D03_partial_fill_active.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_D04_reserve_to_cancel_refund.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_D05_fee_corrections.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_D06_same_response_repeated.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_D07_zero_trade_existing_holding.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_D08_full_window.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_D09_collector_clock_axis.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_DN1_exchange_krw_minus_1.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_DN2_exchange_coin_plus.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_DN3_correction_not_on_exchange.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_DN4_session_ledger_plus_1c.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_DN5_unregistered_session.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_L01_new_allocation.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_L01b_new_allocation_db_axis_limit.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_L02_submitted_in_flight.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_L03_partial_fill_active.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_L04_reserve_to_cancel_refund.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_L05_fee_corrections.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_L06_same_response_repeated.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_L07_zero_trade_existing_holding.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_L08_full_window.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_L09_collector_clock_axis.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_LN1_exchange_krw_minus_1.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_LN2_exchange_coin_plus.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_LN3_correction_not_on_exchange.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_LN4_session_ledger_plus_1c.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_LN5_unregistered_session.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/files/v4_base.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/files/v4_now.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/files/v4_reg.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/files/v5_base.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/files/v5_now.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/files/v5_now_offset.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v4-red/files/v5_reg.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases.out.txt",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/F11_v5_files_pg04.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/F12_v5_constant_offset_file.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/F13_v4_files_no_axis.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/K01D_01b_measured.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/K01L_01b_measured.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/K02_01b_app_clock_unknown.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/K03_app_same_declared_one_side.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/K04_01b_v4_input_no_axis.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/K05_zero_diff_same_axis.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/K06_negative_confirmed.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/K07_boundary_overlap.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/K08_positive_confirmed_50ms.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/K09_stale_samples.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/K10_missing_samples.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/K11_shift_mono_vs_wall.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/K12_shift_between_samples.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/K13_mono_consistent.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/K14_db_time_outside_confirmed.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/K15_09_v4_input.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/K16_09_measured.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/K17_clock_hold_plus_krw_minus_1_50.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/K18_clock_hold_plus_unbacked.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/K19_clock_hold_plus_strategy_mismatch.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/K20_order_window_app_unknown.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/K21_order_before_effective_confirmed.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/K22_exchange_clock_unknown.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/K23_query_ends_before_db_extract.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/K24_rule_cap_window_unknown.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/K25_rule_cap_confirmed.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/K26_base_last_end_recorded.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/K27_constant_offset_rejected.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/K28_registry_axis_undeclared.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/K29_not_bracketed.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/K30_stale_sample_not_bracket.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/K31_mono_gap_widens_range.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_D01_new_allocation.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_D01b_new_allocation_db_axis_limit.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_D02_submitted_in_flight.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_D03_partial_fill_active.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_D04_reserve_to_cancel_refund.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_D05_fee_corrections.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_D06_same_response_repeated.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_D07_zero_trade_existing_holding.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_D08_full_window.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_D09_collector_clock_axis.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_DN1_exchange_krw_minus_1.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_DN2_exchange_coin_plus.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_DN3_correction_not_on_exchange.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_DN4_session_ledger_plus_1c.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_DN5_unregistered_session.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_L01_new_allocation.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_L01b_new_allocation_db_axis_limit.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_L02_submitted_in_flight.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_L03_partial_fill_active.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_L04_reserve_to_cancel_refund.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_L05_fee_corrections.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_L06_same_response_repeated.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_L07_zero_trade_existing_holding.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_L08_full_window.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_L09_collector_clock_axis.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_LN1_exchange_krw_minus_1.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_LN2_exchange_coin_plus.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_LN3_correction_not_on_exchange.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_LN4_session_ledger_plus_1c.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_LN5_unregistered_session.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/files/v4_base.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/files/v4_now.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/files/v4_reg.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/files/v5_base.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/files/v5_now.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/files/v5_now_offset.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-reconcile-v5-20261118/p7v5/run-v5/files/v5_reg.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "manifest coverage:dec-reconcile-v5-20261118",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/.gitattributes",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/README.md",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/SHA256SUMS",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/cases_v5.py",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/mutate_v5.py",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/mutation.out.txt",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/reconcile.py",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases.out.txt",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/F11_v5_files_pg04.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/F12_v5_constant_offset_file.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/F13_v4_files_no_axis.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K01D_01b_measured.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K01L_01b_measured.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K02_01b_app_clock_unknown.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K03_app_same_declared_one_side.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K04_01b_v4_input_no_axis.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K05_zero_diff_same_axis.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K06_negative_confirmed.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K07_boundary_overlap.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K08_positive_confirmed_50ms.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K09_stale_samples.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K10_missing_samples.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K11_shift_mono_vs_wall.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K12_shift_between_samples.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K13_mono_consistent.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K14_db_time_outside_confirmed.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K15_09_v4_input.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K16_09_measured.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K17_clock_hold_plus_krw_minus_1_50.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K18_clock_hold_plus_unbacked.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K19_clock_hold_plus_strategy_mismatch.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K20_order_window_app_unknown.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K21_order_before_effective_confirmed.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K22_exchange_clock_unknown.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K23_query_ends_before_db_extract.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K24_rule_cap_window_unknown.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K25_rule_cap_confirmed.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K26_base_last_end_recorded.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K27_constant_offset_rejected.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K28_registry_axis_undeclared.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K29_not_bracketed.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K30_stale_sample_not_bracket.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/K31_mono_gap_widens_range.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_D01_new_allocation.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_D01b_new_allocation_db_axis_limit.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_D02_submitted_in_flight.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_D03_partial_fill_active.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_D04_reserve_to_cancel_refund.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_D05_fee_corrections.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_D06_same_response_repeated.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_D07_zero_trade_existing_holding.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_D08_full_window.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_D09_collector_clock_axis.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_DN1_exchange_krw_minus_1.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_DN2_exchange_coin_plus.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_DN3_correction_not_on_exchange.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_DN4_session_ledger_plus_1c.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_DN5_unregistered_session.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_L01_new_allocation.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_L01b_new_allocation_db_axis_limit.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_L02_submitted_in_flight.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_L03_partial_fill_active.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_L04_reserve_to_cancel_refund.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_L05_fee_corrections.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_L06_same_response_repeated.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_L07_zero_trade_existing_holding.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_L08_full_window.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_L09_collector_clock_axis.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_LN1_exchange_krw_minus_1.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_LN2_exchange_coin_plus.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_LN3_correction_not_on_exchange.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_LN4_session_ledger_plus_1c.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/cases/P_LN5_unregistered_session.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/files/v4_base.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/files/v4_now.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/files/v4_reg.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/files/v5_base.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/files/v5_now.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/files/v5_now_offset.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v4-red/files/v5_reg.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases.out.txt",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/F11_v5_files_pg04.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/F12_v5_constant_offset_file.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/F13_v4_files_no_axis.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/K01D_01b_measured.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/K01L_01b_measured.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/K02_01b_app_clock_unknown.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/K03_app_same_declared_one_side.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/K04_01b_v4_input_no_axis.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/K05_zero_diff_same_axis.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/K06_negative_confirmed.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/K07_boundary_overlap.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/K08_positive_confirmed_50ms.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/K09_stale_samples.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/K10_missing_samples.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/K11_shift_mono_vs_wall.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/K12_shift_between_samples.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/K13_mono_consistent.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/K14_db_time_outside_confirmed.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/K15_09_v4_input.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/K16_09_measured.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/K17_clock_hold_plus_krw_minus_1_50.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/K18_clock_hold_plus_unbacked.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/K19_clock_hold_plus_strategy_mismatch.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/K20_order_window_app_unknown.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/K21_order_before_effective_confirmed.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/K22_exchange_clock_unknown.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/K23_query_ends_before_db_extract.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/K24_rule_cap_window_unknown.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/K25_rule_cap_confirmed.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/K26_base_last_end_recorded.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/K27_constant_offset_rejected.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/K28_registry_axis_undeclared.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/K29_not_bracketed.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/K30_stale_sample_not_bracket.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/K31_mono_gap_widens_range.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_D01_new_allocation.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_D01b_new_allocation_db_axis_limit.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_D02_submitted_in_flight.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_D03_partial_fill_active.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_D04_reserve_to_cancel_refund.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_D05_fee_corrections.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_D06_same_response_repeated.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_D07_zero_trade_existing_holding.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_D08_full_window.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_D09_collector_clock_axis.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_DN1_exchange_krw_minus_1.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_DN2_exchange_coin_plus.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_DN3_correction_not_on_exchange.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_DN4_session_ledger_plus_1c.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_DN5_unregistered_session.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_L01_new_allocation.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_L01b_new_allocation_db_axis_limit.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_L02_submitted_in_flight.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_L03_partial_fill_active.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_L04_reserve_to_cancel_refund.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_L05_fee_corrections.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_L06_same_response_repeated.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_L07_zero_trade_existing_holding.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_L08_full_window.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_L09_collector_clock_axis.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_LN1_exchange_krw_minus_1.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_LN2_exchange_coin_plus.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_LN3_correction_not_on_exchange.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_LN4_session_ledger_plus_1c.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/cases/P_LN5_unregistered_session.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/files/v4_base.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/files/v4_now.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/files/v4_reg.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/files/v5_base.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/files/v5_now.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/files/v5_now_offset.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-reconcile-v5-20261118/p7v5/run-v5/files/v5_reg.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "manifest count:dec-amtbtc-20261118",
+   "passed": true,
+   "detail": 21
+  },
+  {
+   "check": "file hash:dec-amtbtc-20261118/.gitattributes",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-amtbtc-20261118/README.md",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-amtbtc-20261118/c70a8330.diff",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-amtbtc-20261118/green/TEST-com.cryptoautotrader.api.service.BtcGateUnknownEntryTest.xml",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-amtbtc-20261118/green/TEST-com.cryptoautotrader.api.service.DynamicEntryLimitsTest.xml",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-amtbtc-20261118/green/TEST-com.cryptoautotrader.api.service.DynamicPaperBuySameTickWatchlistTest.xml",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-amtbtc-20261118/green/TEST-com.cryptoautotrader.api.service.DynamicPaperLiveRuleParityTest.xml",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-amtbtc-20261118/green/TEST-com.cryptoautotrader.api.service.DynamicPaperTradingTest.xml",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-amtbtc-20261118/green/TEST-com.cryptoautotrader.api.service.DynamicScanSelectionTest.xml",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-amtbtc-20261118/green/TEST-com.cryptoautotrader.api.service.EntryPriorityEndToEndTest.xml",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-amtbtc-20261118/green/TEST-com.cryptoautotrader.api.service.RulesetRegistryCompositionTest.xml",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-amtbtc-20261118/green/TEST-com.cryptoautotrader.api.service.SessionKindIsolationTest.xml",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-amtbtc-20261118/green/summary.txt",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-amtbtc-20261118/integration/TEST-com.cryptoautotrader.api.service.DynamicBlackSwanCooldownCrossKindTest.xml",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-amtbtc-20261118/integration/TEST-com.cryptoautotrader.api.service.DynamicBlackSwanCooldownRestoreTest.xml",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-amtbtc-20261118/integration/TEST-com.cryptoautotrader.api.service.DynamicEntryLimitsTest.xml",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-amtbtc-20261118/integration/TEST-com.cryptoautotrader.api.service.DynamicTradingModeInputTest.xml",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-amtbtc-20261118/integration/TEST-com.cryptoautotrader.api.service.SessionKindIsolationTest.xml",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-amtbtc-20261118/integration/summary.txt",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-amtbtc-20261118/red/TEST-com.cryptoautotrader.api.service.DynamicEntryLimitsTest.xml",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-amtbtc-20261118/red/summary.txt",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "manifest coverage:dec-amtbtc-20261118",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-amtbtc-20261118/.gitattributes",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-amtbtc-20261118/README.md",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-amtbtc-20261118/SHA256SUMS",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-amtbtc-20261118/c70a8330.diff",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-amtbtc-20261118/green/TEST-com.cryptoautotrader.api.service.BtcGateUnknownEntryTest.xml",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-amtbtc-20261118/green/TEST-com.cryptoautotrader.api.service.DynamicEntryLimitsTest.xml",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-amtbtc-20261118/green/TEST-com.cryptoautotrader.api.service.DynamicPaperBuySameTickWatchlistTest.xml",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-amtbtc-20261118/green/TEST-com.cryptoautotrader.api.service.DynamicPaperLiveRuleParityTest.xml",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-amtbtc-20261118/green/TEST-com.cryptoautotrader.api.service.DynamicPaperTradingTest.xml",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-amtbtc-20261118/green/TEST-com.cryptoautotrader.api.service.DynamicScanSelectionTest.xml",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-amtbtc-20261118/green/TEST-com.cryptoautotrader.api.service.EntryPriorityEndToEndTest.xml",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-amtbtc-20261118/green/TEST-com.cryptoautotrader.api.service.RulesetRegistryCompositionTest.xml",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-amtbtc-20261118/green/TEST-com.cryptoautotrader.api.service.SessionKindIsolationTest.xml",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-amtbtc-20261118/green/summary.txt",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-amtbtc-20261118/integration/TEST-com.cryptoautotrader.api.service.DynamicBlackSwanCooldownCrossKindTest.xml",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-amtbtc-20261118/integration/TEST-com.cryptoautotrader.api.service.DynamicBlackSwanCooldownRestoreTest.xml",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-amtbtc-20261118/integration/TEST-com.cryptoautotrader.api.service.DynamicEntryLimitsTest.xml",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-amtbtc-20261118/integration/TEST-com.cryptoautotrader.api.service.DynamicTradingModeInputTest.xml",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-amtbtc-20261118/integration/TEST-com.cryptoautotrader.api.service.SessionKindIsolationTest.xml",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-amtbtc-20261118/integration/summary.txt",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-amtbtc-20261118/red/TEST-com.cryptoautotrader.api.service.DynamicEntryLimitsTest.xml",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-amtbtc-20261118/red/summary.txt",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "manifest count:dec-scorecard-20261118",
+   "passed": true,
+   "detail": 28
+  },
+  {
+   "check": "file hash:dec-scorecard-20261118/.gitattributes",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-scorecard-20261118/README.md",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-scorecard-20261118/scorecard/cases_scorecard.py",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-scorecard-20261118/scorecard/run1/C01_float_rejected.input.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-scorecard-20261118/scorecard/run1/C02_duplicate_session.input.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-scorecard-20261118/scorecard/run1/C03_unknown_position_status.input.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-scorecard-20261118/scorecard/run1/S01_fee_not_double_counted.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-scorecard-20261118/scorecard/run1/S02_closing_unconfirmed.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-scorecard-20261118/scorecard/run1/S03_loss_zero_stopped_included.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-scorecard-20261118/scorecard/run1/S04_deposit_excluded.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-scorecard-20261118/scorecard/run1/S05_missing_price_unconfirmed.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-scorecard-20261118/scorecard/run1/S06_provenance_unknown_and_split.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-scorecard-20261118/scorecard/run1/S07_drawdown_daily_samples_only.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-scorecard-20261118/scorecard/run1/S08_stored_realized_mismatch.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-scorecard-20261118/scorecard/run1/S09_btc_benchmark.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-scorecard-20261118/scorecard/run1/S09b_btc_benchmark_missing.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-scorecard-20261118/scorecard/run1/S10_account_matches_sessions.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-scorecard-20261118/scorecard/run1/S10b_account_gap_shown.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-scorecard-20261118/scorecard/run1/S10c_account_coin_without_price.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-scorecard-20261118/scorecard/run1/S11_new_session_in_period.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-scorecard-20261118/scorecard/run1/S11b_missing_start_unconfirmed.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-scorecard-20261118/scorecard/run1/S12_sell_outside_period.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-scorecard-20261118/scorecard/run1/S13_real_stored_excludes_buy_fee.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-scorecard-20261118/scorecard/run1/cases.out.txt",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-scorecard-20261118/scorecard/run1/demo.input.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-scorecard-20261118/scorecard/run1/demo/scorecard.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-scorecard-20261118/scorecard/run1/demo/scorecard.md",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-scorecard-20261118/scorecard/scorecard.py",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "manifest coverage:dec-scorecard-20261118",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-scorecard-20261118/.gitattributes",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-scorecard-20261118/README.md",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-scorecard-20261118/SHA256SUMS",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-scorecard-20261118/scorecard/cases_scorecard.py",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-scorecard-20261118/scorecard/run1/C01_float_rejected.input.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-scorecard-20261118/scorecard/run1/C02_duplicate_session.input.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-scorecard-20261118/scorecard/run1/C03_unknown_position_status.input.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-scorecard-20261118/scorecard/run1/S01_fee_not_double_counted.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-scorecard-20261118/scorecard/run1/S02_closing_unconfirmed.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-scorecard-20261118/scorecard/run1/S03_loss_zero_stopped_included.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-scorecard-20261118/scorecard/run1/S04_deposit_excluded.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-scorecard-20261118/scorecard/run1/S05_missing_price_unconfirmed.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-scorecard-20261118/scorecard/run1/S06_provenance_unknown_and_split.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-scorecard-20261118/scorecard/run1/S07_drawdown_daily_samples_only.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-scorecard-20261118/scorecard/run1/S08_stored_realized_mismatch.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-scorecard-20261118/scorecard/run1/S09_btc_benchmark.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-scorecard-20261118/scorecard/run1/S09b_btc_benchmark_missing.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-scorecard-20261118/scorecard/run1/S10_account_matches_sessions.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-scorecard-20261118/scorecard/run1/S10b_account_gap_shown.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-scorecard-20261118/scorecard/run1/S10c_account_coin_without_price.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-scorecard-20261118/scorecard/run1/S11_new_session_in_period.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-scorecard-20261118/scorecard/run1/S11b_missing_start_unconfirmed.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-scorecard-20261118/scorecard/run1/S12_sell_outside_period.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-scorecard-20261118/scorecard/run1/S13_real_stored_excludes_buy_fee.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-scorecard-20261118/scorecard/run1/cases.out.txt",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-scorecard-20261118/scorecard/run1/demo.input.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-scorecard-20261118/scorecard/run1/demo/scorecard.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-scorecard-20261118/scorecard/run1/demo/scorecard.md",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-scorecard-20261118/scorecard/scorecard.py",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "manifest count:dec-pg-sell-20261118",
+   "passed": true,
+   "detail": 66
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/.gitattributes",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/README.md",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/assemble_sell.py",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/attempt1/D17_full_sell_window.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/attempt1/D67_same_response_repeated.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/attempt1/clock_summary.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/attempt1/pairs.out.txt",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/attempt1/snaps/00-start.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/attempt1/snaps/D1-holding.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/attempt1/snaps/D2-sell-submitted.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/attempt1/snaps/D3-sell-partial.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/attempt1/snaps/D4-sell-cancel-partial.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/attempt1/snaps/D5-reliquidated.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/attempt1/snaps/D6-sell-corrected.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/attempt1/snaps/D7-repeated.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/attempt1/snaps/L1-holding.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/attempt1/snaps/L2-sell-submitted.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/attempt1/snaps/L3-sell-partial.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/attempt1/snaps/L4-sell-cancel-partial.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/attempt1/snaps/L5-reliquidated.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/attempt1/snaps/L6-sell-corrected.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/attempt1/snaps/L7-repeated.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/run1/TEST-com.cryptoautotrader.api.service.P7SellCashflowPgTest.xml",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/run1/clock_summary.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/run1/pairs/D12_sell_submitted.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/run1/pairs/D14_partial_cancel_remaining_kept.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/run1/pairs/D17_full_sell_window.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/run1/pairs/D23_sell_partial_active.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/run1/pairs/D45_reliquidated.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/run1/pairs/D56_sell_fee_corrections.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/run1/pairs/D67_same_response_repeated.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/run1/pairs/DN1_exchange_krw_minus_1.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/run1/pairs/DN2_exchange_coin_plus.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/run1/pairs/DN3_sell_correction_not_on_exchange.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/run1/pairs/DN4_session_ledger_plus_1c.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/run1/pairs/DN5_position_size_plus_1.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/run1/pairs/L12_sell_submitted.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/run1/pairs/L14_partial_cancel_remaining_kept.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/run1/pairs/L17_full_sell_window.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/run1/pairs/L23_sell_partial_active.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/run1/pairs/L45_reliquidated.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/run1/pairs/L56_sell_fee_corrections.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/run1/pairs/L67_same_response_repeated.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/run1/pairs/LN1_exchange_krw_minus_1.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/run1/pairs/LN2_exchange_coin_plus.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/run1/pairs/LN3_sell_correction_not_on_exchange.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/run1/pairs/LN4_session_ledger_plus_1c.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/run1/pairs/LN5_position_size_plus_1.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/run1/pairs/pairs.out.txt",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/run1/pairs/realized_check.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/run1/snaps/00-start.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/run1/snaps/D1-holding.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/run1/snaps/D2-sell-submitted.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/run1/snaps/D3-sell-partial.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/run1/snaps/D4-sell-cancel-partial.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/run1/snaps/D5-reliquidated.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/run1/snaps/D6-sell-corrected.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/run1/snaps/D7-repeated.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/run1/snaps/L1-holding.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/run1/snaps/L2-sell-submitted.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/run1/snaps/L3-sell-partial.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/run1/snaps/L4-sell-cancel-partial.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/run1/snaps/L5-reliquidated.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/run1/snaps/L6-sell-corrected.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/run1/snaps/L7-repeated.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:dec-pg-sell-20261118/source/P7SellCashflowPgTest.java",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "manifest coverage:dec-pg-sell-20261118",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/.gitattributes",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/README.md",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/SHA256SUMS",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/assemble_sell.py",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/attempt1/D17_full_sell_window.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/attempt1/D67_same_response_repeated.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/attempt1/clock_summary.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/attempt1/pairs.out.txt",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/attempt1/snaps/00-start.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/attempt1/snaps/D1-holding.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/attempt1/snaps/D2-sell-submitted.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/attempt1/snaps/D3-sell-partial.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/attempt1/snaps/D4-sell-cancel-partial.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/attempt1/snaps/D5-reliquidated.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/attempt1/snaps/D6-sell-corrected.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/attempt1/snaps/D7-repeated.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/attempt1/snaps/L1-holding.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/attempt1/snaps/L2-sell-submitted.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/attempt1/snaps/L3-sell-partial.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/attempt1/snaps/L4-sell-cancel-partial.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/attempt1/snaps/L5-reliquidated.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/attempt1/snaps/L6-sell-corrected.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/attempt1/snaps/L7-repeated.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/run1/TEST-com.cryptoautotrader.api.service.P7SellCashflowPgTest.xml",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/run1/clock_summary.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/run1/pairs/D12_sell_submitted.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/run1/pairs/D14_partial_cancel_remaining_kept.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/run1/pairs/D17_full_sell_window.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/run1/pairs/D23_sell_partial_active.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/run1/pairs/D45_reliquidated.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/run1/pairs/D56_sell_fee_corrections.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/run1/pairs/D67_same_response_repeated.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/run1/pairs/DN1_exchange_krw_minus_1.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/run1/pairs/DN2_exchange_coin_plus.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/run1/pairs/DN3_sell_correction_not_on_exchange.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/run1/pairs/DN4_session_ledger_plus_1c.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/run1/pairs/DN5_position_size_plus_1.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/run1/pairs/L12_sell_submitted.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/run1/pairs/L14_partial_cancel_remaining_kept.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/run1/pairs/L17_full_sell_window.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/run1/pairs/L23_sell_partial_active.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/run1/pairs/L45_reliquidated.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/run1/pairs/L56_sell_fee_corrections.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/run1/pairs/L67_same_response_repeated.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/run1/pairs/LN1_exchange_krw_minus_1.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/run1/pairs/LN2_exchange_coin_plus.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/run1/pairs/LN3_sell_correction_not_on_exchange.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/run1/pairs/LN4_session_ledger_plus_1c.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/run1/pairs/LN5_position_size_plus_1.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/run1/pairs/pairs.out.txt",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/run1/pairs/realized_check.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/run1/snaps/00-start.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/run1/snaps/D1-holding.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/run1/snaps/D2-sell-submitted.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/run1/snaps/D3-sell-partial.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/run1/snaps/D4-sell-cancel-partial.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/run1/snaps/D5-reliquidated.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/run1/snaps/D6-sell-corrected.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/run1/snaps/D7-repeated.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/run1/snaps/L1-holding.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/run1/snaps/L2-sell-submitted.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/run1/snaps/L3-sell-partial.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/run1/snaps/L4-sell-cancel-partial.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/run1/snaps/L5-reliquidated.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/run1/snaps/L6-sell-corrected.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/run1/snaps/L7-repeated.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/dec-pg-sell-20261118/source/P7SellCashflowPgTest.java",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "manifest count:review-87126a31",
+   "passed": true,
+   "detail": 6
+  },
+  {
+   "check": "file hash:review-87126a31/.gitattributes",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:review-87126a31/attempt1-defect.txt",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:review-87126a31/audit_review.py",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:review-87126a31/checks.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:review-87126a31/observations.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "file hash:review-87126a31/README.md",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "manifest coverage:review-87126a31",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/review-87126a31/.gitattributes",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/review-87126a31/README.md",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/review-87126a31/SHA256SUMS",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/review-87126a31/attempt1-defect.txt",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/review-87126a31/audit_review.py",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/review-87126a31/checks.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "fixed blob:docs/evidence/review-87126a31/observations.json",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "saved file exit:F11_v5_files_pg04",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "saved file exit:F12_v5_constant_offset_file",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "saved file exit:F13_v4_files_no_axis",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:K01D_01b_measured",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:K01L_01b_measured",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:K02_01b_app_clock_unknown",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:K03_app_same_declared_one_side",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:K04_01b_v4_input_no_axis",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:K05_zero_diff_same_axis",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:K06_negative_confirmed",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:K07_boundary_overlap",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:K08_positive_confirmed_50ms",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:K09_stale_samples",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:K10_missing_samples",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:K11_shift_mono_vs_wall",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:K12_shift_between_samples",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:K13_mono_consistent",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:K14_db_time_outside_confirmed",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:K15_09_v4_input",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:K16_09_measured",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:K17_clock_hold_plus_krw_minus_1_50",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:K18_clock_hold_plus_unbacked",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:K19_clock_hold_plus_strategy_mismatch",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:K20_order_window_app_unknown",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:K21_order_before_effective_confirmed",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:K22_exchange_clock_unknown",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:K23_query_ends_before_db_extract",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:K24_rule_cap_window_unknown",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:K25_rule_cap_confirmed",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:K26_base_last_end_recorded",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:K27_constant_offset_rejected",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:K28_registry_axis_undeclared",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:K29_not_bracketed",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:K30_stale_sample_not_bracket",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:K31_mono_gap_widens_range",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:P_D01_new_allocation",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:P_D01b_new_allocation_db_axis_limit",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:P_D02_submitted_in_flight",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:P_D03_partial_fill_active",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:P_D04_reserve_to_cancel_refund",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:P_D05_fee_corrections",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:P_D06_same_response_repeated",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:P_D07_zero_trade_existing_holding",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:P_D08_full_window",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:P_D09_collector_clock_axis",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:P_DN1_exchange_krw_minus_1",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:P_DN2_exchange_coin_plus",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:P_DN3_correction_not_on_exchange",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:P_DN4_session_ledger_plus_1c",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:P_DN5_unregistered_session",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:P_L01_new_allocation",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:P_L01b_new_allocation_db_axis_limit",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:P_L02_submitted_in_flight",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:P_L03_partial_fill_active",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:P_L04_reserve_to_cancel_refund",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:P_L05_fee_corrections",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:P_L06_same_response_repeated",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:P_L07_zero_trade_existing_holding",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:P_L08_full_window",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:P_L09_collector_clock_axis",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:P_LN1_exchange_krw_minus_1",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:P_LN2_exchange_coin_plus",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:P_LN3_correction_not_on_exchange",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:P_LN4_session_ledger_plus_1c",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved full output:P_LN5_unregistered_session",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v5 saved records",
+   "passed": true,
+   "detail": [
+    65,
+    62
+   ]
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:A1_eth_hold",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:A2_eth_roundtrip",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:B1_preexisting_btc",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:B2_preexisting_btc_plus_eth",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:C1_start_stop_window",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:C2_stopped_session_unsettled_cash",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:D1_contract_mismatch_timeframe",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:D2_same_id_other_kind",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:D3_registry_duplicate_key",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:D4_db_mode_lowercase_paper",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:D5_registry_unknown_rule",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:E1_unregistered_session_order",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:E2_orphan_order_deleted_session",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:E3_exchange_order_not_in_db",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:E4_manual_trade_declared",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:F1_deposit_declared",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:F2_deposit_undeclared",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:F3_flows_unknown",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:F4_coin_withdraw_declared",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:G1_partial_fill_cancel",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:G2_unexplained_1_50_two_sessions",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:G3_exact_two_sessions",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:G4_settlement_correction_between",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:H1_unknown_order",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:H2_closing_inflight",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:H3_accounting_pending",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:H4_query_failed",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:H5_hold_plus_known_anomaly",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:H6_unresolved_discrepancy",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:H7_unstable_db_between_reads",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:H8_unstable_exchange_between_reads",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N00_control",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N01a_code_sha_not_hex",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N01b_code_sha_other_commit",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N01c_app_sha_unobserved",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N01d_code_changed_in_window",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N01e_source_db_other",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N01f_full_sha_prefix",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N02a_fingerprints_missing",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N02b_fingerprint_post_missing",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N02c_fingerprint_empty",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N03a_now_before_base",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N03b_naive_timestamp",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N03c_steps_not_monotonic",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N03d_steps_misordered",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N03e_collection_overlap",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N03f_schema_changed",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N03g_step_missing",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N03h_db_time_outside_collection",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N04a_closing_does_not_hide_krw_residual",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N04b_inflight_still_blocks_krw",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N05a_closing_does_not_hide_unbacked",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N05b_flows_unknown_does_not_hide_unbacked",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N06a_db_fill_missing_on_exchange",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N06b_query_incomplete",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N06c_order_outside_query_window",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N06d_query_range_unknown",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N06e_fill_without_exchange_id",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N07a_rule_nan",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N07b_rule_bool",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N07c_rule_negative",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N07d_rule_coins_string",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N07e_rule_coins_duplicate",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N07f_capital_infinity",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N07g_cap_zero",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N07h_window_reversed",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N07i_unknown_field",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N07j_source_missing",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N08a_balance_nan",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N08b_locked_negative",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N08c_balance_float",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N08d_filled_not_number",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N08e_flow_unknown_kind",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N08f_query_window_reversed",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N09a_duplicate_order_id",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N09b_duplicate_exchange_uuid",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N09c_duplicate_session_row",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N09d_duplicate_done_uuid",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N10a_existing_session_new_window",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N10b_existing_session_created_mismatch",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N10c_new_session_rule_on_old_row",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N10d_created_after_effective",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:N11_internal_error_is_error",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:R1_dynamic_excluded_coin_buy",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:R2_dynamic_two_buys_ok",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:R3_sid203_two_buys",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:R4_dynamic_request_over_cap",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:U1a_no_new_fill_query_missing",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:U1b_no_new_fill_query_incomplete",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:U1c_query_starts_after_base",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:U1d_query_ends_before_now_read",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:U1e_query_exact_window",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:U1f_unchanged_b1_ok",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:U2a_state_typo_with_fill",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:U2b_state_lowercase",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:U2c_real_unknown_keeps_alarm",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:U2d_order_type_typo",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:U2e_position_status_typo",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 full output under explicit synthetic axes:U2f_cancelled_after_partial_ok",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "v4 synthetic records",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "saved v5 summary",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "saved clock mutants",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "saved amount XML:red",
+   "passed": true,
+   "detail": {
+    "classes": 1,
+    "tests": 23,
+    "failures": 19,
+    "errors": 0,
+    "skipped": 0
+   }
+  },
+  {
+   "check": "saved amount XML:green",
+   "passed": true,
+   "detail": {
+    "classes": 9,
+    "tests": 69,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+   }
+  },
+  {
+   "check": "saved amount XML:integration",
+   "passed": true,
+   "detail": {
+    "classes": 5,
+    "tests": 59,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+   }
+  },
+  {
+   "check": "amount parent",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "integration parent",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "amount exact paths",
+   "passed": true,
+   "detail": [
+    "web-api/src/main/java/com/cryptoautotrader/api/service/DynamicEntryLimits.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/DynamicEntryLimitsTest.java"
+   ]
+  },
+  {
+   "check": "integration exact paths",
+   "passed": true,
+   "detail": [
+    "web-api/src/main/java/com/cryptoautotrader/api/service/DynamicEntryLimits.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/DynamicEntryLimitsTest.java"
+   ]
+  },
+  {
+   "check": "amount patches same",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "preserved diff",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "saved sell PG XML",
+   "passed": true,
+   "detail": {
+    "classes": 1,
+    "tests": 1,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+   }
+  },
+  {
+   "check": "sell saved full output:D12_sell_submitted",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:D12_sell_submitted/base_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:D12_sell_submitted/now_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell saved full output:D14_partial_cancel_remaining_kept",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:D14_partial_cancel_remaining_kept/base_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:D14_partial_cancel_remaining_kept/now_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell saved full output:D17_full_sell_window",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:D17_full_sell_window/base_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:D17_full_sell_window/now_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell saved full output:D23_sell_partial_active",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:D23_sell_partial_active/base_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:D23_sell_partial_active/now_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell saved full output:D45_reliquidated",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:D45_reliquidated/base_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:D45_reliquidated/now_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell saved full output:D56_sell_fee_corrections",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:D56_sell_fee_corrections/base_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:D56_sell_fee_corrections/now_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell saved full output:D67_same_response_repeated",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:D67_same_response_repeated/base_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:D67_same_response_repeated/now_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell saved full output:DN1_exchange_krw_minus_1",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:DN1_exchange_krw_minus_1/base_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:DN1_exchange_krw_minus_1/now_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell saved full output:DN2_exchange_coin_plus",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:DN2_exchange_coin_plus/base_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:DN2_exchange_coin_plus/now_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell saved full output:DN3_sell_correction_not_on_exchange",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:DN3_sell_correction_not_on_exchange/base_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:DN3_sell_correction_not_on_exchange/now_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell saved full output:DN4_session_ledger_plus_1c",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:DN4_session_ledger_plus_1c/base_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:DN4_session_ledger_plus_1c/now_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell saved full output:DN5_position_size_plus_1",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:DN5_position_size_plus_1/base_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:DN5_position_size_plus_1/now_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell saved full output:L12_sell_submitted",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:L12_sell_submitted/base_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:L12_sell_submitted/now_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell saved full output:L14_partial_cancel_remaining_kept",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:L14_partial_cancel_remaining_kept/base_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:L14_partial_cancel_remaining_kept/now_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell saved full output:L17_full_sell_window",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:L17_full_sell_window/base_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:L17_full_sell_window/now_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell saved full output:L23_sell_partial_active",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:L23_sell_partial_active/base_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:L23_sell_partial_active/now_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell saved full output:L45_reliquidated",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:L45_reliquidated/base_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:L45_reliquidated/now_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell saved full output:L56_sell_fee_corrections",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:L56_sell_fee_corrections/base_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:L56_sell_fee_corrections/now_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell saved full output:L67_same_response_repeated",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:L67_same_response_repeated/base_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:L67_same_response_repeated/now_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell saved full output:LN1_exchange_krw_minus_1",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:LN1_exchange_krw_minus_1/base_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:LN1_exchange_krw_minus_1/now_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell saved full output:LN2_exchange_coin_plus",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:LN2_exchange_coin_plus/base_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:LN2_exchange_coin_plus/now_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell saved full output:LN3_sell_correction_not_on_exchange",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:LN3_sell_correction_not_on_exchange/base_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:LN3_sell_correction_not_on_exchange/now_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell saved full output:LN4_session_ledger_plus_1c",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:LN4_session_ledger_plus_1c/base_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:LN4_session_ledger_plus_1c/now_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell saved full output:LN5_position_size_plus_1",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:LN5_position_size_plus_1/base_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell input snapshot:LN5_position_size_plus_1/now_snapshot",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "sell pairs count",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "saved fee difference:L4-sell-cancel-partial",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "saved fee difference:L5-reliquidated",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "saved fee difference:L6-sell-corrected",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "saved fee difference:D4-sell-cancel-partial",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "saved fee difference:D5-reliquidated",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "saved fee difference:D6-sell-corrected",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "saved scorecard expectation:S01_fee_not_double_counted",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "saved scorecard expectation:S02_closing_unconfirmed",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "saved scorecard expectation:S03_loss_zero_stopped_included",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "saved scorecard expectation:S04_deposit_excluded",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "saved scorecard expectation:S05_missing_price_unconfirmed",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "saved scorecard expectation:S06_provenance_unknown_and_split",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "saved scorecard expectation:S07_drawdown_daily_samples_only",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "saved scorecard expectation:S08_stored_realized_mismatch",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "saved scorecard expectation:S09_btc_benchmark",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "saved scorecard expectation:S09b_btc_benchmark_missing",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "saved scorecard expectation:S10_account_matches_sessions",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "saved scorecard expectation:S10b_account_gap_shown",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "saved scorecard expectation:S10c_account_coin_without_price",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "saved scorecard expectation:S11_new_session_in_period",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "saved scorecard expectation:S11b_missing_start_unconfirmed",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "saved scorecard expectation:S12_sell_outside_period",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "saved scorecard expectation:S13_real_stored_excludes_buy_fee",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "counterexample reproduced:S1_carry_in_unrealized",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "counterexample reproduced:S2_out_of_period_flow",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "counterexample reproduced:S3_paper_real_account_mix",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "counterexample reproduced:S4_drawdown_percentage",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "risk query uses fee-exclusive REAL avg price",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "consecutive loss uses stored realized",
+   "passed": true,
+   "detail": null
+  },
+  {
+   "check": "risk sign boundary arithmetic",
+   "passed": true,
+   "detail": null
+  }
+ ]
+}

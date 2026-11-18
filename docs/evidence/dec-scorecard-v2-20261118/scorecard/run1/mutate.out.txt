@@ -1,0 +1,11 @@
+검출 | M01_flow_period_check_off | rc=1 실패 사례 2: R2_out_of_period_flow, C04_out_of_period_flow_cli
+검출 | M02_paper_into_account_gap | rc=1 실패 사례 3: R3_paper_real_account_mix, R3b_dynamic_real_and_paper_split, R3f_no_real_sessions
+검출 | M03_pct_at_amount_max | rc=1 실패 사례 2: R4_drawdown_percentage, R4c_allocation_not_gain
+검출 | M04_unrealized_end_from_change | rc=1 실패 사례 1: R1_carry_in_unrealized
+검출 | M05_pending_reserved_ignored | rc=1 실패 사례 1: R1e_pending_buy_reserved
+검출 | M06_flows_none_as_zero | rc=1 실패 사례 2: R2b_flows_missing_unconfirmed, R4g_flows_unknown
+검출 | M07_drawdown_ignores_flows | rc=1 실패 사례 1: R4b_withdrawal_not_loss
+검출 | M08_lifetime_eq_month | rc=1 실패 사례 1: R1c_sells_across_months
+검출 | M09_missing_settle_as_outside | rc=1 실패 사례 1: R1d_missing_settle_time
+검출 | M10_reverse_order_allowed | rc=1 실패 사례 2: R4d_reverse_order, R4e_duplicate_sample
+변형 10 검출 10 놓침 0

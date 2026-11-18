@@ -1,0 +1,61 @@
+{
+  "1_jsonb_restore_fingerprint" : {
+    "jsonb_a" : {
+      "text" : "{\"maxOrderKrw\": 20000, \"excludeCoins\": [\"KRW-BTC\", \"KRW-XRP\"], \"slAtrMultiplier\": 2}",
+      "is_null" : false,
+      "max_type" : "number",
+      "ex_type" : "array"
+    },
+    "jsonb_c_other_order" : {
+      "text" : "{\"maxOrderKrw\": 20000, \"excludeCoins\": [\"KRW-BTC\", \"KRW-XRP\"], \"slAtrMultiplier\": 2}",
+      "is_null" : false,
+      "max_type" : "number",
+      "ex_type" : "array"
+    },
+    "jsonb_no_keys" : {
+      "text" : null,
+      "is_null" : true,
+      "max_type" : null,
+      "ex_type" : null
+    },
+    "restored_params_a" : {
+      "maxOrderKrw" : 20000,
+      "excludeCoins" : [ "KRW-BTC", "KRW-XRP" ],
+      "slAtrMultiplier" : 2
+    },
+    "hash_at_create" : "895ab6b8dc16",
+    "hash_after_reload" : "895ab6b8dc16",
+    "hash_c" : "895ab6b8dc16",
+    "hash_fixed_no_keys" : "ea1ed76bc345"
+  },
+  "2_cap_reservation" : {
+    "capped_result" : "null",
+    "capped_order_row" : {
+      "quantity" : "10000.00000000",
+      "reserved_krw" : "10000.00000000",
+      "state" : "SUBMITTED",
+      "coin_pair" : "KRW-ETH"
+    },
+    "capped_available_after" : "15001.00",
+    "plain_result" : "공유 풀 예약 거절(PER_POSITION_CAP): 매수금 20000.80 > 포지션당 상한 20000",
+    "plain_buy_orders" : 0,
+    "plain_available_after" : "25001.00"
+  },
+  "3_btc_exclusion_gate" : {
+    "watchlist" : [ "KRW-ETH" ],
+    "btc_execute_buy" : "제외 코인(excludeCoins) — KRW-BTC 신규 매수 안 함",
+    "btc_queued_approve" : "제외 코인(excludeCoins) — KRW-BTC 신규 매수 안 함",
+    "btc_buy_orders" : 0,
+    "eth_execute_buy" : "null",
+    "eth_buy_coins" : [ "KRW-ETH" ],
+    "tick_btc_candles_missing_buys" : 0,
+    "tick_btc_candles_fresh_coins" : [ "KRW-IOTA" ]
+  },
+  "4_existing_btc_holding_real_sell" : {
+    "sell_submitted" : true,
+    "position_status" : "CLOSED",
+    "realized_pnl" : "95.45000000",
+    "available_after" : "29095.45",
+    "seeded_holding_note" : "보유 행은 시험이 직접 넣음 — 매도 경로만 엔진"
+  }
+}

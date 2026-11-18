@@ -1,0 +1,573 @@
+{
+ "version": "scorecard-input-2",
+ "period": {
+  "from": "2026-12-01T00:00:00+09:00",
+  "to": "2027-01-01T00:00:00+09:00"
+ },
+ "sessions": [
+  {
+   "kind": "DYNAMIC",
+   "id": 1,
+   "mode": "REAL",
+   "strategy_type": "COMPOSITE_BREAKOUT",
+   "timeframe": "H1",
+   "status_end": "RUNNING",
+   "provenance": {
+    "code_sha": "0e1d2a02",
+    "code_sha_source": "외부 등록표(가상)",
+    "ruleset_hash": "aaaaaaaaaaaa",
+    "registry_ref": "reg-가상-1"
+   },
+   "start": {
+    "available_krw": "100000",
+    "positions": [],
+    "pending_buys": []
+   },
+   "end": {
+    "available_krw": "101949",
+    "positions": [],
+    "pending_buys": []
+   },
+   "flows": [],
+   "trades": [
+    {
+     "buy": {
+      "settled_at": "2026-12-02T09:00:00+09:00",
+      "qty": "0.001",
+      "funds": "50000",
+      "fee": "25"
+     },
+     "sells": [
+      {
+       "settled_at": "2026-12-05T09:00:00+09:00",
+       "qty": "0.001",
+       "funds": "52000",
+       "fee": "26",
+       "stored_realized_pnl": "1949"
+      }
+     ],
+     "position_fee_stored": "51"
+    }
+   ],
+   "market_regime": [
+    {
+     "at": "2026-12-02T09:00:00+09:00",
+     "regime": "TREND_UP",
+     "source": "position.market_regime",
+     "rule_version": "제품 정의"
+    }
+   ]
+  },
+  {
+   "kind": "DYNAMIC",
+   "id": 2,
+   "mode": "REAL",
+   "strategy_type": "COMPOSITE_BREAKOUT",
+   "timeframe": "H1",
+   "status_end": "RUNNING",
+   "provenance": {
+    "code_sha": "0e1d2a02",
+    "code_sha_source": "외부 등록표(가상)",
+    "ruleset_hash": "aaaaaaaaaaaa",
+    "registry_ref": "reg-가상-1"
+   },
+   "start": {
+    "available_krw": "100000",
+    "positions": [],
+    "pending_buys": []
+   },
+   "end": {
+    "available_krw": "97000",
+    "positions": [],
+    "pending_buys": []
+   },
+   "flows": [],
+   "trades": [
+    {
+     "buy": {
+      "settled_at": "2026-12-02T09:00:00+09:00",
+      "qty": "0.001",
+      "funds": "50000",
+      "fee": "25"
+     },
+     "sells": [
+      {
+       "settled_at": "2026-12-05T09:00:00+09:00",
+       "qty": "0.001",
+       "funds": "47025",
+       "fee": "0",
+       "stored_realized_pnl": "-3000"
+      }
+     ],
+     "position_fee_stored": "25"
+    }
+   ],
+   "market_regime": [
+    {
+     "at": "2026-12-02T09:00:00+09:00",
+     "regime": "TREND_UP",
+     "source": "position.market_regime",
+     "rule_version": "제품 정의"
+    }
+   ]
+  },
+  {
+   "kind": "DYNAMIC",
+   "id": 3,
+   "mode": "REAL",
+   "strategy_type": "COMPOSITE_BREAKOUT",
+   "timeframe": "H1",
+   "status_end": "RUNNING",
+   "provenance": {
+    "code_sha": "0e1d2a02",
+    "code_sha_source": "외부 등록표(가상)",
+    "ruleset_hash": "aaaaaaaaaaaa",
+    "registry_ref": "reg-가상-1"
+   },
+   "start": {
+    "available_krw": "100000",
+    "positions": [],
+    "pending_buys": []
+   },
+   "end": {
+    "available_krw": "100000",
+    "positions": [],
+    "pending_buys": []
+   },
+   "flows": [],
+   "trades": [],
+   "market_regime": [
+    {
+     "at": "2026-12-02T09:00:00+09:00",
+     "regime": "TREND_UP",
+     "source": "position.market_regime",
+     "rule_version": "제품 정의"
+    }
+   ]
+  },
+  {
+   "kind": "DYNAMIC",
+   "id": 4,
+   "mode": "REAL",
+   "strategy_type": "COMPOSITE_BREAKOUT",
+   "timeframe": "H1",
+   "status_end": "STOPPED",
+   "provenance": {
+    "code_sha": "0e1d2a02",
+    "code_sha_source": "외부 등록표(가상)",
+    "ruleset_hash": "aaaaaaaaaaaa",
+    "registry_ref": "reg-가상-1"
+   },
+   "start": {
+    "available_krw": "20000",
+    "positions": [],
+    "pending_buys": []
+   },
+   "end": {
+    "available_krw": "20500",
+    "positions": [],
+    "pending_buys": []
+   },
+   "flows": [],
+   "trades": [
+    {
+     "buy": {
+      "settled_at": "2026-12-02T09:00:00+09:00",
+      "qty": "0.001",
+      "funds": "10000",
+      "fee": "0"
+     },
+     "sells": [
+      {
+       "settled_at": "2026-12-05T09:00:00+09:00",
+       "qty": "0.001",
+       "funds": "10500",
+       "fee": "0",
+       "stored_realized_pnl": "500"
+      }
+     ],
+     "position_fee_stored": "0"
+    }
+   ],
+   "market_regime": [
+    {
+     "at": "2026-12-02T09:00:00+09:00",
+     "regime": "TREND_UP",
+     "source": "position.market_regime",
+     "rule_version": "제품 정의"
+    }
+   ]
+  },
+  {
+   "kind": "DYNAMIC",
+   "id": 5,
+   "mode": "REAL",
+   "strategy_type": "COMPOSITE_BREAKOUT",
+   "timeframe": "H1",
+   "status_end": "RUNNING",
+   "provenance": {
+    "code_sha": "0e1d2a02",
+    "code_sha_source": "외부 등록표(가상)",
+    "ruleset_hash": "aaaaaaaaaaaa",
+    "registry_ref": "reg-가상-1"
+   },
+   "start": {
+    "available_krw": "100000",
+    "positions": [],
+    "pending_buys": []
+   },
+   "end": {
+    "available_krw": "149000",
+    "positions": [],
+    "pending_buys": []
+   },
+   "flows": [
+    {
+     "at": "2026-12-10T00:00:00+09:00",
+     "amount_krw": "50000",
+     "kind": "ALLOCATE"
+    }
+   ],
+   "trades": [],
+   "market_regime": [
+    {
+     "at": "2026-12-02T09:00:00+09:00",
+     "regime": "TREND_UP",
+     "source": "position.market_regime",
+     "rule_version": "제품 정의"
+    }
+   ]
+  },
+  {
+   "kind": "DYNAMIC",
+   "id": 20,
+   "mode": "REAL",
+   "strategy_type": "COMPOSITE_BREAKOUT",
+   "timeframe": "H1",
+   "status_end": "RUNNING",
+   "provenance": {
+    "code_sha": "0e1d2a02",
+    "code_sha_source": "외부 등록표(가상)",
+    "ruleset_hash": "aaaaaaaaaaaa",
+    "registry_ref": "reg-가상-1"
+   },
+   "start": {
+    "available_krw": "100000",
+    "positions": [],
+    "pending_buys": []
+   },
+   "end": {
+    "available_krw": "50000",
+    "positions": [
+     {
+      "id": 11,
+      "coin": "KRW-ETH",
+      "size": "0.001",
+      "status": "CLOSING",
+      "price": "52000000",
+      "cost_krw": "50025"
+     }
+    ],
+    "pending_buys": []
+   },
+   "flows": [],
+   "trades": [
+    {
+     "buy": {
+      "settled_at": "2026-12-02T09:00:00+09:00",
+      "qty": "0.001",
+      "funds": "50000",
+      "fee": "25"
+     },
+     "sells": []
+    }
+   ],
+   "market_regime": [
+    {
+     "at": "2026-12-02T09:00:00+09:00",
+     "regime": "TREND_UP",
+     "source": "position.market_regime",
+     "rule_version": "제품 정의"
+    }
+   ]
+  },
+  {
+   "kind": "DYNAMIC",
+   "id": 8,
+   "mode": "REAL",
+   "strategy_type": "COMPOSITE_BREAKOUT",
+   "timeframe": "H1",
+   "status_end": "RUNNING",
+   "provenance": {
+    "code_sha": "0e1d2a02",
+    "code_sha_source": "외부 등록표(가상)",
+    "ruleset_hash": "aaaaaaaaaaaa",
+    "registry_ref": "reg-가상-1"
+   },
+   "start": {
+    "available_krw": "100000",
+    "positions": [],
+    "pending_buys": []
+   },
+   "end": {
+    "available_krw": "101949",
+    "positions": [],
+    "pending_buys": []
+   },
+   "flows": [],
+   "trades": [
+    {
+     "buy": {
+      "settled_at": "2026-12-02T09:00:00+09:00",
+      "qty": "0.001",
+      "funds": "50000",
+      "fee": "25"
+     },
+     "sells": [
+      {
+       "settled_at": "2026-12-05T09:00:00+09:00",
+       "qty": "0.001",
+       "funds": "52000",
+       "fee": "26",
+       "stored_realized_pnl": "1949"
+      }
+     ],
+     "position_fee_stored": "51"
+    }
+   ],
+   "market_regime": [
+    {
+     "at": "2026-12-02T09:00:00+09:00",
+     "regime": "TREND_UP",
+     "source": "position.market_regime",
+     "rule_version": "제품 정의"
+    }
+   ],
+   "daily_equity": [
+    {
+     "at": "2026-12-01T00:00:00+09:00",
+     "equity": "100000"
+    },
+    {
+     "at": "2026-12-02T00:00:00+09:00",
+     "equity": "103000"
+    },
+    {
+     "at": "2026-12-03T00:00:00+09:00",
+     "equity": "99000"
+    },
+    {
+     "at": "2026-12-04T00:00:00+09:00",
+     "equity": "101000"
+    }
+   ]
+  },
+  {
+   "kind": "DYNAMIC",
+   "id": 901,
+   "mode": "REAL",
+   "strategy_type": "COMPOSITE_BREAKOUT",
+   "timeframe": "H1",
+   "status_end": "RUNNING",
+   "provenance": {
+    "code_sha": "0e1d2a02",
+    "code_sha_source": "외부 등록표(가상)",
+    "ruleset_hash": "aaaaaaaaaaaa",
+    "registry_ref": "reg-가상-1"
+   },
+   "start": {
+    "available_krw": "0",
+    "positions": [
+     {
+      "id": 1,
+      "coin": "KRW-RND",
+      "status": "OPEN",
+      "size": "1",
+      "price": "110",
+      "cost_krw": "100"
+     }
+    ],
+    "pending_buys": []
+   },
+   "end": {
+    "available_krw": "120",
+    "positions": [],
+    "pending_buys": []
+   },
+   "flows": [],
+   "trades": [
+    {
+     "buy": {
+      "settled_at": "2026-11-25T09:00:00+09:00",
+      "qty": "1",
+      "funds": "100",
+      "fee": "0"
+     },
+     "sells": [
+      {
+       "settled_at": "2026-12-05T09:00:00+09:00",
+       "qty": "1",
+       "funds": "120",
+       "fee": "0",
+       "stored_realized_pnl": "20"
+      }
+     ],
+     "position_fee_stored": "0"
+    }
+   ],
+   "market_regime": [
+    {
+     "at": "2026-12-02T09:00:00+09:00",
+     "regime": "TREND_UP",
+     "source": "position.market_regime",
+     "rule_version": "제품 정의"
+    }
+   ]
+  },
+  {
+   "kind": "DYNAMIC",
+   "id": 902,
+   "mode": "REAL",
+   "strategy_type": "COMPOSITE_BREAKOUT",
+   "timeframe": "H1",
+   "status_end": "RUNNING",
+   "provenance": {
+    "code_sha": "0e1d2a02",
+    "code_sha_source": "외부 등록표(가상)",
+    "ruleset_hash": "aaaaaaaaaaaa",
+    "registry_ref": "reg-가상-1"
+   },
+   "start": {
+    "available_krw": "120",
+    "positions": [
+     {
+      "id": 2,
+      "coin": "KRW-RND",
+      "status": "OPEN",
+      "size": "1",
+      "price": "115",
+      "cost_krw": "100"
+     }
+    ],
+    "pending_buys": []
+   },
+   "end": {
+    "available_krw": "250",
+    "positions": [],
+    "pending_buys": []
+   },
+   "flows": [],
+   "trades": [
+    {
+     "buy": {
+      "settled_at": "2026-11-10T09:00:00+09:00",
+      "qty": "2",
+      "funds": "200",
+      "fee": "0"
+     },
+     "sells": [
+      {
+       "settled_at": "2026-11-20T09:00:00+09:00",
+       "qty": "1",
+       "funds": "120",
+       "fee": "0"
+      },
+      {
+       "settled_at": "2026-12-05T09:00:00+09:00",
+       "qty": "1",
+       "funds": "130",
+       "fee": "0"
+      }
+     ]
+    }
+   ],
+   "market_regime": [
+    {
+     "at": "2026-12-02T09:00:00+09:00",
+     "regime": "TREND_UP",
+     "source": "position.market_regime",
+     "rule_version": "제품 정의"
+    }
+   ]
+  },
+  {
+   "kind": "DYNAMIC",
+   "id": 904,
+   "mode": "REAL",
+   "strategy_type": "COMPOSITE_BREAKOUT",
+   "timeframe": "H1",
+   "status_end": "RUNNING",
+   "provenance": {
+    "code_sha": "0e1d2a02",
+    "code_sha_source": "외부 등록표(가상)",
+    "ruleset_hash": "aaaaaaaaaaaa",
+    "registry_ref": "reg-가상-1"
+   },
+   "start": {
+    "available_krw": "100000",
+    "positions": [],
+    "pending_buys": []
+   },
+   "end": {
+    "available_krw": "50000",
+    "positions": [],
+    "pending_buys": [
+     {
+      "order_id": 7,
+      "reserved_krw": "50000",
+      "filled_qty": "0"
+     }
+    ]
+   },
+   "flows": [],
+   "trades": [],
+   "market_regime": [
+    {
+     "at": "2026-12-02T09:00:00+09:00",
+     "regime": "TREND_UP",
+     "source": "position.market_regime",
+     "rule_version": "제품 정의"
+    }
+   ]
+  },
+  {
+   "kind": "PAPER",
+   "id": 904,
+   "mode": "PAPER",
+   "strategy_type": "COMPOSITE_BREAKOUT",
+   "timeframe": "H1",
+   "status_end": "RUNNING",
+   "provenance": {
+    "code_sha": "0e1d2a02",
+    "code_sha_source": "외부 등록표(가상)",
+    "ruleset_hash": "aaaaaaaaaaaa",
+    "registry_ref": "reg-가상-1"
+   },
+   "start": {
+    "available_krw": "100",
+    "positions": [],
+    "pending_buys": []
+   },
+   "end": {
+    "available_krw": "110",
+    "positions": [],
+    "pending_buys": []
+   },
+   "flows": [],
+   "trades": [],
+   "market_regime": [
+    {
+     "at": "2026-12-02T09:00:00+09:00",
+     "regime": "TREND_UP",
+     "source": "position.market_regime",
+     "rule_version": "제품 정의"
+    }
+   ]
+  }
+ ],
+ "benchmarks": {
+  "btc_price_start": "100000000",
+  "btc_price_end": "110000000"
+ },
+ "account": null
+}
