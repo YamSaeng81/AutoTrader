@@ -2286,7 +2286,7 @@ public class OrderExecutionEngine {
 
             if (order.getSessionId() != null && telegramService != null) {
                 telegramService.bufferTradeEvent(
-                        "세션#" + order.getSessionId(), order.getCoinPair(), "BUY",
+                        TelegramNotificationService.sessionLabel(order.getSessionKind(), order.getSessionId()), order.getCoinPair(), "BUY",
                         avgFillPrice, filledQty, buyFee, null, order.getSignalReason());
             }
 

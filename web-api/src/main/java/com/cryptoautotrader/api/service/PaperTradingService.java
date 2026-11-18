@@ -1943,7 +1943,7 @@ public class PaperTradingService {
                     sessionId, coinPair, fQty, fPrice, fSl, fTp, fFee);
             if (tg) {
                 telegramService.bufferTradeEvent(
-                        "[모의투자] 세션#" + sessionId, coinPair, "BUY",
+                        TelegramNotificationService.sessionLabel("PAPER", sessionId), coinPair, "BUY",
                         fPrice, fQty, fFee, null, sigReason);
             }
         };
@@ -2011,7 +2011,7 @@ public class PaperTradingService {
                     pos.getSessionId(), pos.getCoinPair(), pos.getSize(), currentPrice, realizedPnl);
             if (tg) {
                 telegramService.bufferTradeEvent(
-                        "[모의투자] 세션#" + pos.getSessionId(), pos.getCoinPair(), "SELL",
+                        TelegramNotificationService.sessionLabel("PAPER", pos.getSessionId()), pos.getCoinPair(), "SELL",
                         currentPrice, pos.getSize(), fFee, realizedPnl, reason);
             }
         };

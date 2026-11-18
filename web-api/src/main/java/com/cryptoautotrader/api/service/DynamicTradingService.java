@@ -3265,7 +3265,7 @@ public class DynamicTradingService {
                     sessionId, pos.getId(), isPartial, pos.getCoinPair(), soldQty, fillPrice, realizedPnl, fee);
             if (credited) {
                 telegramService.bufferTradeEvent(
-                        "동적#" + sessionId, pos.getCoinPair(), "SELL",
+                        TelegramNotificationService.sessionLabel(pos.getSessionKind(), sessionId), pos.getCoinPair(), "SELL",
                         fillPrice, soldQty, fee, realizedPnl, "동적 세션 매도");
             }
         }
