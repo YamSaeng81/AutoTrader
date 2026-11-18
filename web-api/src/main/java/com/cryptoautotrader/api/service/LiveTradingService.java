@@ -3361,7 +3361,7 @@ public class LiveTradingService {
                     sessionId, pos.getId(), isPartial, pos.getCoinPair(),
                     soldQty, fillPrice, realizedPnl, fee);
             telegramService.bufferTradeEvent(
-                    "세션#" + sessionId, pos.getCoinPair(), "SELL",
+                    TelegramNotificationService.sessionLabel("LIVE", sessionId), pos.getCoinPair(), "SELL",
                     fillPrice, soldQty, fee, realizedPnl, isPartial ? "전략 매도(부분체결)" : "전략 매도");
 
             // §14 drift 기록 — 청산 트리거 시점 가격(order.signalPrice) vs 실제 체결가.
