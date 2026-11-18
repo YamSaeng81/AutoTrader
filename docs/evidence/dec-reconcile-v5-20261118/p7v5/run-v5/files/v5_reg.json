@@ -1,0 +1,28 @@
+{
+ "registry_version": "p7pg-local-1",
+ "observation_source": {
+  "environment": "local-isolated",
+  "db": "cat-rt-pg/p7_cashflow(Flyway 새 DB)",
+  "exchange_account": "stand-in-exchange-book(P7CashflowPgTest)"
+ },
+ "sessions": [
+  {
+   "kind": "LIVE",
+   "id": 1,
+   "mode": "REAL",
+   "strategy_type": "COMPOSITE_BREAKOUT",
+   "timeframe": "H1",
+   "initial_capital": "16240.37",
+   "coin_pair": "KRW-RND",
+   "code_sha": "0e1d2a02",
+   "effective_from": "2026-11-18T13:27:49.259291+09:00",
+   "effective_axis": "app",
+   "effective_to": null,
+   "session_created_at": "2026-11-18T13:27:49.259291+09:00",
+   "rules": {
+    "max_open_positions": 1,
+    "max_buy_request_krw": "20000"
+   }
+  }
+ ]
+}

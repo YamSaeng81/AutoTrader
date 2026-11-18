@@ -1,0 +1,91 @@
+{
+ "rc": 0,
+ "result": {
+  "overall": "OK",
+  "registry_status": "valid",
+  "observation": {
+   "base": "ok",
+   "now": "ok"
+  },
+  "observation_stable": true,
+  "anomalies": [],
+  "holds": [],
+  "account": {
+   "krw": {
+    "exchange_delta": "-15999.98364783",
+    "external": "0",
+    "session_ledger_delta": "-15999.98000000",
+    "raw_residual": "-0.00364783",
+    "explained_rounding": "-0.00364783",
+    "adjusted_residual": "0E-8",
+    "quantum": "0",
+    "status": "일치"
+   },
+   "coins": {
+    "ETH": {
+     "exchange_delta_minus_external": "0.0032",
+     "net_filled": "0.00320000",
+     "open_position_delta": "0.00320000",
+     "match": true,
+     "status": "일치"
+    }
+   },
+   "base_holdings": {
+    "ETH": {
+     "amount": "0",
+     "source": "base.exchange_after"
+    }
+   },
+   "internal_allocations": [],
+   "sessions": {
+    "LIVE:203": {
+     "available_delta": "0.00",
+     "order_ledger_delta": "0",
+     "status": "일치"
+    },
+    "DYNAMIC:900": {
+     "available_delta": "-15999.98",
+     "order_ledger_delta": "-15999.98000000",
+     "status": "일치"
+    }
+   },
+   "backing": {
+    "ETH": {
+     "exchange_total": "0.0032",
+     "registered_need": "0.00320000",
+     "status": "일치"
+    },
+    "KRW": {
+     "exchange_total": "84000.01635217",
+     "registered_need": "24200.02",
+     "status": "일치"
+    }
+   },
+   "verdict": "일치"
+  },
+  "code": {
+   "base": "0e1d2a02",
+   "now": "0e1d2a02",
+   "base_ref": "로컬 가정: v2 시나리오의 등록 예시값. 운영 관측 출처 아님",
+   "now_ref": "로컬 가정: v2 시나리오의 등록 예시값. 운영 관측 출처 아님"
+  },
+  "exchange_coverage": {
+   "query": {
+    "from": "2026-10-01T00:00:00Z",
+    "to": "2026-11-18T01:55:35.855321Z",
+    "complete": true,
+    "pages": 1
+   },
+   "checked": [
+    3
+   ],
+   "gaps": [],
+   "window": {
+    "from": "2026-11-18T01:55:35.396996Z",
+    "to": "2026-11-18T01:55:35.855321Z",
+    "status": "일치",
+    "reason": null
+   }
+  }
+ }
+}

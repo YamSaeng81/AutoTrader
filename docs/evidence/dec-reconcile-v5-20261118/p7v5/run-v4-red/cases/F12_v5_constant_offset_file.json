@@ -1,0 +1,50 @@
+{
+ "rc": 20,
+ "result": {
+  "overall": "ANOMALY",
+  "registry_status": "invalid",
+  "observation": {
+   "base": "invalid",
+   "now": "invalid"
+  },
+  "observation_stable": false,
+  "anomalies": [
+   {
+    "code": "REGISTRY_INVALID",
+    "index": 0,
+    "detail": "알 수 없는 필드 ['effective_axis']"
+   }
+  ],
+  "holds": [
+   {
+    "code": "OBSERVATION_INVALID",
+    "blocks": [
+     "*"
+    ],
+    "at": "base",
+    "detail": [
+     "base.meta.steps.db_fp_pre: 시각 형식 아님",
+     "base.meta.steps.exchange_before: 시각 형식 아님",
+     "base.meta.steps.db_extract: 시각 형식 아님",
+     "base.meta.steps.exchange_after: 시각 형식 아님",
+     "base.meta.steps.db_fp_post: 시각 형식 아님"
+    ]
+   },
+   {
+    "code": "OBSERVATION_INVALID",
+    "blocks": [
+     "*"
+    ],
+    "at": "now",
+    "detail": [
+     "now.meta.steps.db_fp_pre: 시각 형식 아님",
+     "now.meta.steps.exchange_before: 시각 형식 아님",
+     "now.meta.steps.db_extract: 시각 형식 아님",
+     "now.meta.steps.exchange_after: 시각 형식 아님",
+     "now.meta.steps.db_fp_post: 시각 형식 아님"
+    ]
+   }
+  ],
+  "account": null
+ }
+}

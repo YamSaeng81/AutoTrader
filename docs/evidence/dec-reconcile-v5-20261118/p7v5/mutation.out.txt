@@ -1,0 +1,13 @@
+KILLED | W01_static_union | 같은 시계 선언을 한쪽 관측에만 있어도 사용 | 잡은 시험 1: K03_app_same_declared_one_side
+KILLED | W02_extrapolate | 감싸는 표본이 한쪽만 있어도 변환(외삽) | 잡은 시험 6: K09_stale_samples,K10_missing_samples,K11_shift_mono_vs_wall,K12_shift_between_samples,K14_db_time_outside_confirmed,K29_not_bracketed
+KILLED | W03_mono_ignored | 단조 시계 왕복 불일치 표본을 버리지 않음 | 잡은 시험 1: K11_shift_mono_vs_wall
+KILLED | W04_backward_ignored | X 시계 역행을 이동으로 보지 않음 | 잡은 시험 1: K12_shift_between_samples
+KILLED | W05_unknown_is_true | 미확정 비교를 참으로 | 잡은 시험 2: K04_01b_v4_input_no_axis,K28_registry_axis_undeclared
+KILLED | W06_legacy_promoted | 축 정보 없는 v4 입력을 같은 시계로 승격 | 잡은 시험 2: K04_01b_v4_input_no_axis,K15_09_v4_input
+KILLED | W07_window_end_is_end | 창 끝을 거래소 뒤 읽기 끝으로 | 잡은 시험 31: K26_base_last_end_recorded,L01_new_allocation,L01b_new_allocation_db_axis_limit,L02_submitted_in_flight,L03_partial_fill_active,L04_reserve_to_cancel_refund…
+KILLED | W08_exchange_equals_intent | 거래소 생성 상한을 DB 추출이 아니라 의도 생성 시각으로 | 잡은 시험 1: K23_query_ends_before_db_extract
+KILLED | W09_rule_unknown_anomaly | 구간 미확정 주문의 규칙 위반을 이상으로 | 잡은 시험 1: K24_rule_cap_window_unknown
+KILLED | W10_contract_unknown_mismatch | 새 세션 생성 비교 미확정을 계약 불일치로 | 잡은 시험 16: K02_01b_app_clock_unknown,K03_app_same_declared_one_side,K04_01b_v4_input_no_axis,K07_boundary_overlap,K09_stale_samples,K10_missing_samples…
+KILLED | W11_stale_kept | 수집 구간 밖 표본을 버리지 않음 | 잡은 시험 1: K30_stale_sample_not_bracket
+KILLED | W12_no_widen | 단조/벽시계 차이만큼 범위를 넓히지 않음 | 잡은 시험 1: K31_mono_gap_widens_range
+변형 12 검출 12 생존 0

@@ -1,0 +1,5 @@
+Director audit first invocation exited 1 before writing checks.json.
+FileNotFoundError while reading ab-create-v424-20261119/bundle/create/ab_create.py.
+Cause: the audit resolved SHA256SUMS.bundle entries relative to bundle/, but entries are relative to the evidence folder.
+Correction: resolve those entries from the evidence folder. Submitted files and expectations were unchanged.
+This invocation is not a completed audit and is not a developer test failure.

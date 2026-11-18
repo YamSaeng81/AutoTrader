@@ -1,0 +1,526 @@
+{
+ "why": "부분 체결(활성) — 보류",
+ "expect": {
+  "anomalies": [],
+  "holds": [
+   "COLLECTION_ORDER_UNCONFIRMED",
+   "EXCHANGE_OPEN_ORDERS",
+   "ORDER_EFFECT_PENDING",
+   "ORDER_IN_FLIGHT"
+  ],
+  "account_from": "v4 저장 결과"
+ },
+ "input": {
+  "registry": {
+   "registry_version": "p7pg-local-1",
+   "observation_source": {
+    "environment": "local-isolated",
+    "db": "cat-rt-pg/p7_cashflow(Flyway 새 DB)",
+    "exchange_account": "stand-in-exchange-book(P7CashflowPgTest)"
+   },
+   "sessions": [
+    {
+     "kind": "LIVE",
+     "id": 1,
+     "mode": "REAL",
+     "strategy_type": "COMPOSITE_BREAKOUT",
+     "timeframe": "H1",
+     "initial_capital": "16240.37",
+     "coin_pair": "KRW-RND",
+     "code_sha": "0e1d2a02",
+     "effective_from": "2026-11-18T13:27:49.259291+09:00",
+     "effective_axis": "app",
+     "effective_to": null,
+     "session_created_at": "2026-11-18T13:27:49.259291+09:00",
+     "rules": {
+      "max_open_positions": 1,
+      "max_buy_request_krw": "20000"
+     }
+    }
+   ]
+  },
+  "base": {
+   "meta": {
+    "source": {
+     "environment": "local-isolated",
+     "db": "cat-rt-pg/p7_cashflow(Flyway 새 DB)",
+     "exchange_account": "stand-in-exchange-book(P7CashflowPgTest)"
+    },
+    "app_code_sha": "0e1d2a02",
+    "app_code_sha_ref": "로컬 작업 사본 D:/tmp/p7pg-0e1d2a02 = 운영 반영 커밋 0e1d2a02 + 시험 클래스 1개(제품 변경 없음). 운영 관측 아님",
+    "steps": [
+     {
+      "step": "db_fp_pre",
+      "start": "2026-11-18T04:27:49.553633Z",
+      "end": "2026-11-18T04:27:49.560092Z"
+     },
+     {
+      "step": "exchange_before",
+      "start": "2026-11-18T04:27:49.561184Z",
+      "end": "2026-11-18T04:27:49.568756Z"
+     },
+     {
+      "step": "db_extract",
+      "start": "2026-11-18T04:27:49.569515Z",
+      "end": "2026-11-18T04:27:49.576962Z"
+     },
+     {
+      "step": "exchange_after",
+      "start": "2026-11-18T04:27:49.578015Z",
+      "end": "2026-11-18T04:27:49.584373Z"
+     },
+     {
+      "step": "db_fp_post",
+      "start": "2026-11-18T04:27:49.584887Z",
+      "end": null
+     }
+    ],
+    "clock": {
+     "version": "p7-clock-1",
+     "samples": [
+      {
+       "pair": [
+        "db",
+        "collector"
+       ],
+       "step": "db_fp_pre",
+       "c0": "2026-11-18T04:27:49.552583Z",
+       "d": "2026-11-18T04:27:51.008862Z",
+       "c1": "2026-11-18T04:27:49.553633Z"
+      },
+      {
+       "pair": [
+        "db",
+        "collector"
+       ],
+       "step": "exchange_before",
+       "c0": "2026-11-18T04:27:49.560092Z",
+       "d": "2026-11-18T04:27:51.015652Z",
+       "c1": "2026-11-18T04:27:49.561184Z"
+      },
+      {
+       "pair": [
+        "db",
+        "collector"
+       ],
+       "step": "db_extract",
+       "c0": "2026-11-18T04:27:49.568756500Z",
+       "d": "2026-11-18T04:27:51.023260Z",
+       "c1": "2026-11-18T04:27:49.569515Z"
+      },
+      {
+       "pair": [
+        "db",
+        "collector"
+       ],
+       "step": "exchange_after",
+       "c0": "2026-11-18T04:27:49.576962100Z",
+       "d": "2026-11-18T04:27:51.030789Z",
+       "c1": "2026-11-18T04:27:49.578015Z"
+      },
+      {
+       "pair": [
+        "db",
+        "collector"
+       ],
+       "step": "db_fp_post",
+       "c0": "2026-11-18T04:27:49.584373200Z",
+       "d": "2026-11-18T04:27:51.037221Z",
+       "c1": "2026-11-18T04:27:49.584887Z"
+      }
+     ],
+     "same_source": [
+      {
+       "axes": [
+        "app",
+        "collector"
+       ],
+       "basis": "격리 PG 시험: 엔진(세션·주문 created_at, Instant.now())과 수집기가 같은 JVM(P7CashflowPgTest) — 측정 아님, 같은 프로세스 시계"
+      },
+      {
+       "axes": [
+        "exchange",
+        "collector"
+       ],
+       "basis": "대역 거래소(같은 JVM): done_query 기간은 조립기가 단계 시작 시각으로 기록, 대역은 모든 응답을 기억 — 실제 거래소 시계 아님"
+      }
+     ]
+    }
+   },
+   "db_fp_pre": "015e0f4b89bfd95838a974e687cbf1fa",
+   "db": {
+    "observed_at": "2026-11-18T04:27:51.024024Z",
+    "snapshot": "7001:7001:",
+    "flyway_version": 96,
+    "fingerprint": "015e0f4b89bfd95838a974e687cbf1fa",
+    "sessions": [
+     {
+      "kind": "LIVE",
+      "id": 1,
+      "mode": "REAL",
+      "strategy_type": "COMPOSITE_BREAKOUT",
+      "coin_pair": "KRW-RND",
+      "timeframe": "H1",
+      "initial_capital": "16240.37",
+      "available_krw": "81.21",
+      "status": "RUNNING",
+      "created_at": "2026-11-18T13:27:49.259291+09:00",
+      "started_at": "2026-11-18T13:27:49.250527+09:00",
+      "stopped_at": null
+     }
+    ],
+    "orders": [
+     {
+      "id": 1,
+      "session_kind": "LIVE",
+      "session_id": 1,
+      "position_id": 1,
+      "coin_pair": "KRW-RND",
+      "side": "BUY",
+      "order_type": "MARKET",
+      "quantity": "16159.16000000",
+      "reserved_krw": "16159.16000000",
+      "client_order_id": "cat-02fceb82-f5c2-4f7d-8d54-b54aa8e62050",
+      "state": "SUBMITTED",
+      "filled_quantity": "0.00000000",
+      "exchange_order_id": "p7-3deeac2e-4062-4897-8abd-afb80c54c1df",
+      "created_at": "2026-11-18T13:27:49.475474+09:00",
+      "reported_executed_funds": null,
+      "reported_paid_fee": null,
+      "applied_executed_funds": null,
+      "applied_paid_fee": null,
+      "fill_accounting_pending": false
+     }
+    ],
+    "positions": [
+     {
+      "id": 1,
+      "session_kind": "LIVE",
+      "session_id": 1,
+      "coin_pair": "KRW-RND",
+      "status": "OPEN",
+      "size": "0.00000000",
+      "opened_at": "2026-11-18T13:27:49.391342+09:00"
+     }
+    ],
+    "unresolved_discrepancies": []
+   },
+   "db_fp_post": "015e0f4b89bfd95838a974e687cbf1fa",
+   "external_flows": [],
+   "query_errors": [],
+   "exchange_before": {
+    "accounts": {
+     "KRW": {
+      "locked": "0",
+      "balance": "1000000.00"
+     },
+     "XRP": {
+      "locked": "0",
+      "balance": "5"
+     }
+    },
+    "open_orders": [
+     "p7-3deeac2e-4062-4897-8abd-afb80c54c1df"
+    ],
+    "done_order_ids": [],
+    "done_query": {
+     "from": "2026-01-01T00:00:00Z",
+     "to": "2026-11-18T04:27:49.561184Z",
+     "complete": true,
+     "pages": 1
+    }
+   },
+   "exchange_after": {
+    "accounts": {
+     "KRW": {
+      "locked": "0",
+      "balance": "1000000.00"
+     },
+     "XRP": {
+      "locked": "0",
+      "balance": "5"
+     }
+    },
+    "open_orders": [
+     "p7-3deeac2e-4062-4897-8abd-afb80c54c1df"
+    ],
+    "done_order_ids": [],
+    "done_query": {
+     "from": "2026-01-01T00:00:00Z",
+     "to": "2026-11-18T04:27:49.578015Z",
+     "complete": true,
+     "pages": 1
+    }
+   }
+  },
+  "now": {
+   "meta": {
+    "source": {
+     "environment": "local-isolated",
+     "db": "cat-rt-pg/p7_cashflow(Flyway 새 DB)",
+     "exchange_account": "stand-in-exchange-book(P7CashflowPgTest)"
+    },
+    "app_code_sha": "0e1d2a02",
+    "app_code_sha_ref": "로컬 작업 사본 D:/tmp/p7pg-0e1d2a02 = 운영 반영 커밋 0e1d2a02 + 시험 클래스 1개(제품 변경 없음). 운영 관측 아님",
+    "steps": [
+     {
+      "step": "db_fp_pre",
+      "start": "2026-11-18T04:27:49.621167Z",
+      "end": "2026-11-18T04:27:49.628665Z"
+     },
+     {
+      "step": "exchange_before",
+      "start": "2026-11-18T04:27:49.630269Z",
+      "end": "2026-11-18T04:27:49.635507Z"
+     },
+     {
+      "step": "db_extract",
+      "start": "2026-11-18T04:27:49.636026Z",
+      "end": "2026-11-18T04:27:49.644521Z"
+     },
+     {
+      "step": "exchange_after",
+      "start": "2026-11-18T04:27:49.645568Z",
+      "end": "2026-11-18T04:27:49.651016Z"
+     },
+     {
+      "step": "db_fp_post",
+      "start": "2026-11-18T04:27:49.651538Z",
+      "end": null
+     }
+    ],
+    "clock": {
+     "version": "p7-clock-1",
+     "samples": [
+      {
+       "pair": [
+        "db",
+        "collector"
+       ],
+       "step": "db_fp_pre",
+       "c0": "2026-11-18T04:27:49.620135600Z",
+       "d": "2026-11-18T04:27:51.069683Z",
+       "c1": "2026-11-18T04:27:49.621167Z"
+      },
+      {
+       "pair": [
+        "db",
+        "collector"
+       ],
+       "step": "exchange_before",
+       "c0": "2026-11-18T04:27:49.628665500Z",
+       "d": "2026-11-18T04:27:51.077497Z",
+       "c1": "2026-11-18T04:27:49.630269Z"
+      },
+      {
+       "pair": [
+        "db",
+        "collector"
+       ],
+       "step": "db_extract",
+       "c0": "2026-11-18T04:27:49.635507200Z",
+       "d": "2026-11-18T04:27:51.083268Z",
+       "c1": "2026-11-18T04:27:49.636026Z"
+      },
+      {
+       "pair": [
+        "db",
+        "collector"
+       ],
+       "step": "exchange_after",
+       "c0": "2026-11-18T04:27:49.644521200Z",
+       "d": "2026-11-18T04:27:51.091457Z",
+       "c1": "2026-11-18T04:27:49.645568Z"
+      },
+      {
+       "pair": [
+        "db",
+        "collector"
+       ],
+       "step": "db_fp_post",
+       "c0": "2026-11-18T04:27:49.651016600Z",
+       "d": "2026-11-18T04:27:51.097026Z",
+       "c1": "2026-11-18T04:27:49.651538Z"
+      }
+     ],
+     "same_source": [
+      {
+       "axes": [
+        "app",
+        "collector"
+       ],
+       "basis": "격리 PG 시험: 엔진(세션·주문 created_at, Instant.now())과 수집기가 같은 JVM(P7CashflowPgTest) — 측정 아님, 같은 프로세스 시계"
+      },
+      {
+       "axes": [
+        "exchange",
+        "collector"
+       ],
+       "basis": "대역 거래소(같은 JVM): done_query 기간은 조립기가 단계 시작 시각으로 기록, 대역은 모든 응답을 기억 — 실제 거래소 시계 아님"
+      }
+     ]
+    }
+   },
+   "db_fp_pre": "e256f9e632129e9df3b55852185158d6",
+   "db": {
+    "observed_at": "2026-11-18T04:27:51.083963Z",
+    "snapshot": "7002:7002:",
+    "flyway_version": 96,
+    "fingerprint": "e256f9e632129e9df3b55852185158d6",
+    "sessions": [
+     {
+      "kind": "LIVE",
+      "id": 1,
+      "mode": "REAL",
+      "strategy_type": "COMPOSITE_BREAKOUT",
+      "coin_pair": "KRW-RND",
+      "timeframe": "H1",
+      "initial_capital": "16240.37",
+      "available_krw": "10237.37",
+      "status": "RUNNING",
+      "created_at": "2026-11-18T13:27:49.259291+09:00",
+      "started_at": "2026-11-18T13:27:49.250527+09:00",
+      "stopped_at": null
+     }
+    ],
+    "orders": [
+     {
+      "id": 1,
+      "session_kind": "LIVE",
+      "session_id": 1,
+      "position_id": 1,
+      "coin_pair": "KRW-RND",
+      "side": "BUY",
+      "order_type": "MARKET",
+      "quantity": "16159.16000000",
+      "reserved_krw": "16159.16000000",
+      "client_order_id": "cat-02fceb82-f5c2-4f7d-8d54-b54aa8e62050",
+      "state": "SUBMITTED",
+      "filled_quantity": "0.00000000",
+      "exchange_order_id": "p7-3deeac2e-4062-4897-8abd-afb80c54c1df",
+      "created_at": "2026-11-18T13:27:49.475474+09:00",
+      "reported_executed_funds": "6000.00400000",
+      "reported_paid_fee": "3.00000200",
+      "applied_executed_funds": "6000.00400000",
+      "applied_paid_fee": "3.00000200",
+      "fill_accounting_pending": false
+     }
+    ],
+    "positions": [
+     {
+      "id": 1,
+      "session_kind": "LIVE",
+      "session_id": 1,
+      "coin_pair": "KRW-RND",
+      "status": "OPEN",
+      "size": "0.00000000",
+      "opened_at": "2026-11-18T13:27:49.391342+09:00"
+     }
+    ],
+    "unresolved_discrepancies": []
+   },
+   "db_fp_post": "e256f9e632129e9df3b55852185158d6",
+   "external_flows": [],
+   "query_errors": [],
+   "exchange_before": {
+    "accounts": {
+     "KRW": {
+      "locked": "0",
+      "balance": "993996.995998"
+     },
+     "RND": {
+      "locked": "0",
+      "balance": "20"
+     },
+     "XRP": {
+      "locked": "0",
+      "balance": "5"
+     }
+    },
+    "open_orders": [
+     "p7-3deeac2e-4062-4897-8abd-afb80c54c1df"
+    ],
+    "done_order_ids": [],
+    "done_query": {
+     "from": "2026-01-01T00:00:00Z",
+     "to": "2026-11-18T04:27:49.630269Z",
+     "complete": true,
+     "pages": 1
+    }
+   },
+   "exchange_after": {
+    "accounts": {
+     "KRW": {
+      "locked": "0",
+      "balance": "993996.995998"
+     },
+     "RND": {
+      "locked": "0",
+      "balance": "20"
+     },
+     "XRP": {
+      "locked": "0",
+      "balance": "5"
+     }
+    },
+    "open_orders": [
+     "p7-3deeac2e-4062-4897-8abd-afb80c54c1df"
+    ],
+    "done_order_ids": [],
+    "done_query": {
+     "from": "2026-01-01T00:00:00Z",
+     "to": "2026-11-18T04:27:49.645568Z",
+     "complete": true,
+     "pages": 1
+    }
+   }
+  }
+ },
+ "result": {
+  "overall": "ANOMALY",
+  "registry_status": "invalid",
+  "observation": {
+   "base": "invalid",
+   "now": "invalid"
+  },
+  "observation_stable": false,
+  "anomalies": [
+   {
+    "code": "REGISTRY_INVALID",
+    "index": 0,
+    "detail": "알 수 없는 필드 ['effective_axis']"
+   }
+  ],
+  "holds": [
+   {
+    "code": "OBSERVATION_INVALID",
+    "blocks": [
+     "*"
+    ],
+    "at": "base",
+    "detail": [
+     "base.meta.steps.db_fp_pre: 시각 형식 아님",
+     "base.meta.steps.exchange_before: 시각 형식 아님",
+     "base.meta.steps.db_extract: 시각 형식 아님",
+     "base.meta.steps.exchange_after: 시각 형식 아님",
+     "base.meta.steps.db_fp_post: 시각 형식 아님"
+    ]
+   },
+   {
+    "code": "OBSERVATION_INVALID",
+    "blocks": [
+     "*"
+    ],
+    "at": "now",
+    "detail": [
+     "now.meta.steps.db_fp_pre: 시각 형식 아님",
+     "now.meta.steps.exchange_before: 시각 형식 아님",
+     "now.meta.steps.db_extract: 시각 형식 아님",
+     "now.meta.steps.exchange_after: 시각 형식 아님",
+     "now.meta.steps.db_fp_post: 시각 형식 아님"
+    ]
+   }
+  ],
+  "account": null
+ }
+}
