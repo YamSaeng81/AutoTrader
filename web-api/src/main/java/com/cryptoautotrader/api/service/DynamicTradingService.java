@@ -476,9 +476,18 @@ public class DynamicTradingService {
 
     @Transactional
     public DynamicSessionEntity createSession(DynamicSessionRequest req) {
+        // 🔴 매매 모드는 정확한 REAL/PAPER 두 값만 받는다 (총괄 v1.185 §3-3). 종전에는 "PAPER" 가 아니면 모두 실자금이라
+        //    누락·빈 값·소문자 paper·오타가 실자금 세션으로 저장되고 배정까지 받았다. 저장·계좌 동기화·배정보다 먼저 거절한다.
+        //    새 생성 요청에만 적용 — 기존 행과 재기동 복원(엔티티 기본값)은 바꾸지 않는다.
+        String mode = req.getTradingMode();
+        if (!"REAL".equals(mode) && !"PAPER".equals(mode)) {
+            throw new IllegalArgumentException("tradingMode 는 정확히 REAL 또는 PAPER 여야 합니다 (받은 값: "
+                    + (mode == null ? "없음" : "'" + mode + "'") + ")");
+        }
+
         StrategyRegistry.get(req.getStrategyType()); // 유효성 검증
 
-        boolean isPaper = "PAPER".equals(req.getTradingMode());
+        boolean isPaper = "PAPER".equals(mode);
 
         // 비활성 전략 차단 — strategy_type_enabled에서 꺼진 전략은 세션 생성 거부.
         // (UI 드롭다운 필터만으로는 select 표시/상태 불일치 등으로 우회될 수 있어 서버에서 강제)

@@ -68,8 +68,9 @@ public class DynamicSessionRequest {
     private java.util.Map<String, Object> strategyParams;
 
     /**
-     * REAL(실거래, 기본값) | PAPER(모의) — (2026-08-06).
+     * REAL(실거래) | PAPER(모의) — (2026-08-06).
      * PAPER는 전략/게이트/SL·TP/time stop을 REAL과 동일하게 적용하되 체결만 시뮬레이션한다.
+     * 🔴 필수, 정확한 두 값만 허용 — 누락·소문자·오타는 생성 전에 거절한다(총괄 v1.185 §3-3, 기본값 REAL 폐지).
      */
     private String tradingMode;
 }

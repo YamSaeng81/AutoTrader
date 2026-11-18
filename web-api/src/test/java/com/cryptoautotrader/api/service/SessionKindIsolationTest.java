@@ -270,6 +270,7 @@ class SessionKindIsolationTest extends IntegrationTestBase {
         req.setStrategyType("COMPOSITE_MTF_BTC");
         req.setTimeframe("H1");
         req.setInitialCapital(new BigDecimal("10000"));
+        req.setTradingMode("REAL"); // 총괄 v1.185 §3-3: 모드 필수(기본값 REAL 폐지)
 
         var session = dynamicTradingService.createSession(req);
 
@@ -282,6 +283,7 @@ class SessionKindIsolationTest extends IntegrationTestBase {
         explicit.setStrategyType("COMPOSITE_MTF_BTC");
         explicit.setTimeframe("H1");
         explicit.setInitialCapital(new BigDecimal("10000"));
+        explicit.setTradingMode("REAL"); // 총괄 v1.185 §3-3: 모드 필수(기본값 REAL 폐지)
         explicit.setMaxHoldHours(12);
 
         assertThat(dynamicTradingService.createSession(explicit).getMaxHoldHours())
@@ -295,6 +297,7 @@ class SessionKindIsolationTest extends IntegrationTestBase {
         req.setStrategyType("MACD"); // StrategyLiveStatusRegistry: BLOCKED
         req.setTimeframe("H1");
         req.setInitialCapital(new BigDecimal("100000"));
+        req.setTradingMode("REAL"); // 총괄 v1.185 §3-3: 모드 필수(기본값 REAL 폐지)
 
         assertThatThrownBy(() -> dynamicTradingService.createSession(req))
                 .hasMessageContaining("MACD")
@@ -315,6 +318,7 @@ class SessionKindIsolationTest extends IntegrationTestBase {
         dynReq.setStrategyType("COMPOSITE_BREAKOUT"); // ENABLED
         dynReq.setTimeframe("H1");
         dynReq.setInitialCapital(new BigDecimal("100000"));
+        dynReq.setTradingMode("REAL"); // 총괄 v1.185 §3-3: 모드 필수(기본값 REAL 폐지)
         assertThat(dynamicTradingService.createSession(dynReq).getId()).isNotNull();
     }
 }

@@ -78,6 +78,7 @@ class WalkForwardGateEnabledSessionCreationTest extends IntegrationTestBase {
         req.setStrategyType(STRATEGY);
         req.setTimeframe("H1");
         req.setInitialCapital(new BigDecimal("10000"));
+        req.setTradingMode("REAL"); // 총괄 v1.185 §3-3: 모드 필수(기본값 REAL 폐지)
 
         assertThatThrownBy(() -> dynamicTradingService.createSession(req))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -94,6 +95,7 @@ class WalkForwardGateEnabledSessionCreationTest extends IntegrationTestBase {
         req.setStrategyType(STRATEGY);
         req.setTimeframe("H1");
         req.setInitialCapital(new BigDecimal("10000"));
+        req.setTradingMode("REAL"); // 총괄 v1.185 §3-3: 모드 필수(기본값 REAL 폐지)
 
         var session = dynamicTradingService.createSession(req);
         assertThat(session.getId()).isNotNull();
@@ -108,6 +110,7 @@ class WalkForwardGateEnabledSessionCreationTest extends IntegrationTestBase {
         req.setStrategyType(STRATEGY);
         req.setTimeframe("H1");
         req.setInitialCapital(new BigDecimal("10000"));
+        req.setTradingMode("REAL"); // 총괄 v1.185 §3-3: 모드 필수(기본값 REAL 폐지)
 
         assertThatThrownBy(() -> dynamicTradingService.createSession(req))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -123,6 +126,7 @@ class WalkForwardGateEnabledSessionCreationTest extends IntegrationTestBase {
         req.setStrategyType(STRATEGY);
         req.setTimeframe("H1");
         req.setInitialCapital(new BigDecimal("10000"));
+        req.setTradingMode("REAL"); // 총괄 v1.185 §3-3: 모드 필수(기본값 REAL 폐지)
 
         assertThatThrownBy(() -> dynamicTradingService.createSession(req))
                 .isInstanceOf(IllegalArgumentException.class)

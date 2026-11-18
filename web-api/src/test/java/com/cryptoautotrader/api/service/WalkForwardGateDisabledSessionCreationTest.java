@@ -67,6 +67,7 @@ class WalkForwardGateDisabledSessionCreationTest extends IntegrationTestBase {
         req.setStrategyType(STRATEGY);
         req.setTimeframe("H1");
         req.setInitialCapital(new BigDecimal("10000"));
+        req.setTradingMode("REAL"); // 총괄 v1.185 §3-3: 모드 필수(기본값 REAL 폐지)
 
         var session = dynamicTradingService.createSession(req);
 

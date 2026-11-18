@@ -290,6 +290,7 @@ class CapitalPoolLimitTest extends IntegrationTestBase {
         dyn.setStrategyType("COMPOSITE_MTF_BTC");
         dyn.setTimeframe("H1");
         dyn.setInitialCapital(new BigDecimal("60000"));
+        dyn.setTradingMode("REAL"); // 총괄 v1.185 §3-3: 모드 필수(기본값 REAL 폐지)
         assertThatThrownBy(() -> dynamicTradingService.createSession(dyn))
                 .as("🔴 실자금 동적 세션은 종전에 자본 검사가 전혀 없었다 — LIVE 60,000 + DYNAMIC 60,000 > 100,000")
                 .hasMessageContaining(CapitalReservationService.POOL_CAP);
