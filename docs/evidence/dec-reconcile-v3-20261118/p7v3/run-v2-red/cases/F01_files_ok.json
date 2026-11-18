@@ -1,0 +1,57 @@
+{
+ "args": [
+  "--registry",
+  "reg.json",
+  "--base",
+  "base.json",
+  "--now",
+  "now.json"
+ ],
+ "rc": 0,
+ "result": {
+  "overall": "OK",
+  "registry_valid": true,
+  "observation_stable": true,
+  "anomalies": [],
+  "holds": [],
+  "account": {
+   "krw": {
+    "exchange_delta": "-15999.98364783",
+    "external": "0",
+    "session_ledger_delta": "-15999.98000000",
+    "raw_residual": "-0.00364783",
+    "explained_rounding": "-0.00364783",
+    "adjusted_residual": "0E-8",
+    "quantum": "0"
+   },
+   "coins": {
+    "ETH": {
+     "exchange_delta_minus_external": "0.0032",
+     "net_filled": "0.00320000",
+     "open_position_delta": "0.00320000",
+     "match": true
+    }
+   },
+   "base_holdings": {
+    "ETH": {
+     "amount": "0",
+     "source": "base.exchange_after"
+    }
+   },
+   "internal_allocations": [],
+   "backing": {
+    "ETH": {
+     "exchange_total": "0.0032",
+     "registered_open": "0.00320000",
+     "ok": true
+    },
+    "KRW": {
+     "exchange_total": "84000.01635217",
+     "registered_available": "24200.02",
+     "ok": true
+    }
+   },
+   "verdict": "일치"
+  }
+ }
+}

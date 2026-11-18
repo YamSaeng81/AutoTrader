@@ -1,0 +1,1044 @@
+{
+  "fixed_submission": "c2a09f9c7a95473f3a163d29dadf21e3626f64b5",
+  "submitted_manifest_files": 74,
+  "prior_manifest_files": 4,
+  "checks_passed": 142,
+  "checks_failed": 57,
+  "scope": "Git and saved files; pure P7 input replay/probes. No new Java/PG/network runs.",
+  "checks": [
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/README.md",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/cooldown/candidate-89336440.diff",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/cooldown/run-89336440/gradle.log",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/cooldown/run-89336440/meta.txt",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/cooldown/run-89336440/summary.txt",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/cooldown/run-89336440/xml/TEST-com.cryptoautotrader.api.service.DynamicBlackSwanCooldownCrossKindTest.xml",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/cooldown/run-89336440/xml/TEST-com.cryptoautotrader.api.service.DynamicBlackSwanCooldownRestoreTest.xml",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/cooldown/run-89336440/xml/TEST-com.cryptoautotrader.api.service.DynamicBlackSwanPriceGuardTest.xml",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/cooldown/run-89336440/xml/TEST-com.cryptoautotrader.api.service.DynamicPaperLiveRuleParityTest.xml",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/cooldown/run-89336440/xml/TEST-com.cryptoautotrader.api.service.EngineParityTest.xml",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/links/draft-test-links-v2.txt",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/links/link_tests.py",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/p7v2/extract.sql",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/p7v2/fingerprint.sql",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/p7v2/mutate.py",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/p7v2/mutation.out.txt",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/p7v2/out/A1_eth_hold.json",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/p7v2/out/A2_eth_roundtrip.json",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/p7v2/out/B1_preexisting_btc.json",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/p7v2/out/B2_preexisting_btc_plus_eth.json",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/p7v2/out/C1_start_stop_window.json",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/p7v2/out/C2_stopped_session_unsettled_cash.json",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/p7v2/out/D1_contract_mismatch_timeframe.json",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/p7v2/out/D2_same_id_other_kind.json",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/p7v2/out/D3_registry_duplicate_key.json",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/p7v2/out/D4_db_mode_lowercase_paper.json",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/p7v2/out/D5_registry_unknown_rule.json",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/p7v2/out/E1_unregistered_session_order.json",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/p7v2/out/E2_orphan_order_deleted_session.json",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/p7v2/out/E3_exchange_order_not_in_db.json",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/p7v2/out/E4_manual_trade_declared.json",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/p7v2/out/F1_deposit_declared.json",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/p7v2/out/F2_deposit_undeclared.json",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/p7v2/out/F3_flows_unknown.json",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/p7v2/out/F4_coin_withdraw_declared.json",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/p7v2/out/G1_partial_fill_cancel.json",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/p7v2/out/G2_unexplained_1_50_two_sessions.json",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/p7v2/out/G3_exact_two_sessions.json",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/p7v2/out/G4_settlement_correction_between.json",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/p7v2/out/H1_unknown_order.json",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/p7v2/out/H2_closing_inflight.json",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/p7v2/out/H3_accounting_pending.json",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/p7v2/out/H4_query_failed.json",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/p7v2/out/H5_hold_plus_known_anomaly.json",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/p7v2/out/H6_unresolved_discrepancy.json",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/p7v2/out/H7_unstable_db_between_reads.json",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/p7v2/out/H8_unstable_exchange_between_reads.json",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/p7v2/out/R1_dynamic_excluded_coin_buy.json",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/p7v2/out/R2_dynamic_two_buys_ok.json",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/p7v2/out/R3_sid203_two_buys.json",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/p7v2/out/R4_dynamic_request_over_cap.json",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/p7v2/reconcile.py",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/p7v2/registry.example.json",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/p7v2/run.txt",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/p7v2/scenarios.out.txt",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/p7v2/scenarios.py",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/raw/mode-18f3a795/logs/original-logs.sha256",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/raw/mode-18f3a795/logs/system.log.gz",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/raw/mode-18f3a795/logs/trade.log.gz",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/raw/mode-18f3a795/source-mtimes.txt",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/raw/mode-18f3a795/source.txt",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/raw/mode-18f3a795/xml/TEST-com.cryptoautotrader.api.controller.DynamicSessionPaperVisibilityTest.xml",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/raw/mode-18f3a795/xml/TEST-com.cryptoautotrader.api.service.CapitalPoolLimitTest.xml",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/raw/mode-18f3a795/xml/TEST-com.cryptoautotrader.api.service.DynamicTradingModeInputTest.xml",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/raw/mode-18f3a795/xml/TEST-com.cryptoautotrader.api.service.SessionKindIsolationTest.xml",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/raw/mode-18f3a795/xml/TEST-com.cryptoautotrader.api.service.StrategyEnablementGateTest.xml",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/raw/mode-18f3a795/xml/TEST-com.cryptoautotrader.api.service.WalkForwardGateDisabledSessionCreationTest.xml",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/raw/mode-18f3a795/xml/TEST-com.cryptoautotrader.api.service.WalkForwardGateEnabledSessionCreationTest.xml",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/raw/p1-2302104c/logs/original-logs.sha256",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/raw/p1-2302104c/logs/system.log.gz",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/raw/p1-2302104c/logs/trade.log.gz",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/raw/p1-2302104c/source-mtimes.txt",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/raw/p1-2302104c/source.txt",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/dec-reconcile-20261118/raw/p1-2302104c/xml/TEST-com.cryptoautotrader.api.service.DynamicPerPositionCapBoundaryTest.xml",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest coverage:docs/evidence/dec-reconcile-20261118",
+      "pass": false,
+      "detail": 74
+    },
+    {
+      "check": "manifest:docs/evidence/review-76387b25/.gitattributes",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/review-76387b25/audit_review.py",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/review-76387b25/checks.json",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest:docs/evidence/review-76387b25/README.md",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "manifest coverage:docs/evidence/review-76387b25",
+      "pass": true,
+      "detail": 4
+    },
+    {
+      "check": "local HEAD and saved origin/main",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "saved remote candidate:candidate/dynamic-mode-strict-0e1d2a02",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "saved remote candidate:test/p1-cap-boundary-0e1d2a02",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "original XML:mode-18f3a795",
+      "pass": true,
+      "detail": [
+        48,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "check": "source linkage:mode-18f3a795",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "original gzip:mode-18f3a795/strategy.log",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "original gzip:mode-18f3a795/system.log",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "original gzip:mode-18f3a795/trade.log",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "original XML:p1-2302104c",
+      "pass": true,
+      "detail": [
+        8,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "check": "source linkage:p1-2302104c",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "original gzip:p1-2302104c/strategy.log",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "original gzip:p1-2302104c/system.log",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "original gzip:p1-2302104c/trade.log",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:WalkForwardGateDisabledSessionCreationTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:WalkForwardGateEnabledSessionCreationTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:RealtimeProtectionFairnessTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:RealtimeProtectionSaturationTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:DynamicBlackSwanCooldownCrossKindTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:DynamicBlackSwanCooldownRestoreTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:DynamicBlackSwanPriceGuardTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:StrategyEnablementGateTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:DynamicPoolReservationTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:CapitalPoolLimitTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:DynamicScanTransitionGuardTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:DynamicCircuitBreakerTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:DynamicScanSelectionTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:DynamicPaperBuySameTickWatchlistTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:BtcGateUnknownEntryTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:BtcGateSupplyEndToEndTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:CrossSessionExposureTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:DynamicMinimumCandleGuardTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:CandleFreshnessGuardTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:EntryPriorityRoundsTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:EntryPriorityEndToEndTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:N15EntryExpiryTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:N15FinalApprovalBoundaryTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:N15PgLockWaitExpiryTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:RealLossThreeFormulaPgTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:RealLossGlobalPgTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:LiveLossWindowPgTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:DynamicBuyExternalSubmissionBoundaryTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:DynamicBuyOuterWriteOrderingTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:DynamicSessionRowLockContentionTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:DynamicBuyCompletesConsistentlyTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:PositionLimitTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:PoolLossLimitTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:DynamicTakeProfitCapTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:DynamicStopLossWidthTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:ExitRuleCalculatorTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:CandleGapExitTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:EngineParityTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:RealtimeThrottleCrossingTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:StaleRealtimeExitTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:WsSubscriptionUnionTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:ClosingIntentAtomicityPgTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:SubmitPollRaceTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:DynamicStopRaceTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:StopVersusInFlightExitRaceTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:DynamicFillAccountingTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:DynamicGhostPositionTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:DynamicBalanceLeakTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:DynamicUnlockedCapitalTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:ConcurrentFillSettlementTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:PartialSellRealizedPnlPgTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:SettlementRoundingPgTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:DynamicTradingSlWatchdogRecoveryTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:CancelConfirmAndLateFillCleanupTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:DynamicStopOptimisticLockTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "old XML linkage:SellQuarantineReleaseTest",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "check": "56 unique classes / 49 success / 7 skipped",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "cooldown parent",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "cooldown product patch identity",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "cooldown submitted diff",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "cooldown 5 classes / 53 successful",
+      "pass": true,
+      "detail": [
+        53,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "check": "replay pure saved input:A1_eth_hold",
+      "pass": true,
+      "detail": "OK"
+    },
+    {
+      "check": "replay pure saved input:A2_eth_roundtrip",
+      "pass": true,
+      "detail": "OK"
+    },
+    {
+      "check": "replay pure saved input:B1_preexisting_btc",
+      "pass": true,
+      "detail": "OK"
+    },
+    {
+      "check": "replay pure saved input:B2_preexisting_btc_plus_eth",
+      "pass": true,
+      "detail": "OK"
+    },
+    {
+      "check": "replay pure saved input:C1_start_stop_window",
+      "pass": true,
+      "detail": "OK"
+    },
+    {
+      "check": "replay pure saved input:C2_stopped_session_unsettled_cash",
+      "pass": true,
+      "detail": "ANOMALY"
+    },
+    {
+      "check": "replay pure saved input:D1_contract_mismatch_timeframe",
+      "pass": true,
+      "detail": "ANOMALY"
+    },
+    {
+      "check": "replay pure saved input:D2_same_id_other_kind",
+      "pass": true,
+      "detail": "ANOMALY"
+    },
+    {
+      "check": "replay pure saved input:D3_registry_duplicate_key",
+      "pass": true,
+      "detail": "ANOMALY"
+    },
+    {
+      "check": "replay pure saved input:D4_db_mode_lowercase_paper",
+      "pass": true,
+      "detail": "ANOMALY"
+    },
+    {
+      "check": "replay pure saved input:D5_registry_unknown_rule",
+      "pass": true,
+      "detail": "ANOMALY"
+    },
+    {
+      "check": "replay pure saved input:E1_unregistered_session_order",
+      "pass": true,
+      "detail": "ANOMALY"
+    },
+    {
+      "check": "replay pure saved input:E2_orphan_order_deleted_session",
+      "pass": true,
+      "detail": "ANOMALY"
+    },
+    {
+      "check": "replay pure saved input:E3_exchange_order_not_in_db",
+      "pass": true,
+      "detail": "ANOMALY"
+    },
+    {
+      "check": "replay pure saved input:E4_manual_trade_declared",
+      "pass": true,
+      "detail": "OK"
+    },
+    {
+      "check": "replay pure saved input:F1_deposit_declared",
+      "pass": true,
+      "detail": "OK"
+    },
+    {
+      "check": "replay pure saved input:F2_deposit_undeclared",
+      "pass": true,
+      "detail": "ANOMALY"
+    },
+    {
+      "check": "replay pure saved input:F3_flows_unknown",
+      "pass": true,
+      "detail": "HOLD"
+    },
+    {
+      "check": "replay pure saved input:F4_coin_withdraw_declared",
+      "pass": true,
+      "detail": "ANOMALY"
+    },
+    {
+      "check": "replay pure saved input:G1_partial_fill_cancel",
+      "pass": true,
+      "detail": "OK"
+    },
+    {
+      "check": "replay pure saved input:G2_unexplained_1_50_two_sessions",
+      "pass": true,
+      "detail": "ANOMALY"
+    },
+    {
+      "check": "replay pure saved input:G3_exact_two_sessions",
+      "pass": true,
+      "detail": "OK"
+    },
+    {
+      "check": "replay pure saved input:G4_settlement_correction_between",
+      "pass": true,
+      "detail": "OK"
+    },
+    {
+      "check": "replay pure saved input:H1_unknown_order",
+      "pass": true,
+      "detail": "ANOMALY"
+    },
+    {
+      "check": "replay pure saved input:H2_closing_inflight",
+      "pass": true,
+      "detail": "HOLD"
+    },
+    {
+      "check": "replay pure saved input:H3_accounting_pending",
+      "pass": true,
+      "detail": "HOLD"
+    },
+    {
+      "check": "replay pure saved input:H4_query_failed",
+      "pass": true,
+      "detail": "HOLD"
+    },
+    {
+      "check": "replay pure saved input:H5_hold_plus_known_anomaly",
+      "pass": true,
+      "detail": "ANOMALY"
+    },
+    {
+      "check": "replay pure saved input:H6_unresolved_discrepancy",
+      "pass": true,
+      "detail": "ANOMALY"
+    },
+    {
+      "check": "replay pure saved input:H7_unstable_db_between_reads",
+      "pass": true,
+      "detail": "HOLD"
+    },
+    {
+      "check": "replay pure saved input:H8_unstable_exchange_between_reads",
+      "pass": true,
+      "detail": "HOLD"
+    },
+    {
+      "check": "replay pure saved input:R1_dynamic_excluded_coin_buy",
+      "pass": true,
+      "detail": "ANOMALY"
+    },
+    {
+      "check": "replay pure saved input:R2_dynamic_two_buys_ok",
+      "pass": true,
+      "detail": "OK"
+    },
+    {
+      "check": "replay pure saved input:R3_sid203_two_buys",
+      "pass": true,
+      "detail": "ANOMALY"
+    },
+    {
+      "check": "replay pure saved input:R4_dynamic_request_over_cap",
+      "pass": true,
+      "detail": "ANOMALY"
+    },
+    {
+      "check": "35 saved scenario inputs",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "seven saved mutation outcomes",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "check": "counterexample observed:P0_control",
+      "pass": true,
+      "detail": {
+        "observed": "OK",
+        "finding": "Unchanged saved valid input"
+      }
+    },
+    {
+      "check": "counterexample observed:P1_wrong_code",
+      "pass": true,
+      "detail": {
+        "observed": "OK",
+        "finding": "Registry code SHA is required but never matched to source evidence"
+      }
+    },
+    {
+      "check": "counterexample observed:P2_missing_fingerprints",
+      "pass": true,
+      "detail": {
+        "observed": "OK",
+        "finding": "Three missing fingerprints compare equal; observation_stable=True"
+      }
+    },
+    {
+      "check": "counterexample observed:P3_reversed_time",
+      "pass": true,
+      "detail": {
+        "observed": "OK",
+        "finding": "Current observation predates baseline"
+      }
+    },
+    {
+      "check": "counterexample observed:P4_known_residual_hidden",
+      "pass": true,
+      "detail": {
+        "observed": "HOLD",
+        "finding": "Stable records, final orders, unexplained KRW -1.50; CLOSING globally suppresses account anomaly"
+      }
+    },
+    {
+      "check": "counterexample observed:P5_unbacked_hidden",
+      "pass": true,
+      "detail": {
+        "observed": "HOLD",
+        "finding": "Exchange BTC=0 versus internal 0.0002; CLOSING suppresses backing anomaly"
+      }
+    },
+    {
+      "check": "counterexample observed:P6_missing_exchange_coverage",
+      "pass": true,
+      "detail": {
+        "observed": "OK",
+        "finding": "DB filled UUID not present in purported complete exchange list; only reverse direction checked"
+      }
+    },
+    {
+      "check": "counterexample observed:P7_invalid_rule_number",
+      "pass": true,
+      "detail": {
+        "observed": "InvalidOperation",
+        "finding": "Invalid registry numeric value escapes structured verdict"
+      }
+    }
+  ]
+}

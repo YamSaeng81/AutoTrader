@@ -1,0 +1,96 @@
+impl ../../dec-reconcile-20261118/p7v2/reconcile.py sha256=1e54ac6b9a7c8bf2a710d041116dd7ebcd73c3fcf7e32a06f003765c705b2e3c
+PASS | v2 | A1_eth_hold | OK | 
+PASS | v2 | A2_eth_roundtrip | OK | 
+PASS | v2 | B1_preexisting_btc | OK | 
+PASS | v2 | B2_preexisting_btc_plus_eth | OK | 
+PASS | v2 | C1_start_stop_window | OK | 
+PASS | v2 | C2_stopped_session_unsettled_cash | ANOMALY | SESSION_LEDGER_MISMATCH
+PASS | v2 | D1_contract_mismatch_timeframe | ANOMALY | ACCOUNT_COIN_MISMATCH,ACCOUNT_KRW_MISMATCH,REGISTRY_CONTRACT_MISMATCH,UNREGISTERED_REAL_ORDER,UNREGISTERED_REAL_POSITION,UNREGISTERED_REAL_SESSION_ACTIVE
+PASS | v2 | D2_same_id_other_kind | ANOMALY | ACCOUNT_COIN_MISMATCH,ACCOUNT_KRW_MISMATCH,REGISTERED_SESSION_ROW_MISSING,UNREGISTERED_REAL_ORDER,UNREGISTERED_REAL_POSITION,UNREGISTERED_REAL_SESSION_ACTIVE
+PASS | v2 | D3_registry_duplicate_key | ANOMALY | ACCOUNT_COIN_MISMATCH,ACCOUNT_KRW_MISMATCH,REGISTRY_INVALID,UNREGISTERED_REAL_ORDER,UNREGISTERED_REAL_POSITION,UNREGISTERED_REAL_SESSION_ACTIVE
+PASS | v2 | D4_db_mode_lowercase_paper | ANOMALY | ACCOUNT_COIN_MISMATCH,ACCOUNT_KRW_MISMATCH,REGISTRY_CONTRACT_MISMATCH,UNREGISTERED_REAL_ORDER,UNREGISTERED_REAL_POSITION,UNREGISTERED_REAL_SESSION_ACTIVE
+PASS | v2 | D5_registry_unknown_rule | ANOMALY | ACCOUNT_COIN_MISMATCH,ACCOUNT_KRW_MISMATCH,REGISTRY_INVALID,UNREGISTERED_REAL_ORDER,UNREGISTERED_REAL_POSITION,UNREGISTERED_REAL_SESSION_ACTIVE
+PASS | v2 | E1_unregistered_session_order | ANOMALY | ACCOUNT_COIN_MISMATCH,ACCOUNT_KRW_MISMATCH,UNREGISTERED_REAL_ORDER,UNREGISTERED_REAL_POSITION,UNREGISTERED_REAL_SESSION_ACTIVE
+PASS | v2 | E2_orphan_order_deleted_session | ANOMALY | EXCHANGE_OPEN_ORDERS,ORDER_IN_FLIGHT,UNREGISTERED_REAL_ORDER
+PASS | v2 | E3_exchange_order_not_in_db | ANOMALY | ACCOUNT_COIN_MISMATCH,ACCOUNT_KRW_MISMATCH,EXCHANGE_ORDER_NOT_IN_DB
+PASS | v2 | E4_manual_trade_declared | OK | 
+PASS | v2 | F1_deposit_declared | OK | 
+PASS | v2 | F2_deposit_undeclared | ANOMALY | ACCOUNT_KRW_MISMATCH
+PASS | v2 | F3_flows_unknown | HOLD | EXTERNAL_FLOWS_UNCONFIRMED
+PASS | v2 | F4_coin_withdraw_declared | ANOMALY | ACCOUNT_COIN_UNBACKED
+PASS | v2 | G1_partial_fill_cancel | OK | 
+PASS | v2 | G2_unexplained_1_50_two_sessions | ANOMALY | ACCOUNT_KRW_MISMATCH
+PASS | v2 | G3_exact_two_sessions | OK | 
+PASS | v2 | G4_settlement_correction_between | OK | 
+PASS | v2 | H1_unknown_order | ANOMALY | ORDER_EFFECT_PENDING,ORDER_UNKNOWN
+PASS | v2 | H2_closing_inflight | HOLD | EXCHANGE_OPEN_ORDERS,ORDER_EFFECT_PENDING,ORDER_IN_FLIGHT,POSITION_CLOSING
+PASS | v2 | H3_accounting_pending | HOLD | ACCOUNTING_PENDING,ORDER_EFFECT_PENDING
+PASS | v2 | H4_query_failed | HOLD | OBSERVATION_MISSING,QUERY_FAILED
+PASS | v2 | H5_hold_plus_known_anomaly | ANOMALY | EXCHANGE_OPEN_ORDERS,ORDER_EFFECT_PENDING,ORDER_IN_FLIGHT,POSITION_CLOSING,SETTLEMENT_MISMATCH
+PASS | v2 | H6_unresolved_discrepancy | ANOMALY | SETTLEMENT_DISCREPANCY_UNRESOLVED
+PASS | v2 | H7_unstable_db_between_reads | HOLD | ORDER_EFFECT_PENDING,ORDER_IN_FLIGHT,UNSTABLE_DB
+PASS | v2 | H8_unstable_exchange_between_reads | HOLD | UNSTABLE_EXCHANGE
+PASS | v2 | R1_dynamic_excluded_coin_buy | ANOMALY | RULE_EXCLUDED_COIN_BUY
+PASS | v2 | R2_dynamic_two_buys_ok | OK | 
+PASS | v2 | R3_sid203_two_buys | ANOMALY | RULE_DUP_BUY_POSITION,RULE_FILLED_BUYS
+PASS | v2 | R4_dynamic_request_over_cap | ANOMALY | RULE_BUY_REQUEST_CAP
+PASS | new | N00_control | OK | 
+FAIL | new | N01a_code_sha_not_hex | OK |  | overall OK≠ANOMALY; 코드 없음 ['REGISTRY_INVALID']
+FAIL | new | N01b_code_sha_other_commit | OK |  | overall OK≠ANOMALY; 코드 없음 ['REGISTRY_CONTRACT_MISMATCH']
+FAIL | new | N01c_app_sha_unobserved | OK |  | overall OK≠HOLD; 코드 없음 ['CODE_SOURCE_UNCONFIRMED']
+FAIL | new | N01d_code_changed_in_window | OK |  | overall OK≠HOLD; 코드 없음 ['CODE_CHANGED_IN_WINDOW']
+FAIL | new | N01e_source_db_other | OK |  | overall OK≠HOLD; 코드 없음 ['OBSERVATION_SOURCE_MISMATCH']; verdict='일치'≠'보류'
+PASS | new | N01f_full_sha_prefix | OK | 
+FAIL | new | N02a_fingerprints_missing | OK |  | overall OK≠HOLD; 코드 없음 ['FINGERPRINT_MISSING']; observation_stable=True
+FAIL | new | N02b_fingerprint_post_missing | HOLD | UNSTABLE_DB | 코드 없음 ['FINGERPRINT_MISSING']
+FAIL | new | N02c_fingerprint_empty | OK |  | overall OK≠HOLD; 코드 없음 ['OBSERVATION_INVALID']
+FAIL | new | N03a_now_before_base | OK |  | overall OK≠HOLD; 코드 없음 ['OBSERVATION_ORDER_INVALID']
+FAIL | new | N03b_naive_timestamp | OK |  | overall OK≠HOLD; 코드 없음 ['OBSERVATION_INVALID']
+FAIL | new | N03c_steps_not_monotonic | OK |  | overall OK≠HOLD; 코드 없음 ['OBSERVATION_INVALID']
+FAIL | new | N03d_steps_misordered | OK |  | overall OK≠HOLD; 코드 없음 ['OBSERVATION_INVALID']
+FAIL | new | N03g_step_missing | OK |  | overall OK≠HOLD; 코드 없음 ['OBSERVATION_INVALID']
+FAIL | new | N03h_db_time_outside_collection | OK |  | overall OK≠HOLD; 코드 없음 ['DB_TIME_OUTSIDE_COLLECTION']
+FAIL | new | N03e_collection_overlap | OK |  | overall OK≠HOLD; 코드 없음 ['COLLECTION_OVERLAP']
+FAIL | new | N03f_schema_changed | OK |  | overall OK≠HOLD; 코드 없음 ['SCHEMA_CHANGED_IN_WINDOW']
+FAIL | new | N04a_closing_does_not_hide_krw_residual | HOLD | POSITION_CLOSING | overall HOLD≠ANOMALY; 코드 없음 ['ACCOUNT_KRW_MISMATCH']; krw.status={}≠'불일치'
+FAIL | new | N04b_inflight_still_blocks_krw | HOLD | ORDER_EFFECT_PENDING,ORDER_IN_FLIGHT,POSITION_CLOSING | krw.status={}≠'보류'
+FAIL | new | N05a_closing_does_not_hide_unbacked | HOLD | POSITION_CLOSING | overall HOLD≠ANOMALY; 코드 없음 ['ACCOUNT_COIN_UNBACKED']; verdict='보류(계산값은 참고)'≠'불일치'
+FAIL | new | N05b_flows_unknown_does_not_hide_unbacked | HOLD | EXTERNAL_FLOWS_UNCONFIRMED | overall HOLD≠ANOMALY; 코드 없음 ['ACCOUNT_COIN_UNBACKED']
+FAIL | new | N06a_db_fill_missing_on_exchange | OK |  | overall OK≠ANOMALY; 코드 없음 ['DB_FILL_NOT_ON_EXCHANGE']
+FAIL | new | N06b_query_incomplete | OK |  | overall OK≠HOLD; 코드 없음 ['EXCHANGE_COVERAGE_UNCONFIRMED']
+FAIL | new | N06c_order_outside_query_window | OK |  | overall OK≠HOLD; 코드 없음 ['EXCHANGE_COVERAGE_GAP']
+FAIL | new | N06d_query_range_unknown | OK |  | overall OK≠HOLD; 코드 없음 ['EXCHANGE_COVERAGE_UNCONFIRMED']
+FAIL | new | N06e_fill_without_exchange_id | ANOMALY | EXCHANGE_ORDER_NOT_IN_DB | 코드 없음 ['DB_FILL_WITHOUT_EXCHANGE_ID']
+FAIL | new | N07a_rule_nan | EXCEPTION:InvalidOperation |  | overall EXCEPTION:InvalidOperation≠ANOMALY; 코드 없음 ['REGISTRY_INVALID']
+FAIL | new | N07b_rule_bool | OK |  | overall OK≠ANOMALY; 코드 없음 ['REGISTRY_INVALID']
+FAIL | new | N07c_rule_negative | ANOMALY | RULE_FILLED_BUYS | 코드 없음 ['REGISTRY_INVALID']
+FAIL | new | N07d_rule_coins_string | OK |  | overall OK≠ANOMALY; 코드 없음 ['REGISTRY_INVALID']
+FAIL | new | N07e_rule_coins_duplicate | OK |  | overall OK≠ANOMALY; 코드 없음 ['REGISTRY_INVALID']
+FAIL | new | N07f_capital_infinity | ANOMALY | ACCOUNT_COIN_MISMATCH,ACCOUNT_KRW_MISMATCH,REGISTRY_CONTRACT_MISMATCH,UNREGISTERED_REAL_ORDER,UNREGISTERED_REAL_POSITION,UNREGISTERED_REAL_SESSION_ACTIVE | 코드 없음 ['REGISTRY_INVALID']
+FAIL | new | N07g_cap_zero | ANOMALY | RULE_BUY_REQUEST_CAP | 코드 없음 ['REGISTRY_INVALID']
+FAIL | new | N07h_window_reversed | ANOMALY | ACCOUNT_COIN_MISMATCH,ACCOUNT_KRW_MISMATCH,SESSION_LEDGER_MISMATCH,UNREGISTERED_REAL_ORDER | 코드 없음 ['REGISTRY_INVALID']
+FAIL | new | N07i_unknown_field | OK |  | overall OK≠ANOMALY; 코드 없음 ['REGISTRY_INVALID']
+FAIL | new | N07j_source_missing | OK |  | overall OK≠ANOMALY; 코드 없음 ['REGISTRY_INVALID']
+FAIL | new | N08a_balance_nan | EXCEPTION:InvalidOperation |  | overall EXCEPTION:InvalidOperation≠HOLD; 코드 없음 ['OBSERVATION_INVALID']
+FAIL | new | N08b_locked_negative | HOLD | UNSTABLE_EXCHANGE | 코드 없음 ['OBSERVATION_INVALID']
+FAIL | new | N08c_balance_float | HOLD | UNSTABLE_EXCHANGE | 코드 없음 ['OBSERVATION_INVALID']
+FAIL | new | N08d_filled_not_number | EXCEPTION:InvalidOperation |  | overall EXCEPTION:InvalidOperation≠HOLD; 코드 없음 ['OBSERVATION_INVALID']
+FAIL | new | N08e_flow_unknown_kind | OK |  | overall OK≠HOLD; 코드 없음 ['OBSERVATION_INVALID']
+FAIL | new | N08f_query_window_reversed | OK |  | overall OK≠HOLD; 코드 없음 ['OBSERVATION_INVALID']
+FAIL | new | N09a_duplicate_order_id | OK |  | overall OK≠HOLD; 코드 없음 ['OBSERVATION_INVALID']
+FAIL | new | N09b_duplicate_exchange_uuid | ANOMALY | ACCOUNT_COIN_MISMATCH,ACCOUNT_KRW_MISMATCH,RULE_DUP_BUY_POSITION,SESSION_LEDGER_MISMATCH | overall ANOMALY≠HOLD; 코드 없음 ['OBSERVATION_INVALID']; 금지 코드 ['ACCOUNT_KRW_MISMATCH']
+FAIL | new | N09c_duplicate_session_row | OK |  | overall OK≠HOLD; 코드 없음 ['OBSERVATION_INVALID']
+FAIL | new | N09d_duplicate_done_uuid | OK |  | overall OK≠HOLD; 코드 없음 ['OBSERVATION_INVALID']
+FAIL | new | N10a_existing_session_new_window | ANOMALY | REGISTRY_CONTRACT_MISMATCH,UNREGISTERED_REAL_SESSION_ACTIVE | overall ANOMALY≠OK
+PASS | new | N10b_existing_session_created_mismatch | ANOMALY | REGISTRY_CONTRACT_MISMATCH,UNREGISTERED_REAL_SESSION_ACTIVE
+PASS | new | N10c_new_session_rule_on_old_row | ANOMALY | REGISTRY_CONTRACT_MISMATCH,UNREGISTERED_REAL_SESSION_ACTIVE
+FAIL | new | N10d_created_after_effective | OK |  | overall OK≠ANOMALY; 코드 없음 ['REGISTRY_INVALID']
+FAIL | new | N11_internal_error_is_error | EXCEPTION:RuntimeError |  | overall EXCEPTION:RuntimeError≠ERROR
+PASS | file | F01_files_ok | OK | 
+FAIL | file | F02_registry_duplicate_json_key | OK |  | overall OK≠ANOMALY; rc 0≠20; 코드 없음 ['REGISTRY_INVALID']
+FAIL | file | F03_observation_nan_literal | NO_JSON(rc=1) |  | overall NO_JSON(rc=1)≠HOLD; rc 1≠10; 코드 없음 ['OBSERVATION_INVALID']
+FAIL | file | F04_observation_json_float | HOLD | UNSTABLE_EXCHANGE | rc 0≠10; 코드 없음 ['OBSERVATION_INVALID']
+FAIL | file | F05_registry_unreadable | NO_JSON(rc=1) |  | overall NO_JSON(rc=1)≠HOLD; rc 1≠10; 코드 없음 ['REGISTRY_UNREADABLE']
+FAIL | file | F06_now_unreadable | NO_JSON(rc=1) |  | overall NO_JSON(rc=1)≠HOLD; rc 1≠10; 코드 없음 ['OBSERVATION_UNREADABLE']
+FAIL | file | F07_quantum_nan | NO_JSON(rc=1) |  | overall NO_JSON(rc=1)≠ERROR; rc 1≠30
+합계 94 통과 40 실패 54

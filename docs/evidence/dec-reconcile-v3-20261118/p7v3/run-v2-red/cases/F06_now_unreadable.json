@@ -1,0 +1,15 @@
+{
+ "args": [
+  "--registry",
+  "reg.json",
+  "--base",
+  "base.json",
+  "--now",
+  "없음.json"
+ ],
+ "rc": 1,
+ "result": {
+  "stdout": "",
+  "stderr": "                                                   ~~~~^^^^^^^\r\n  File \"D:\\Claude Code\\projects\\crypto-auto-trader\\docs\\evidence\\dec-reconcile-20261118\\p7v2\\reconcile.py\", line 405, in <lambda>\r\n    load = lambda p: json.load(open(p, encoding='utf-8'))\r\n                               ~~~~^^^^^^^^^^^^^^^^^^^^^\r\nFileNotFoundError: [Errno 2] No such file or directory: 'run-v2-red\\\\files\\\\����.json'\r\n"
+ }
+}

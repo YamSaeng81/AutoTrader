@@ -1,0 +1,864 @@
+"""P7 v3 병행 대조기 — 로컬 초안(총괄 v1.187 §2·§3-1·§3-2). v2(dec-reconcile-20261118/p7v2) 원문은 그대로 두고 새 사본에서 보완했다.
+운영 설치본·RUNBOOK·F 원문과 무관하다. 입력은 모두 파일이다(네트워크·DB 접속 없음).
+
+  --registry  등록표(JSON)   --base  기준 관측 묶음(JSON)   --now  현재 관측 묶음(JSON)
+관측 묶음 = {meta, db_fp_pre, exchange_before, db(extract.sql 출력), exchange_after, db_fp_post, external_flows, query_errors}
+  meta = {source:{environment, db, exchange_account}, app_code_sha?, app_code_sha_ref?, steps:[{step, at}×5]}
+  exchange_* = {accounts, open_orders, done_order_ids, done_query?:{from, to, complete, pages}}
+
+v2 대비 보완
+  1. 입력 계약 — 필수 구조·비어 있지 않은 지문(md5 16진 32자)·시간대가 있는 시각·수집 순서·숫자 유한성/범위·키 중복·규칙 형식을 먼저 확인한다.
+     결측/읽기 실패(보류)와 유효하지 않은 등록(이상)과 유효하지 않은 관측(보류)을 서로 다른 코드로 낸다. 예외는 ERROR 로 내며 OK·무출력으로 가리지 않는다.
+  2. 출처 연결 — 등록 code_sha 는 관측 meta.app_code_sha(외부 수집 메타데이터)와 대조한다. DB 에 세션별 코드 SHA 는 없다고 본다.
+     관측 환경/DB/거래소 계정은 등록표 observation_source 와 기준·현재가 모두 같아야 한다.
+  3. 등록 적용 시작 ≠ 세션 생성 — session_created_at 이 null 이면 새 세션(생성 ≥ 적용 시작), 값이 있으면 기존 세션의 승인된 신규 구간
+     (DB 생성 시각 = 등록값, 적용 시작 ≥ 생성)이다.
+  4. 영향 범위 보류 — 보류마다 막는 통화(blocks)를 적는다. 막히지 않은 항목은 그대로 계산·판정한다(CLOSING 표시만으로 확정 잔차·담보 부족을 가리지 않음).
+     항목별 상태(일치/불일치/보류)와 계좌 판정·전체 판정이 서로 모순되지 않게 낸다.
+  5. 거래소 주문 조회 범위 — DB 체결 uuid → 거래소 완료 목록 방향도 본다. 조회 기간·완료 여부가 확인된 범위 안에서 빠진 것만 이상이고,
+     범위 밖/완료 미확인은 보류다(OK 로도, 미등록 주문으로도 쓰지 않는다).
+성과 평가(손익률 등)는 하지 않는다 — 현금·수량 대조만 한다.
+"""
+import argparse, json, re, sys
+from decimal import Decimal as D, ROUND_HALF_UP, InvalidOperation
+from datetime import datetime
+
+ACTIVE = {'PENDING', 'INTENT_READY', 'SUBMITTING', 'SUBMITTED', 'PARTIAL_FILLED'}
+TERMINAL_NOFILL = {'CANCELLED', 'FAILED', 'INTENT_REJECTED'}
+RULES = {'max_filled_buys_in_window', 'max_open_positions', 'excluded_coins', 'max_buy_request_krw'}
+REQUIRED = ('kind', 'id', 'mode', 'strategy_type', 'timeframe', 'initial_capital', 'coin_pair', 'code_sha',
+            'effective_from', 'effective_to', 'session_created_at', 'rules')
+STEPS = ('db_fp_pre', 'exchange_before', 'db_extract', 'exchange_after', 'db_fp_post')
+SOURCE_KEYS = ('environment', 'db', 'exchange_account')
+FLOW_KINDS = ('DEPOSIT', 'WITHDRAW', 'MANUAL_TRADE')
+FP_RE = re.compile(r'^[0-9a-f]{32}$')
+SHA_RE = re.compile(r'^[0-9a-f]{7,40}$')
+COIN_RE = re.compile(r'^KRW-[A-Z0-9]+$')
+CUR_RE = re.compile(r'^[A-Z0-9]+$')
+CENT = D('0.01')
+ALL = '*'
+EXIT = {'OK': 0, 'HOLD': 10, 'ANOMALY': 20, 'ERROR': 30}
+
+
+class Bad(ValueError):
+    pass
+
+
+# ── 값 검사 ────────────────────────────────────────────────────
+def num(v, lo=None):
+    """유한 십진수만 받는다(문자열·정수·Decimal). 실수형·불리언·NaN·무한대·범위 밖은 Bad."""
+    if isinstance(v, bool) or isinstance(v, float) or not isinstance(v, (str, int, D)):
+        raise Bad(f'숫자 형식 아님({type(v).__name__})')
+    try:
+        x = D(str(v).strip()) if isinstance(v, str) else D(v)
+    except InvalidOperation:
+        raise Bad(f'숫자 아님({v!r})')
+    if not x.is_finite():
+        raise Bad(f'유한하지 않음({v!r})')
+    if lo is not None and x < lo:
+        raise Bad(f'범위 밖({v!r} < {lo})')
+    return x
+
+
+def tstamp(v):
+    """시간대가 있는 ISO 시각만 받는다."""
+    if not isinstance(v, str):
+        raise Bad('시각 형식 아님')
+    try:
+        t = datetime.fromisoformat(v.replace('Z', '+00:00'))
+    except ValueError:
+        raise Bad(f'시각 아님({v!r})')
+    if t.tzinfo is None or t.utcoffset() is None:
+        raise Bad(f'시간대 없음({v!r})')
+    return t
+
+
+def posint(v, lo=0):
+    if isinstance(v, bool) or not isinstance(v, int) or v < lo:
+        raise Bad(f'정수 {lo} 이상 아님({v!r})')
+    return v
+
+
+def nestr(v):
+    if not isinstance(v, str) or not v.strip():
+        raise Bad('비어 있지 않은 문자열 아님')
+    return v
+
+
+def dec(v):
+    return None if v is None else num(v)
+
+
+def r2(x):
+    return x.quantize(CENT, rounding=ROUND_HALF_UP)
+
+
+def ts(v):
+    return None if v is None else tstamp(v)
+
+
+def sha_eq(a, b):
+    a, b = a.lower(), b.lower()
+    return len(a) >= 7 and len(b) >= 7 and (a.startswith(b) or b.startswith(a))
+
+
+class Result:
+    def __init__(self):
+        self.anomalies, self.holds = [], []
+
+    def anomaly(self, code, **kw):
+        self.anomalies.append({'code': code, **kw})
+
+    def hold(self, code, blocks=(), **kw):
+        self.holds.append({'code': code, 'blocks': sorted(set(blocks)), **kw})
+
+    def blocked(self, cur):
+        return any(ALL in h['blocks'] or cur in h['blocks'] for h in self.holds)
+
+
+# ── 등록표 ─────────────────────────────────────────────────────
+def check_rules(r):
+    if not isinstance(r, dict):
+        raise Bad('rules 가 객체 아님')
+    unknown = set(r) - RULES
+    if unknown:
+        raise Bad(f'알 수 없는 규칙 {sorted(unknown)}')
+    if 'max_filled_buys_in_window' in r:
+        posint(r['max_filled_buys_in_window'], 0)
+    if 'max_open_positions' in r:
+        posint(r['max_open_positions'], 1)
+    if 'max_buy_request_krw' in r:
+        if num(r['max_buy_request_krw']) <= 0:
+            raise Bad('max_buy_request_krw ≤ 0')
+    if 'excluded_coins' in r:
+        ex = r['excluded_coins']
+        if not isinstance(ex, list) or not all(isinstance(c, str) and COIN_RE.match(c) for c in ex):
+            raise Bad('excluded_coins 형식(KRW-XXX 목록)')
+        if len(set(ex)) != len(ex):
+            raise Bad('excluded_coins 중복')
+
+
+def check_entry(e):
+    if not isinstance(e, dict):
+        raise Bad('항목이 객체 아님')
+    miss = [k for k in REQUIRED if k not in e]
+    if miss:
+        raise Bad(f'필드 누락 {miss}')
+    extra = set(e) - set(REQUIRED)
+    if extra:
+        raise Bad(f'알 수 없는 필드 {sorted(extra)}')
+    bad = []
+    if e['kind'] not in ('LIVE', 'DYNAMIC'):
+        bad.append('kind')
+    if e['mode'] != 'REAL':
+        bad.append('mode≠REAL')
+    def capital(v):
+        if num(v) <= 0:
+            raise Bad('0 이하')
+    for k, f in (('id', lambda v: posint(v, 1)), ('strategy_type', nestr), ('timeframe', nestr),
+                 ('initial_capital', capital), ('effective_from', tstamp), ('rules', check_rules)):
+        try:
+            f(e[k])
+        except Bad as x:
+            bad.append(f'{k}: {x}')
+    if not (isinstance(e['code_sha'], str) and SHA_RE.match(e['code_sha'])):
+        bad.append('code_sha: 16진 7~40자 아님')
+    if e['kind'] == 'LIVE' and not (isinstance(e['coin_pair'], str) and COIN_RE.match(e['coin_pair'])):
+        bad.append('LIVE coin_pair')
+    if e['kind'] == 'DYNAMIC' and e['coin_pair'] != 'DYNAMIC':
+        bad.append('DYNAMIC coin_pair≠DYNAMIC')
+    try:
+        f0 = tstamp(e['effective_from'])
+        if e['effective_to'] is not None and tstamp(e['effective_to']) <= f0:
+            bad.append('effective_to ≤ effective_from')
+        if e['session_created_at'] is not None and tstamp(e['session_created_at']) > f0:
+            bad.append('기존 세션인데 적용 시작이 생성보다 앞섬')
+    except Bad as x:
+        bad.append(f'시각: {x}')
+    if bad:
+        raise Bad('; '.join(bad))
+
+
+def load_registry(reg, res):
+    """(entries, status). status: valid / invalid(🔴) / unreadable(❔)."""
+    if isinstance(reg, dict) and '__load_error__' in reg:
+        kind, msg = reg['__load_error__']
+        if kind == 'unreadable':
+            res.hold('REGISTRY_UNREADABLE', blocks=(), detail=msg)
+            return {}, 'unreadable'
+        res.anomaly('REGISTRY_INVALID', detail=msg)
+        return {}, 'invalid'
+    probs = []
+    if not isinstance(reg, dict) or not isinstance(reg.get('sessions'), list):
+        probs.append({'detail': 'sessions 목록 없음'})
+    else:
+        try:
+            nestr(reg.get('registry_version'))
+        except Bad:
+            probs.append({'detail': 'registry_version 없음'})
+        src = reg.get('observation_source')
+        if not isinstance(src, dict) or set(src) != set(SOURCE_KEYS) or \
+                not all(isinstance(src[k], str) and src[k].strip() for k in SOURCE_KEYS):
+            probs.append({'detail': 'observation_source{environment, db, exchange_account} 형식'})
+        seen = set()
+        for i, e in enumerate(reg['sessions']):
+            try:
+                check_entry(e)
+                key = (e['kind'], e['id'])
+                if key in seen:
+                    raise Bad('중복 키')
+                seen.add(key)
+            except Bad as x:
+                probs.append({'index': i, 'detail': str(x)})
+    if probs:
+        # 🔴 등록표가 하나라도 잘못되면 전체를 믿지 않는다 — 모든 실자금 주문이 등록 밖으로 잡힌다.
+        for p in probs:
+            res.anomaly('REGISTRY_INVALID', **p)
+        return {}, 'invalid'
+    return {(e['kind'], e['id']): e for e in reg['sessions']}, 'valid'
+
+
+# ── 관측 구조 검사 ──────────────────────────────────────────────
+def _each(probs, path, fn, *a):
+    try:
+        return fn(*a)
+    except Bad as x:
+        probs.append(f'{path}: {x}')
+        return None
+
+
+def _list(probs, path, v, item=None):
+    if not isinstance(v, list):
+        probs.append(f'{path}: 목록 아님')
+        return []
+    if item:
+        for i, x in enumerate(v):
+            _each(probs, f'{path}[{i}]', item, x)
+    return v
+
+
+def _keys(x, req):
+    if not isinstance(x, dict):
+        raise Bad('객체 아님')
+    miss = [k for k in req if k not in x]
+    if miss:
+        raise Bad(f'필드 누락 {miss}')
+
+
+def v_session(s):
+    _keys(s, ('kind', 'id', 'mode', 'strategy_type', 'timeframe', 'initial_capital', 'available_krw', 'status', 'created_at', 'coin_pair'))
+    if s['kind'] not in ('LIVE', 'DYNAMIC'):
+        raise Bad('kind')
+    posint(s['id'], 1); num(s['initial_capital'], D(0)); num(s['available_krw'], D(0)); tstamp(s['created_at'])
+    if s['mode'] is not None and not isinstance(s['mode'], str):
+        raise Bad('mode')
+
+
+def v_order(o):
+    _keys(o, ('id', 'session_kind', 'session_id', 'position_id', 'coin_pair', 'side', 'order_type', 'quantity', 'reserved_krw',
+              'client_order_id', 'state', 'filled_quantity', 'exchange_order_id', 'created_at', 'reported_executed_funds',
+              'reported_paid_fee', 'applied_executed_funds', 'applied_paid_fee', 'fill_accounting_pending'))
+    posint(o['id'], 1); posint(o['session_id'], 1)
+    if o['session_kind'] not in ('LIVE', 'DYNAMIC'):
+        raise Bad('session_kind')
+    if not (isinstance(o['coin_pair'], str) and COIN_RE.match(o['coin_pair'])):
+        raise Bad('coin_pair')
+    if o['side'] not in ('BUY', 'SELL'):
+        raise Bad('side')
+    nestr(o['state']); nestr(o['order_type']); num(o['quantity'], D(0)); tstamp(o['created_at'])
+    for k in ('reserved_krw', 'filled_quantity', 'reported_executed_funds', 'reported_paid_fee', 'applied_executed_funds', 'applied_paid_fee'):
+        if o[k] is not None:
+            num(o[k], D(0))
+    if o['position_id'] is not None:
+        posint(o['position_id'], 1)
+    if not isinstance(o['fill_accounting_pending'], bool):
+        raise Bad('fill_accounting_pending')
+    for k in ('exchange_order_id', 'client_order_id'):
+        if o[k] is not None:
+            nestr(o[k])
+
+
+def v_position(p):
+    _keys(p, ('id', 'session_kind', 'session_id', 'coin_pair', 'size', 'status'))
+    posint(p['id'], 1); posint(p['session_id'], 1); num(p['size'], D(0)); nestr(p['status'])
+    if not (isinstance(p['coin_pair'], str) and COIN_RE.match(p['coin_pair'])):
+        raise Bad('coin_pair')
+
+
+def v_flow(f):
+    _keys(f, ('kind', 'currency', 'amount', 'ref'))
+    if f['kind'] not in FLOW_KINDS:
+        raise Bad(f"kind {f['kind']!r}")
+    if not (isinstance(f['currency'], str) and CUR_RE.match(f['currency'])):
+        raise Bad('currency')
+    num(f['amount']); nestr(f['ref'])
+
+
+def v_exchange(probs, path, ex):
+    if not isinstance(ex, dict):
+        probs.append(f'{path}: 객체 아님')
+        return
+    acc = ex.get('accounts')
+    if not isinstance(acc, dict):
+        probs.append(f'{path}.accounts: 객체 아님')
+    else:
+        for cur, a in acc.items():
+            if not CUR_RE.match(str(cur)):
+                probs.append(f'{path}.accounts.{cur}: 통화 형식')
+            elif not isinstance(a, dict) or set(a) != {'balance', 'locked'}:
+                probs.append(f'{path}.accounts.{cur}: balance/locked 아님')
+            else:
+                _each(probs, f'{path}.accounts.{cur}.balance', num, a['balance'], D(0))
+                _each(probs, f'{path}.accounts.{cur}.locked', num, a['locked'], D(0))
+    for k in ('open_orders', 'done_order_ids'):
+        lst = _list(probs, f'{path}.{k}', ex.get(k), nestr)
+        if len(set(map(str, lst))) != len(lst):
+            probs.append(f'{path}.{k}: 중복 uuid')
+    q = ex.get('done_query')
+    if q is not None:
+        try:
+            _keys(q, ('from', 'to', 'complete', 'pages'))
+            if tstamp(q['from']) > tstamp(q['to']):
+                raise Bad('from > to')
+            if not isinstance(q['complete'], bool):
+                raise Bad('complete')
+            posint(q['pages'], 1)
+        except Bad as x:
+            probs.append(f'{path}.done_query: {x}')
+
+
+def v_meta(probs, path, m):
+    if not isinstance(m, dict):
+        probs.append(f'{path}: 객체 아님')
+        return
+    src = m.get('source')
+    if not isinstance(src, dict) or set(src) != set(SOURCE_KEYS) or not all(isinstance(src[k], str) and src[k].strip() for k in SOURCE_KEYS):
+        probs.append(f'{path}.source: environment/db/exchange_account 형식')
+    if m.get('app_code_sha') is not None:
+        if not (isinstance(m['app_code_sha'], str) and SHA_RE.match(m['app_code_sha'])):
+            probs.append(f'{path}.app_code_sha: 16진 7~40자 아님')
+        _each(probs, f'{path}.app_code_sha_ref', nestr, m.get('app_code_sha_ref'))
+    st = m.get('steps')
+    if not isinstance(st, list) or [s.get('step') if isinstance(s, dict) else None for s in st] != list(STEPS):
+        probs.append(f'{path}.steps: 순서 {list(STEPS)} 아님')
+        return
+    prev = None
+    for s in st:
+        t = _each(probs, f"{path}.steps.{s['step']}", tstamp, s.get('at'))
+        if t is not None and prev is not None and t < prev:
+            probs.append(f"{path}.steps.{s['step']}: 앞 단계보다 이른 시각")
+        prev = t if t is not None else prev
+
+
+def validate_observation(name, ob, res):
+    """구조 검사. 반환: 'ok' / 'missing' / 'unreadable' / 'invalid'. 지문 결측은 구조 결함이 아니라 안정성 보류로 따로 본다."""
+    if isinstance(ob, dict) and '__load_error__' in ob:
+        kind, msg = ob['__load_error__']
+        res.hold('OBSERVATION_UNREADABLE' if kind == 'unreadable' else 'OBSERVATION_INVALID', blocks=[ALL], at=name, detail=msg)
+        return 'unreadable' if kind == 'unreadable' else 'invalid'
+    if not isinstance(ob, dict):
+        res.hold('OBSERVATION_MISSING', blocks=[ALL], at=name, detail='관측 묶음 없음')
+        return 'missing'
+    if ob.get('query_errors'):
+        # 조회 실패는 결측과 함께 그대로 보인다(결측 판정이 실패 사유를 가리지 않음).
+        res.hold('QUERY_FAILED', blocks=[ALL], at=name, detail=ob['query_errors'])
+    miss = [k for k in ('meta', 'db', 'exchange_before', 'exchange_after') if ob.get(k) is None]
+    if miss:
+        res.hold('OBSERVATION_MISSING', blocks=[ALL], at=name, detail=miss)
+        return 'missing'
+    probs = []
+    v_meta(probs, f'{name}.meta', ob['meta'])
+    db = ob['db']
+    if not isinstance(db, dict):
+        probs.append(f'{name}.db: 객체 아님')
+    else:
+        _each(probs, f'{name}.db.observed_at', tstamp, db.get('observed_at'))
+        _each(probs, f'{name}.db.flyway_version', posint, db.get('flyway_version'), 1)
+        _each(probs, f'{name}.db.snapshot', nestr, db.get('snapshot'))
+        ss = _list(probs, f'{name}.db.sessions', db.get('sessions'), v_session)
+        os_ = _list(probs, f'{name}.db.orders', db.get('orders'), v_order)
+        ps = _list(probs, f'{name}.db.positions', db.get('positions'), v_position)
+        _list(probs, f'{name}.db.unresolved_discrepancies', db.get('unresolved_discrepancies'))
+        for label, items, key in (('sessions', ss, lambda s: (s.get('kind'), s.get('id'))), ('orders', os_, lambda o: o.get('id')),
+                                  ('positions', ps, lambda p: p.get('id')),
+                                  ('orders.exchange_order_id', [o for o in os_ if isinstance(o, dict) and o.get('exchange_order_id')],
+                                   lambda o: o.get('exchange_order_id'))):
+            keys = [key(x) for x in items if isinstance(x, dict)]
+            dup = sorted({str(k) for k in keys if keys.count(k) > 1})
+            if dup:
+                probs.append(f'{name}.db.{label}: 중복 키 {dup}')
+    v_exchange(probs, f'{name}.exchange_before', ob['exchange_before'])
+    v_exchange(probs, f'{name}.exchange_after', ob['exchange_after'])
+    if ob.get('external_flows') is not None:
+        _list(probs, f'{name}.external_flows', ob['external_flows'], v_flow)
+    for k in ('db_fp_pre', 'db_fp_post'):
+        v = ob.get(k)
+        if v is not None and not (isinstance(v, str) and FP_RE.match(v)):
+            probs.append(f'{name}.{k}: md5 16진 32자 아님')
+    fp = db.get('fingerprint') if isinstance(db, dict) else None
+    if fp is not None and not (isinstance(fp, str) and FP_RE.match(fp)):
+        probs.append(f'{name}.db.fingerprint: md5 16진 32자 아님')
+    if probs:
+        res.hold('OBSERVATION_INVALID', blocks=[ALL], at=name, detail=probs)
+        return 'invalid'
+    return 'failed' if ob.get('query_errors') else 'ok'
+
+
+def check_stability(name, ob, res):
+    stable = True
+    fps = (ob.get('db_fp_pre'), ob['db'].get('fingerprint'), ob.get('db_fp_post'))
+    if any(v is None for v in fps):
+        # 결측 세 값이 서로 같아도 안정 확인이 아니다.
+        res.hold('FINGERPRINT_MISSING', blocks=[ALL], at=name,
+                 missing=[k for k, v in zip(('db_fp_pre', 'db.fingerprint', 'db_fp_post'), fps) if v is None])
+        stable = False
+    elif not (fps[0] == fps[1] == fps[2]):
+        res.hold('UNSTABLE_DB', blocks=[ALL], at=name, detail='추출 전·중·후 DB 지문이 다름 — 읽는 사이 주문/반영 변화')
+        stable = False
+    eb, ea = ob['exchange_before'], ob['exchange_after']
+    for k in ('accounts', 'open_orders', 'done_order_ids'):
+        if eb.get(k) != ea.get(k):
+            res.hold('UNSTABLE_EXCHANGE', blocks=[ALL], at=name, detail=f'거래소 전후 {k} 다름')
+            stable = False
+    if ea.get('open_orders'):
+        res.hold('EXCHANGE_OPEN_ORDERS', blocks=[ALL], at=name, ids=ea['open_orders'])
+        stable = False
+    steps = {s['step']: tstamp(s['at']) for s in ob['meta']['steps']}
+    t = tstamp(ob['db']['observed_at'])
+    if not (steps['exchange_before'] <= t <= steps['exchange_after']):
+        res.hold('DB_TIME_OUTSIDE_COLLECTION', blocks=[ALL], at=name, detail='DB 추출 시각이 거래소 앞/뒤 읽기 사이가 아님')
+        stable = False
+    return stable
+
+
+def check_pair(base, now, reg_src, res):
+    """기준·현재 관측 사이의 시각·출처·코드 관계."""
+    ok = True
+    t0, t1 = tstamp(base['db']['observed_at']), tstamp(now['db']['observed_at'])
+    if not t0 < t1:
+        res.hold('OBSERVATION_ORDER_INVALID', blocks=[ALL], detail=f'현재 관측({t1.isoformat()})이 기준({t0.isoformat()})보다 늦지 않음')
+        ok = False
+    else:
+        b_end = tstamp(base['meta']['steps'][-1]['at'])
+        n_start = tstamp(now['meta']['steps'][0]['at'])
+        if n_start < b_end:
+            res.hold('COLLECTION_OVERLAP', blocks=[ALL], detail='현재 관측 수집이 기준 수집 종료 전에 시작됨')
+            ok = False
+    if base['db']['flyway_version'] != now['db']['flyway_version']:
+        res.hold('SCHEMA_CHANGED_IN_WINDOW', blocks=[ALL], base=base['db']['flyway_version'], now=now['db']['flyway_version'])
+        ok = False
+    srcs = {'registry': reg_src, 'base': base['meta']['source'], 'now': now['meta']['source']}
+    if reg_src is None:
+        if base['meta']['source'] != now['meta']['source']:
+            res.hold('OBSERVATION_SOURCE_MISMATCH', blocks=[ALL], detail=srcs)
+            ok = False
+    elif not (reg_src == base['meta']['source'] == now['meta']['source']):
+        res.hold('OBSERVATION_SOURCE_MISMATCH', blocks=[ALL], detail=srcs)
+        ok = False
+    return ok
+
+
+# ── 주문별 금액 ────────────────────────────────────────────────
+def deducted(o):
+    """매수 제출 때 세션에서 뺀 금액(DynamicTradingService/LiveTradingService restorableKrw 와 같은 규칙)."""
+    if o.get('reserved_krw') is not None:
+        return dec(o['reserved_krw'])
+    if o.get('client_order_id') is not None:
+        return D(0)
+    return dec(o['quantity'])
+
+
+def order_effects(o):
+    """(거래소 KRW 증감, 세션 장부 증감, 코인 수량 증감, 설명 가능한 반올림, 확정 여부)"""
+    side, st = o['side'], o['state']
+    fq = dec(o.get('filled_quantity')) or D(0)
+    af, fee = dec(o.get('applied_executed_funds')), dec(o.get('applied_paid_fee'))
+    applied = af is not None and fee is not None and not o.get('fill_accounting_pending') and st not in ACTIVE and st != 'UNKNOWN'
+    if side == 'BUY':
+        if fq > 0 and applied:
+            x = dec(o['quantity']) - af - fee          # 미사용 환급(8자리 원시)
+            ex, led = -(af + fee), -deducted(o) + r2(x)
+            return ex, led, fq, ex - led, True
+        if fq == 0 and st in TERMINAL_NOFILL:
+            return D(0), D(0), D(0), D(0), True     # 예약 복원 → 세션 증감 0
+        return D(0), -deducted(o), D(0), D(0), False  # 진행 중·반영 대기
+    if fq > 0 and applied:
+        y = af - fee
+        return y, r2(y), -fq, y - r2(y), True
+    if fq == 0 and st in TERMINAL_NOFILL:
+        return D(0), D(0), D(0), D(0), True
+    return D(0), D(0), D(0), D(0), False
+
+
+def is_paper(s):
+    # 제품 규칙: DYNAMIC 은 정확히 'PAPER' 가 아니면 REAL 분기. LIVE 도 같은 보수 규칙을 쓴다.
+    return s is not None and s.get('mode') == 'PAPER'
+
+
+def coin_of(o):
+    return o['coin_pair'].split('-', 1)[1]
+
+
+def contract_diff(e, s, app_sha):
+    diffs = []
+    if s.get('mode') != e['mode']:
+        diffs.append(f"mode {s.get('mode')}≠{e['mode']}")
+    for k in ('strategy_type', 'timeframe'):
+        if s.get(k) != e[k]:
+            diffs.append(f'{k} {s.get(k)}≠{e[k]}')
+    if dec(s.get('initial_capital')) != dec(e['initial_capital']):
+        diffs.append(f"initial_capital {s.get('initial_capital')}≠{e['initial_capital']}")
+    if e['kind'] == 'LIVE' and s.get('coin_pair') != e['coin_pair']:
+        diffs.append(f"coin_pair {s.get('coin_pair')}≠{e['coin_pair']}")
+    created = tstamp(s['created_at'])
+    if e['session_created_at'] is None:
+        if created < tstamp(e['effective_from']):
+            diffs.append('새 세션 등록인데 세션 생성이 등록 적용 시각보다 앞섬')
+    elif created != tstamp(e['session_created_at']):
+        diffs.append(f"기존 세션 생성 시각 {s['created_at']}≠{e['session_created_at']}")
+    if app_sha is not None and not sha_eq(e['code_sha'], app_sha):
+        diffs.append(f"code_sha {e['code_sha']}≠관측 {app_sha}")
+    return diffs
+
+
+def total(acc, cur):
+    a = acc.get(cur)
+    return D(0) if a is None else dec(a['balance']) + dec(a['locked'])
+
+
+def status(blocked, ok):
+    return '보류' if blocked else ('일치' if ok else '불일치')
+
+
+# ── 본 대조 ────────────────────────────────────────────────────
+def reconcile(reg, base, now, krw_quantum=D(0)):
+    res = Result()
+    entries, reg_status = load_registry(reg, res)
+    obs = {'base': validate_observation('base', base, res), 'now': validate_observation('now', now, res)}
+    out = {'registry_status': reg_status, 'observation': obs, 'observation_stable': False}
+    if reg_status == 'unreadable' or any(v != 'ok' for v in obs.values()):
+        # 읽지 못한 등록표·구조를 믿을 수 없거나 조회가 실패한 관측으로는 어떤 계산·이상 판정도 내지 않는다(전부 보류).
+        # (등록표를 못 읽은 것을 '모든 주문이 미등록'으로 단정하지 않는다. 내용이 잘못된 등록표는 이상으로 남는다.)
+        return finish(res, out, None)
+    stable = check_stability('base', base, res) & check_stability('now', now, res)
+    reg_src = reg.get('observation_source') if reg_status == 'valid' else None
+    stable &= check_pair(base, now, reg_src, res)
+    out['observation_stable'] = stable
+
+    # 코드 출처 — 외부 수집 메타데이터(배포 이미지/커밋 기록)로만 확인한다. DB 에는 세션별 코드 SHA 가 없다.
+    app0, app1 = base['meta'].get('app_code_sha'), now['meta'].get('app_code_sha')
+    if app1 is None:
+        res.hold('CODE_SOURCE_UNCONFIRMED', blocks=(), detail='현재 관측의 app_code_sha 없음 — 등록 code_sha 대조 불가')
+    elif app0 is not None and not sha_eq(app0, app1):
+        res.hold('CODE_CHANGED_IN_WINDOW', blocks=(), base=app0, now=app1, detail='구간 중 배포 코드 변경 — 기준을 새로 잡아야 함')
+    elif app0 is None:
+        res.hold('CODE_SOURCE_UNCONFIRMED', blocks=(), detail='기준 관측의 app_code_sha 없음 — 구간 중 코드 변경 여부 미확인')
+    out['code'] = {'base': app0, 'now': app1, 'base_ref': base['meta'].get('app_code_sha_ref'), 'now_ref': now['meta'].get('app_code_sha_ref')}
+
+    db0, db1 = base['db'], now['db']
+    t0 = tstamp(db0['observed_at'])
+    s0 = {(s['kind'], s['id']): s for s in db0['sessions']}
+    s1 = {(s['kind'], s['id']): s for s in db1['sessions']}
+    o0 = {o['id']: o for o in db0['orders']}
+    o1 = {o['id']: o for o in db1['orders']}
+
+    # 세션 등록 대조
+    registered = {}
+    for key, e in entries.items():
+        s = s1.get(key)
+        if s is None:
+            res.anomaly('REGISTERED_SESSION_ROW_MISSING', session=list(key))
+            registered[key] = e   # 🔴 행이 사라져도 그 주문은 계속 센다
+            continue
+        d = contract_diff(e, s, app1)
+        if d:
+            res.anomaly('REGISTRY_CONTRACT_MISMATCH', session=list(key), detail=d)
+        else:
+            registered[key] = e
+    for key, s in s1.items():
+        if is_paper(s) or key in registered:
+            continue
+        if s.get('status') != 'STOPPED':
+            res.anomaly('UNREGISTERED_REAL_SESSION_ACTIVE', session=list(key), status=s.get('status'), mode=s.get('mode'))
+
+    # 주문 분류 — 미확정 실자금 주문은 그 코인·KRW 계산만 막는다
+    win = {}
+    for oid, o in o1.items():
+        key = (o['session_kind'], o['session_id'])
+        s = s1.get(key)
+        if is_paper(s):
+            continue
+        prev = o0.get(oid)
+        changed = prev is None or any(prev.get(k) != o.get(k) for k in
+                                      ('state', 'filled_quantity', 'applied_executed_funds', 'applied_paid_fee', 'fill_accounting_pending'))
+        e = registered.get(key)
+        created = tstamp(o['created_at'])
+        in_window = e is not None and created >= tstamp(e['effective_from']) and \
+            (e['effective_to'] is None or created <= tstamp(e['effective_to']))
+        if (changed or o['state'] in ACTIVE or o['state'] == 'UNKNOWN') and not in_window:
+            res.anomaly('UNREGISTERED_REAL_ORDER', order=oid, session=list(key), state=o['state'],
+                        coin=o['coin_pair'], side=o['side'], session_row='없음' if s is None else s.get('status'))
+        cur = coin_of(o)
+        if o['state'] == 'UNKNOWN':
+            res.anomaly('ORDER_UNKNOWN', order=oid, session=list(key))
+        elif o['state'] in ACTIVE:
+            res.hold('ORDER_IN_FLIGHT', blocks=('KRW', cur), order=oid, session=list(key), state=o['state'], created_at=o['created_at'])
+        fq = dec(o.get('filled_quantity')) or D(0)
+        if fq > 0:
+            if o.get('fill_accounting_pending'):
+                res.hold('ACCOUNTING_PENDING', blocks=('KRW', cur), order=oid, session=list(key))
+            elif None in (o.get('reported_executed_funds'), o.get('reported_paid_fee'),
+                          o.get('applied_executed_funds'), o.get('applied_paid_fee')):
+                res.hold('SETTLEMENT_UNCONFIRMED', blocks=('KRW', cur), order=oid, session=list(key))
+            elif dec(o['reported_executed_funds']) != dec(o['applied_executed_funds']) or \
+                    dec(o['reported_paid_fee']) != dec(o['applied_paid_fee']):
+                res.anomaly('SETTLEMENT_MISMATCH', order=oid, session=list(key))
+        if (changed or o['state'] in ACTIVE or o['state'] == 'UNKNOWN') and not order_effects(o)[4]:
+            res.hold('ORDER_EFFECT_PENDING', blocks=('KRW', cur), order=oid, session=list(key), state=o['state'],
+                     detail='구간 주문의 반영 미확정 — 이 통화와 KRW 계산만 보류')
+        if changed:
+            win[oid] = (o, prev, key, in_window)
+    for d in db1.get('unresolved_discrepancies') or []:
+        res.anomaly('SETTLEMENT_DISCREPANCY_UNRESOLVED', id=d.get('id'), order=d.get('order_id'), kind=d.get('kind'))
+
+    # 포지션 — CLOSING 은 그 포지션의 보류 항목일 뿐, 확정 주문으로 계산한 잔차·담보를 가리지 않는다.
+    #  (매도 진행 중이면 그 주문이 ORDER_IN_FLIGHT/ORDER_EFFECT_PENDING 으로 해당 통화를 막는다)
+    p1 = db1['positions']
+    for p in p1:
+        key = (p['session_kind'], p['session_id'])
+        if is_paper(s1.get(key)):
+            continue
+        if key not in registered:
+            res.anomaly('UNREGISTERED_REAL_POSITION', position=p['id'], session=list(key), coin=p['coin_pair'])
+        if p['status'] == 'CLOSING':
+            res.hold('POSITION_CLOSING', blocks=(), position=p['id'], session=list(key), coin=p['coin_pair'])
+
+    # 거래소 ↔ DB 주문 대응(양방향)
+    ea = now['exchange_after']
+    db_uuids = {o['exchange_order_id'] for o in o1.values() if o.get('exchange_order_id')}
+    flows_raw = now.get('external_flows')
+    declared_manual = {f['ref'] for f in (flows_raw or []) if f['kind'] == 'MANUAL_TRADE'}
+    for u in list(ea['done_order_ids']) + list(ea['open_orders']):
+        if u not in db_uuids and u not in declared_manual:
+            res.anomaly('EXCHANGE_ORDER_NOT_IN_DB', uuid=u)
+    coverage = {'query': ea.get('done_query'), 'checked': [], 'gaps': []}
+    q = ea.get('done_query')
+    need = []
+    for oid, (o, prev, key, in_window) in win.items():
+        fq = dec(o.get('filled_quantity')) or D(0)
+        if fq > 0 and o['state'] not in ACTIVE and o['state'] != 'UNKNOWN':
+            need.append(o)
+    unconfirmed = []
+    for o in need:
+        u = o.get('exchange_order_id')
+        if not u:
+            res.anomaly('DB_FILL_WITHOUT_EXCHANGE_ID', order=o['id'], session=[o['session_kind'], o['session_id']])
+            continue
+        if q is None or not q['complete']:
+            unconfirmed.append(o['id'])
+            continue
+        if not (tstamp(q['from']) <= tstamp(o['created_at']) <= tstamp(q['to'])):
+            coverage['gaps'].append(o['id'])
+            res.hold('EXCHANGE_COVERAGE_GAP', blocks=(), order=o['id'], uuid=u, created_at=o['created_at'],
+                     query_from=q['from'], query_to=q['to'], detail='조회 기간 밖 — 누락/미등록으로 단정하지 않음')
+            continue
+        coverage['checked'].append(o['id'])
+        if u not in ea['done_order_ids']:
+            res.anomaly('DB_FILL_NOT_ON_EXCHANGE', order=o['id'], uuid=u, detail='완료로 확인된 조회 기간 안인데 거래소 완료 목록에 없음')
+    if unconfirmed:
+        res.hold('EXCHANGE_COVERAGE_UNCONFIRMED', blocks=(), orders=unconfirmed,
+                 detail='거래소 완료 주문 조회 범위/완료 여부 미확인' if q is None else '거래소 완료 주문 조회가 완료되지 않음(페이지 남음)')
+    out['exchange_coverage'] = coverage
+
+    # 세션별 규칙(전략·엔진별로 등록표가 정한다 — 단독 규칙을 그대로 복사하지 않는다)
+    for key, e in registered.items():
+        r = e['rules']
+        mine = [o for o in o1.values() if (o['session_kind'], o['session_id']) == key]
+        win_mine = [o for o in mine if tstamp(o['created_at']) >= t0]
+        if e['kind'] == 'LIVE':
+            for o in win_mine:
+                if o['coin_pair'] != e['coin_pair']:
+                    res.anomaly('RULE_COIN_OUT_OF_CONTRACT', session=list(key), order=o['id'], coin=o['coin_pair'])
+        if 'max_filled_buys_in_window' in r:
+            n = sum(1 for o in win_mine if o['side'] == 'BUY' and (dec(o.get('filled_quantity')) or 0) > 0)
+            if n > r['max_filled_buys_in_window']:
+                res.anomaly('RULE_FILLED_BUYS', session=list(key), count=n, limit=r['max_filled_buys_in_window'])
+        if 'max_open_positions' in r:
+            n = sum(1 for p in p1 if (p['session_kind'], p['session_id']) == key)
+            if n > r['max_open_positions']:
+                res.anomaly('RULE_OPEN_POSITIONS', session=list(key), count=n, limit=r['max_open_positions'])
+        for o in win_mine:
+            if o['side'] == 'BUY' and o['coin_pair'] in r.get('excluded_coins', []):
+                res.anomaly('RULE_EXCLUDED_COIN_BUY', session=list(key), order=o['id'], coin=o['coin_pair'])
+            if 'max_buy_request_krw' in r and o['side'] == 'BUY' and o['order_type'] == 'MARKET' and \
+                    dec(o['quantity']) > num(r['max_buy_request_krw']):
+                res.anomaly('RULE_BUY_REQUEST_CAP', session=list(key), order=o['id'], quantity=o['quantity'])
+        per_pos = {}
+        for o in mine:
+            if o['side'] == 'BUY' and (dec(o.get('filled_quantity')) or 0) > 0 and o.get('position_id') is not None:
+                per_pos.setdefault(o['position_id'], []).append(o['id'])
+        for pid, ids in per_pos.items():
+            if len(ids) > 1:
+                res.anomaly('RULE_DUP_BUY_POSITION', session=list(key), position=pid, orders=ids)
+
+    # 외부 입출금 — 이력이 없으면 증감식(KRW·코인)만 보류. 실보유 담보 검사는 이력과 무관하므로 막지 않는다.
+    if flows_raw is None:
+        res.hold('EXTERNAL_FLOWS_UNCONFIRMED', blocks=('DELTA',), detail='구간 외부 입출금 이력이 입력되지 않음')
+    ext = {}
+    for f in flows_raw or []:
+        ext[f['currency']] = ext.get(f['currency'], D(0)) + num(f['amount'])
+    flows_blocked = flows_raw is None
+
+    ex_sum, led_sum, explained = D(0), D(0), D(0)
+    coin_net, per_session = {}, {}
+    for oid, (o, prev, key, in_window) in win.items():
+        if not in_window:
+            continue
+        ex1, led1, q1, rnd1, fin1 = order_effects(o)
+        ex0, led0, q0, rnd0, fin0 = order_effects(prev) if prev else (D(0),) * 4 + (True,)
+        ex_sum += ex1 - ex0
+        led_sum += led1 - led0
+        explained += rnd1 - rnd0
+        cur = coin_of(o)
+        coin_net[cur] = coin_net.get(cur, D(0)) + (q1 - q0)
+        per_session[key] = per_session.get(key, D(0)) + (led1 - led0)
+    acc0, acc1 = base['exchange_after']['accounts'], ea['accounts']
+    dk = total(acc1, 'KRW') - total(acc0, 'KRW')
+    raw = dk - ext.get('KRW', D(0)) - led_sum
+    adjusted = raw - explained
+    krw_blk = res.blocked('KRW') or flows_blocked
+    krw_ok = abs(adjusted) <= krw_quantum
+    account = {
+        'krw': {'exchange_delta': str(dk), 'external': str(ext.get('KRW', D(0))), 'session_ledger_delta': str(led_sum),
+                'raw_residual': str(raw), 'explained_rounding': str(explained), 'adjusted_residual': str(adjusted),
+                'quantum': str(krw_quantum), 'status': status(krw_blk, krw_ok)},
+        'coins': {}, 'base_holdings': {}, 'internal_allocations': [], 'sessions': {}, 'backing': {},
+    }
+    if not krw_blk and not krw_ok:
+        res.anomaly('ACCOUNT_KRW_MISMATCH', adjusted_residual=str(adjusted), raw_residual=str(raw))
+    for cur in sorted(set(acc0) | set(acc1)):
+        if cur != 'KRW':
+            account['base_holdings'][cur] = {'amount': str(total(acc0, cur)), 'source': 'base.exchange_after'}
+    pos_delta = {}
+    for snap, sign in ((db0, -1), (db1, 1)):
+        for p in snap['positions']:
+            if (p['session_kind'], p['session_id']) in registered:
+                cur = p['coin_pair'].split('-', 1)[1]
+                pos_delta[cur] = pos_delta.get(cur, D(0)) + sign * dec(p['size'])
+    bad_coins = {}
+    for cur in sorted((set(acc0) | set(acc1) | set(coin_net) | set(pos_delta)) - {'KRW'}):
+        de = total(acc1, cur) - total(acc0, cur) - ext.get(cur, D(0))
+        cn, pd = coin_net.get(cur, D(0)), pos_delta.get(cur, D(0))
+        ok = de == cn == pd
+        blk = res.blocked(cur) or flows_blocked
+        account['coins'][cur] = {'exchange_delta_minus_external': str(de), 'net_filled': str(cn),
+                                 'open_position_delta': str(pd), 'match': ok, 'status': status(blk, ok)}
+        if not blk and not ok:
+            bad_coins[cur] = account['coins'][cur]
+    if bad_coins:
+        res.anomaly('ACCOUNT_COIN_MISMATCH', detail=bad_coins)
+    # 세션 장부: Δavailable = Σ주문 장부 증감 (새 세션의 기준 = 초기 배정, 내부 이전). 관측 전체 보류일 때만 막는다.
+    for key in registered:
+        s_now, s_base = s1.get(key), s0.get(key)
+        if s_now is None:
+            continue
+        if s_base is None:
+            start = dec(s_now['initial_capital'])
+            account['internal_allocations'].append({'session': list(key), 'allocated': str(start), 'note': '구간 안 새 배정 — 거래소 유입 아님'})
+        else:
+            start = dec(s_base['available_krw'])
+        got = dec(s_now['available_krw']) - start
+        want = per_session.get(key, D(0))
+        blk = res.blocked(ALL)
+        account['sessions'][f'{key[0]}:{key[1]}'] = {'available_delta': str(got), 'order_ledger_delta': str(want), 'status': status(blk, got == want)}
+        if not blk and got != want:
+            res.anomaly('SESSION_LEDGER_MISMATCH', session=list(key), available_delta=str(got), order_ledger_delta=str(want))
+    # 보유 뒷받침: 거래소 실보유가 등록 세션의 열린 포지션 수량·세션 현금을 덮지 못하면 이상이다(입출금 이력과 무관).
+    reg_open = {}
+    for p in p1:
+        if (p['session_kind'], p['session_id']) in registered:
+            cur = p['coin_pair'].split('-', 1)[1]
+            reg_open[cur] = reg_open.get(cur, D(0)) + dec(p['size'])
+    need_krw = sum((dec(s1[k]['available_krw']) for k in registered if k in s1), D(0))
+    for cur, need_amt in sorted(reg_open.items()) + [('KRW', need_krw)]:
+        have = total(acc1, cur)
+        blk = res.blocked(cur)
+        account['backing'][cur] = {'exchange_total': str(have), 'registered_need': str(need_amt), 'status': status(blk, have >= need_amt)}
+        if not blk and have < need_amt:
+            res.anomaly('ACCOUNT_KRW_UNBACKED' if cur == 'KRW' else 'ACCOUNT_COIN_UNBACKED', currency=cur, detail=account['backing'][cur])
+    return finish(res, out, account)
+
+
+def finish(res, out, account):
+    if account is not None:
+        sts = [account['krw']['status']] + [v['status'] for k in ('coins', 'sessions', 'backing') for v in account[k].values()]
+        account['verdict'] = '불일치' if '불일치' in sts else ('보류' if '보류' in sts else '일치')
+    out['account'] = account
+    out['anomalies'], out['holds'] = res.anomalies, res.holds
+    out['overall'] = 'ANOMALY' if res.anomalies else ('HOLD' if res.holds else 'OK')
+    # 일관성: 계좌 항목이 불일치면 이상이 있어야 하고, 보류면 보류 사유가 있어야 한다.
+    if account is not None:
+        if account['verdict'] == '불일치' and not res.anomalies:
+            raise AssertionError('계좌 불일치인데 이상 없음')
+        if account['verdict'] == '보류' and not res.holds:
+            raise AssertionError('계좌 보류인데 보류 사유 없음')
+    return {k: out[k] for k in ('overall', 'registry_status', 'observation', 'observation_stable', 'anomalies', 'holds',
+                                'account', 'code', 'exchange_coverage') if k in out}
+
+
+def evaluate(reg, base, now, krw_quantum=D(0)):
+    """예외를 성공/무출력으로 가리지 않는다 — 구조화된 ERROR 로 돌려준다."""
+    try:
+        return reconcile(reg, base, now, krw_quantum)
+    except Exception as e:  # noqa: BLE001
+        return {'overall': 'ERROR', 'error': type(e).__name__, 'message': str(e), 'anomalies': [], 'holds': []}
+
+
+# ── 파일 입력 ─────────────────────────────────────────────────
+def _no_dup(pairs):
+    seen = {}
+    for k, v in pairs:
+        if k in seen:
+            raise Bad(f'JSON 키 중복 {k!r}')
+        seen[k] = v
+    return seen
+
+
+def _no_const(c):
+    raise Bad(f'JSON 비표준 숫자 {c}')
+
+
+def load_file(path):
+    """읽기 실패(unreadable)와 내용 결함(invalid: 문법·키 중복·NaN/Infinity·실수형)을 구별한다."""
+    try:
+        with open(path, encoding='utf-8') as f:
+            text = f.read()
+    except OSError as e:
+        return {'__load_error__': ('unreadable', f'{type(e).__name__}: {e}')}
+    try:
+        return json.loads(text, object_pairs_hook=_no_dup, parse_constant=_no_const, parse_float=lambda s: _no_const(s))
+    except (Bad, json.JSONDecodeError, UnicodeDecodeError) as e:
+        return {'__load_error__': ('invalid', f'{type(e).__name__}: {e}')}
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--registry', required=True)
+    ap.add_argument('--base', required=True)
+    ap.add_argument('--now', required=True)
+    ap.add_argument('--krw-quantum', default='0')
+    a = ap.parse_args(argv)
+    if hasattr(sys.stdout, 'reconfigure'):
+        sys.stdout.reconfigure(encoding='utf-8', newline='\n')
+    try:
+        q = num(a.krw_quantum, D(0))
+    except Bad as e:
+        out = {'overall': 'ERROR', 'error': 'Bad', 'message': f'--krw-quantum {e}', 'anomalies': [], 'holds': []}
+    else:
+        out = evaluate(load_file(a.registry), load_file(a.base), load_file(a.now), q)
+    print(json.dumps(out, ensure_ascii=False, indent=1, default=str))
+    return EXIT[out['overall']]
+
+
+if __name__ == '__main__':
+    sys.exit(main())

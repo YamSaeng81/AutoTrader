@@ -1,0 +1,17 @@
+{
+ "args": [
+  "--registry",
+  "reg.json",
+  "--base",
+  "base.json",
+  "--now",
+  "now.json",
+  "--krw-quantum",
+  "NaN"
+ ],
+ "rc": 1,
+ "result": {
+  "stdout": "",
+  "stderr": "61118\\p7v2\\reconcile.py\", line 406, in main\r\n    out = reconcile(load(a.registry), load(a.base), load(a.now), dec(a.krw_quantum))\r\n  File \"D:\\Claude Code\\projects\\crypto-auto-trader\\docs\\evidence\\dec-reconcile-20261118\\p7v2\\reconcile.py\", line 382, in reconcile\r\n    if abs(adjusted) > krw_quantum:\r\n       ^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\ndecimal.InvalidOperation: [<class 'decimal.InvalidOperation'>]\r\n"
+ }
+}

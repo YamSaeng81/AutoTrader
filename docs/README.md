@@ -12,7 +12,7 @@
 | 시작 가능 여부 | [준비 목록](LIVE_READINESS.md) | 현재 체크 항목 |
 | F 명령 | [실행 절차](LIMITED_LIVE_TEST_RUNBOOK.md) | 필요한 F 변수/블록과 선행 조건 |
 | 점검 설치·전환·결과 해석 | [OPS](OPS_DAILY_CHECK.md) | 필요한 §번호 |
-| 새 코드 수용·허용 범위 | [최신 총괄 v1.186](evidence/review-76387b25/README.md) | 435차 조사·모드 후보 로컬 범위 수용, 병행 대조/간섭/알림/성적표 후속 |
+| 새 코드 수용·허용 범위 | [최신 총괄 v1.188](evidence/review-p7v3-20261118/README.md) | 437차 P7 v3 로컬 범위 수용·추가 경계/PG·후보/성적표·11-19 생성 일정 제안 |
 | 엔진 공통 제약 | [ENGINE_PARITY](ENGINE_PARITY.md) | 변경하는 규칙/엔진의 항목 |
 
 ## 고정 계약·상세 설계 — 필요한 부분만

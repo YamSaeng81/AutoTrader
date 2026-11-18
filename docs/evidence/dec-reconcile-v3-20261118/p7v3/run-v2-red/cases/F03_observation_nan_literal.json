@@ -1,0 +1,15 @@
+{
+ "args": [
+  "--registry",
+  "reg.json",
+  "--base",
+  "base.json",
+  "--now",
+  "now_nan.json"
+ ],
+ "rc": 1,
+ "result": {
+  "stdout": "",
+  "stderr": "261118\\p7v2\\reconcile.py\", line 377, in reconcile\r\n    backing['KRW'] = {'exchange_total': str(total(acc1, 'KRW')), 'registered_available': str(need_krw), 'ok': total(acc1, 'KRW') >= need_krw}\r\n                                                                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\ndecimal.InvalidOperation: [<class 'decimal.InvalidOperation'>]\r\n"
+ }
+}

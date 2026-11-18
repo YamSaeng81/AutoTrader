@@ -1,0 +1,16 @@
+V01_no_code_link rc=1 잡힌 사례 1: N01b_code_sha_other_commit
+V02_missing_fp_counts_as_equal rc=1 잡힌 사례 2: N02a_fingerprints_missing, N02b_fingerprint_post_missing
+V03_no_base_now_order rc=1 잡힌 사례 1: N03a_now_before_base
+V04_any_hold_blocks_all rc=1 잡힌 사례 3: N04a_closing_does_not_hide_krw_residual, N05a_closing_does_not_hide_unbacked, N05b_flows_unknown_does_not_hide_unbacked
+V05_no_db_to_exchange rc=1 잡힌 사례 1: N06a_db_fill_missing_on_exchange
+V06_gap_called_missing rc=1 잡힌 사례 1: N06c_order_outside_query_window
+V07_no_finite_check rc=1 잡힌 사례 4: N07a_rule_nan, N07f_capital_infinity, N08a_balance_nan, F07_quantum_nan
+V08_no_rule_format rc=1 잡힌 사례 7: D5_registry_unknown_rule, N07a_rule_nan, N07b_rule_bool, N07c_rule_negative, N07d_rule_coins_string, N07e_rule_coins_duplicate, N07g_cap_zero
+V09_unreadable_registry_as_empty rc=1 잡힌 사례 1: F05_registry_unreadable
+V10_exception_as_ok rc=1 잡힌 사례 1: N11_internal_error_is_error
+V11_no_duplicate_keys rc=1 잡힌 사례 3: N09a_duplicate_order_id, N09b_duplicate_exchange_uuid, N09c_duplicate_session_row
+V12_no_existing_session_created rc=1 잡힌 사례 1: N10b_existing_session_created_mismatch
+V13_flows_unknown_blocks_backing rc=1 잡힌 사례 1: N05b_flows_unknown_does_not_hide_unbacked
+V14_verdict_ignores_backing rc=1 잡힌 사례 3: F4_coin_withdraw_declared, N05a_closing_does_not_hide_unbacked, N05b_flows_unknown_does_not_hide_unbacked
+V15_no_steps_check rc=1 잡힌 사례 1: N03g_step_missing
+V16_no_source_match rc=1 잡힌 사례 1: N01e_source_db_other
