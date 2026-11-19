@@ -363,9 +363,11 @@ class Sma20LiveAlignedGapsTest extends AbstractSma20SameInputFixture {
         VirtualBalanceEntity p = paper(BTC);
         for (int i = 0; i < limit; i++) {
             Instant closedAt = Instant.now().minus(limit - i, ChronoUnit.HOURS);
-            positionRepository.save(PositionEntity.builder().coinPair(BTC).side("BUY").entryPrice(new BigDecimal("100")).avgPrice(new BigDecimal("100"))
+            PositionEntity lc = positionRepository.save(PositionEntity.builder().coinPair(BTC).side("BUY").entryPrice(new BigDecimal("100")).avgPrice(new BigDecimal("100"))
                     .size(BigDecimal.ONE).investedKrw(new BigDecimal("100")).realizedPnl(new BigDecimal("-1")).status("CLOSED")
                     .sessionId(l.getId()).sessionKind("LIVE").openedAt(closedAt.minus(1, ChronoUnit.HOURS)).closedAt(closedAt).build());
+            // v1.192 §2: 같은 손익(−1)의 확정 주문 원천
+            CostSourceFixture.roundTrip(orderRepository, jdbc, lc, BigDecimal.ONE, new BigDecimal("100"), new BigDecimal("-1"), closedAt);
             paperPositionRepo.save(PaperPositionEntity.builder().sessionKind("PAPER").sessionId(p.getId()).coinPair(BTC).side("BUY")
                     .entryPrice(new BigDecimal("100")).avgPrice(new BigDecimal("100")).size(BigDecimal.ONE).investedKrw(new BigDecimal("100"))
                     .positionFee(BigDecimal.ZERO).realizedPnl(new BigDecimal("-1")).status("CLOSED")

@@ -287,11 +287,13 @@ class R5RealCashflowRiskTest extends AbstractSma20SameInputFixture {
         BigDecimal entry = new BigDecimal("12000000");
         BigDecimal size = CAP.divide(entry, 8, RoundingMode.DOWN);
         BigDecimal invested = size.multiply(entry);
-        positionRepository.save(PositionEntity.builder()
+        PositionEntity prior = positionRepository.save(PositionEntity.builder()
                 .coinPair(l.getCoinPair()).side("BUY").entryPrice(entry).avgPrice(entry).size(size)
                 .investedKrw(invested).entryAllocationKrw(invested).realizedPnl(pnl).unrealizedPnl(BigDecimal.ZERO)
                 .status("CLOSED").sessionId(l.getId()).sessionKind("LIVE")
                 .openedAt(closedAt.minus(5, ChronoUnit.HOURS)).closedAt(closedAt).build());
+        // v1.192 §2: 주문 원천 없는 청산은 판정 불가 — 같은 손익의 확정 주문 원천(수수료 0)을 붙인다
+        CostSourceFixture.roundTrip(orderRepository, jdbc, prior, size, invested, pnl, closedAt);
         paperPositionRepo.save(PaperPositionEntity.builder()
                 .sessionKind("PAPER").sessionId(p.getId()).coinPair(p.getCoinPair()).side("BUY")
                 .entryPrice(entry).avgPrice(entry).size(size).positionFee(BigDecimal.ZERO).investedKrw(invested)

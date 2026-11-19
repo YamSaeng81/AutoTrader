@@ -29,9 +29,9 @@ class RiskCircuitBreakerOrderTest {
     private final RiskConfigEntity config = RiskConfigEntity.codeDefaults();
     private final RiskConfigRepository cr = mock(RiskConfigRepository.class);
     private final PositionRepository pr = mock(PositionRepository.class);
+    private final com.cryptoautotrader.api.repository.OrderRepository or = mock(com.cryptoautotrader.api.repository.OrderRepository.class);
     private final RiskManagementService svc = new RiskManagementService(cr, pr, mock(TradeLogRepository.class),
-            mock(LiveTradingSessionRepository.class),
-            mock(com.cryptoautotrader.api.repository.OrderRepository.class));   // v1.155 §4 필수 원천 — 통합 적응(이 시험은 서킷 브레이커만 본다)
+            mock(LiveTradingSessionRepository.class), or);   // v1.155 §4 필수 원천 — 통합 적응(이 시험은 서킷 브레이커만 본다)
 
     private LiveTradingSessionEntity session(String total) {
         return LiveTradingSessionEntity.builder().id(1L).initialCapital(new BigDecimal("20200"))
@@ -59,8 +59,12 @@ class RiskCircuitBreakerOrderTest {
         when(cr.findTopByOrderByIdDesc()).thenReturn(Optional.of(config));
         config.setCircuitBreakerEnabled(true);
         config.setConsecutiveLossLimit(5);
-        PositionEntity loss = PositionEntity.builder().realizedPnl(new BigDecimal("-1")).closedAt(Instant.now()).build();
-        PositionEntity gain = PositionEntity.builder().realizedPnl(new BigDecimal("1")).closedAt(Instant.now()).build();
+        PositionEntity loss = PositionEntity.builder().id(1L).realizedPnl(new BigDecimal("-1")).closedAt(Instant.now()).build();
+        PositionEntity gain = PositionEntity.builder().id(2L).realizedPnl(new BigDecimal("1")).closedAt(Instant.now()).build();
+        // v1.192 §2: 실자금 연속 손실은 주문 원천 재료로 센다 — [id, 체결BUY, 원가미상BUY, 원가, 수량, 확정SELL, 순대금, 매도수량, 필수값미상SELL, 무거래]
+        when(or.costBasisPartsByPosition(any())).thenReturn(List.of(
+                new Object[]{1L, 1L, 0L, new BigDecimal("100"), BigDecimal.ONE, 1L, new BigDecimal("99"), BigDecimal.ONE, 0L, 0},
+                new Object[]{2L, 1L, 0L, new BigDecimal("100"), BigDecimal.ONE, 1L, new BigDecimal("101"), BigDecimal.ONE, 0L, 0}));
         when(pr.findBySessionKindAndSessionIdAndStatusOrderByClosedAtDesc("LIVE", 1L, "CLOSED"))
                 .thenReturn(Collections.nCopies(5, loss));
         assertThat(svc.checkCircuitBreaker(session("20200")).isTriggered()).isTrue();
