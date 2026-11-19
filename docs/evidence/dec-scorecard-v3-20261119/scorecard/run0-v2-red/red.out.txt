@@ -1,0 +1,5 @@
+v2 dec-scorecard-v2-20261118/scorecard/scorecard.py sha256 283d64b9c8cf55e9ea33c8940ddbef18b52e61fd49d9b457e228e5f0093cb95f
+입력 review-16595682/observations.json sha256 618c87b3789e9c1f751af754f29ba0ccbc4736b458a2ab91ca89500bc7cf51ed
+FAIL(재현) | fee_time_unknown | 어긴 계약: 수수료 확정 합을 내지 않음; 알려진 부분 합 26 을 따로; 수수료 상태 미확정
+FAIL(재현) | sell_before_buy | 어긴 계약: 시각 모순 거절; 보유시간 음수를 내지 않음
+반례 2 중 v2 실패 재현 2

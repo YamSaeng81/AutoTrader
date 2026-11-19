@@ -1,0 +1,672 @@
+{
+  "scorecard_recalculated": {
+    "calculated": 34,
+    "rejected": 13
+  },
+  "fee_time_unknown": {
+    "input": {
+      "version": "scorecard-input-2",
+      "period": {
+        "from": "2026-12-01T00:00:00+09:00",
+        "to": "2027-01-01T00:00:00+09:00"
+      },
+      "sessions": [
+        {
+          "kind": "DYNAMIC",
+          "id": 991,
+          "mode": "REAL",
+          "strategy_type": "COMPOSITE_BREAKOUT",
+          "timeframe": "H1",
+          "status_end": "RUNNING",
+          "provenance": {
+            "code_sha": "0e1d2a02",
+            "code_sha_source": "외부 등록표(가상)",
+            "ruleset_hash": "aaaaaaaaaaaa",
+            "registry_ref": "reg-가상-1"
+          },
+          "start": {
+            "available_krw": "100000",
+            "positions": [],
+            "pending_buys": []
+          },
+          "end": {
+            "available_krw": "101949",
+            "positions": [],
+            "pending_buys": []
+          },
+          "flows": [],
+          "trades": [
+            {
+              "buy": {
+                "settled_at": null,
+                "qty": "0.001",
+                "funds": "50000",
+                "fee": "25"
+              },
+              "sells": [
+                {
+                  "settled_at": "2026-12-05T09:00:00+09:00",
+                  "qty": "0.001",
+                  "funds": "52000",
+                  "fee": "26",
+                  "stored_realized_pnl": "1949"
+                }
+              ],
+              "position_fee_stored": "51"
+            }
+          ],
+          "market_regime": [
+            {
+              "at": "2026-12-02T09:00:00+09:00",
+              "regime": "TREND_UP",
+              "source": "position.market_regime",
+              "rule_version": "제품 정의"
+            }
+          ]
+        }
+      ],
+      "benchmarks": {
+        "btc_price_start": null,
+        "btc_price_end": null
+      }
+    },
+    "result": {
+      "version": "scorecard-2",
+      "period": {
+        "from": "2026-12-01T00:00:00+09:00",
+        "to": "2027-01-01T00:00:00+09:00"
+      },
+      "sessions": [
+        {
+          "session": "DYNAMIC#991",
+          "money": "실자금",
+          "kind": "DYNAMIC",
+          "mode": "REAL",
+          "strategy": "COMPOSITE_BREAKOUT",
+          "timeframe": "H1",
+          "status_end": "RUNNING",
+          "trade_state": "이 달 종료 왕복 1",
+          "start_equity": "100000",
+          "end_equity": "101949",
+          "net_flows": "0",
+          "month_pnl": "1949",
+          "month_pnl_status": "확정",
+          "unconfirmed_reasons": [
+            "거래0 매수 정산 시각 없음 — 월 귀속 미확정"
+          ],
+          "month_return_pct": "1.95",
+          "realized_in_period": "1949",
+          "realized_known_part": "1949",
+          "unrealized_start": "0",
+          "unrealized_end": "0",
+          "unrealized_change": "0",
+          "unrealized_change_note": "월손익 − 기간 실현 = 기간 중 미실현 증감(기말 미실현 아님)",
+          "identity_check": "일치",
+          "fees_paid": "26",
+          "fee_note": "손익에 이미 반영(매도 수수료는 대금에서, 매수 수수료는 평균가에) — 다시 빼지 않음",
+          "buy_funds": "0",
+          "round_trips_closed": 1,
+          "wins": 1,
+          "losses": 0,
+          "win_loss_basis": "이 달 종료 왕복의 생애 손익",
+          "holding_hours_median": null,
+          "round_trips": [
+            {
+              "trade": 0,
+              "lifetime_pnl": "1949",
+              "this_month_part": "1949",
+              "carry_in": true
+            }
+          ],
+          "stored_realized_mismatch": [],
+          "drawdown": {
+            "max_amount_krw": null,
+            "max_pct": null,
+            "label": "미확인(일별 평가 표본 없음 — 복원하지 않음)"
+          },
+          "provenance": {
+            "code_sha": "0e1d2a02",
+            "code_sha_source": "외부 등록표(가상)",
+            "ruleset_hashes": [
+              "aaaaaaaaaaaa"
+            ],
+            "registry_ref": "reg-가상-1"
+          },
+          "market_regime": [
+            {
+              "at": "2026-12-02T09:00:00+09:00",
+              "regime": "TREND_UP",
+              "source": "position.market_regime",
+              "rule_version": "제품 정의"
+            }
+          ],
+          "benchmark": {
+            "cash_pnl": "0",
+            "btc_hold_pnl": "미확인"
+          },
+          "flags": [
+            "이월 왕복 포함 — 생애 손익과 이 달 실현을 따로 봄"
+          ]
+        }
+      ],
+      "aggregates": [
+        {
+          "group": "money",
+          "name": "실자금",
+          "sessions": [
+            "DYNAMIC#991"
+          ],
+          "month_pnl": "1949",
+          "status": "확정",
+          "known_part_sum": "1949",
+          "unconfirmed_sessions": [],
+          "note": null
+        },
+        {
+          "group": "kind",
+          "name": "실자금|DYNAMIC",
+          "sessions": [
+            "DYNAMIC#991"
+          ],
+          "month_pnl": "1949",
+          "status": "확정",
+          "known_part_sum": "1949",
+          "unconfirmed_sessions": [],
+          "note": null
+        },
+        {
+          "group": "mode",
+          "name": "실자금|REAL",
+          "sessions": [
+            "DYNAMIC#991"
+          ],
+          "month_pnl": "1949",
+          "status": "확정",
+          "known_part_sum": "1949",
+          "unconfirmed_sessions": [],
+          "note": null
+        },
+        {
+          "group": "strategy_timeframe",
+          "name": "실자금|COMPOSITE_BREAKOUT/H1",
+          "sessions": [
+            "DYNAMIC#991"
+          ],
+          "month_pnl": "1949",
+          "status": "확정",
+          "known_part_sum": "1949",
+          "unconfirmed_sessions": [],
+          "note": null
+        },
+        {
+          "group": "code_version",
+          "name": "실자금|0e1d2a02",
+          "sessions": [
+            "DYNAMIC#991"
+          ],
+          "month_pnl": "1949",
+          "status": "확정",
+          "known_part_sum": "1949",
+          "unconfirmed_sessions": [],
+          "note": null
+        }
+      ],
+      "account": {
+        "month_pnl": null,
+        "status": "미확인(계좌 기초/기말 없음)"
+      },
+      "account_minus_real_sessions": "미확인(계좌 또는 실자금 세션 합계 미확정·없음)",
+      "included": {
+        "sessions": 1,
+        "real": 1,
+        "paper": 0,
+        "zero_trade": 0,
+        "loss": 0,
+        "stopped": 0,
+        "unconfirmed": 0
+      },
+      "rules": [
+        "월손익=기말−기초−기간 순입금",
+        "실자금·모의 합산 금지, 계좌 대조는 실자금만",
+        "월 밖 입출금은 계약 위반",
+        "CLOSING·가격 없음·예약 금액 없음은 미확정",
+        "체결/정산 시각만 월 귀속(생성 시각 아님)",
+        "수수료는 손익에 이미 반영 — 표시만",
+        "미실현 증감≠기말 미실현",
+        "최대 금액·비율 낙폭 각각",
+        "손실·거래0·중단 포함",
+        "없는 출처는 미확인"
+      ]
+    },
+    "expected_contract": "Buy fee 25 may belong inside or outside December. Known sell fee 26 is a partial sum, not a confirmed total."
+  },
+  "sell_before_buy": {
+    "input": {
+      "version": "scorecard-input-2",
+      "period": {
+        "from": "2026-12-01T00:00:00+09:00",
+        "to": "2027-01-01T00:00:00+09:00"
+      },
+      "sessions": [
+        {
+          "kind": "DYNAMIC",
+          "id": 992,
+          "mode": "REAL",
+          "strategy_type": "COMPOSITE_BREAKOUT",
+          "timeframe": "H1",
+          "status_end": "RUNNING",
+          "provenance": {
+            "code_sha": "0e1d2a02",
+            "code_sha_source": "외부 등록표(가상)",
+            "ruleset_hash": "aaaaaaaaaaaa",
+            "registry_ref": "reg-가상-1"
+          },
+          "start": {
+            "available_krw": "100000",
+            "positions": [],
+            "pending_buys": []
+          },
+          "end": {
+            "available_krw": "101949",
+            "positions": [],
+            "pending_buys": []
+          },
+          "flows": [],
+          "trades": [
+            {
+              "buy": {
+                "settled_at": "2026-12-02T09:00:00+09:00",
+                "qty": "0.001",
+                "funds": "50000",
+                "fee": "25"
+              },
+              "sells": [
+                {
+                  "settled_at": "2026-12-01T09:00:00+09:00",
+                  "qty": "0.001",
+                  "funds": "52000",
+                  "fee": "26",
+                  "stored_realized_pnl": "1949"
+                }
+              ],
+              "position_fee_stored": "51"
+            }
+          ],
+          "market_regime": [
+            {
+              "at": "2026-12-02T09:00:00+09:00",
+              "regime": "TREND_UP",
+              "source": "position.market_regime",
+              "rule_version": "제품 정의"
+            }
+          ]
+        }
+      ],
+      "benchmarks": {
+        "btc_price_start": null,
+        "btc_price_end": null
+      }
+    },
+    "result": {
+      "version": "scorecard-2",
+      "period": {
+        "from": "2026-12-01T00:00:00+09:00",
+        "to": "2027-01-01T00:00:00+09:00"
+      },
+      "sessions": [
+        {
+          "session": "DYNAMIC#992",
+          "money": "실자금",
+          "kind": "DYNAMIC",
+          "mode": "REAL",
+          "strategy": "COMPOSITE_BREAKOUT",
+          "timeframe": "H1",
+          "status_end": "RUNNING",
+          "trade_state": "이 달 종료 왕복 1",
+          "start_equity": "100000",
+          "end_equity": "101949",
+          "net_flows": "0",
+          "month_pnl": "1949",
+          "month_pnl_status": "확정",
+          "unconfirmed_reasons": [],
+          "month_return_pct": "1.95",
+          "realized_in_period": "1949",
+          "realized_known_part": "1949",
+          "unrealized_start": "0",
+          "unrealized_end": "0",
+          "unrealized_change": "0",
+          "unrealized_change_note": "월손익 − 기간 실현 = 기간 중 미실현 증감(기말 미실현 아님)",
+          "identity_check": "일치",
+          "fees_paid": "51",
+          "fee_note": "손익에 이미 반영(매도 수수료는 대금에서, 매수 수수료는 평균가에) — 다시 빼지 않음",
+          "buy_funds": "50000",
+          "round_trips_closed": 1,
+          "wins": 1,
+          "losses": 0,
+          "win_loss_basis": "이 달 종료 왕복의 생애 손익",
+          "holding_hours_median": -24.0,
+          "round_trips": [
+            {
+              "trade": 0,
+              "lifetime_pnl": "1949",
+              "this_month_part": "1949",
+              "carry_in": false
+            }
+          ],
+          "stored_realized_mismatch": [],
+          "drawdown": {
+            "max_amount_krw": null,
+            "max_pct": null,
+            "label": "미확인(일별 평가 표본 없음 — 복원하지 않음)"
+          },
+          "provenance": {
+            "code_sha": "0e1d2a02",
+            "code_sha_source": "외부 등록표(가상)",
+            "ruleset_hashes": [
+              "aaaaaaaaaaaa"
+            ],
+            "registry_ref": "reg-가상-1"
+          },
+          "market_regime": [
+            {
+              "at": "2026-12-02T09:00:00+09:00",
+              "regime": "TREND_UP",
+              "source": "position.market_regime",
+              "rule_version": "제품 정의"
+            }
+          ],
+          "benchmark": {
+            "cash_pnl": "0",
+            "btc_hold_pnl": "미확인"
+          },
+          "flags": []
+        }
+      ],
+      "aggregates": [
+        {
+          "group": "money",
+          "name": "실자금",
+          "sessions": [
+            "DYNAMIC#992"
+          ],
+          "month_pnl": "1949",
+          "status": "확정",
+          "known_part_sum": "1949",
+          "unconfirmed_sessions": [],
+          "note": null
+        },
+        {
+          "group": "kind",
+          "name": "실자금|DYNAMIC",
+          "sessions": [
+            "DYNAMIC#992"
+          ],
+          "month_pnl": "1949",
+          "status": "확정",
+          "known_part_sum": "1949",
+          "unconfirmed_sessions": [],
+          "note": null
+        },
+        {
+          "group": "mode",
+          "name": "실자금|REAL",
+          "sessions": [
+            "DYNAMIC#992"
+          ],
+          "month_pnl": "1949",
+          "status": "확정",
+          "known_part_sum": "1949",
+          "unconfirmed_sessions": [],
+          "note": null
+        },
+        {
+          "group": "strategy_timeframe",
+          "name": "실자금|COMPOSITE_BREAKOUT/H1",
+          "sessions": [
+            "DYNAMIC#992"
+          ],
+          "month_pnl": "1949",
+          "status": "확정",
+          "known_part_sum": "1949",
+          "unconfirmed_sessions": [],
+          "note": null
+        },
+        {
+          "group": "code_version",
+          "name": "실자금|0e1d2a02",
+          "sessions": [
+            "DYNAMIC#992"
+          ],
+          "month_pnl": "1949",
+          "status": "확정",
+          "known_part_sum": "1949",
+          "unconfirmed_sessions": [],
+          "note": null
+        }
+      ],
+      "account": {
+        "month_pnl": null,
+        "status": "미확인(계좌 기초/기말 없음)"
+      },
+      "account_minus_real_sessions": "미확인(계좌 또는 실자금 세션 합계 미확정·없음)",
+      "included": {
+        "sessions": 1,
+        "real": 1,
+        "paper": 0,
+        "zero_trade": 0,
+        "loss": 0,
+        "stopped": 0,
+        "unconfirmed": 0
+      },
+      "rules": [
+        "월손익=기말−기초−기간 순입금",
+        "실자금·모의 합산 금지, 계좌 대조는 실자금만",
+        "월 밖 입출금은 계약 위반",
+        "CLOSING·가격 없음·예약 금액 없음은 미확정",
+        "체결/정산 시각만 월 귀속(생성 시각 아님)",
+        "수수료는 손익에 이미 반영 — 표시만",
+        "미실현 증감≠기말 미실현",
+        "최대 금액·비율 낙폭 각각",
+        "손실·거래0·중단 포함",
+        "없는 출처는 미확인"
+      ]
+    },
+    "expected_contract": "Reject impossible chronology or mark it unconfirmed before counting the completed round trip."
+  },
+  "pnl_saved": {
+    "A_sign_flip": {
+      "live": {
+        "kind": "LIVE",
+        "session_id": 1,
+        "avg_price": "300.00000000",
+        "invested_krw": "7503.75000000",
+        "stored_realized_pnl": "1.00000000",
+        "net_sell_proceeds": "7501.00",
+        "cost_basis_realized_arith": "-2.75",
+        "available_krw_after": "16237.62"
+      },
+      "dynamic_real": {
+        "kind": "DYNAMIC",
+        "session_id": 1,
+        "avg_price": "300.00000000",
+        "invested_krw": "7503.75000000",
+        "stored_realized_pnl": "1.00000000",
+        "net_sell_proceeds": "7501.00",
+        "cost_basis_realized_arith": "-2.75",
+        "available_krw_after": "9997.62"
+      },
+      "dyn_paper": {
+        "kind": "DYN_PAPER",
+        "session_id": 2,
+        "entry_fill_price": "305.30500000",
+        "avg_price": "305.45772891",
+        "size": "26.19115263",
+        "stored_realized_pnl": "-2.40008770",
+        "net_sell_proceeds_arith": "7997.889912191190",
+        "real_convention_arith": "1.6000584890400000"
+      },
+      "guards_at_0_01pct": {
+        "sumLiveSessionRealizedLossSince": "0",
+        "sumDynamicRealSessionRealizedLossSince": "0",
+        "checkRealLossGuard": {
+          "approved": true,
+          "reason": "null"
+        },
+        "checkRisk": {
+          "approved": true,
+          "reason": "null"
+        }
+      },
+      "circuit_breakers_limit1": [
+        {
+          "session": "LIVE#1",
+          "triggered": false,
+          "reason": "null"
+        },
+        {
+          "session": "DYNAMIC#1",
+          "triggered": false,
+          "reason": "null"
+        },
+        {
+          "session": "DYNAMIC#2",
+          "triggered": true,
+          "reason": "연속 손실 1회 초과 (한도: 1회)"
+        }
+      ]
+    },
+    "B_true_loss": {
+      "live": {
+        "kind": "LIVE",
+        "session_id": 2,
+        "avg_price": "300.00000000",
+        "invested_krw": "7503.75000000",
+        "stored_realized_pnl": "-103.70000000",
+        "net_sell_proceeds": "7396.30",
+        "cost_basis_realized_arith": "-107.45",
+        "available_krw_after": "16132.92"
+      },
+      "dynamic_real": {
+        "kind": "DYNAMIC",
+        "session_id": 3,
+        "avg_price": "300.00000000",
+        "invested_krw": "7503.75000000",
+        "stored_realized_pnl": "-103.70000000",
+        "net_sell_proceeds": "7396.30",
+        "cost_basis_realized_arith": "-107.45",
+        "available_krw_after": "9892.92"
+      },
+      "guards_since_B_at_0_01pct": {
+        "sumLiveSessionRealizedLossSince": "-103.7000000000000000",
+        "sumDynamicRealSessionRealizedLossSince": "-103.7000000000000000",
+        "checkRealLossGuard": {
+          "approved": false,
+          "reason": "일일 손실 한도 초과: 0.32% > 0.01%"
+        },
+        "checkRisk": {
+          "approved": false,
+          "reason": "일일 손실 한도 초과: 0.32% > 0.01%"
+        }
+      },
+      "circuit_breakers_limit1": [
+        {
+          "session": "LIVE#2",
+          "triggered": true,
+          "reason": "연속 손실 1회 초과 (한도: 1회)"
+        },
+        {
+          "session": "DYNAMIC#3",
+          "triggered": true,
+          "reason": "연속 손실 1회 초과 (한도: 1회)"
+        }
+      ]
+    },
+    "C_stop_loss_line": {
+      "price": "285.10",
+      "avg_real_convention": "300",
+      "avg_cost_basis": "300.15000000",
+      "stopHit_real": false,
+      "stopHit_cost": true,
+      "pnlPct_real": "-4.966700",
+      "pnlPct_cost": "-5.014200"
+    }
+  },
+  "amount_saved": {
+    "1_jsonb_restore_fingerprint": {
+      "jsonb_a": {
+        "text": "{\"maxOrderKrw\": 20000, \"excludeCoins\": [\"KRW-BTC\", \"KRW-XRP\"], \"slAtrMultiplier\": 2}",
+        "is_null": false,
+        "max_type": "number",
+        "ex_type": "array"
+      },
+      "jsonb_c_other_order": {
+        "text": "{\"maxOrderKrw\": 20000, \"excludeCoins\": [\"KRW-BTC\", \"KRW-XRP\"], \"slAtrMultiplier\": 2}",
+        "is_null": false,
+        "max_type": "number",
+        "ex_type": "array"
+      },
+      "jsonb_no_keys": {
+        "text": null,
+        "is_null": true,
+        "max_type": null,
+        "ex_type": null
+      },
+      "restored_params_a": {
+        "maxOrderKrw": 20000,
+        "excludeCoins": [
+          "KRW-BTC",
+          "KRW-XRP"
+        ],
+        "slAtrMultiplier": 2
+      },
+      "hash_at_create": "895ab6b8dc16",
+      "hash_after_reload": "895ab6b8dc16",
+      "hash_c": "895ab6b8dc16",
+      "hash_fixed_no_keys": "ea1ed76bc345"
+    },
+    "2_cap_reservation": {
+      "capped_result": "null",
+      "capped_order_row": {
+        "quantity": "10000.00000000",
+        "reserved_krw": "10000.00000000",
+        "state": "SUBMITTED",
+        "coin_pair": "KRW-ETH"
+      },
+      "capped_available_after": "15001.00",
+      "plain_result": "공유 풀 예약 거절(PER_POSITION_CAP): 매수금 20000.80 > 포지션당 상한 20000",
+      "plain_buy_orders": 0,
+      "plain_available_after": "25001.00"
+    },
+    "3_btc_exclusion_gate": {
+      "watchlist": [
+        "KRW-ETH"
+      ],
+      "btc_execute_buy": "제외 코인(excludeCoins) — KRW-BTC 신규 매수 안 함",
+      "btc_queued_approve": "제외 코인(excludeCoins) — KRW-BTC 신규 매수 안 함",
+      "btc_buy_orders": 0,
+      "eth_execute_buy": "null",
+      "eth_buy_coins": [
+        "KRW-ETH"
+      ],
+      "tick_btc_candles_missing_buys": 0,
+      "tick_btc_candles_fresh_coins": [
+        "KRW-IOTA"
+      ]
+    },
+    "4_existing_btc_holding_real_sell": {
+      "sell_submitted": true,
+      "position_status": "CLOSED",
+      "realized_pnl": "95.45000000",
+      "available_after": "29095.45",
+      "seeded_holding_note": "보유 행은 시험이 직접 넣음 — 매도 경로만 엔진"
+    }
+  },
+  "alert_xml": {
+    "classes": 8,
+    "tests": 81,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "aligned_scope": "Source confirms fill-price decision average already exists. Submitted PG does not execute LIVE_ALIGNED. Static stopHit with a cost average is not its engine-path reproduction."
+}

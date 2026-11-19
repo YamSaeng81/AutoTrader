@@ -1,0 +1,1684 @@
+{
+  "fixed_head": "16595682af4f22b281242273f813e8fe11bbbdc7",
+  "scope": "Fixed blobs, saved XML/JSON and pure file calculations; no Java/PG execution.",
+  "passed": 327,
+  "failed": 1,
+  "anchors": {
+    "dec-pnl-definition-20261119": {
+      "manifest_entries": 4,
+      "tracked_files": 7,
+      "manifest_sha256": "6fab720b512f28285f62e7997b8873663cfecdbd138a4857ea1a125764f45007"
+    },
+    "dec-scorecard-v2-20261118": {
+      "manifest_entries": 65,
+      "tracked_files": 68,
+      "manifest_sha256": "361c11c491c4e9ed489c43b96f06b47f31ed2eb19172e0d28ca203d9f962e89c"
+    },
+    "dec-amtbtc-pg-20261119": {
+      "manifest_entries": 4,
+      "tracked_files": 7,
+      "manifest_sha256": "38e6e41bc1bc9b375beb51ba2ad243b605978cd3b249fc6ae60700d5b47a38a2"
+    },
+    "dec-min-alert-20261119": {
+      "manifest_entries": 10,
+      "tracked_files": 13,
+      "manifest_sha256": "d89494cf86fccbb6101b8748777adc137471501f52a27bde789fa789c26c052d"
+    },
+    "review-f14ff757": {
+      "manifest_entries": 5,
+      "tracked_files": 6,
+      "manifest_sha256": "49bb5dbdfdc631513dc457229a43300cc295bb2db8ebe476355943b941279ae8"
+    },
+    "docs/evidence/dec-ops-plan-20261119/README.md": "390ceaffebd3fc212798fce25cdac0479eaee866f834e951216326ae56b63b57",
+    "docs/evidence/dec-scorecard-v2-20261118/scorecard/scorecard.py": "283d64b9c8cf55e9ea33c8940ddbef18b52e61fd49d9b457e228e5f0093cb95f",
+    "docs/evidence/dec-scorecard-v2-20261118/scorecard/cases_scorecard.py": "ad9f2dfba70ad011c7b0cd92eeb2d18c9699f81370bb532adef4dc89628b88c8",
+    "fixed_paper_service": "c5e3902d52594f800e1f8a1cb764d72b232a1a327858b92388e9d1e2199cdbd9"
+  },
+  "checks": [
+    {
+      "check": "HEAD",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "saved origin/main",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest count dec-pnl-definition-20261119",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-pnl-definition-20261119/source/RealizedPnlDefinitionPgTest.java",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-pnl-definition-20261119/run1/NET-GUARD-summary.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-pnl-definition-20261119/run1/TEST-com.cryptoautotrader.api.service.RealizedPnlDefinitionPgTest.xml",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-pnl-definition-20261119/run1/pnl_consumers.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest coverage dec-pnl-definition-20261119",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-pnl-definition-20261119/.gitattributes",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-pnl-definition-20261119/README.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-pnl-definition-20261119/SHA256SUMS",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-pnl-definition-20261119/run1/NET-GUARD-summary.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-pnl-definition-20261119/run1/TEST-com.cryptoautotrader.api.service.RealizedPnlDefinitionPgTest.xml",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-pnl-definition-20261119/run1/pnl_consumers.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-pnl-definition-20261119/source/RealizedPnlDefinitionPgTest.java",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest count dec-scorecard-v2-20261118",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/cases_scorecard.py",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/mutate.py",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/red_v1.py",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run0-v1-red/S1_carry_in_unrealized.v1.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run0-v1-red/S2_out_of_period_flow.v1.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run0-v1-red/S3_paper_real_account_mix.v1.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run0-v1-red/S4_drawdown_percentage.v1.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run0-v1-red/red.out.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/C01_float_rejected.input.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/C02_duplicate_session.input.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/C03_unknown_position_status.input.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/C04_out_of_period_flow_cli.input.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/R1_carry_in_unrealized.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/R1b_carry_in_with_cost.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/R1c_sells_across_months.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/R1d_missing_settle_time.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/R1e_pending_buy_reserved.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/R1f_pending_buy_unknown.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/R1g_pending_buys_required.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/R1h_v1_at_rejected.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/R2_out_of_period_flow.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/R2b_flows_missing_unconfirmed.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/R2c_flow_before_created.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/R2d_flow_sign.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/R2e_recover_in_period.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/R2f_created_in_period_not_flagged.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/R2g_account_deposit_out_of_period.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/R2h_account_net_without_time.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/R3_paper_real_account_mix.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/R3b_dynamic_real_and_paper_split.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/R3c_groups_by_version.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/R3d_mode_required.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/R3e_live_paper_contradiction.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/R3f_no_real_sessions.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/R4_drawdown_percentage.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/R4b_withdrawal_not_loss.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/R4c_allocation_not_gain.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/R4d_reverse_order.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/R4e_duplicate_sample.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/R4f_missing_days_shown.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/R4g_flows_unknown.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/R4h_v1_date_rejected.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/S01_fee_not_double_counted.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/S02_closing_unconfirmed.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/S03_loss_zero_stopped_included.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/S04_deposit_excluded.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/S05_missing_price_unconfirmed.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/S06_provenance_unknown_and_split.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/S07_drawdown_daily_samples_only.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/S08_stored_realized_mismatch.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/S09_btc_benchmark.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/S09b_btc_benchmark_missing.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/S10_account_matches_sessions.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/S10b_account_gap_shown.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/S10c_account_coin_without_price.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/S11_new_session_in_period.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/S11b_missing_start_unconfirmed.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/S12_sell_outside_period.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/S13_real_stored_excludes_buy_fee.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/cases.out.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/demo.input.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/demo/scorecard.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/demo/scorecard.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/run1/mutate.out.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-scorecard-v2-20261118/scorecard/scorecard.py",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest coverage dec-scorecard-v2-20261118",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/.gitattributes",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/README.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/SHA256SUMS",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/cases_scorecard.py",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/mutate.py",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/red_v1.py",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run0-v1-red/S1_carry_in_unrealized.v1.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run0-v1-red/S2_out_of_period_flow.v1.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run0-v1-red/S3_paper_real_account_mix.v1.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run0-v1-red/S4_drawdown_percentage.v1.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run0-v1-red/red.out.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/C01_float_rejected.input.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/C02_duplicate_session.input.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/C03_unknown_position_status.input.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/C04_out_of_period_flow_cli.input.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/R1_carry_in_unrealized.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/R1b_carry_in_with_cost.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/R1c_sells_across_months.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/R1d_missing_settle_time.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/R1e_pending_buy_reserved.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/R1f_pending_buy_unknown.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/R1g_pending_buys_required.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/R1h_v1_at_rejected.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/R2_out_of_period_flow.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/R2b_flows_missing_unconfirmed.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/R2c_flow_before_created.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/R2d_flow_sign.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/R2e_recover_in_period.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/R2f_created_in_period_not_flagged.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/R2g_account_deposit_out_of_period.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/R2h_account_net_without_time.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/R3_paper_real_account_mix.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/R3b_dynamic_real_and_paper_split.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/R3c_groups_by_version.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/R3d_mode_required.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/R3e_live_paper_contradiction.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/R3f_no_real_sessions.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/R4_drawdown_percentage.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/R4b_withdrawal_not_loss.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/R4c_allocation_not_gain.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/R4d_reverse_order.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/R4e_duplicate_sample.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/R4f_missing_days_shown.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/R4g_flows_unknown.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/R4h_v1_date_rejected.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/S01_fee_not_double_counted.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/S02_closing_unconfirmed.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/S03_loss_zero_stopped_included.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/S04_deposit_excluded.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/S05_missing_price_unconfirmed.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/S06_provenance_unknown_and_split.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/S07_drawdown_daily_samples_only.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/S08_stored_realized_mismatch.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/S09_btc_benchmark.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/S09b_btc_benchmark_missing.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/S10_account_matches_sessions.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/S10b_account_gap_shown.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/S10c_account_coin_without_price.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/S11_new_session_in_period.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/S11b_missing_start_unconfirmed.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/S12_sell_outside_period.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/S13_real_stored_excludes_buy_fee.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/cases.out.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/demo.input.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/demo/scorecard.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/demo/scorecard.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/run1/mutate.out.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-scorecard-v2-20261118/scorecard/scorecard.py",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest count dec-amtbtc-pg-20261119",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-amtbtc-pg-20261119/run1/NET-GUARD-summary.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-amtbtc-pg-20261119/run1/TEST-com.cryptoautotrader.api.service.AmountBtcPgTest.xml",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-amtbtc-pg-20261119/run1/amount_btc_pg.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-amtbtc-pg-20261119/source/AmountBtcPgTest.java",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest coverage dec-amtbtc-pg-20261119",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-amtbtc-pg-20261119/.gitattributes",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-amtbtc-pg-20261119/README.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-amtbtc-pg-20261119/SHA256SUMS",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-amtbtc-pg-20261119/run1/NET-GUARD-summary.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-amtbtc-pg-20261119/run1/TEST-com.cryptoautotrader.api.service.AmountBtcPgTest.xml",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-amtbtc-pg-20261119/run1/amount_btc_pg.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-amtbtc-pg-20261119/source/AmountBtcPgTest.java",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest count dec-min-alert-20261119",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-min-alert-20261119/candidate-dfe3b9f7.diff",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-min-alert-20261119/run1/TEST-com.cryptoautotrader.api.service.AlignedV147FixesTest.xml",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-min-alert-20261119/run1/TEST-com.cryptoautotrader.api.service.AlignedV148FixesTest.xml",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-min-alert-20261119/run1/TEST-com.cryptoautotrader.api.service.EngineParityTest.xml",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-min-alert-20261119/run1/TEST-com.cryptoautotrader.api.service.TelegramCriticalRetryTest.xml",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-min-alert-20261119/run1/TEST-com.cryptoautotrader.api.service.TelegramMarkdownFallbackTest.xml",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-min-alert-20261119/run1/TEST-com.cryptoautotrader.api.service.TelegramMinimalAlertTest.xml",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-min-alert-20261119/run1/TEST-com.cryptoautotrader.api.service.TelegramTestIsolationTest$SchedulerProfile.xml",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-min-alert-20261119/run1/TEST-com.cryptoautotrader.api.service.TelegramTestIsolationTest$TestProfile.xml",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash dec-min-alert-20261119/source/TelegramMinimalAlertTest.java",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest coverage dec-min-alert-20261119",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-min-alert-20261119/.gitattributes",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-min-alert-20261119/README.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-min-alert-20261119/SHA256SUMS",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-min-alert-20261119/candidate-dfe3b9f7.diff",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-min-alert-20261119/run1/TEST-com.cryptoautotrader.api.service.AlignedV147FixesTest.xml",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-min-alert-20261119/run1/TEST-com.cryptoautotrader.api.service.AlignedV148FixesTest.xml",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-min-alert-20261119/run1/TEST-com.cryptoautotrader.api.service.EngineParityTest.xml",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-min-alert-20261119/run1/TEST-com.cryptoautotrader.api.service.TelegramCriticalRetryTest.xml",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-min-alert-20261119/run1/TEST-com.cryptoautotrader.api.service.TelegramMarkdownFallbackTest.xml",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-min-alert-20261119/run1/TEST-com.cryptoautotrader.api.service.TelegramMinimalAlertTest.xml",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-min-alert-20261119/run1/TEST-com.cryptoautotrader.api.service.TelegramTestIsolationTest$SchedulerProfile.xml",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-min-alert-20261119/run1/TEST-com.cryptoautotrader.api.service.TelegramTestIsolationTest$TestProfile.xml",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/dec-min-alert-20261119/source/TelegramMinimalAlertTest.java",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest count review-f14ff757",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash review-f14ff757/.gitattributes",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash review-f14ff757/audit_review.py",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash review-f14ff757/checks.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash review-f14ff757/observations.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest hash review-f14ff757/README.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manifest coverage review-f14ff757",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/review-f14ff757/.gitattributes",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/review-f14ff757/README.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/review-f14ff757/SHA256SUMS",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/review-f14ff757/audit_review.py",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/review-f14ff757/checks.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed blob docs/evidence/review-f14ff757/observations.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fixed operations proposal",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "saved scorecard full output R1_carry_in_unrealized",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "saved scorecard full output R1b_carry_in_with_cost",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "saved scorecard full output R1c_sells_across_months",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "saved scorecard full output R1d_missing_settle_time",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "saved scorecard full output R1e_pending_buy_reserved",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "saved scorecard full output R1f_pending_buy_unknown",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "saved scorecard rejection R1g_pending_buys_required",
+      "passed": true,
+      "detail": "DYNAMIC#907 기말.pending_buys: 목록 필수(없으면 빈 목록) — 매수 예약은 가용 KRW 에서 이미 빠져 있다"
+    },
+    {
+      "check": "saved scorecard rejection R1h_v1_at_rejected",
+      "passed": true,
+      "detail": "DYNAMIC#908.trades[0]: v1 이름 at — 체결/정산 시각 settled_at 으로 명시(주문 생성 시각으로 대신하지 않음)"
+    },
+    {
+      "check": "saved scorecard rejection R2_out_of_period_flow",
+      "passed": true,
+      "detail": "DYNAMIC#910.flows[0].at 2027-01-02T00:00:00+09:00: 기간 [from,to) 밖 입출금 — 이 달 성적표에 넣지 않는다(다른 달 입력으로)"
+    },
+    {
+      "check": "saved scorecard full output R2b_flows_missing_unconfirmed",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "saved scorecard rejection R2c_flow_before_created",
+      "passed": true,
+      "detail": "DYNAMIC#912.flows[0].at: 세션 생성(2026-12-10T00:00:00+09:00) 전 입출금"
+    },
+    {
+      "check": "saved scorecard rejection R2d_flow_sign",
+      "passed": true,
+      "detail": "DYNAMIC#913.flows[0].amount_krw: 양수만 — 방향은 kind 로 정한다"
+    },
+    {
+      "check": "saved scorecard full output R2e_recover_in_period",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "saved scorecard rejection R2f_created_in_period_not_flagged",
+      "passed": true,
+      "detail": "DYNAMIC#915: created_at 이 기간 안인데 started_in_period 아님"
+    },
+    {
+      "check": "saved scorecard rejection R2g_account_deposit_out_of_period",
+      "passed": true,
+      "detail": "account.deposits[0].at: 기간 밖 입출금"
+    },
+    {
+      "check": "saved scorecard rejection R2h_account_net_without_time",
+      "passed": true,
+      "detail": "account.net_deposits_krw: v2 는 시각이 있는 deposits 목록만(월 밖 입출금 검사)"
+    },
+    {
+      "check": "saved scorecard full output R3_paper_real_account_mix",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "saved scorecard full output R3b_dynamic_real_and_paper_split",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "saved scorecard full output R3c_groups_by_version",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "saved scorecard rejection R3d_mode_required",
+      "passed": true,
+      "detail": "DYNAMIC#924.mode: REAL/PAPER 필수(받은 값 None) — 실자금/모의 구분 없이 합산하지 않는다"
+    },
+    {
+      "check": "saved scorecard rejection R3e_live_paper_contradiction",
+      "passed": true,
+      "detail": "LIVE#925: LIVE 는 REAL 만"
+    },
+    {
+      "check": "saved scorecard full output R3f_no_real_sessions",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "saved scorecard full output R4_drawdown_percentage",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "saved scorecard full output R4b_withdrawal_not_loss",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "saved scorecard full output R4c_allocation_not_gain",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "saved scorecard rejection R4d_reverse_order",
+      "passed": true,
+      "detail": "DYNAMIC#933.daily_equity[1].at: 시각 역순·중복 표본 — 정렬/중복 제거는 입력 쪽에서(도구가 고르지 않음)"
+    },
+    {
+      "check": "saved scorecard rejection R4e_duplicate_sample",
+      "passed": true,
+      "detail": "DYNAMIC#934.daily_equity[1].at: 시각 역순·중복 표본 — 정렬/중복 제거는 입력 쪽에서(도구가 고르지 않음)"
+    },
+    {
+      "check": "saved scorecard full output R4f_missing_days_shown",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "saved scorecard full output R4g_flows_unknown",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "saved scorecard rejection R4h_v1_date_rejected",
+      "passed": true,
+      "detail": "DYNAMIC#937.daily_equity[0]: v1 이름 date — 표본 시각 at(시간대 포함) 필수"
+    },
+    {
+      "check": "saved scorecard full output S01_fee_not_double_counted",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "saved scorecard full output S02_closing_unconfirmed",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "saved scorecard full output S03_loss_zero_stopped_included",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "saved scorecard full output S04_deposit_excluded",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "saved scorecard full output S05_missing_price_unconfirmed",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "saved scorecard full output S06_provenance_unknown_and_split",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "saved scorecard full output S07_drawdown_daily_samples_only",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "saved scorecard full output S08_stored_realized_mismatch",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "saved scorecard full output S09_btc_benchmark",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "saved scorecard full output S09b_btc_benchmark_missing",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "saved scorecard full output S10_account_matches_sessions",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "saved scorecard full output S10b_account_gap_shown",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "saved scorecard full output S10c_account_coin_without_price",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "saved scorecard full output S11_new_session_in_period",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "saved scorecard full output S11b_missing_start_unconfirmed",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "saved scorecard full output S12_sell_outside_period",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "saved scorecard full output S13_real_stored_excludes_buy_fee",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "scorecard expectation S01_fee_not_double_counted",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "scorecard expectation S02_closing_unconfirmed",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "scorecard expectation S03_loss_zero_stopped_included",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "scorecard expectation S04_deposit_excluded",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "scorecard expectation S05_missing_price_unconfirmed",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "scorecard expectation S06_provenance_unknown_and_split",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "scorecard expectation S07_drawdown_daily_samples_only",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "scorecard expectation S08_stored_realized_mismatch",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "scorecard expectation S09_btc_benchmark",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "scorecard expectation S09b_btc_benchmark_missing",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "scorecard expectation S10_account_matches_sessions",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "scorecard expectation S10b_account_gap_shown",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "scorecard expectation S10c_account_coin_without_price",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "scorecard expectation S11_new_session_in_period",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "scorecard expectation S11b_missing_start_unconfirmed",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "scorecard expectation S12_sell_outside_period",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "scorecard expectation S13_real_stored_excludes_buy_fee",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "scorecard expectation R1_carry_in_unrealized",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "scorecard expectation R1b_carry_in_with_cost",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "scorecard expectation R1c_sells_across_months",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "scorecard expectation R1d_missing_settle_time",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "scorecard expectation R1e_pending_buy_reserved",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "scorecard expectation R1f_pending_buy_unknown",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "scorecard expectation R2b_flows_missing_unconfirmed",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "scorecard expectation R2e_recover_in_period",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "scorecard expectation R3_paper_real_account_mix",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "scorecard expectation R3b_dynamic_real_and_paper_split",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "scorecard expectation R3c_groups_by_version",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "scorecard expectation R3f_no_real_sessions",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "scorecard expectation R4_drawdown_percentage",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "scorecard expectation R4b_withdrawal_not_loss",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "scorecard expectation R4c_allocation_not_gain",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "scorecard expectation R4f_missing_days_shown",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "scorecard expectation R4g_flows_unknown",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "scorecard negative expectation R1g_pending_buys_required",
+      "passed": true,
+      "detail": "DYNAMIC#907 기말.pending_buys: 목록 필수(없으면 빈 목록) — 매수 예약은 가용 KRW 에서 이미 빠져 있다"
+    },
+    {
+      "check": "scorecard negative expectation R1h_v1_at_rejected",
+      "passed": true,
+      "detail": "DYNAMIC#908.trades[0]: v1 이름 at — 체결/정산 시각 settled_at 으로 명시(주문 생성 시각으로 대신하지 않음)"
+    },
+    {
+      "check": "scorecard negative expectation R2_out_of_period_flow",
+      "passed": true,
+      "detail": "DYNAMIC#910.flows[0].at 2027-01-02T00:00:00+09:00: 기간 [from,to) 밖 입출금 — 이 달 성적표에 넣지 않는다(다른 달 입력으로)"
+    },
+    {
+      "check": "scorecard negative expectation R2c_flow_before_created",
+      "passed": true,
+      "detail": "DYNAMIC#912.flows[0].at: 세션 생성(2026-12-10T00:00:00+09:00) 전 입출금"
+    },
+    {
+      "check": "scorecard negative expectation R2d_flow_sign",
+      "passed": true,
+      "detail": "DYNAMIC#913.flows[0].amount_krw: 양수만 — 방향은 kind 로 정한다"
+    },
+    {
+      "check": "scorecard negative expectation R2f_created_in_period_not_flagged",
+      "passed": true,
+      "detail": "DYNAMIC#915: created_at 이 기간 안인데 started_in_period 아님"
+    },
+    {
+      "check": "scorecard negative expectation R2g_account_deposit_out_of_period",
+      "passed": true,
+      "detail": "account.deposits[0].at: 기간 밖 입출금"
+    },
+    {
+      "check": "scorecard negative expectation R2h_account_net_without_time",
+      "passed": true,
+      "detail": "account.net_deposits_krw: v2 는 시각이 있는 deposits 목록만(월 밖 입출금 검사)"
+    },
+    {
+      "check": "scorecard negative expectation R3d_mode_required",
+      "passed": true,
+      "detail": "DYNAMIC#924.mode: REAL/PAPER 필수(받은 값 None) — 실자금/모의 구분 없이 합산하지 않는다"
+    },
+    {
+      "check": "scorecard negative expectation R3e_live_paper_contradiction",
+      "passed": true,
+      "detail": "LIVE#925: LIVE 는 REAL 만"
+    },
+    {
+      "check": "scorecard negative expectation R4d_reverse_order",
+      "passed": true,
+      "detail": "DYNAMIC#933.daily_equity[1].at: 시각 역순·중복 표본 — 정렬/중복 제거는 입력 쪽에서(도구가 고르지 않음)"
+    },
+    {
+      "check": "scorecard negative expectation R4e_duplicate_sample",
+      "passed": true,
+      "detail": "DYNAMIC#934.daily_equity[1].at: 시각 역순·중복 표본 — 정렬/중복 제거는 입력 쪽에서(도구가 고르지 않음)"
+    },
+    {
+      "check": "scorecard negative expectation R4h_v1_date_rejected",
+      "passed": true,
+      "detail": "DYNAMIC#937.daily_equity[0]: v1 이름 date — 표본 시각 at(시간대 포함) 필수"
+    },
+    {
+      "check": "saved scorecard 52 summary",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "saved scorecard 10 mutations",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "saved v1 four counterexamples",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "saved demo full output",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "missing buy time leaves numeric fee subtotal",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "sell earlier than buy accepted with negative holding hours",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "saved pnl PG XML",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "A cost arithmetic live",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "A stored positive live",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "B cost arithmetic live",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "B omitted buy fee live",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "A cost arithmetic dynamic_real",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "A stored positive dynamic_real",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "B cost arithmetic dynamic_real",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "B omitted buy fee dynamic_real",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "A both loss sources zero",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "A guards approve",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "A breakers differ by mode",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "B loss SQL observations",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "C static stop observations",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "saved no external attempts dec-pnl-definition-20261119",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "saved no external attempts dec-amtbtc-pg-20261119",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "saved amount PG XML",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "PG canonical JSON and fingerprints",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "PG cap and reservation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "PG BTC gate and existing holding sale",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "alert candidate parent",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "alert submitted diff",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "alert test fixed blob",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "alert saved XML 9 classes 81 pass",
+      "passed": false,
+      "detail": {
+        "tests": 81,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "check": "LIVE_ALIGNED already uses fill price for decisions",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "LIVE_ALIGNED old risk adds back fee difference",
+      "passed": true,
+      "detail": null
+    }
+  ]
+}

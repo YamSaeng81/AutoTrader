@@ -1,0 +1,198 @@
+{
+  "checks" : [ {
+    "check" : "S1 LIVE 손실 합 = −2.75",
+    "pass" : true,
+    "actual" : "-2.7500000000000000"
+  }, {
+    "check" : "S1 DYNAMIC REAL 손실 합 = −2.75",
+    "pass" : true,
+    "actual" : "-2.7500000000000000"
+  }, {
+    "check" : "S1 checkRisk 거절(일 0.01%)",
+    "pass" : true,
+    "actual" : "{approved=false, reason=일일 손실 한도 초과: 0.02% > 0.01%}"
+  }, {
+    "check" : "S1 checkRealLossGuard 거절",
+    "pass" : true,
+    "actual" : "{approved=false, reason=일일 손실 한도 초과: 0.02% > 0.01%}"
+  }, {
+    "check" : "S1 LIVE 연속 손실 한도1 발동",
+    "pass" : true,
+    "actual" : "{session=LIVE#1, triggered=true, reason=연속 손실 1회 초과 (한도: 1회)}"
+  }, {
+    "check" : "S1 DYNAMIC 연속 손실 한도1 발동",
+    "pass" : true,
+    "actual" : "{session=DYNAMIC#1, triggered=true, reason=연속 손실 1회 초과 (한도: 1회)}"
+  }, {
+    "check" : "S1 LIVE 회차 승인 관문이 손실 한도로 거절",
+    "pass" : true,
+    "actual" : "리스크 한도: [DYNAMIC REAL 보호식] 일일 손실 한도 초과: 0.03% > 0.01%"
+  }, {
+    "check" : "S1 DYNAMIC 진입(executeBuy) 실자금 손실 보호식 거절",
+    "pass" : false,
+    "actual" : "null"
+  }, {
+    "check" : "S2 LIVE 손실 합 = −107.45",
+    "pass" : true,
+    "actual" : "-107.4500000000000000"
+  }, {
+    "check" : "S2 DYNAMIC REAL 손실 합 = −107.45",
+    "pass" : true,
+    "actual" : "-107.4500000000000000"
+  }, {
+    "check" : "S3 LIVE 손실 합 = 0",
+    "pass" : true,
+    "actual" : "0"
+  }, {
+    "check" : "S3 checkRisk 승인(0 은 손실 아님)",
+    "pass" : true,
+    "actual" : "{approved=true, reason=null}"
+  }, {
+    "check" : "S3 연속 손실 미발동",
+    "pass" : true,
+    "actual" : "{session=LIVE#4, triggered=false, reason=null}"
+  }, {
+    "check" : "S4 LIVE 비용 뒤 손실 1회 — 한도2 미발동",
+    "pass" : true,
+    "actual" : "{session=LIVE#5, triggered=false, reason=null}"
+  }, {
+    "check" : "S4 LIVE 비용 뒤 손실 2회 — 한도2 발동",
+    "pass" : true,
+    "actual" : "{session=LIVE#5, triggered=true, reason=연속 손실 2회 초과 (한도: 2회)}"
+  }, {
+    "check" : "S4 LIVE 손실→이익→손실(최근부터 1회) — 한도2 미발동",
+    "pass" : true,
+    "actual" : "{session=LIVE#6, triggered=false, reason=null}"
+  }, {
+    "check" : "S4 DYNAMIC 비용 뒤 손실 1회 — 한도2 미발동",
+    "pass" : true,
+    "actual" : "{session=DYNAMIC#4, triggered=false, reason=null}"
+  }, {
+    "check" : "S4 DYNAMIC 비용 뒤 손실 2회 — 한도2 발동",
+    "pass" : true,
+    "actual" : "{session=DYNAMIC#4, triggered=true, reason=연속 손실 2회 초과 (한도: 2회)}"
+  }, {
+    "check" : "S4 DYNAMIC 손실→이익→손실(최근부터 1회) — 한도2 미발동",
+    "pass" : true,
+    "actual" : "{session=DYNAMIC#5, triggered=false, reason=null}"
+  }, {
+    "check" : "S5 25시간 전 — 일 창 밖(일 0.01% 승인)",
+    "pass" : true,
+    "actual" : "{approved=true, reason=null}"
+  }, {
+    "check" : "S5 25시간 전 — 주 창 안(주 0.01% 거절)",
+    "pass" : false,
+    "actual" : "{approved=true, reason=null}"
+  }, {
+    "check" : "S5 8일 전 — 주 창 밖(주 0.01% 승인)",
+    "pass" : true,
+    "actual" : "{approved=true, reason=null}"
+  }, {
+    "check" : "S5 8일 전 — 월 창 안(월 0.01% 거절)",
+    "pass" : false,
+    "actual" : "{approved=true, reason=null}"
+  }, {
+    "check" : "S5 31일 전 — 월 창 밖(월 0.01% 승인)",
+    "pass" : true,
+    "actual" : "{approved=true, reason=null}"
+  }, {
+    "check" : "S5 창별 손실 합(1일/7일/30일) = 0/0/0(31일 전)",
+    "pass" : true,
+    "actual" : "0"
+  }, {
+    "check" : "S6 LIVE 부분 매도 뒤 잔량 15 OPEN",
+    "pass" : true,
+    "actual" : "15.00000000"
+  }, {
+    "check" : "S6 LIVE 부분 매도 1건 = −2.0005(배분 원가 10개분)",
+    "pass" : true,
+    "actual" : "-2.0005000000000000"
+  }, {
+    "check" : "S6 LIVE 잔여 매도 뒤 합 = −2.5025(두 매도 각각, 매수 원가를 두 번 빼지 않음)",
+    "pass" : true,
+    "actual" : "-2.5025000000000000"
+  }, {
+    "check" : "S6 LIVE 늦은 매수 수수료 정정 반영 = −2.5525 (APPLIED)",
+    "pass" : true,
+    "actual" : "-2.5525000000000000"
+  }, {
+    "check" : "S6 LIVE 늦은 매도 수수료 정정 반영 = −2.5555 (APPLIED)",
+    "pass" : true,
+    "actual" : "-2.5555000000000000"
+  }, {
+    "check" : "S6 LIVE 같은 응답 반복 — 변화 없음 (NO_CHANGE)",
+    "pass" : true,
+    "actual" : "-2.5555000000000000"
+  }, {
+    "check" : "S6 LIVE 롤백된 매수 원가 변경 — 변화 없음",
+    "pass" : true,
+    "actual" : "-2.5555000000000000"
+  }, {
+    "check" : "S6 DYNAMIC 부분 매도 뒤 잔량 15 OPEN",
+    "pass" : true,
+    "actual" : "15.00000000"
+  }, {
+    "check" : "S6 DYNAMIC 부분 매도 1건 = −2.0005(배분 원가 10개분)",
+    "pass" : true,
+    "actual" : "-2.0005000000000000"
+  }, {
+    "check" : "S6 DYNAMIC 잔여 매도 뒤 합 = −2.5025(두 매도 각각, 매수 원가를 두 번 빼지 않음)",
+    "pass" : true,
+    "actual" : "-2.5025000000000000"
+  }, {
+    "check" : "S6 DYNAMIC 늦은 매수 수수료 정정 반영 = −2.5525 (APPLIED)",
+    "pass" : true,
+    "actual" : "-2.5525000000000000"
+  }, {
+    "check" : "S6 DYNAMIC 늦은 매도 수수료 정정 반영 = −2.5555 (APPLIED)",
+    "pass" : true,
+    "actual" : "-2.5555000000000000"
+  }, {
+    "check" : "S6 DYNAMIC 같은 응답 반복 — 변화 없음 (NO_CHANGE)",
+    "pass" : true,
+    "actual" : "-2.5555000000000000"
+  }, {
+    "check" : "S6 DYNAMIC 롤백된 매수 원가 변경 — 변화 없음",
+    "pass" : true,
+    "actual" : "-2.5555000000000000"
+  }, {
+    "check" : "S7 매수 원가 미상 LIVE 매도 → checkRisk 판정 불가 거절",
+    "pass" : true,
+    "actual" : "{approved=false, reason=[기존 보호식] 판정 불가 — 30일 안 LIVE 세션 매도/청산 1건의 확정 비용(매수 대금+수수료 또는 매도 체결)을 구하지 못했다(손실 0·이익으로 보지 않는다)}"
+  }, {
+    "check" : "S7 연속 손실 판정 불가 — 발동(비상 정지) 아님",
+    "pass" : true,
+    "actual" : "{session=LIVE#9, triggered=false, reason=연속 손실 판정 불가 — 최근 확정 손실 0회 다음 청산(posId=20)의 확정 비용을 구하지 못했다(한도: 5회). 신규 진입만 막고 정지·청산하지 않는다}"
+  }, {
+    "check" : "S7 같은 세션 신규 매수 거절(판정 불가)",
+    "pass" : true,
+    "actual" : "연속 손실 판정 불가 — 최근 확정 손실 0회 다음 청산(posId=20)의 확정 비용을 구하지 못했다(한도: 5회). 신규 진입만 막고 정지·청산하지 않는다"
+  }, {
+    "check" : "S7 세션은 RUNNING 그대로",
+    "pass" : true,
+    "actual" : "RUNNING"
+  }, {
+    "check" : "S7 DYNAMIC 매수 원가 미상 → checkRealLossGuard 판정 불가 거절",
+    "pass" : true,
+    "actual" : "{approved=false, reason=[DYNAMIC REAL 보호식] 판정 불가 — 30일 안 DYNAMIC 세션 매도/청산 1건의 확정 비용(매수 대금+수수료 또는 매도 체결)을 구하지 못했다(손실 0·이익으로 보지 않는다)}"
+  }, {
+    "check" : "S7 DYNAMIC 같은 세션 신규 매수 거절",
+    "pass" : true,
+    "actual" : "실자금 손실 보호식: [DYNAMIC REAL 보호식] 판정 불가 — 30일 안 DYNAMIC 세션 매도/청산 1건의 확정 비용(매수 대금+수수료 또는 매도 체결)을 구하지 못했다(손실 0·이익으로 보지 않는다)"
+  }, {
+    "check" : "S7 팬텀 추정 청산 CLOSED",
+    "pass" : true,
+    "actual" : "CLOSED"
+  }, {
+    "check" : "S7 팬텀 미확정 잔량 → checkRisk 판정 불가 거절",
+    "pass" : true,
+    "actual" : "{approved=false, reason=[기존 보호식] 판정 불가 — 30일 안 LIVE 세션 매도/청산 1건의 확정 비용(매수 대금+수수료 또는 매도 체결)을 구하지 못했다(손실 0·이익으로 보지 않는다)}"
+  }, {
+    "check" : "S7 팬텀 — 연속 손실 판정 불가(발동 아님)",
+    "pass" : true,
+    "actual" : "{session=LIVE#10, triggered=false, reason=연속 손실 판정 불가 — 최근 확정 손실 0회 다음 청산(posId=22)의 확정 비용을 구하지 못했다(한도: 5회). 신규 진입만 막고 정지·청산하지 않는다}"
+  } ],
+  "S1_stored_live_pnl" : "1.00000000",
+  "S1_stored_dynamic_pnl" : "1.00000000",
+  "failures" : [ "S1 DYNAMIC 진입(executeBuy) 실자금 손실 보호식 거절 → null", "S5 25시간 전 — 주 창 안(주 0.01% 거절) → {approved=true, reason=null}", "S5 8일 전 — 월 창 안(월 0.01% 거절) → {approved=true, reason=null}" ]
+}

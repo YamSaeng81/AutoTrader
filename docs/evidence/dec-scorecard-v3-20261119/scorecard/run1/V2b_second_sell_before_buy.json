@@ -1,0 +1,77 @@
+{
+ "why": "두 번째 매도만 매수보다 앞서도 거절 — 매도 순서와 무관하게 각 매도를 매수 시각과 대조",
+ "input": {
+  "version": "scorecard-input-2",
+  "period": {
+   "from": "2026-12-01T00:00:00+09:00",
+   "to": "2027-01-01T00:00:00+09:00"
+  },
+  "sessions": [
+   {
+    "kind": "DYNAMIC",
+    "id": 996,
+    "mode": "REAL",
+    "strategy_type": "COMPOSITE_BREAKOUT",
+    "timeframe": "H1",
+    "status_end": "RUNNING",
+    "provenance": {
+     "code_sha": "0e1d2a02",
+     "code_sha_source": "외부 등록표(가상)",
+     "ruleset_hash": "aaaaaaaaaaaa",
+     "registry_ref": "reg-가상-1"
+    },
+    "start": {
+     "available_krw": "100000",
+     "positions": [],
+     "pending_buys": []
+    },
+    "end": {
+     "available_krw": "101949",
+     "positions": [],
+     "pending_buys": []
+    },
+    "flows": [],
+    "trades": [
+     {
+      "buy": {
+       "settled_at": "2026-12-02T09:00:00+09:00",
+       "qty": "0.002",
+       "funds": "100000",
+       "fee": "50"
+      },
+      "sells": [
+       {
+        "settled_at": "2026-12-05T09:00:00+09:00",
+        "qty": "0.001",
+        "funds": "52000",
+        "fee": "26",
+        "stored_realized_pnl": null
+       },
+       {
+        "settled_at": "2026-12-01T12:00:00+09:00",
+        "qty": "0.001",
+        "funds": "52000",
+        "fee": "26",
+        "stored_realized_pnl": null
+       }
+      ],
+      "position_fee_stored": "76"
+     }
+    ],
+    "market_regime": [
+     {
+      "at": "2026-12-02T09:00:00+09:00",
+      "regime": "TREND_UP",
+      "source": "position.market_regime",
+      "rule_version": "제품 정의"
+     }
+    ]
+   }
+  ],
+  "benchmarks": {
+   "btc_price_start": null,
+   "btc_price_end": null
+  }
+ },
+ "rejected": "DYNAMIC#996.trades[0].sells[1].settled_at 2026-12-01T12:00:00+09:00 < buy.settled_at 2026-12-02T09:00:00+09:00 — 매도 정산이 매수 정산보다 앞섬(시각 모순)"
+}

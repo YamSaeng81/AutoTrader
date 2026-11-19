@@ -22,7 +22,7 @@
 | 기존 텔레그램 `TelegramMarkdownFallbackTest`·`TelegramCriticalRetryTest`·`TelegramTestIsolationTest`(2) | 6/6·12/12·1/1·1/1 | 전송·폴백·격리 불변 |
 | 버퍼 호출을 검사하는 기존 `AlignedV147FixesTest`·`AlignedV148FixesTest`·`EngineParityTest` | 12/12·14/14·27/27 | 모의 매수/매도 버퍼 호출 횟수·엔진 동등성 불변 |
 
-합계 9클래스 **81/81 성공**·실패/건너뜀 0. 첫 실행에서 새 시험 1건이 실패했는데, 기존 MarkdownV2 처리가 세션 표시의 `#`를 `\#`로 바꾸는 것을 기대값에 넣지 않은 시험 쪽 오류였다(제품 동작은 종전과 같음). 기대값만 고쳤다. 전체 회귀·jar·PG는 돌리지 않았다.
+합계 **XML 8개(시험 클래스 7개 — `TelegramTestIsolationTest`의 중첩 2개 포함) 81/81 성공**·실패/건너뜀 0. *(정정 2026-11-19, 총괄 v1.191 §1: 처음 제출의 "9클래스"는 셈 오류였다. 저장된 XML은 8개다.)* 첫 실행에서 새 시험 1건이 실패했는데, 기존 MarkdownV2 처리가 세션 표시의 `#`를 `\#`로 바꾸는 것을 기대값에 넣지 않은 시험 쪽 오류였다(제품 동작은 종전과 같음). 기대값만 고쳤다. 전체 회귀·jar·PG는 돌리지 않았다.
 
 ```
 ./gradlew :web-api:test --tests '*TelegramMinimalAlertTest' --tests '*TelegramMarkdownFallbackTest' --tests '*TelegramTestIsolationTest' --tests '*TelegramCriticalRetryTest'

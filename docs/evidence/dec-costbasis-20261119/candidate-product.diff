@@ -1,0 +1,401 @@
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/repository/OrderRepository.java b/web-api/src/main/java/com/cryptoautotrader/api/repository/OrderRepository.java
+index e1cebb43..e8d01c64 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/repository/OrderRepository.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/repository/OrderRepository.java
+@@ -469,19 +469,80 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
+      *
+      * <p>🔴 세션 매도는 {@code OrderExecutionEngine.handleSellFill} 이 trade_log FILL 을 쓰기 전에 반환하고 청산 확정
+      * ({@code LiveTradingService.finalizeSellPosition})이 반영하므로, FILL 만 읽는 전역 일/주/월 손실 합산에 빠져 있었다.
+-     * 여기서는 확정이 남긴 주문 행 값으로 매도 한 건의 실현 손익을 다시 계산한다: 반영 대금 − 반영 수수료 − 체결 수량 × 포지션 평균단가
+-     * (확정·정정과 같은 식). 매도 한 건 = 한 행이라 재확정·재시도에도 한 번이고({@code sell_applied_at} 조건부 표시), 늦은 정정은
++     * 여기서는 확정이 남긴 주문 행 값으로 매도 한 건의 실현 손익을 다시 계산한다: 반영 대금 − 반영 수수료 − 체결 수량 × <b>확정 매수 단가</b>
++     * (같은 포지션 BUY 반영 대금+매수 수수료 ÷ 체결 수량, {@link #BUY_COST_BY_POSITION}). 🔴 총괄 v1.191 §2 — 종전 식은 포지션 평균단가(대금 ÷ 수량,
++     * 매수 수수료 제외)라 비용 뒤 손실인데 매수 수수료 이하의 가격 이익이 난 매도를 이익으로 분류해 손실 합에서 뺐다. 원가를 확정할 수 없는
++     * 매도는 이 합에 없고 {@link #countRealSessionCostUndeterminedSince} 가 센다. 매도 한 건 = 한 행이라 재확정·재시도에도 한 번이고({@code sell_applied_at} 조건부 표시), 늦은 정정은
+      * 반영값이 바뀌어 차분만 반영되며, 롤백된 확정은 표시도 함께 되돌아가 빠진다. 추정 청산(팬텀)·취소(체결 0)는 반영 행이 없어 빠진다.
+      * 비세션 체결(FILL 기록)과는 {@code session_id IS NOT NULL} 로 겹치지 않는다. DYNAMIC REAL·DYN_PAPER 는 범위 밖이다(판단 대기).</p>
+      */
+     @Query(value = "SELECT COALESCE(SUM(pnl), 0) FROM ("
+-            + " SELECT o.applied_executed_funds - COALESCE(o.applied_paid_fee, 0) - o.filled_quantity * p.avg_price AS pnl"
+-            + " FROM \"order\" o JOIN position p ON p.id = o.position_id"
++            + " SELECT o.applied_executed_funds - COALESCE(o.applied_paid_fee, 0) - (o.filled_quantity * b.cost) / b.qty AS pnl"
++            + " FROM \"order\" o JOIN " + BUY_COST_BY_POSITION + " b ON b.position_id = o.position_id"
+             + " WHERE o.side = 'SELL' AND o.session_id IS NOT NULL AND o.session_kind = 'LIVE'"
+             + " AND o.sell_applied_at IS NOT NULL AND o.sell_applied_at >= :since AND o.applied_executed_funds IS NOT NULL"
+             + ") t WHERE pnl < 0", nativeQuery = true)
+     java.math.BigDecimal sumLiveSessionRealizedLossSince(@Param("since") Instant since);
+ 
++    /**
++     * 비용 기준 원가 (총괄 v1.191 §2) — 포지션별 확정 매수 원가: 같은 포지션에 실제 반영된 BUY 의 대금 + 매수 수수료 합과 체결 수량 합.
++     *
++     * <p>🔴 포지션당 한 행으로 먼저 모은 뒤 매도 행에 붙인다 — 여러 BUY/SELL 을 바로 조인해 매도 행을 늘리지 않는다. 매도 한 건은 자기 체결
++     * 수량만큼만 원가를 배분받는다(부분 매도 때 매수 원가 전액을 매번 빼지 않는다). 체결 수량이 있는 BUY 중 반영 대금·반영 수수료가 하나라도
++     * NULL(모름)이면 그 포지션은 이 표에 없다(HAVING) — 0 으로 채우지 않고 {@link #countRealSessionCostUndeterminedSince} 가 센다.
++     * 늦은 정정은 반영값이 바뀌어 다음 조회부터 새 단가가 되고, 같은 응답 반복은 반영값이 그대로라 변화가 없으며, 롤백된 반영은 읽히지 않는다.</p>
++     */
++    String BUY_COST_BY_POSITION = "(SELECT bo.position_id, SUM(bo.applied_executed_funds + bo.applied_paid_fee) AS cost,"
++            + " SUM(bo.filled_quantity) AS qty FROM \"order\" bo"
++            + " WHERE bo.side = 'BUY' AND bo.position_id IS NOT NULL AND bo.filled_quantity > 0"
++            + " GROUP BY bo.position_id"
++            + " HAVING COUNT(*) = COUNT(bo.applied_executed_funds) AND COUNT(*) = COUNT(bo.applied_paid_fee))";
++
++    /**
++     * 비용 기준 손실 합의 <b>판정 불가</b> 대상 수 (총괄 v1.191 §2) — 세션 종류 {@code kind}(LIVE·DYNAMIC 실자금), {@code since} 이후.
++     *
++     * <pre>
++     * ① 확정 매도(sell_applied_at)인데 그 포지션의 확정 매수 원가가 없다 — 체결 BUY 가 없거나 반영 대금/수수료가 NULL
++     * ② 청산(CLOSED)됐는데 확정 매도 수량 합이 체결 매수 수량 합보다 작다 — 팬텀(추정 청산) 등 주문 행 없는 청산분
++     * </pre>
++     * 0 이 아니면 손실 합을 확정할 수 없으므로 관문이 신규 진입을 거절한다. 이 계수만으로 보유를 청산하거나 세션을 정지하지 않는다.
++     */
++    @Query(value = "SELECT (SELECT COUNT(*) FROM \"order\" o"
++            + "   WHERE o.side = 'SELL' AND o.session_id IS NOT NULL AND o.session_kind = :kind"
++            + "   AND o.sell_applied_at IS NOT NULL AND o.sell_applied_at >= :since AND o.applied_executed_funds IS NOT NULL"
++            + "   AND NOT EXISTS (SELECT 1 FROM " + BUY_COST_BY_POSITION + " b WHERE b.position_id = o.position_id))"
++            + " + (SELECT COUNT(*) FROM position p"
++            + "   WHERE p.session_kind = :kind AND p.session_id IS NOT NULL AND p.status = 'CLOSED'"
++            + "   AND p.closed_at IS NOT NULL AND p.closed_at >= :since"
++            + "   AND (SELECT COALESCE(SUM(bq.filled_quantity), 0) FROM \"order\" bq"
++            + "        WHERE bq.position_id = p.id AND bq.side = 'BUY' AND bq.filled_quantity > 0)"
++            + "     > (SELECT COALESCE(SUM(sq.filled_quantity), 0) FROM \"order\" sq"
++            + "        WHERE sq.position_id = p.id AND sq.side = 'SELL' AND sq.sell_applied_at IS NOT NULL"
++            + "        AND sq.applied_executed_funds IS NOT NULL))",
++            nativeQuery = true)
++    long countRealSessionCostUndeterminedSince(@Param("kind") String kind, @Param("since") Instant since);
++
++    /**
++     * 포지션별 비용 기준 손익 재료 (총괄 v1.191 §2, 세션 연속 손실) — [id, 체결 BUY 수, 원가 미상 BUY 수, 매수 원가 합, 매수 수량 합,
++     * 확정 SELL 수, 매도 순대금 합, 매도 수량 합]. 확정 SELL 은 {@code sell_applied_at} 이 있는 매도(주문 원천), 순대금은 반영 대금 − 반영 수수료
++     * (반영 수수료 NULL 은 종전 손실 합 식과 같이 0).
++     */
++    @Query(value = "SELECT p.id,"
++            + " (SELECT COUNT(*) FROM \"order\" b WHERE b.position_id = p.id AND b.side = 'BUY' AND b.filled_quantity > 0),"
++            + " (SELECT COUNT(*) FROM \"order\" b WHERE b.position_id = p.id AND b.side = 'BUY' AND b.filled_quantity > 0"
++            + "    AND (b.applied_executed_funds IS NULL OR b.applied_paid_fee IS NULL)),"
++            + " (SELECT SUM(b.applied_executed_funds + b.applied_paid_fee) FROM \"order\" b"
++            + "    WHERE b.position_id = p.id AND b.side = 'BUY' AND b.filled_quantity > 0),"
++            + " (SELECT SUM(b.filled_quantity) FROM \"order\" b WHERE b.position_id = p.id AND b.side = 'BUY' AND b.filled_quantity > 0),"
++            + " (SELECT COUNT(*) FROM \"order\" s WHERE s.position_id = p.id AND s.side = 'SELL' AND s.sell_applied_at IS NOT NULL"
++            + "    AND s.applied_executed_funds IS NOT NULL),"
++            + " (SELECT SUM(s.applied_executed_funds - COALESCE(s.applied_paid_fee, 0)) FROM \"order\" s"
++            + "    WHERE s.position_id = p.id AND s.side = 'SELL' AND s.sell_applied_at IS NOT NULL AND s.applied_executed_funds IS NOT NULL),"
++            + " (SELECT SUM(s.filled_quantity) FROM \"order\" s"
++            + "    WHERE s.position_id = p.id AND s.side = 'SELL' AND s.sell_applied_at IS NOT NULL AND s.applied_executed_funds IS NOT NULL)"
++            + " FROM position p WHERE p.id IN (:ids)", nativeQuery = true)
++    List<Object[]> costBasisPartsByPosition(@Param("ids") java.util.Collection<Long> ids);
++
+     /**
+      * 확정된 DYNAMIC REAL 세션 매도의 실현 손실 합(음수, 없으면 0) — 총괄 v1.158 결정 2 의 DYNAMIC REAL·전체 REAL 보호식 분자.
+      *
+@@ -489,8 +550,8 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
+      * 없고 세션 종류도 달라 빠진다. 매도 한 건 = 한 행(재확정에도 한 번), 늦은 정정은 반영값 차분, 롤백은 표시가 함께 되돌아가 빠진다.</p>
+      */
+     @Query(value = "SELECT COALESCE(SUM(pnl), 0) FROM ("
+-            + " SELECT o.applied_executed_funds - COALESCE(o.applied_paid_fee, 0) - o.filled_quantity * p.avg_price AS pnl"
+-            + " FROM \"order\" o JOIN position p ON p.id = o.position_id"
++            + " SELECT o.applied_executed_funds - COALESCE(o.applied_paid_fee, 0) - (o.filled_quantity * b.cost) / b.qty AS pnl"
++            + " FROM \"order\" o JOIN " + BUY_COST_BY_POSITION + " b ON b.position_id = o.position_id"
+             + " WHERE o.side = 'SELL' AND o.session_id IS NOT NULL AND o.session_kind = 'DYNAMIC'"
+             + " AND o.sell_applied_at IS NOT NULL AND o.sell_applied_at >= :since AND o.applied_executed_funds IS NOT NULL"
+             + ") t WHERE pnl < 0", nativeQuery = true)
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/CircuitBreakerResult.java b/web-api/src/main/java/com/cryptoautotrader/api/service/CircuitBreakerResult.java
+index 7780f025..a68fd042 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/CircuitBreakerResult.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/CircuitBreakerResult.java
+@@ -6,21 +6,35 @@ package com.cryptoautotrader.api.service;
+ public class CircuitBreakerResult {
+ 
+     private final boolean triggered;
++    private final boolean entryBlocked;
+     private final String reason;
+ 
+-    private CircuitBreakerResult(boolean triggered, String reason) {
++    private CircuitBreakerResult(boolean triggered, boolean entryBlocked, String reason) {
+         this.triggered = triggered;
++        this.entryBlocked = entryBlocked;
+         this.reason = reason;
+     }
+ 
+     public static CircuitBreakerResult pass() {
+-        return new CircuitBreakerResult(false, null);
++        return new CircuitBreakerResult(false, false, null);
+     }
+ 
+     public static CircuitBreakerResult triggered(String reason) {
+-        return new CircuitBreakerResult(true, reason);
++        return new CircuitBreakerResult(true, true, reason);
++    }
++
++    /**
++     * 연속 손실 <b>판정 불가</b> (총괄 v1.191 §2) — 확정 비용 기준 손익을 구하지 못한 청산이 연속 손실 줄에 걸렸다.
++     *
++     * <p>🔴 발동이 아니다({@link #isTriggered()} = false) — 비상 정지·보유 청산을 하지 않는다. 신규 진입만 막는다({@link #isEntryBlocked()}).
++     * 손익 0·이익으로 보고 줄을 끊지도, 손실로 보고 발동시키지도 않는다.</p>
++     */
++    public static CircuitBreakerResult entryUndetermined(String reason) {
++        return new CircuitBreakerResult(false, true, reason);
+     }
+ 
+     public boolean isTriggered() { return triggered; }
++    /** 신규 진입을 막아야 하는가 — 발동 또는 판정 불가. */
++    public boolean isEntryBlocked() { return entryBlocked; }
+     public String getReason() { return reason; }
+ }
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
+index 972555bd..2a1c43aa 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
+@@ -1653,6 +1653,12 @@ public class DynamicTradingService {
+                 log.warn("[Dynamic] 실자금 손실 보호식으로 매수 차단 (id={}, {}): {}", sid, coinPair, realLoss.getReason());
+                 return "실자금 손실 보호식: " + realLoss.getReason();
+             }
++            // 🔴 총괄 v1.191 §2: 세션 연속 손실의 판정 불가(확정 비용 미상 청산) — 신규 매수만 막는다. 정지·청산 아님.
++            String costBlock = riskManagementService.costBasisEntryBlock(session);
++            if (costBlock != null) {
++                log.warn("[Dynamic] 매수 차단 (id={}, {}): {}", sid, coinPair, costBlock);
++                return costBlock;
++            }
+         }
+ 
+         // EMA200 게이트 사이즈 배수 적용 — 정상 1.0, 근접 하회 감액 0.5. null은 방어적으로 1.0 취급.
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
+index a69fb8fd..0af6048e 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
+@@ -1545,6 +1545,13 @@ public class LiveTradingService {
+             log.warn("매수 스킵: 세션({})에 이미 활성 BUY 주문이 있습니다 ({})", session.getId(), coinPair);
+             return "이미 활성 매수 주문이 있다";
+         }
++        // 🔴 총괄 v1.191 §2: 연속 손실 줄에 확정 비용을 못 구한 청산이 걸리면 신규 매수만 막는다(즉시·회차 승인 공통 — 둘 다 여기를 지난다).
++        //    서킷 브레이커 발동(비상 정지)이 아니며 보유·청산 경로는 건드리지 않는다.
++        String costBlock = riskManagementService.costBasisEntryBlock(session);
++        if (costBlock != null) {
++            log.warn("매수 차단: 세션({}) {}", session.getId(), costBlock);
++            return costBlock;
++        }
+ 
+         BigDecimal ratio = session.getInvestRatio() != null ? session.getInvestRatio() : exitConfig().getInvestRatio();
+         BigDecimal baseAmount = session.getAvailableKrw().multiply(ratio);
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java
+index 3dd19745..daaedce6 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java
+@@ -1545,15 +1545,14 @@ public class PaperTradingService {
+     }
+ 
+     /**
+-     * 위험 판단 입력 손익 — LIVE 관례(매도 순수익 − 수량 × 체결 평균가, 매수 수수료는 빼지 않음)로 맞춘다 (2026-11-11, 총괄 v1.147 R5).
+-     * 성적표의 {@code realizedPnl}(투입금 기준, 매수 수수료 포함)은 바꾸지 않는다. 선택 모드의 avgPrice 는 체결가이므로
+-     * realizedPnl + (investedKrw − size × avgPrice) 가 LIVE 정의의 손익이다. 값이 모자라면 realizedPnl 그대로.
++     * 위험 판단 입력 손익 — <b>비용 기준</b>(매도 순수익 − 투입금, 양쪽 수수료 포함) (총괄 v1.191 §2, 2026-11-19).
++     *
++     * <p>🔴 v1.147 R5 는 LIVE 관례(매수 수수료를 되더한 값)로 맞췄다. LIVE·DYNAMIC REAL 의 손실 합·연속 손실이 비용 기준으로 바뀌었으므로
++     * 같은 판정을 유지하려면 이쪽도 비용 기준이어야 한다. 선택 모드의 {@code realizedPnl} 이 이미 매도 순수익 − investedKrw(대금+매수 수수료)라
++     * 그대로 쓴다. 성적표 값과 같다. 가격 판단(SL/TP 평균가)은 바꾸지 않는다.</p>
+      */
+     static BigDecimal riskPnl(PaperPositionEntity p) {
+-        if (p.getRealizedPnl() == null || p.getInvestedKrw() == null || p.getSize() == null || p.getAvgPrice() == null) {
+-            return p.getRealizedPnl();
+-        }
+-        return p.getRealizedPnl().add(p.getInvestedKrw().subtract(p.getSize().multiply(p.getAvgPrice())));
++        return p.getRealizedPnl();
+     }
+ 
+     /** 실현 자산 경로의 고점 — 초기 자본에서 청산 순서대로 실현 손익(현금 기준)을 더한 값의 최대. */
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/RiskManagementService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/RiskManagementService.java
+index c047489b..2906de7f 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/RiskManagementService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/RiskManagementService.java
+@@ -167,6 +167,11 @@ public class RiskManagementService {
+         RiskConfigEntity configEntity = getRiskConfig();
+         RiskConfig coreConfig = toRiskConfig(configEntity);
+         RiskEngine engine = new RiskEngine(coreConfig);
++        // 🔴 총괄 v1.191 §2: 확정 원가를 못 구한 LIVE 세션 매도·미확정 청산이 30일 창에 있으면 손실 합을 확정할 수 없다 — 판정 불가로 거절.
++        String liveUndetermined = costUndeterminedReason("기존 보호식", "LIVE", Instant.now());
++        if (liveUndetermined != null) {
++            return RiskCheckResult.reject(liveUndetermined);
++        }
+ 
+         // 포트폴리오 한도: 실제 운영 중인 RUNNING 세션들의 initialCapital 합을 우선 사용.
+         // 실전매매 소액 운영(예: 1만원) 시 하드코딩 1,000만원 분모가 실손실을 희석해
+@@ -215,6 +220,10 @@ public class RiskManagementService {
+         RiskConfigEntity configEntity = getRiskConfig();
+         RiskEngine engine = new RiskEngine(toRiskConfig(configEntity));
+         Instant now = Instant.now();
++        String liveUndetermined = costUndeterminedReason("기존 보호식", "LIVE", now);
++        if (liveUndetermined != null) {
++            return RiskCheckResult.reject(liveUndetermined);   // v1.191 §2 — 기존 손실 원천의 LIVE 세션 매도를 확정할 수 없다
++        }
+         BigDecimal legacyDenom = resolvePortfolioLimit(configEntity);
+         RiskCheckResult legacy = engine.check(
+                 calculateLossPct(now.minus(1, ChronoUnit.DAYS), legacyDenom),
+@@ -243,6 +252,10 @@ public class RiskManagementService {
+         Instant[] since = {now.minus(1, ChronoUnit.DAYS), now.minus(7, ChronoUnit.DAYS), now.minus(30, ChronoUnit.DAYS)};
+         // 🔴 조회 실패는 잡지 않는다 — 예외로 이 진입을 중단한다(fail-closed). 참여 중인 트랜잭션은 이미 롤백 전용이 되어, 잡고 거절을
+         //    돌려줘도 호출자 커밋에서 다시 실패하기 때문이다. 손실 0·무한 자본으로 보고 통과시키는 경로는 없다.
++        String dynUndetermined = costUndeterminedReason("DYNAMIC REAL 보호식", "DYNAMIC", now);
++        if (dynUndetermined != null) {
++            return RiskCheckResult.reject(dynUndetermined);   // v1.191 §2 — 전체 REAL 보호식도 같은 원천이라 함께 판정 불가
++        }
+         {
+             BigDecimal liveCap = runningLiveCapital();
+             BigDecimal dynCap = runningDynamicRealCapital();
+@@ -276,6 +289,19 @@ public class RiskManagementService {
+         return RiskCheckResult.approve();
+     }
+ 
++    /**
++     * 비용 기준 손실 합의 판정 불가 사유 (총괄 v1.191 §2) — 30일 창(가장 넓은 창)에 확정 원가를 못 구한 세션 매도·미확정 청산이 있으면 문구, 없으면 null.
++     * 🔴 조회 실패는 잡지 않는다(fail-closed, 위 보호식과 같은 규칙).
++     */
++    private String costUndeterminedReason(String formula, String kind, Instant now) {
++        long n = orderRepository.countRealSessionCostUndeterminedSince(kind, now.minus(30, ChronoUnit.DAYS));
++        if (n <= 0) return null;
++        String msg = String.format("[%s] 판정 불가 — 30일 안 %s 세션 매도/청산 %d건의 확정 비용(매수 대금+수수료 또는 매도 체결)을 구하지 못했다"
++                + "(손실 0·이익으로 보지 않는다)", formula, kind, n);
++        log.warn("리스크 체크 거부: {}", msg);
++        return msg;
++    }
++
+     private static BigDecimal negOrZero(BigDecimal v) {
+         return v == null || v.signum() >= 0 ? BigDecimal.ZERO : v;
+     }
+@@ -351,18 +377,89 @@ public class RiskManagementService {
+         return evaluateCircuitBreaker(getRiskConfig(), mddPeak, initialCapital, totalAssetKrw, () -> {
+             List<PositionEntity> closedPositions = positionRepository
+                     .findBySessionKindAndSessionIdAndStatusOrderByClosedAtDesc(sessionKind, sessionId, "CLOSED");
+-            List<BigDecimal> pnlNewestFirst = new java.util.ArrayList<>();
++            List<PositionEntity> counted = new java.util.ArrayList<>();
+             for (PositionEntity pos : closedPositions) {
+                 if (countLossesAfter != null
+                         && (pos.getClosedAt() == null || !pos.getClosedAt().isAfter(countLossesAfter))) {
+                     break; // 이번 가동 이전 청산분 — 집계 중단
+                 }
+-                pnlNewestFirst.add(pos.getRealizedPnl());
++                counted.add(pos);
+             }
+-            return pnlNewestFirst;
++            // 🔴 총괄 v1.191 §2: 실자금(LIVE·DYNAMIC)은 주문 원천의 비용 기준 손익(양쪽 수수료)으로 센다. DYN_PAPER 는 저장 손익이
++            //    이미 수수료 포함 평균가 기준이라 종전 그대로.
++            boolean real = "LIVE".equals(sessionKind) || "DYNAMIC".equals(sessionKind);
++            return real ? costBasisClosedPnl(counted)
++                    : counted.stream().map(p -> ClosedPnl.known(p.getRealizedPnl())).toList();
+         });
+     }
+ 
++    /** 연속 손실 입력 한 칸 — 확정 손익 또는 판정 불가(v1.191 §2). {@code value} null 은 종전과 같이 손실이 아님(줄 끊김). */
++    record ClosedPnl(BigDecimal value, boolean undetermined, Long positionId) {
++        static ClosedPnl known(BigDecimal v) { return new ClosedPnl(v, false, null); }
++    }
++
++    /**
++     * 완료 포지션의 비용 기준 손익 = 확정 매도 순대금 합 − 확정 매도 수량 × (확정 매수 대금+수수료 합 ÷ 체결 매수 수량) (v1.191 §2).
++     *
++     * <pre>
++     * 주문 원천 없음(체결 BUY 0·확정 SELL 0 — 주문 행이 연결되지 않은 과거/수동 행) → 저장 손익(종전)
++     * 체결 BUY 의 반영 대금/수수료 미상, 또는 확정 매도 수량 &lt; 체결 매수 수량(팬텀 등 추정 청산분) → 판정 불가
++     * </pre>
++     */
++    private List<ClosedPnl> costBasisClosedPnl(List<PositionEntity> newestFirst) {
++        if (newestFirst.isEmpty()) return List.of();
++        java.util.Map<Long, Object[]> parts = new java.util.HashMap<>();
++        List<Object[]> rows = orderRepository.costBasisPartsByPosition(newestFirst.stream().map(PositionEntity::getId).toList());
++        if (rows != null) {
++            for (Object[] r : rows) parts.put(((Number) r[0]).longValue(), r);
++        }
++        List<ClosedPnl> out = new java.util.ArrayList<>(newestFirst.size());
++        for (PositionEntity pos : newestFirst) {
++            Object[] r = parts.get(pos.getId());
++            long buyN = r == null ? 0 : ((Number) r[1]).longValue();
++            long sellN = r == null ? 0 : ((Number) r[5]).longValue();
++            if (buyN == 0 && sellN == 0) {
++                out.add(ClosedPnl.known(pos.getRealizedPnl()));
++                continue;
++            }
++            long buyUnknown = ((Number) r[2]).longValue();
++            BigDecimal buyCost = dec(r[3]);
++            BigDecimal buyQty = dec(r[4]);
++            BigDecimal sellNet = dec(r[6]);
++            BigDecimal sellQty = dec(r[7]);
++            if (buyN == 0 || buyUnknown > 0 || buyCost == null || buyQty == null || buyQty.signum() <= 0
++                    || sellQty == null || sellQty.compareTo(buyQty) < 0) {
++                out.add(new ClosedPnl(null, true, pos.getId()));
++                continue;
++            }
++            BigDecimal cost = sellQty.multiply(buyCost).divide(buyQty, 8, RoundingMode.HALF_UP);
++            out.add(new ClosedPnl(sellNet.subtract(cost), false, pos.getId()));
++        }
++        return out;
++    }
++
++    private static BigDecimal dec(Object o) {
++        if (o == null) return null;
++        return o instanceof BigDecimal b ? b : new BigDecimal(o.toString());
++    }
++
++    /**
++     * 신규 진입 전 세션 연속 손실의 <b>판정 불가</b> 사유 (v1.191 §2) — 판정 불가면 문구, 아니면 null. 발동은 회차 시작의 서킷 브레이커가 맡는다.
++     * LIVE 즉시·회차 승인 진입({@code executeSessionBuy})과 DYNAMIC REAL 진입({@code executeBuy})이 부른다.
++     */
++    @Transactional(readOnly = true)
++    public String costBasisEntryBlock(LiveTradingSessionEntity session) {
++        CircuitBreakerResult r = checkCircuitBreaker(session);
++        return r.isEntryBlocked() && !r.isTriggered() ? r.getReason() : null;
++    }
++
++    /** @see #costBasisEntryBlock(LiveTradingSessionEntity) */
++    @Transactional(readOnly = true)
++    public String costBasisEntryBlock(com.cryptoautotrader.api.entity.DynamicSessionEntity session) {
++        CircuitBreakerResult r = checkCircuitBreaker(session);
++        return r.isEntryBlocked() && !r.isTriggered() ? r.getReason() : null;
++    }
++
+     /**
+      * 모의 계좌 상태를 입력으로 같은 서킷 브레이커 기준을 판단한다 (2026-11-11, LIVE_ALIGNED — 총괄 v1.145 §3-2 위험 관문).
+      *
+@@ -374,7 +471,8 @@ public class RiskManagementService {
+     public CircuitBreakerResult checkCircuitBreakerFromValues(BigDecimal mddPeak, BigDecimal initialCapital,
+                                                               BigDecimal totalAssetKrw,
+                                                               List<BigDecimal> closedPnlNewestFirst) {
+-        return evaluateCircuitBreaker(getRiskConfig(), mddPeak, initialCapital, totalAssetKrw, () -> closedPnlNewestFirst);
++        return evaluateCircuitBreaker(getRiskConfig(), mddPeak, initialCapital, totalAssetKrw,
++                () -> closedPnlNewestFirst.stream().map(ClosedPnl::known).toList());
+     }
+ 
+     /** 모의 계좌 입력으로 같은 한도({@code risk_config})를 판단하는 엔진 (LIVE_ALIGNED). REAL 계좌·풀을 읽지 않는다. */
+@@ -386,7 +484,7 @@ public class RiskManagementService {
+     /** 순수 판정 — REAL·DYNAMIC·모의 계좌가 같은 식을 쓴다. 입력만 다르다. */
+     private static CircuitBreakerResult evaluateCircuitBreaker(RiskConfigEntity config, BigDecimal mddPeak,
+                                                                BigDecimal initialCapital, BigDecimal totalAssetKrw,
+-                                                               java.util.function.Supplier<List<BigDecimal>> closedPnlNewestFirst) {
++                                                               java.util.function.Supplier<List<ClosedPnl>> closedPnlNewestFirst) {
+         if (!Boolean.TRUE.equals(config.getCircuitBreakerEnabled())) {
+             return CircuitBreakerResult.pass();
+         }
+@@ -414,7 +512,13 @@ public class RiskManagementService {
+ 
+         // ── 연속 손실 체크 ────────────────────────────────────
+         int consecutiveLosses = 0;
+-        for (BigDecimal pnl : closedPnlNewestFirst.get()) {
++        ClosedPnl undetermined = null;
++        for (ClosedPnl c : closedPnlNewestFirst.get()) {
++            if (c.undetermined()) {
++                undetermined = c;   // v1.191 §2 — 이 칸이 손실인지 모른다. 이익으로 끊지도 손실로 세지도 않는다
++                break;
++            }
++            BigDecimal pnl = c.value();
+             if (pnl != null && pnl.compareTo(BigDecimal.ZERO) < 0) {
+                 consecutiveLosses++;
+             } else {
+@@ -425,6 +529,11 @@ public class RiskManagementService {
+             return CircuitBreakerResult.triggered(
+                     String.format("연속 손실 %d회 초과 (한도: %d회)", consecutiveLosses, consecutiveLossLimit));
+         }
++        if (undetermined != null) {
++            return CircuitBreakerResult.entryUndetermined(String.format(
++                    "연속 손실 판정 불가 — 최근 확정 손실 %d회 다음 청산(posId=%s)의 확정 비용을 구하지 못했다(한도: %d회). 신규 진입만 막고 정지·청산하지 않는다",
++                    consecutiveLosses, undetermined.positionId(), consecutiveLossLimit));
++        }
+ 
+         return CircuitBreakerResult.pass();
+     }

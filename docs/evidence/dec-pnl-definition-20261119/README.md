@@ -2,6 +2,8 @@
 
 2026-11-19 KST, 개발 세션 제출(총괄 판정 전). 운영 접속·운영 DB·배포·제품 수정은 하지 않았다. 시험 파일 1개만 0e1d2a02 기점 작업 사본 `D:/tmp/pnldef-0e1d2a02`(가지 `test/pnl-definition-impact-0e1d2a02`, 미커밋)에 추가했고, 로컬 격리 PG `cat-rt-pg`의 새 DB `pnl_def`(Flyway 운영 마이그레이션)에서 **1개 시험·1회** 실행했다. 다른 PG 시험·전체 회귀·jar는 돌리지 않았다. 금액은 가상값이다.
 
+**정정 메모 2 (2026-11-19, 총괄 v1.191 §2-3):** §2 표의 LIVE_ALIGNED 손절/익절 칸 "원문 확인 필요(S:1860 수수료 포함 평균가)"는 틀렸다. 고정 0e1d2a02는 선택 모드에서 `alignedMode ? price : avgPriceWithFee`(S:1867)로 **체결가**를 판단 평균가로 쓴다. §1의 C는 실행 경로가 아니라 평균가 두 값을 넣은 **정적 함수(`RealtimeProtectLines.stopHit`) 관측**이다. 네 엔진 대조는 [비용 기준 후보 §4](../dec-costbasis-20261119/README.md#4-같은-체결-입력의-네-엔진--보호-판단과-가격-판단-분리)에 있다.
+
 **정정 메모:** [매도 PG 보충 §4](../dec-pg-sell-20261118/README.md#4-실현손익-정의--실제-pg-확인-판정-아님-제품-관찰)·[성적표 §1](../dec-scorecard-20261118/README.md)의 "차이는 손익 표시 열에만 있다"는 서술을 철회한다(원문은 보존). 아래처럼 위험 관문·연속 손실·손절·전략 판정이 같은 값을 읽는다.
 
 ## 1. 실제 호출 결과 ([run1/pnl_consumers.json](run1/pnl_consumers.json), XML 1/1 성공)

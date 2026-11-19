@@ -1,0 +1,9 @@
+9cbbda62817eb13cfe900e2bc018e6a230c1ca2c test: SettlementRoundingPgTest — 직접 행 매도에 확정 매수 행, ⑦(나) 인위 CLOSED 의 청산 시각을 창 밖으로(뒤 시험 판정 불가 오염 방지)
+96d2ffc6e2ec76794186f855a4e8c4e65a934157 test: PositionLimitTest — 직접 닫은 포지션에 확정 매도(손익 0) 고정물(비용 기준 판정 불가가 한도 사유보다 먼저 막지 않게)
+d2dc296ab43e98cc8bf5549a9277aea5cc4134f2 후보: 비용 기준 손실 보호(총괄 v1.191 §2) — LIVE·DYNAMIC REAL 손실 합·세션 연속 손실·LIVE_ALIGNED riskPnl 을 양쪽 수수료 포함 원가로
+400f4c3a2d0798391a91a41fd6edece37f61b92d test: 비용 기준 회귀 측정 보정 — 단계별 앞 세션 정지(분모 고정)·측정 한도 0.001%(0.01% 해상도 동률 회피)
+f7572399c806a00ba7b1197d32a4dc147d0bf066 test: 비용 기준 손실 보호 회귀 — 0e1d2a02 에서 실패 33·통과 16으로 고정(총괄 v1.191 §2)
+ddaf0b5c8eb3ecab43abee431d886271f3fe165a 최소 알림 후보(총괄 v1.190 §4-2): 거래 요약 종류#ID 통일·구간 안 재기동 표시·알림 꺼짐 때 버퍼 미적재
+aff357e2ae3fd9278373704460968dfca05cd240 금액/BTC 독립 후보: 새 DYNAMIC 세션 strategy_params maxOrderKrw·excludeCoins (총괄 v1.187 §3-4·v1.189 §3-1)
+ac52715eb5c1d84daa1be7cf231f4ec97e00c149 DYNAMIC BLACK_SWAN 쿨다운 종류별 격리 후보를 0e1d2a02 기점으로 옮김(81b0e7a7 이식, 총괄 v1.186 §3-4) — 시험 파일 양쪽 추가 충돌은 81b0e7a7 격리 기대 + 0e1d2a02 쪽 손실 관문 H2 대역(v1.158 결정 2)으로 해소
+18f3a7956ae28b59a6f4235889fe60cb00c399fa DYNAMIC 생성 모드 입력: 정확한 REAL/PAPER만 허용, 저장·동기화·배정 전 거절 (총괄 v1.185 §3-3 독립 후보, 0e1d2a02 기점)

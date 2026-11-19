@@ -1,0 +1,57 @@
+{
+ "why": "배정 금액 음수 → 계약 위반(방향은 kind 로)",
+ "input": {
+  "version": "scorecard-input-2",
+  "period": {
+   "from": "2026-12-01T00:00:00+09:00",
+   "to": "2027-01-01T00:00:00+09:00"
+  },
+  "sessions": [
+   {
+    "kind": "DYNAMIC",
+    "id": 913,
+    "mode": "REAL",
+    "strategy_type": "COMPOSITE_BREAKOUT",
+    "timeframe": "H1",
+    "status_end": "RUNNING",
+    "provenance": {
+     "code_sha": "0e1d2a02",
+     "code_sha_source": "외부 등록표(가상)",
+     "ruleset_hash": "aaaaaaaaaaaa",
+     "registry_ref": "reg-가상-1"
+    },
+    "start": {
+     "available_krw": "100000",
+     "positions": [],
+     "pending_buys": []
+    },
+    "end": {
+     "available_krw": "101949",
+     "positions": [],
+     "pending_buys": []
+    },
+    "flows": [
+     {
+      "at": "2026-12-05T00:00:00+09:00",
+      "amount_krw": "-50",
+      "kind": "ALLOCATE"
+     }
+    ],
+    "trades": [],
+    "market_regime": [
+     {
+      "at": "2026-12-02T09:00:00+09:00",
+      "regime": "TREND_UP",
+      "source": "position.market_regime",
+      "rule_version": "제품 정의"
+     }
+    ]
+   }
+  ],
+  "benchmarks": {
+   "btc_price_start": null,
+   "btc_price_end": null
+  }
+ },
+ "rejected": "DYNAMIC#913.flows[0].amount_krw: 양수만 — 방향은 kind 로 정한다"
+}

@@ -1,0 +1,52 @@
+{
+ "why": "생성 시각이 기간 안인데 started_in_period 아님 → 기초 평가와 모순, 계약 위반",
+ "input": {
+  "version": "scorecard-input-2",
+  "period": {
+   "from": "2026-12-01T00:00:00+09:00",
+   "to": "2027-01-01T00:00:00+09:00"
+  },
+  "sessions": [
+   {
+    "kind": "DYNAMIC",
+    "id": 915,
+    "mode": "REAL",
+    "strategy_type": "COMPOSITE_BREAKOUT",
+    "timeframe": "H1",
+    "status_end": "RUNNING",
+    "provenance": {
+     "code_sha": "0e1d2a02",
+     "code_sha_source": "외부 등록표(가상)",
+     "ruleset_hash": "aaaaaaaaaaaa",
+     "registry_ref": "reg-가상-1"
+    },
+    "start": {
+     "available_krw": "100000",
+     "positions": [],
+     "pending_buys": []
+    },
+    "end": {
+     "available_krw": "100",
+     "positions": [],
+     "pending_buys": []
+    },
+    "flows": [],
+    "trades": [],
+    "market_regime": [
+     {
+      "at": "2026-12-02T09:00:00+09:00",
+      "regime": "TREND_UP",
+      "source": "position.market_regime",
+      "rule_version": "제품 정의"
+     }
+    ],
+    "created_at": "2026-12-10T00:00:00+09:00"
+   }
+  ],
+  "benchmarks": {
+   "btc_price_start": null,
+   "btc_price_end": null
+  }
+ },
+ "rejected": "DYNAMIC#915: created_at 이 기간 안인데 started_in_period 아님"
+}

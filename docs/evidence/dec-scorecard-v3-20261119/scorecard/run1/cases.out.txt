@@ -1,0 +1,61 @@
+PASS | S01_fee_not_double_counted | 왕복 수수료 51원은 실현손익 1,949에 이미 반영 — 1,898(다시 차감)이 아님
+PASS | S02_closing_unconfirmed | 기말 CLOSING 포지션 → 그 세션·실자금 손익 미확정(0원·가격 평가로 채우지 않음)
+PASS | S03_loss_zero_stopped_included | 손실 −3,000·거래0·중단 +500 을 모두 포함 → 합계 −2,500
+PASS | S04_deposit_excluded | 기초 100,000 + 배정 50,000 → 기말 149,000 이면 손익 −1,000(입금을 수익으로 세지 않음)
+PASS | S05_missing_price_unconfirmed | 기말 OPEN 보유의 평가 가격 없음 → 미확정
+PASS | S06_provenance_unknown_and_split | 코드 SHA·시장 상황 없음 → 미확인, 구간 중 지문 2개 → 분리 필요 표시
+PASS | S07_drawdown_daily_samples_only | 일별 100,000→103,000→99,000→101,000: 표본 낙폭 −4,000(−3.88%), 표본 없으면 미확인
+PASS | S08_stored_realized_mismatch | 저장값 1,898(수수료 다시 차감된 값)과 주문 원천 1,949 → 불일치 표시
+PASS | S09_btc_benchmark | 같은 기초 100,000 을 BTC 100,000,000→110,000,000 보유 → +10,000
+PASS | S09b_btc_benchmark_missing | BTC 가격 없음 → 미확인
+PASS | S10_account_matches_sessions | 계좌 손익 1,949 = 실자금 세션 합 → 차 0
+PASS | S10b_account_gap_shown | 계좌 기말 101,900 → 계좌−실자금 세션 −49 를 그대로 표시(세션 합으로 덮지 않음)
+PASS | S10c_account_coin_without_price | 계좌 기말 코인 가격 없음 → 계좌 손익 미확정
+PASS | S11_new_session_in_period | 기간 안 새 배정 100,000 → 기말 100,500: 손익 500, 수익률 0.50%
+PASS | S11b_missing_start_unconfirmed | 기간 전부터 운용인데 기초 없음 → 미확정
+PASS | S12_sell_outside_period | 11월 매수·11월 매도 왕복은 12월 실현·수수료에 넣지 않음
+PASS | S13_real_stored_excludes_buy_fee | REAL 저장값 1,974(매수 수수료 25 미반영) vs 주문 원천 1,949 → 차 +25 불일치 표시, 월손익은 잔액 기준 1,949
+PASS | R1_carry_in_unrealized | [총괄 S1] 11월 원가100·12월 기초 평가110·12월 매도120: 월손익10, 실현20, 기말 미실현0, 증감−10, 기초 원가 없음→기초 미실현 미확인
+PASS | R1b_carry_in_with_cost | 같은 입력에 기초 보유 원가100 → 기초 미실현10, 20+(0−10)=10 항등식 일치
+PASS | R1c_sells_across_months | 11월 일부 매도(+20)·12월 나머지 매도(+30): 12월 실현30, 월손익15, 증감−15=0−15, 왕복 생애50·이 달 몫30 분리
+PASS | R1d_missing_settle_time | 매도 정산 시각 없음 → 이 달 실현 미확정(생성 시각으로 대신하지 않음), 잔액 기준 월손익은 확정
+PASS | R1e_pending_buy_reserved | 매수 예약만 있고 포지션 없음: 가용 50,000 + 예약 50,000 = 기말 100,000 → 손익 0(예약을 손실로 세지 않음)
+PASS | R1f_pending_buy_unknown | 예약 금액 없음·일부 체결 예약 → 기말 평가 미확정
+PASS | R2b_flows_missing_unconfirmed | 입출금 이력 자체가 없음(None) → 0 으로 채우지 않고 미확정
+PASS | R2e_recover_in_period | 기초100·12월 회수50·기말50 → 손익0(회수를 손실로 세지 않음)
+PASS | R3_paper_real_account_mix | [총괄 S3] 실계좌+10·LIVE+10·PAPER+10 → 계좌−실자금 0(모의를 빼지 않음), 혼합 전체 합 없음
+PASS | R3b_dynamic_real_and_paper_split | DYNAMIC REAL+10·DYNAMIC PAPER+10 → 같은 종류라도 돈 종류별 묶음, 계좌는 REAL만
+PASS | R3c_groups_by_version | 코드 버전·전략/주기별 묶음도 돈 종류 안에서만
+PASS | R3f_no_real_sessions | 모의 세션만 있고 계좌가 있으면 계좌−실자금은 미확인(모의로 메우지 않음)
+PASS | R4_drawdown_percentage | [총괄 S4] 일별100→50→1,000→600: 최대 금액 낙폭−400, 최대 비율 낙폭−50%(따로 계산)
+PASS | R4b_withdrawal_not_loss | 1,000→(12-02 회수500)→500→500: 금액·비율 낙폭 0(단순 출금은 손실 아님)
+PASS | R4c_allocation_not_gain | 100→(배정900)→1,000→600: 배정을 수익으로 세지 않음, 금액−400·비율−40%
+PASS | R4f_missing_days_shown | 12-01→12-04 사이 표본 없음 → 결측 구간1 표시, 채우지 않음
+PASS | R4g_flows_unknown | 일별 표본은 있으나 입출금 이력 없음 → 낙폭 미확정(출금과 손실 구분 불가)
+PASS | V1_fee_time_unknown | 매수 정산 시각 미상 — 수수료 26 을 확정 합처럼 내지 않고 알려진 부분 26 + 미확정
+PASS | V1b_sell_time_unknown_fee | 매도 정산 시각 미상 — 매도 수수료 귀속 모름, 매수분 25 만 알려진 부분
+PASS | V1c_all_times_known_fee_confirmed | 시각 모두 확정 — 수수료 51 확정(알려진 부분 = 확정 합)
+PASS | V1d_buy_before_period_known | 매수가 11월로 확정이면 미확정이 아님 — 12월 수수료는 매도 26
+PASS | V2c_same_instant_allowed | 매수·매도 정산 시각이 같으면 모순 아님 — 보유 0시간
+PASS | V2d_unknown_time_not_inferred | 매수 시각 미상 — 순서 모순을 추정하지 않음(거절 없음·보유시간 없음·수수료 미확정)
+PASS | R1g_pending_buys_required | 스냅숏에 pending_buys 목록이 없으면 예약 0 으로 채우지 않고 계약 위반 | 거절: DYNAMIC#907 기말.pending_buys: 목록 필수(없으면 빈 목록) — 매수 예약은 가용 KRW 에서 이미 빠져 있다
+PASS | R1h_v1_at_rejected | v1 이름 at(주문 생성 시각일 수 있음) → 계약 위반 | 거절: DYNAMIC#908.trades[0]: v1 이름 at — 체결/정산 시각 settled_at 으로 명시(주문 생성 시각으로 대신하지 않음)
+PASS | R2_out_of_period_flow | [총괄 S2] 12월 기초/기말100, 1월 배정50 → 12월 손익 −50 확정이 아니라 계약 위반 거절 | 거절: DYNAMIC#910.flows[0].at 2027-01-02T00:00:00+09:00: 기간 [from,to) 밖 입출금 — 이 달 성적표에 넣지 않는다(다른 달 입력으로)
+PASS | R2c_flow_before_created | 세션 생성(12-10) 전 배정(12-05) → 계약 위반 | 거절: DYNAMIC#912.flows[0].at: 세션 생성(2026-12-10T00:00:00+09:00) 전 입출금
+PASS | R2d_flow_sign | 배정 금액 음수 → 계약 위반(방향은 kind 로) | 거절: DYNAMIC#913.flows[0].amount_krw: 양수만 — 방향은 kind 로 정한다
+PASS | R2f_created_in_period_not_flagged | 생성 시각이 기간 안인데 started_in_period 아님 → 기초 평가와 모순, 계약 위반 | 거절: DYNAMIC#915: created_at 이 기간 안인데 started_in_period 아님
+PASS | R2g_account_deposit_out_of_period | 계좌 입출금도 월 밖이면 계약 위반 | 거절: account.deposits[0].at: 기간 밖 입출금
+PASS | R2h_account_net_without_time | 시각 없는 계좌 순입금 합계(v1)는 월 밖 검사가 불가 → 계약 위반 | 거절: account.net_deposits_krw: v2 는 시각이 있는 deposits 목록만(월 밖 입출금 검사)
+PASS | R3d_mode_required | 모드 없음 → 실자금/모의를 모르므로 계약 위반 | 거절: DYNAMIC#924.mode: REAL/PAPER 필수(받은 값 None) — 실자금/모의 구분 없이 합산하지 않는다
+PASS | R3e_live_paper_contradiction | LIVE 인데 PAPER 모드 → 계약 위반 | 거절: LIVE#925: LIVE 는 REAL 만
+PASS | R4d_reverse_order | 표본 시각 역순 → 계약 위반 | 거절: DYNAMIC#933.daily_equity[1].at: 시각 역순·중복 표본 — 정렬/중복 제거는 입력 쪽에서(도구가 고르지 않음)
+PASS | R4e_duplicate_sample | 같은 시각 표본 중복 → 계약 위반 | 거절: DYNAMIC#934.daily_equity[1].at: 시각 역순·중복 표본 — 정렬/중복 제거는 입력 쪽에서(도구가 고르지 않음)
+PASS | R4h_v1_date_rejected | v1 이름 date(시각·시간대 없음) → 계약 위반 | 거절: DYNAMIC#937.daily_equity[0]: v1 이름 date — 표본 시각 at(시간대 포함) 필수
+PASS | V2_sell_before_buy | 매도 정산이 매수보다 24시간 앞섬 — 시각 모순 거절(완료 왕복·음수 보유시간 수용 안 함) | 거절: DYNAMIC#992.trades[0].sells[0].settled_at 2026-12-01T09:00:00+09:00 < buy.settled_at 2026-12-02T09:00:00+09:00 — 매도 정산이 매수 정산보다 앞섬(시각 모순)
+PASS | V2b_second_sell_before_buy | 두 번째 매도만 매수보다 앞서도 거절 — 매도 순서와 무관하게 각 매도를 매수 시각과 대조 | 거절: DYNAMIC#996.trades[0].sells[1].settled_at 2026-12-01T12:00:00+09:00 < buy.settled_at 2026-12-02T09:00:00+09:00 — 매도 정산이 매수 정산보다 앞섬(시각 모순)
+PASS | C01_float_rejected | rc=2 {"error": "Bad", "message": "실수형 101949.0"}
+PASS | C02_duplicate_session | rc=2 {"error": "Bad", "message": "세션 중복 ('DYNAMIC', 99)"}
+PASS | C03_unknown_position_status | rc=2 {"error": "Bad", "message": "DYNAMIC#99 기말.positions[0].status: OPEN/CLOSING 만(받은 값 'OPENED')"}
+PASS | C04_out_of_period_flow_cli | rc=2 {"error": "Bad", "message": "DYNAMIC#99.flows[0].at 2026-11-30T23:59:59+09:00: 기간 [from,to) 밖 입출금 — 이 달 성적표에 넣지 않는다(다른 달 입력으로)"}
+PASS | D01_demo_cli | rc=0 {"ok": true, "sessions": {"sessions": 11, "real": 10, "paper": 1, "zero_trade": 4, "loss": 2, "stopped": 1, "unconfirmed": 1}}
+합계 60 통과 60 실패 0

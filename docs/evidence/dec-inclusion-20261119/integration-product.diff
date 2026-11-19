@@ -1,0 +1,1025 @@
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/dto/DynamicSessionRequest.java b/web-api/src/main/java/com/cryptoautotrader/api/dto/DynamicSessionRequest.java
+index 426fb1b3..f9be342b 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/dto/DynamicSessionRequest.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/dto/DynamicSessionRequest.java
+@@ -68,8 +68,9 @@ public class DynamicSessionRequest {
+     private java.util.Map<String, Object> strategyParams;
+ 
+     /**
+-     * REAL(실거래, 기본값) | PAPER(모의) — (2026-08-06).
++     * REAL(실거래) | PAPER(모의) — (2026-08-06).
+      * PAPER는 전략/게이트/SL·TP/time stop을 REAL과 동일하게 적용하되 체결만 시뮬레이션한다.
++     * 🔴 필수, 정확한 두 값만 허용 — 누락·소문자·오타는 생성 전에 거절한다(총괄 v1.185 §3-3, 기본값 REAL 폐지).
+      */
+     private String tradingMode;
+ }
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/repository/OrderRepository.java b/web-api/src/main/java/com/cryptoautotrader/api/repository/OrderRepository.java
+index e1cebb43..e8d01c64 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/repository/OrderRepository.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/repository/OrderRepository.java
+@@ -469,19 +469,80 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
+      *
+      * <p>🔴 세션 매도는 {@code OrderExecutionEngine.handleSellFill} 이 trade_log FILL 을 쓰기 전에 반환하고 청산 확정
+      * ({@code LiveTradingService.finalizeSellPosition})이 반영하므로, FILL 만 읽는 전역 일/주/월 손실 합산에 빠져 있었다.
+-     * 여기서는 확정이 남긴 주문 행 값으로 매도 한 건의 실현 손익을 다시 계산한다: 반영 대금 − 반영 수수료 − 체결 수량 × 포지션 평균단가
+-     * (확정·정정과 같은 식). 매도 한 건 = 한 행이라 재확정·재시도에도 한 번이고({@code sell_applied_at} 조건부 표시), 늦은 정정은
++     * 여기서는 확정이 남긴 주문 행 값으로 매도 한 건의 실현 손익을 다시 계산한다: 반영 대금 − 반영 수수료 − 체결 수량 × <b>확정 매수 단가</b>
++     * (같은 포지션 BUY 반영 대금+매수 수수료 ÷ 체결 수량, {@link #BUY_COST_BY_POSITION}). 🔴 총괄 v1.191 §2 — 종전 식은 포지션 평균단가(대금 ÷ 수량,
++     * 매수 수수료 제외)라 비용 뒤 손실인데 매수 수수료 이하의 가격 이익이 난 매도를 이익으로 분류해 손실 합에서 뺐다. 원가를 확정할 수 없는
++     * 매도는 이 합에 없고 {@link #countRealSessionCostUndeterminedSince} 가 센다. 매도 한 건 = 한 행이라 재확정·재시도에도 한 번이고({@code sell_applied_at} 조건부 표시), 늦은 정정은
+      * 반영값이 바뀌어 차분만 반영되며, 롤백된 확정은 표시도 함께 되돌아가 빠진다. 추정 청산(팬텀)·취소(체결 0)는 반영 행이 없어 빠진다.
+      * 비세션 체결(FILL 기록)과는 {@code session_id IS NOT NULL} 로 겹치지 않는다. DYNAMIC REAL·DYN_PAPER 는 범위 밖이다(판단 대기).</p>
+      */
+     @Query(value = "SELECT COALESCE(SUM(pnl), 0) FROM ("
+-            + " SELECT o.applied_executed_funds - COALESCE(o.applied_paid_fee, 0) - o.filled_quantity * p.avg_price AS pnl"
+-            + " FROM \"order\" o JOIN position p ON p.id = o.position_id"
++            + " SELECT o.applied_executed_funds - COALESCE(o.applied_paid_fee, 0) - (o.filled_quantity * b.cost) / b.qty AS pnl"
++            + " FROM \"order\" o JOIN " + BUY_COST_BY_POSITION + " b ON b.position_id = o.position_id"
+             + " WHERE o.side = 'SELL' AND o.session_id IS NOT NULL AND o.session_kind = 'LIVE'"
+             + " AND o.sell_applied_at IS NOT NULL AND o.sell_applied_at >= :since AND o.applied_executed_funds IS NOT NULL"
+             + ") t WHERE pnl < 0", nativeQuery = true)
+     java.math.BigDecimal sumLiveSessionRealizedLossSince(@Param("since") Instant since);
+ 
++    /**
++     * 비용 기준 원가 (총괄 v1.191 §2) — 포지션별 확정 매수 원가: 같은 포지션에 실제 반영된 BUY 의 대금 + 매수 수수료 합과 체결 수량 합.
++     *
++     * <p>🔴 포지션당 한 행으로 먼저 모은 뒤 매도 행에 붙인다 — 여러 BUY/SELL 을 바로 조인해 매도 행을 늘리지 않는다. 매도 한 건은 자기 체결
++     * 수량만큼만 원가를 배분받는다(부분 매도 때 매수 원가 전액을 매번 빼지 않는다). 체결 수량이 있는 BUY 중 반영 대금·반영 수수료가 하나라도
++     * NULL(모름)이면 그 포지션은 이 표에 없다(HAVING) — 0 으로 채우지 않고 {@link #countRealSessionCostUndeterminedSince} 가 센다.
++     * 늦은 정정은 반영값이 바뀌어 다음 조회부터 새 단가가 되고, 같은 응답 반복은 반영값이 그대로라 변화가 없으며, 롤백된 반영은 읽히지 않는다.</p>
++     */
++    String BUY_COST_BY_POSITION = "(SELECT bo.position_id, SUM(bo.applied_executed_funds + bo.applied_paid_fee) AS cost,"
++            + " SUM(bo.filled_quantity) AS qty FROM \"order\" bo"
++            + " WHERE bo.side = 'BUY' AND bo.position_id IS NOT NULL AND bo.filled_quantity > 0"
++            + " GROUP BY bo.position_id"
++            + " HAVING COUNT(*) = COUNT(bo.applied_executed_funds) AND COUNT(*) = COUNT(bo.applied_paid_fee))";
++
++    /**
++     * 비용 기준 손실 합의 <b>판정 불가</b> 대상 수 (총괄 v1.191 §2) — 세션 종류 {@code kind}(LIVE·DYNAMIC 실자금), {@code since} 이후.
++     *
++     * <pre>
++     * ① 확정 매도(sell_applied_at)인데 그 포지션의 확정 매수 원가가 없다 — 체결 BUY 가 없거나 반영 대금/수수료가 NULL
++     * ② 청산(CLOSED)됐는데 확정 매도 수량 합이 체결 매수 수량 합보다 작다 — 팬텀(추정 청산) 등 주문 행 없는 청산분
++     * </pre>
++     * 0 이 아니면 손실 합을 확정할 수 없으므로 관문이 신규 진입을 거절한다. 이 계수만으로 보유를 청산하거나 세션을 정지하지 않는다.
++     */
++    @Query(value = "SELECT (SELECT COUNT(*) FROM \"order\" o"
++            + "   WHERE o.side = 'SELL' AND o.session_id IS NOT NULL AND o.session_kind = :kind"
++            + "   AND o.sell_applied_at IS NOT NULL AND o.sell_applied_at >= :since AND o.applied_executed_funds IS NOT NULL"
++            + "   AND NOT EXISTS (SELECT 1 FROM " + BUY_COST_BY_POSITION + " b WHERE b.position_id = o.position_id))"
++            + " + (SELECT COUNT(*) FROM position p"
++            + "   WHERE p.session_kind = :kind AND p.session_id IS NOT NULL AND p.status = 'CLOSED'"
++            + "   AND p.closed_at IS NOT NULL AND p.closed_at >= :since"
++            + "   AND (SELECT COALESCE(SUM(bq.filled_quantity), 0) FROM \"order\" bq"
++            + "        WHERE bq.position_id = p.id AND bq.side = 'BUY' AND bq.filled_quantity > 0)"
++            + "     > (SELECT COALESCE(SUM(sq.filled_quantity), 0) FROM \"order\" sq"
++            + "        WHERE sq.position_id = p.id AND sq.side = 'SELL' AND sq.sell_applied_at IS NOT NULL"
++            + "        AND sq.applied_executed_funds IS NOT NULL))",
++            nativeQuery = true)
++    long countRealSessionCostUndeterminedSince(@Param("kind") String kind, @Param("since") Instant since);
++
++    /**
++     * 포지션별 비용 기준 손익 재료 (총괄 v1.191 §2, 세션 연속 손실) — [id, 체결 BUY 수, 원가 미상 BUY 수, 매수 원가 합, 매수 수량 합,
++     * 확정 SELL 수, 매도 순대금 합, 매도 수량 합]. 확정 SELL 은 {@code sell_applied_at} 이 있는 매도(주문 원천), 순대금은 반영 대금 − 반영 수수료
++     * (반영 수수료 NULL 은 종전 손실 합 식과 같이 0).
++     */
++    @Query(value = "SELECT p.id,"
++            + " (SELECT COUNT(*) FROM \"order\" b WHERE b.position_id = p.id AND b.side = 'BUY' AND b.filled_quantity > 0),"
++            + " (SELECT COUNT(*) FROM \"order\" b WHERE b.position_id = p.id AND b.side = 'BUY' AND b.filled_quantity > 0"
++            + "    AND (b.applied_executed_funds IS NULL OR b.applied_paid_fee IS NULL)),"
++            + " (SELECT SUM(b.applied_executed_funds + b.applied_paid_fee) FROM \"order\" b"
++            + "    WHERE b.position_id = p.id AND b.side = 'BUY' AND b.filled_quantity > 0),"
++            + " (SELECT SUM(b.filled_quantity) FROM \"order\" b WHERE b.position_id = p.id AND b.side = 'BUY' AND b.filled_quantity > 0),"
++            + " (SELECT COUNT(*) FROM \"order\" s WHERE s.position_id = p.id AND s.side = 'SELL' AND s.sell_applied_at IS NOT NULL"
++            + "    AND s.applied_executed_funds IS NOT NULL),"
++            + " (SELECT SUM(s.applied_executed_funds - COALESCE(s.applied_paid_fee, 0)) FROM \"order\" s"
++            + "    WHERE s.position_id = p.id AND s.side = 'SELL' AND s.sell_applied_at IS NOT NULL AND s.applied_executed_funds IS NOT NULL),"
++            + " (SELECT SUM(s.filled_quantity) FROM \"order\" s"
++            + "    WHERE s.position_id = p.id AND s.side = 'SELL' AND s.sell_applied_at IS NOT NULL AND s.applied_executed_funds IS NOT NULL)"
++            + " FROM position p WHERE p.id IN (:ids)", nativeQuery = true)
++    List<Object[]> costBasisPartsByPosition(@Param("ids") java.util.Collection<Long> ids);
++
+     /**
+      * 확정된 DYNAMIC REAL 세션 매도의 실현 손실 합(음수, 없으면 0) — 총괄 v1.158 결정 2 의 DYNAMIC REAL·전체 REAL 보호식 분자.
+      *
+@@ -489,8 +550,8 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
+      * 없고 세션 종류도 달라 빠진다. 매도 한 건 = 한 행(재확정에도 한 번), 늦은 정정은 반영값 차분, 롤백은 표시가 함께 되돌아가 빠진다.</p>
+      */
+     @Query(value = "SELECT COALESCE(SUM(pnl), 0) FROM ("
+-            + " SELECT o.applied_executed_funds - COALESCE(o.applied_paid_fee, 0) - o.filled_quantity * p.avg_price AS pnl"
+-            + " FROM \"order\" o JOIN position p ON p.id = o.position_id"
++            + " SELECT o.applied_executed_funds - COALESCE(o.applied_paid_fee, 0) - (o.filled_quantity * b.cost) / b.qty AS pnl"
++            + " FROM \"order\" o JOIN " + BUY_COST_BY_POSITION + " b ON b.position_id = o.position_id"
+             + " WHERE o.side = 'SELL' AND o.session_id IS NOT NULL AND o.session_kind = 'DYNAMIC'"
+             + " AND o.sell_applied_at IS NOT NULL AND o.sell_applied_at >= :since AND o.applied_executed_funds IS NOT NULL"
+             + ") t WHERE pnl < 0", nativeQuery = true)
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/CircuitBreakerResult.java b/web-api/src/main/java/com/cryptoautotrader/api/service/CircuitBreakerResult.java
+index 7780f025..a68fd042 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/CircuitBreakerResult.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/CircuitBreakerResult.java
+@@ -6,21 +6,35 @@ package com.cryptoautotrader.api.service;
+ public class CircuitBreakerResult {
+ 
+     private final boolean triggered;
++    private final boolean entryBlocked;
+     private final String reason;
+ 
+-    private CircuitBreakerResult(boolean triggered, String reason) {
++    private CircuitBreakerResult(boolean triggered, boolean entryBlocked, String reason) {
+         this.triggered = triggered;
++        this.entryBlocked = entryBlocked;
+         this.reason = reason;
+     }
+ 
+     public static CircuitBreakerResult pass() {
+-        return new CircuitBreakerResult(false, null);
++        return new CircuitBreakerResult(false, false, null);
+     }
+ 
+     public static CircuitBreakerResult triggered(String reason) {
+-        return new CircuitBreakerResult(true, reason);
++        return new CircuitBreakerResult(true, true, reason);
++    }
++
++    /**
++     * 연속 손실 <b>판정 불가</b> (총괄 v1.191 §2) — 확정 비용 기준 손익을 구하지 못한 청산이 연속 손실 줄에 걸렸다.
++     *
++     * <p>🔴 발동이 아니다({@link #isTriggered()} = false) — 비상 정지·보유 청산을 하지 않는다. 신규 진입만 막는다({@link #isEntryBlocked()}).
++     * 손익 0·이익으로 보고 줄을 끊지도, 손실로 보고 발동시키지도 않는다.</p>
++     */
++    public static CircuitBreakerResult entryUndetermined(String reason) {
++        return new CircuitBreakerResult(false, true, reason);
+     }
+ 
+     public boolean isTriggered() { return triggered; }
++    /** 신규 진입을 막아야 하는가 — 발동 또는 판정 불가. */
++    public boolean isEntryBlocked() { return entryBlocked; }
+     public String getReason() { return reason; }
+ }
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicEntryLimits.java b/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicEntryLimits.java
+new file mode 100644
+index 00000000..964f6edb
+--- /dev/null
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicEntryLimits.java
+@@ -0,0 +1,144 @@
++package com.cryptoautotrader.api.service;
++
++import java.math.BigDecimal;
++import java.math.BigInteger;
++import java.util.ArrayList;
++import java.util.Collections;
++import java.util.HashSet;
++import java.util.LinkedHashMap;
++import java.util.List;
++import java.util.Map;
++import java.util.Set;
++import java.util.regex.Pattern;
++
++/**
++ * 새 DYNAMIC 세션 전용 매회 상한·신규 매수 제외 코인 — {@code strategy_params} 의 {@code maxOrderKrw}·{@code excludeCoins}
++ * (총괄 v1.187 §3-4, 독립 후보). DDL 없이 기존 JSONB 열에 저장한다.
++ *
++ * <ul>
++ *   <li><b>생성 계약</b> — 두 키는 함께 명시한다. 상한은 정수 원 단위 숫자이며 최소 주문(5,000) 이상·상한 기준 이하,
++ *       제외 목록은 {@code KRW-XXX} 문자열 목록(중복 거절, 빈 목록은 "제외 없음"의 명시)이다. 저장 전에 거절한다.</li>
++ *   <li><b>정규화</b> — 제외 목록은 정렬해 저장하고 상한은 정수로 저장한다. 같은 값이면 같은 규칙 지문이 된다.
++ *       두 키가 없으면 입력 맵을 그대로 돌려준다(기존 세션·지문 불변).</li>
++ *   <li><b>실행 시 읽기</b> — 저장값이 계약을 어기면(직접 DB 수정 등) 신규 매수를 막는 쪽으로 판단한다({@link #invalidReason()}).</li>
++ * </ul>
++ * 금액 숫자는 운영 결정 전이다. 이 클래스는 상한을 줄이는 쪽으로만 쓰고 예약 서비스의 최종 보호선은 바꾸지 않는다.
++ */
++public final class DynamicEntryLimits {
++
++    public static final String MAX_ORDER_KRW = "maxOrderKrw";
++    public static final String EXCLUDE_COINS = "excludeCoins";
++    public static final BigDecimal MIN_ORDER_KRW = BigDecimal.valueOf(5000);
++    private static final Pattern COIN = Pattern.compile("^KRW-[A-Z0-9]+$");
++    private static final DynamicEntryLimits NONE = new DynamicEntryLimits(null, Set.of(), null);
++
++    private final BigDecimal maxOrderKrw;
++    private final Set<String> excludeCoins;
++    private final String invalidReason;
++
++    private DynamicEntryLimits(BigDecimal maxOrderKrw, Set<String> excludeCoins, String invalidReason) {
++        this.maxOrderKrw = maxOrderKrw;
++        this.excludeCoins = excludeCoins;
++        this.invalidReason = invalidReason;
++    }
++
++    /**
++     * 새 세션 생성 요청의 검사·정규화. 두 키가 없으면 {@code params} 를 그대로 돌려준다.
++     *
++     * @param upperBound 상한의 최댓값(실자금은 포지션당 상한). {@code null} 이면 상한 검사를 할 수 없어 거절한다.
++     * @throws IllegalArgumentException 계약 위반 — 세션을 저장하지 않는다.
++     */
++    public static Map<String, Object> normalizeForCreate(Map<String, Object> params, BigDecimal upperBound) {
++        if (params == null || !(params.containsKey(MAX_ORDER_KRW) || params.containsKey(EXCLUDE_COINS))) {
++            return params;
++        }
++        if (!(params.containsKey(MAX_ORDER_KRW) && params.containsKey(EXCLUDE_COINS))) {
++            throw new IllegalArgumentException("maxOrderKrw·excludeCoins 는 함께 명시해야 한다");
++        }
++        BigDecimal max = parseMax(params.get(MAX_ORDER_KRW));
++        if (upperBound == null) {
++            throw new IllegalArgumentException("maxOrderKrw 상한 기준(포지션당 상한)을 확인할 수 없어 거절");
++        }
++        if (max.compareTo(upperBound) > 0) {
++            throw new IllegalArgumentException("maxOrderKrw " + max.toPlainString() + " > 상한 기준 " + upperBound.toPlainString());
++        }
++        List<String> coins = parseCoins(params.get(EXCLUDE_COINS));
++        Map<String, Object> out = new LinkedHashMap<>(params);
++        out.put(MAX_ORDER_KRW, max.longValueExact());
++        out.put(EXCLUDE_COINS, coins);
++        return out;
++    }
++
++    /** 실행 시 읽기 — 예외를 던지지 않는다. 두 키가 없으면 제한 없음. */
++    public static DynamicEntryLimits of(Map<String, Object> params) {
++        if (params == null || !(params.containsKey(MAX_ORDER_KRW) || params.containsKey(EXCLUDE_COINS))) {
++            return NONE;
++        }
++        try {
++            if (!(params.containsKey(MAX_ORDER_KRW) && params.containsKey(EXCLUDE_COINS))) {
++                throw new IllegalArgumentException("두 키 중 하나만 있음");
++            }
++            return new DynamicEntryLimits(parseMax(params.get(MAX_ORDER_KRW)),
++                    Collections.unmodifiableSet(new HashSet<>(parseCoins(params.get(EXCLUDE_COINS)))), null);
++        } catch (IllegalArgumentException | ArithmeticException e) {
++            return new DynamicEntryLimits(null, Set.of(), "저장된 maxOrderKrw/excludeCoins 가 계약 밖(" + e.getMessage() + ")");
++        }
++    }
++
++    private static BigDecimal parseMax(Object v) {
++        if (v == null) throw new IllegalArgumentException("maxOrderKrw null");
++        if (!(v instanceof Integer || v instanceof Long || v instanceof BigInteger || v instanceof BigDecimal
++                || v instanceof Double || v instanceof Float || v instanceof Short)) {
++            throw new IllegalArgumentException("maxOrderKrw 는 숫자여야 한다(" + v.getClass().getSimpleName() + ")");
++        }
++        BigDecimal d;
++        try {
++            d = new BigDecimal(v.toString());
++        } catch (NumberFormatException e) {
++            throw new IllegalArgumentException("maxOrderKrw 숫자 아님(" + v + ")");
++        }
++        d = d.stripTrailingZeros();
++        if (d.scale() > 0) throw new IllegalArgumentException("maxOrderKrw 는 원 단위 정수여야 한다(" + d.toPlainString() + ")");
++        if (d.compareTo(MIN_ORDER_KRW) < 0) {
++            throw new IllegalArgumentException("maxOrderKrw " + d.toPlainString() + " < 최소 주문 " + MIN_ORDER_KRW);
++        }
++        return d.setScale(0);
++    }
++
++    private static List<String> parseCoins(Object v) {
++        if (!(v instanceof List<?> list)) {
++            throw new IllegalArgumentException("excludeCoins 는 목록이어야 한다");
++        }
++        List<String> out = new ArrayList<>();
++        for (Object o : list) {
++            if (!(o instanceof String s) || !COIN.matcher(s).matches()) {
++                throw new IllegalArgumentException("excludeCoins 항목은 KRW-XXX 대문자 문자열(" + o + ")");
++            }
++            if (out.contains(s)) throw new IllegalArgumentException("excludeCoins 중복 " + s);
++            out.add(s);
++        }
++        Collections.sort(out);
++        return out;
++    }
++
++    /** 매회 상한 — 없으면 {@code null}. */
++    public BigDecimal maxOrderKrw() { return maxOrderKrw; }
++
++    public boolean excludes(String coinPair) { return excludeCoins.contains(coinPair); }
++
++    /** 저장값이 계약 밖이면 사유, 아니면 {@code null}. 사유가 있으면 신규 매수를 막는다. */
++    public String invalidReason() { return invalidReason; }
++
++    /** 신규 매수 차단 사유(손상된 설정 또는 제외 코인) — 없으면 {@code null}. */
++    public String entryBlockReason(String coinPair) {
++        if (invalidReason != null) return "진입 설정 손상 — " + invalidReason;
++        if (excludes(coinPair)) return "제외 코인(excludeCoins) — " + coinPair + " 신규 매수 안 함";
++        return null;
++    }
++
++    /** 감시 목록에서 제외 코인을 뺀다. 손상된 설정이면 목록은 그대로 두고 진입 단계에서 막는다. */
++    public List<String> filter(List<String> watchlist) {
++        if (excludeCoins.isEmpty() || watchlist == null) return watchlist;
++        return watchlist.stream().filter(c -> !excludeCoins.contains(c)).toList();
++    }
++}
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
+index 972555bd..4786f57f 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
+@@ -301,6 +301,10 @@ public class DynamicTradingService {
+     @Autowired(required = false)
+     private CapitalReservationService capitalReservationService;
+ 
++    /** 매회 상한(maxOrderKrw)의 생성 검사 기준 — 실자금은 포지션당 상한 이하여야 한다(금액/BTC 후보, 총괄 v1.187 §3-4). */
++    @Autowired(required = false)
++    private CapitalPoolLimits capitalPoolLimits;
++
+     /** 정지 시 미체결 매수의 닫기·복원을 한 트랜잭션으로 (2026-10-13). */
+     @Autowired
+     private OptimisticRetry optimisticRetry;
+@@ -382,6 +386,23 @@ public class DynamicTradingService {
+      */
+     final Map<String, BigDecimal> blackSwanBlockedPrice = new ConcurrentHashMap<>();
+ 
++    /**
++     * 종류별 격리 (2026-11-11, 총괄 v1.145 결정 3) — 위 두 지도는 <b>REAL(DYNAMIC) 전용</b>이고, PAPER(DYN_PAPER) 세션은 아래 두 지도를
++     * 쓴다. 기록·조회·만료 삭제·재기동 복원이 모두 같은 종류의 지도와 같은 종류의 로그만 쓴다. 종전에는 코인 하나에 지도 하나라 PAPER 평가의
++     * 차단이 REAL 진입을 막았고(3f6afb90 재현), 재기동 복원은 REAL 로그만 읽어 PAPER 차단은 사라졌다(0f3a4b55 재현).
++     * REAL 의 쿨다운 길이·진입가 가드·차단 기준·복원 경로는 그대로다(PAPER 로그를 REAL 복원에 넣지 않는다).
++     */
++    final Map<String, Instant> paperBlackSwanBlockedAt = new ConcurrentHashMap<>();
++    final Map<String, BigDecimal> paperBlackSwanBlockedPrice = new ConcurrentHashMap<>();
++
++    private Map<String, Instant> blackSwanAt(String kind) {
++        return SESSION_KIND_PAPER.equals(kind) ? paperBlackSwanBlockedAt : blackSwanBlockedAt;
++    }
++
++    private Map<String, BigDecimal> blackSwanPrice(String kind) {
++        return SESSION_KIND_PAPER.equals(kind) ? paperBlackSwanBlockedPrice : blackSwanBlockedPrice;
++    }
++
+     /** 쿨다운 복원 대상을 가려내는 blocked_reason 접두어 (가드 발동분만 — 아래 주석 참조) */
+     private static final String BLACK_SWAN_BLOCK_PREFIX = "BLACK_SWAN_GUARD 발동";
+ 
+@@ -407,25 +428,29 @@ public class DynamicTradingService {
+             // 진입가 가드(24시간)가 쿨다운(4시간)보다 길므로 더 긴 쪽을 조회 구간으로 잡는다.
+             Instant from = Instant.now().minus(
+                     Math.max(BLACK_SWAN_COOLDOWN_MIN, BLACK_SWAN_PRICE_GUARD_MIN), ChronoUnit.MINUTES);
+-            List<Object[]> rows = strategyLogRepository.findRecentBlockedCoins(
+-                    SESSION_KIND, from, BLACK_SWAN_BLOCK_PREFIX);
+-            // 오래된 순으로 오므로 순서대로 덮어쓰면 코인별 가장 최근 차단이 남는다.
+-            for (Object[] row : rows) {
+-                if (row[0] == null || row[1] == null) continue;
+-                String coinPair = (String) row[0];
+-                blackSwanBlockedAt.put(coinPair, (Instant) row[1]);
+-                // signalPrice는 과거 로그에 없을 수 있다 — 그 경우 쿨다운만 복원하고
+-                // 진입가 가드는 기준가가 없으므로 자동으로 비활성이 된다.
+-                if (row[2] != null) {
+-                    blackSwanBlockedPrice.put(coinPair, (BigDecimal) row[2]);
+-                } else {
+-                    blackSwanBlockedPrice.remove(coinPair);
++            // 종류마다 자기 로그 → 자기 지도 (2026-11-11). REAL 은 종전과 같은 질의·같은 지도다.
++            for (String kind : List.of(SESSION_KIND, SESSION_KIND_PAPER)) {
++                Map<String, Instant> at = blackSwanAt(kind);
++                Map<String, BigDecimal> price = blackSwanPrice(kind);
++                List<Object[]> rows = strategyLogRepository.findRecentBlockedCoins(
++                        kind, from, BLACK_SWAN_BLOCK_PREFIX);
++                // 오래된 순으로 오므로 순서대로 덮어쓰면 코인별 가장 최근 차단이 남는다.
++                for (Object[] row : rows) {
++                    if (row[0] == null || row[1] == null) continue;
++                    String coinPair = (String) row[0];
++                    at.put(coinPair, (Instant) row[1]);
++                    // signalPrice는 과거 로그에 없을 수 있다 — 그 경우 쿨다운만 복원하고
++                    // 진입가 가드는 기준가가 없으므로 자동으로 비활성이 된다.
++                    if (row[2] != null) {
++                        price.put(coinPair, (BigDecimal) row[2]);
++                    } else {
++                        price.remove(coinPair);
++                    }
++                }
++                if (!rows.isEmpty()) {
++                    log.info("[Dynamic] BLACK_SWAN 쿨다운 복원({}): {}종 {} (진입가 가드 기준가 {}종)",
++                            kind, at.size(), at.keySet(), price.size());
+                 }
+-            }
+-            if (!rows.isEmpty()) {
+-                log.info("[Dynamic] BLACK_SWAN 쿨다운 복원: {}종 {} (진입가 가드 기준가 {}종)",
+-                        blackSwanBlockedAt.size(), blackSwanBlockedAt.keySet(),
+-                        blackSwanBlockedPrice.size());
+             }
+         } catch (Exception e) {
+             log.warn("[Dynamic] BLACK_SWAN 쿨다운 복원 실패 — 가드 본체로 진행: {}", e.getMessage());
+@@ -476,9 +501,24 @@ public class DynamicTradingService {
+ 
+     @Transactional
+     public DynamicSessionEntity createSession(DynamicSessionRequest req) {
++        // 🔴 매매 모드는 정확한 REAL/PAPER 두 값만 받는다 (총괄 v1.185 §3-3). 종전에는 "PAPER" 가 아니면 모두 실자금이라
++        //    누락·빈 값·소문자 paper·오타가 실자금 세션으로 저장되고 배정까지 받았다. 저장·계좌 동기화·배정보다 먼저 거절한다.
++        //    새 생성 요청에만 적용 — 기존 행과 재기동 복원(엔티티 기본값)은 바꾸지 않는다.
++        String mode = req.getTradingMode();
++        if (!"REAL".equals(mode) && !"PAPER".equals(mode)) {
++            throw new IllegalArgumentException("tradingMode 는 정확히 REAL 또는 PAPER 여야 합니다 (받은 값: "
++                    + (mode == null ? "없음" : "'" + mode + "'") + ")");
++        }
++
+         StrategyRegistry.get(req.getStrategyType()); // 유효성 검증
+ 
+-        boolean isPaper = "PAPER".equals(req.getTradingMode());
++        boolean isPaper = "PAPER".equals(mode);
++
++        // 금액/BTC 후보 (총괄 v1.187 §3-4): maxOrderKrw·excludeCoins 는 새 세션에서만, 둘 다 명시해야 하고 저장 전에 검사한다.
++        //   상한 기준 — 실자금은 공유 풀 포지션당 상한, 모의는 초기 자본. 두 키가 없으면 strategy_params 를 그대로 둔다(기존 계약·지문 불변).
++        java.util.Map<String, Object> strategyParams = DynamicEntryLimits.normalizeForCreate(req.getStrategyParams(),
++                isPaper ? req.getInitialCapital()
++                        : (capitalPoolLimits != null ? capitalPoolLimits.getPerPositionCapKrw() : null));
+ 
+         // 비활성 전략 차단 — strategy_type_enabled에서 꺼진 전략은 세션 생성 거부.
+         // (UI 드롭다운 필터만으로는 select 표시/상태 불일치 등으로 우회될 수 있어 서버에서 강제)
+@@ -519,7 +559,7 @@ public class DynamicTradingService {
+                 .totalAssetKrw(req.getInitialCapital())
+                 .investRatio(investRatio)
+                 .stopLossPct(stopLoss)
+-                .strategyParams(req.getStrategyParams())
++                .strategyParams(strategyParams)
+                 .status("CREATED")
+                 .scanState("SCANNING")
+                 .tradingMode(isPaper ? "PAPER" : DynamicSessionEntity.DEFAULT_TRADING_MODE)
+@@ -888,7 +928,11 @@ public class DynamicTradingService {
+                 || !positionRepository.findBySessionKindAndSessionIdAndStatus(sessionKind(fresh), sid, "OPEN").isEmpty()) {
+             result = "승인 차례에 이미 포지션이 있다";
+         } else {
+-            result = approvalTimeGate(fresh, coinPair, evalCandles);
++            // 금액/BTC 후보: 대기 중 회차도 제외 코인·손상 설정을 다시 본다(최종 진입에서도 한 번 더 막는다).
++            result = DynamicEntryLimits.of(fresh.getStrategyParams()).entryBlockReason(coinPair);
++            if (result == null) {
++                result = approvalTimeGate(fresh, coinPair, evalCandles);
++            }
+             if (result == null) {
+                 result = executeBuy(fresh, coinPair, evalCandles, signal, sizeMultiplier, entryExpiresAt);
+             }
+@@ -923,7 +967,7 @@ public class DynamicTradingService {
+         }
+         BigDecimal evalPrice = evalCandles.isEmpty() ? null : evalCandles.get(evalCandles.size() - 1).getClose();
+         BlackSwanGateDecision blackSwan = evaluateBlackSwanGate(
+-                blackSwanBlockedAt.get(coinPair), blackSwanBlockedPrice.get(coinPair), evalPrice, Instant.now());
++                blackSwanAt(kind).get(coinPair), blackSwanPrice(kind).get(coinPair), evalPrice, Instant.now());
+         if (blackSwan.blockReason() != null) {
+             return "승인 차례에 " + blackSwan.blockReason();
+         }
+@@ -1062,6 +1106,9 @@ public class DynamicTradingService {
+             evalParams.put("emaFilterDampenFactor", scanEmaDampenFactor);
+             if (session.getStrategyParams() != null) {
+                 evalParams.putAll(session.getStrategyParams());
++                // 금액/BTC 후보: 매회 상한·제외 코인은 엔진 설정이지 전략 입력이 아니다(지문에는 strategy.params 로 실린다).
++                evalParams.remove(DynamicEntryLimits.MAX_ORDER_KRW);
++                evalParams.remove(DynamicEntryLimits.EXCLUDE_COINS);
+             }
+             StrategySignal signal = strategy.evaluate(evalCandles, evalParams);
+             BigDecimal evalPrice = evalCandles.get(evalCandles.size() - 1).getClose();
+@@ -1142,16 +1189,17 @@ public class DynamicTradingService {
+             // 쿨다운 — 가드가 한 번 차단한 코인은 해제 직후가 가장 위험하다 (2026-08-03 실측).
+             // 가드는 판단이 옳았고 **유지 시간이 짧았을 뿐**이므로, 해제 후에도 일정 시간 막는다.
+             if (gateBlockReason == null && signal.getAction() == StrategySignal.Action.BUY) {
++                String bsKind = sessionKind(session);
+                 BlackSwanGateDecision decision = evaluateBlackSwanGate(
+-                        blackSwanBlockedAt.get(coinPair), blackSwanBlockedPrice.get(coinPair),
++                        blackSwanAt(bsKind).get(coinPair), blackSwanPrice(bsKind).get(coinPair),
+                         evalPrice, Instant.now());
+                 if (decision.blockReason() != null) {
+                     blackSwanBlocked++;
+                     gateBlockReason = decision.blockReason();
+                     log.warn("[Dynamic] BUY 차단: {} (id={}) — {}", coinPair, sid, gateBlockReason);
+                 } else if (decision.expired()) {
+-                    blackSwanBlockedAt.remove(coinPair);
+-                    blackSwanBlockedPrice.remove(coinPair);
++                    blackSwanAt(bsKind).remove(coinPair);
++                    blackSwanPrice(bsKind).remove(coinPair);
+                 }
+             }
+ 
+@@ -1160,8 +1208,8 @@ public class DynamicTradingService {
+                 BlackSwanGuard.EntryGate guard = BlackSwanGuard.entryGate(evalCandles);
+                 if (guard.blocked()) {
+                     blackSwanBlocked++;
+-                    blackSwanBlockedAt.put(coinPair, Instant.now());   // 쿨다운 시작
+-                    blackSwanBlockedPrice.put(coinPair, evalPrice);    // 진입가 가드 기준가
++                    blackSwanAt(sessionKind(session)).put(coinPair, Instant.now());   // 쿨다운 시작(이 세션 종류만)
++                    blackSwanPrice(sessionKind(session)).put(coinPair, evalPrice);    // 진입가 가드 기준가
+                     log.warn("[Dynamic] BLACK_SWAN_GUARD 발동 — BUY 차단: {} (id={}): {}",
+                             coinPair, sid, guard.reason());
+                     gateBlockReason = "BLACK_SWAN_GUARD 발동 — " + guard.reason();
+@@ -1237,6 +1285,15 @@ public class DynamicTradingService {
+             }
+         }
+ 
++        // 금액/BTC 후보: 코인 선택 직전 제외 코인·손상 설정 재확인(감시 목록 캐시·공용 유니버스 경로 누락 방지). 빠진 후보의 신호 기록은 차단으로 남긴다.
++        DynamicEntryLimits entryLimits = DynamicEntryLimits.of(session.getStrategyParams());
++        buyCandidates.removeIf(c -> {
++            String why = entryLimits.entryBlockReason(c.coinPair());
++            if (why == null) return false;
++            updateSignalQuality(c.signalLog(), false, why);
++            return true;
++        });
++
+         if (buyCandidates.isEmpty()) {
+             log.info("[Dynamic] SCANNING 완료: 진입 조건 없음 (id={}, 감시 {}개) — "
+                             + "HOLD={} SELL={} EMA200차단={} RANGE차단={} 블랙스완차단={} BTC급락차단={} 손실쿨다운차단={} 동일코인차단={} WF미검증차단={} 캔들부족={} 캔들미갱신={}",
+@@ -1645,6 +1702,14 @@ public class DynamicTradingService {
+         String kind = sessionKind(session);
+         BigDecimal currentPrice = evalCandles.get(evalCandles.size() - 1).getClose();
+ 
++        // 금액/BTC 후보 (총괄 v1.187 §3-4): 어느 경로로 와도 제외 코인 신규 매수 0. 저장값이 계약 밖이면 신규 매수를 막는다.
++        DynamicEntryLimits entryLimits = DynamicEntryLimits.of(session.getStrategyParams());
++        String limitBlock = entryLimits.entryBlockReason(coinPair);
++        if (limitBlock != null) {
++            log.warn("[Dynamic] 매수 차단 (id={}, {}): {}", sid, coinPair, limitBlock);
++            return limitBlock;
++        }
++
+         // 🔴 실자금 손실 관문 (총괄 v1.158 결정 2) — DYNAMIC REAL 즉시 진입·회차 승인이 모두 여기를 지난다. 기존·DYNAMIC REAL·전체 REAL
+         //    세 보호식 중 하나라도 기존 한도를 넘거나 판정 불가면 신규 매수를 거절한다. PAPER 는 모의 한도 계약 그대로(REAL 자료로 막지 않는다).
+         if (!session.isPaper()) {
+@@ -1653,6 +1718,12 @@ public class DynamicTradingService {
+                 log.warn("[Dynamic] 실자금 손실 보호식으로 매수 차단 (id={}, {}): {}", sid, coinPair, realLoss.getReason());
+                 return "실자금 손실 보호식: " + realLoss.getReason();
+             }
++            // 🔴 총괄 v1.191 §2: 세션 연속 손실의 판정 불가(확정 비용 미상 청산) — 신규 매수만 막는다. 정지·청산 아님.
++            String costBlock = riskManagementService.costBasisEntryBlock(session);
++            if (costBlock != null) {
++                log.warn("[Dynamic] 매수 차단 (id={}, {}): {}", sid, coinPair, costBlock);
++                return costBlock;
++            }
+         }
+ 
+         // EMA200 게이트 사이즈 배수 적용 — 정상 1.0, 근접 하회 감액 0.5. null은 방어적으로 1.0 취급.
+@@ -1661,6 +1732,13 @@ public class DynamicTradingService {
+         // 🔴 요청액은 예약 전에 둘째 자리 버림 — 이 금액으로 최소 주문·한도를 보고 예약한다 (리뷰 2026-10-31, {@link BalanceAmounts}).
+         //    REAL·PAPER 모드가 같은 금액을 쓴다(엔진 동등).
+         BigDecimal investAmount = BalanceAmounts.buyRequest(session.getAvailableKrw().multiply(effectiveRatio));
++        // 금액/BTC 후보: 매회 상한은 버림 직후·최소 주문 보정 앞에서 줄이기만 한다. 예약 서비스의 포지션당/총 상한 검사(최종 보호선)는 그대로다.
++        BigDecimal maxOrder = entryLimits.maxOrderKrw();
++        if (maxOrder != null && investAmount.compareTo(maxOrder) > 0) {
++            log.info("[Dynamic] 매회 상한 적용 (id={}, {}): 요청 {} → 상한 {}", sid, coinPair,
++                    investAmount.toPlainString(), maxOrder.toPlainString());
++            investAmount = maxOrder;
++        }
+         BigDecimal minOrder = BigDecimal.valueOf(5000);
+         // 감액 진입이 최소주문(5,000원) 미만이면, 정상 사이즈로는 최소주문을 넘는 한 최소주문액으로
+         // 올려 진입을 살린다 — 소액 세션(자본 1만원)에서 절반 사이즈(4,000원)가 최소주문에 걸려
+@@ -1674,6 +1752,9 @@ public class DynamicTradingService {
+             log.warn("[Dynamic] 매수 불가: 가용 KRW 부족 (id={})", sid);
+             return String.format("가용 KRW 부족: 투자가능 %s원 < 최소 5,000원", investAmount.setScale(0, RoundingMode.DOWN));
+         }
++        if (maxOrder != null && investAmount.compareTo(maxOrder) > 0) {   // 최소 주문 보정 뒤에도 상한 안 (maxOrderKrw ≥ 5,000 이라 정상이면 오지 않는다)
++            return "매회 상한 초과: " + investAmount.toPlainString() + " > maxOrderKrw " + maxOrder.toPlainString();
++        }
+ 
+         boolean hasPendingBuy = orderRepository.existsBySessionKindAndSessionIdAndCoinPairAndSideAndStateIn(
+                 kind, sid, coinPair, "BUY", ACTIVE_ORDER_STATES);
+@@ -2176,6 +2257,11 @@ public class DynamicTradingService {
+ 
+     @Transactional
+     public List<String> resolveWatchlist(DynamicSessionEntity session) {
++        // 금액/BTC 후보: 제외 코인은 감시 후보에서 뺀다(신호 기록도 섞이지 않게). 기록용 watchlistJson 은 원래 목록 그대로 둔다.
++        return DynamicEntryLimits.of(session.getStrategyParams()).filter(resolveWatchlistUnfiltered(session));
++    }
++
++    private List<String> resolveWatchlistUnfiltered(DynamicSessionEntity session) {
+         // 공용 유니버스가 켜져 있으면 세션별 갱신 시계를 타지 않는다 — 세션마다 다른 시각에
+         // 갱신하면 같은 전략끼리도 서로 다른 코인을 보게 되어 성적 비교가 성립하지 않는다.
+         // 캐싱은 SharedUniverseService 의 벽시계 버킷이 담당한다. 세션의 watchlistJson 은
+@@ -3185,7 +3271,7 @@ public class DynamicTradingService {
+                     sessionId, pos.getId(), isPartial, pos.getCoinPair(), soldQty, fillPrice, realizedPnl, fee);
+             if (credited) {
+                 telegramService.bufferTradeEvent(
+-                        "동적#" + sessionId, pos.getCoinPair(), "SELL",
++                        TelegramNotificationService.sessionLabel(pos.getSessionKind(), sessionId), pos.getCoinPair(), "SELL",
+                         fillPrice, soldQty, fee, realizedPnl, "동적 세션 매도");
+             }
+         }
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
+index a69fb8fd..fe267fd6 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
+@@ -1545,6 +1545,13 @@ public class LiveTradingService {
+             log.warn("매수 스킵: 세션({})에 이미 활성 BUY 주문이 있습니다 ({})", session.getId(), coinPair);
+             return "이미 활성 매수 주문이 있다";
+         }
++        // 🔴 총괄 v1.191 §2: 연속 손실 줄에 확정 비용을 못 구한 청산이 걸리면 신규 매수만 막는다(즉시·회차 승인 공통 — 둘 다 여기를 지난다).
++        //    서킷 브레이커 발동(비상 정지)이 아니며 보유·청산 경로는 건드리지 않는다.
++        String costBlock = riskManagementService.costBasisEntryBlock(session);
++        if (costBlock != null) {
++            log.warn("매수 차단: 세션({}) {}", session.getId(), costBlock);
++            return costBlock;
++        }
+ 
+         BigDecimal ratio = session.getInvestRatio() != null ? session.getInvestRatio() : exitConfig().getInvestRatio();
+         BigDecimal baseAmount = session.getAvailableKrw().multiply(ratio);
+@@ -3361,7 +3368,7 @@ public class LiveTradingService {
+                     sessionId, pos.getId(), isPartial, pos.getCoinPair(),
+                     soldQty, fillPrice, realizedPnl, fee);
+             telegramService.bufferTradeEvent(
+-                    "세션#" + sessionId, pos.getCoinPair(), "SELL",
++                    TelegramNotificationService.sessionLabel("LIVE", sessionId), pos.getCoinPair(), "SELL",
+                     fillPrice, soldQty, fee, realizedPnl, isPartial ? "전략 매도(부분체결)" : "전략 매도");
+ 
+             // §14 drift 기록 — 청산 트리거 시점 가격(order.signalPrice) vs 실제 체결가.
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/OrderExecutionEngine.java b/web-api/src/main/java/com/cryptoautotrader/api/service/OrderExecutionEngine.java
+index 033eeed2..063f74dd 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/OrderExecutionEngine.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/OrderExecutionEngine.java
+@@ -2286,7 +2286,7 @@ public class OrderExecutionEngine {
+ 
+             if (order.getSessionId() != null && telegramService != null) {
+                 telegramService.bufferTradeEvent(
+-                        "세션#" + order.getSessionId(), order.getCoinPair(), "BUY",
++                        TelegramNotificationService.sessionLabel(order.getSessionKind(), order.getSessionId()), order.getCoinPair(), "BUY",
+                         avgFillPrice, filledQty, buyFee, null, order.getSignalReason());
+             }
+ 
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java
+index 3dd19745..2c797302 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java
+@@ -1545,15 +1545,14 @@ public class PaperTradingService {
+     }
+ 
+     /**
+-     * 위험 판단 입력 손익 — LIVE 관례(매도 순수익 − 수량 × 체결 평균가, 매수 수수료는 빼지 않음)로 맞춘다 (2026-11-11, 총괄 v1.147 R5).
+-     * 성적표의 {@code realizedPnl}(투입금 기준, 매수 수수료 포함)은 바꾸지 않는다. 선택 모드의 avgPrice 는 체결가이므로
+-     * realizedPnl + (investedKrw − size × avgPrice) 가 LIVE 정의의 손익이다. 값이 모자라면 realizedPnl 그대로.
++     * 위험 판단 입력 손익 — <b>비용 기준</b>(매도 순수익 − 투입금, 양쪽 수수료 포함) (총괄 v1.191 §2, 2026-11-19).
++     *
++     * <p>🔴 v1.147 R5 는 LIVE 관례(매수 수수료를 되더한 값)로 맞췄다. LIVE·DYNAMIC REAL 의 손실 합·연속 손실이 비용 기준으로 바뀌었으므로
++     * 같은 판정을 유지하려면 이쪽도 비용 기준이어야 한다. 선택 모드의 {@code realizedPnl} 이 이미 매도 순수익 − investedKrw(대금+매수 수수료)라
++     * 그대로 쓴다. 성적표 값과 같다. 가격 판단(SL/TP 평균가)은 바꾸지 않는다.</p>
+      */
+     static BigDecimal riskPnl(PaperPositionEntity p) {
+-        if (p.getRealizedPnl() == null || p.getInvestedKrw() == null || p.getSize() == null || p.getAvgPrice() == null) {
+-            return p.getRealizedPnl();
+-        }
+-        return p.getRealizedPnl().add(p.getInvestedKrw().subtract(p.getSize().multiply(p.getAvgPrice())));
++        return p.getRealizedPnl();
+     }
+ 
+     /** 실현 자산 경로의 고점 — 초기 자본에서 청산 순서대로 실현 손익(현금 기준)을 더한 값의 최대. */
+@@ -1943,7 +1942,7 @@ public class PaperTradingService {
+                     sessionId, coinPair, fQty, fPrice, fSl, fTp, fFee);
+             if (tg) {
+                 telegramService.bufferTradeEvent(
+-                        "[모의투자] 세션#" + sessionId, coinPair, "BUY",
++                        TelegramNotificationService.sessionLabel("PAPER", sessionId), coinPair, "BUY",
+                         fPrice, fQty, fFee, null, sigReason);
+             }
+         };
+@@ -2011,7 +2010,7 @@ public class PaperTradingService {
+                     pos.getSessionId(), pos.getCoinPair(), pos.getSize(), currentPrice, realizedPnl);
+             if (tg) {
+                 telegramService.bufferTradeEvent(
+-                        "[모의투자] 세션#" + pos.getSessionId(), pos.getCoinPair(), "SELL",
++                        TelegramNotificationService.sessionLabel("PAPER", pos.getSessionId()), pos.getCoinPair(), "SELL",
+                         currentPrice, pos.getSize(), fFee, realizedPnl, reason);
+             }
+         };
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/RiskManagementService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/RiskManagementService.java
+index c047489b..2906de7f 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/RiskManagementService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/RiskManagementService.java
+@@ -167,6 +167,11 @@ public class RiskManagementService {
+         RiskConfigEntity configEntity = getRiskConfig();
+         RiskConfig coreConfig = toRiskConfig(configEntity);
+         RiskEngine engine = new RiskEngine(coreConfig);
++        // 🔴 총괄 v1.191 §2: 확정 원가를 못 구한 LIVE 세션 매도·미확정 청산이 30일 창에 있으면 손실 합을 확정할 수 없다 — 판정 불가로 거절.
++        String liveUndetermined = costUndeterminedReason("기존 보호식", "LIVE", Instant.now());
++        if (liveUndetermined != null) {
++            return RiskCheckResult.reject(liveUndetermined);
++        }
+ 
+         // 포트폴리오 한도: 실제 운영 중인 RUNNING 세션들의 initialCapital 합을 우선 사용.
+         // 실전매매 소액 운영(예: 1만원) 시 하드코딩 1,000만원 분모가 실손실을 희석해
+@@ -215,6 +220,10 @@ public class RiskManagementService {
+         RiskConfigEntity configEntity = getRiskConfig();
+         RiskEngine engine = new RiskEngine(toRiskConfig(configEntity));
+         Instant now = Instant.now();
++        String liveUndetermined = costUndeterminedReason("기존 보호식", "LIVE", now);
++        if (liveUndetermined != null) {
++            return RiskCheckResult.reject(liveUndetermined);   // v1.191 §2 — 기존 손실 원천의 LIVE 세션 매도를 확정할 수 없다
++        }
+         BigDecimal legacyDenom = resolvePortfolioLimit(configEntity);
+         RiskCheckResult legacy = engine.check(
+                 calculateLossPct(now.minus(1, ChronoUnit.DAYS), legacyDenom),
+@@ -243,6 +252,10 @@ public class RiskManagementService {
+         Instant[] since = {now.minus(1, ChronoUnit.DAYS), now.minus(7, ChronoUnit.DAYS), now.minus(30, ChronoUnit.DAYS)};
+         // 🔴 조회 실패는 잡지 않는다 — 예외로 이 진입을 중단한다(fail-closed). 참여 중인 트랜잭션은 이미 롤백 전용이 되어, 잡고 거절을
+         //    돌려줘도 호출자 커밋에서 다시 실패하기 때문이다. 손실 0·무한 자본으로 보고 통과시키는 경로는 없다.
++        String dynUndetermined = costUndeterminedReason("DYNAMIC REAL 보호식", "DYNAMIC", now);
++        if (dynUndetermined != null) {
++            return RiskCheckResult.reject(dynUndetermined);   // v1.191 §2 — 전체 REAL 보호식도 같은 원천이라 함께 판정 불가
++        }
+         {
+             BigDecimal liveCap = runningLiveCapital();
+             BigDecimal dynCap = runningDynamicRealCapital();
+@@ -276,6 +289,19 @@ public class RiskManagementService {
+         return RiskCheckResult.approve();
+     }
+ 
++    /**
++     * 비용 기준 손실 합의 판정 불가 사유 (총괄 v1.191 §2) — 30일 창(가장 넓은 창)에 확정 원가를 못 구한 세션 매도·미확정 청산이 있으면 문구, 없으면 null.
++     * 🔴 조회 실패는 잡지 않는다(fail-closed, 위 보호식과 같은 규칙).
++     */
++    private String costUndeterminedReason(String formula, String kind, Instant now) {
++        long n = orderRepository.countRealSessionCostUndeterminedSince(kind, now.minus(30, ChronoUnit.DAYS));
++        if (n <= 0) return null;
++        String msg = String.format("[%s] 판정 불가 — 30일 안 %s 세션 매도/청산 %d건의 확정 비용(매수 대금+수수료 또는 매도 체결)을 구하지 못했다"
++                + "(손실 0·이익으로 보지 않는다)", formula, kind, n);
++        log.warn("리스크 체크 거부: {}", msg);
++        return msg;
++    }
++
+     private static BigDecimal negOrZero(BigDecimal v) {
+         return v == null || v.signum() >= 0 ? BigDecimal.ZERO : v;
+     }
+@@ -351,18 +377,89 @@ public class RiskManagementService {
+         return evaluateCircuitBreaker(getRiskConfig(), mddPeak, initialCapital, totalAssetKrw, () -> {
+             List<PositionEntity> closedPositions = positionRepository
+                     .findBySessionKindAndSessionIdAndStatusOrderByClosedAtDesc(sessionKind, sessionId, "CLOSED");
+-            List<BigDecimal> pnlNewestFirst = new java.util.ArrayList<>();
++            List<PositionEntity> counted = new java.util.ArrayList<>();
+             for (PositionEntity pos : closedPositions) {
+                 if (countLossesAfter != null
+                         && (pos.getClosedAt() == null || !pos.getClosedAt().isAfter(countLossesAfter))) {
+                     break; // 이번 가동 이전 청산분 — 집계 중단
+                 }
+-                pnlNewestFirst.add(pos.getRealizedPnl());
++                counted.add(pos);
+             }
+-            return pnlNewestFirst;
++            // 🔴 총괄 v1.191 §2: 실자금(LIVE·DYNAMIC)은 주문 원천의 비용 기준 손익(양쪽 수수료)으로 센다. DYN_PAPER 는 저장 손익이
++            //    이미 수수료 포함 평균가 기준이라 종전 그대로.
++            boolean real = "LIVE".equals(sessionKind) || "DYNAMIC".equals(sessionKind);
++            return real ? costBasisClosedPnl(counted)
++                    : counted.stream().map(p -> ClosedPnl.known(p.getRealizedPnl())).toList();
+         });
+     }
+ 
++    /** 연속 손실 입력 한 칸 — 확정 손익 또는 판정 불가(v1.191 §2). {@code value} null 은 종전과 같이 손실이 아님(줄 끊김). */
++    record ClosedPnl(BigDecimal value, boolean undetermined, Long positionId) {
++        static ClosedPnl known(BigDecimal v) { return new ClosedPnl(v, false, null); }
++    }
++
++    /**
++     * 완료 포지션의 비용 기준 손익 = 확정 매도 순대금 합 − 확정 매도 수량 × (확정 매수 대금+수수료 합 ÷ 체결 매수 수량) (v1.191 §2).
++     *
++     * <pre>
++     * 주문 원천 없음(체결 BUY 0·확정 SELL 0 — 주문 행이 연결되지 않은 과거/수동 행) → 저장 손익(종전)
++     * 체결 BUY 의 반영 대금/수수료 미상, 또는 확정 매도 수량 &lt; 체결 매수 수량(팬텀 등 추정 청산분) → 판정 불가
++     * </pre>
++     */
++    private List<ClosedPnl> costBasisClosedPnl(List<PositionEntity> newestFirst) {
++        if (newestFirst.isEmpty()) return List.of();
++        java.util.Map<Long, Object[]> parts = new java.util.HashMap<>();
++        List<Object[]> rows = orderRepository.costBasisPartsByPosition(newestFirst.stream().map(PositionEntity::getId).toList());
++        if (rows != null) {
++            for (Object[] r : rows) parts.put(((Number) r[0]).longValue(), r);
++        }
++        List<ClosedPnl> out = new java.util.ArrayList<>(newestFirst.size());
++        for (PositionEntity pos : newestFirst) {
++            Object[] r = parts.get(pos.getId());
++            long buyN = r == null ? 0 : ((Number) r[1]).longValue();
++            long sellN = r == null ? 0 : ((Number) r[5]).longValue();
++            if (buyN == 0 && sellN == 0) {
++                out.add(ClosedPnl.known(pos.getRealizedPnl()));
++                continue;
++            }
++            long buyUnknown = ((Number) r[2]).longValue();
++            BigDecimal buyCost = dec(r[3]);
++            BigDecimal buyQty = dec(r[4]);
++            BigDecimal sellNet = dec(r[6]);
++            BigDecimal sellQty = dec(r[7]);
++            if (buyN == 0 || buyUnknown > 0 || buyCost == null || buyQty == null || buyQty.signum() <= 0
++                    || sellQty == null || sellQty.compareTo(buyQty) < 0) {
++                out.add(new ClosedPnl(null, true, pos.getId()));
++                continue;
++            }
++            BigDecimal cost = sellQty.multiply(buyCost).divide(buyQty, 8, RoundingMode.HALF_UP);
++            out.add(new ClosedPnl(sellNet.subtract(cost), false, pos.getId()));
++        }
++        return out;
++    }
++
++    private static BigDecimal dec(Object o) {
++        if (o == null) return null;
++        return o instanceof BigDecimal b ? b : new BigDecimal(o.toString());
++    }
++
++    /**
++     * 신규 진입 전 세션 연속 손실의 <b>판정 불가</b> 사유 (v1.191 §2) — 판정 불가면 문구, 아니면 null. 발동은 회차 시작의 서킷 브레이커가 맡는다.
++     * LIVE 즉시·회차 승인 진입({@code executeSessionBuy})과 DYNAMIC REAL 진입({@code executeBuy})이 부른다.
++     */
++    @Transactional(readOnly = true)
++    public String costBasisEntryBlock(LiveTradingSessionEntity session) {
++        CircuitBreakerResult r = checkCircuitBreaker(session);
++        return r.isEntryBlocked() && !r.isTriggered() ? r.getReason() : null;
++    }
++
++    /** @see #costBasisEntryBlock(LiveTradingSessionEntity) */
++    @Transactional(readOnly = true)
++    public String costBasisEntryBlock(com.cryptoautotrader.api.entity.DynamicSessionEntity session) {
++        CircuitBreakerResult r = checkCircuitBreaker(session);
++        return r.isEntryBlocked() && !r.isTriggered() ? r.getReason() : null;
++    }
++
+     /**
+      * 모의 계좌 상태를 입력으로 같은 서킷 브레이커 기준을 판단한다 (2026-11-11, LIVE_ALIGNED — 총괄 v1.145 §3-2 위험 관문).
+      *
+@@ -374,7 +471,8 @@ public class RiskManagementService {
+     public CircuitBreakerResult checkCircuitBreakerFromValues(BigDecimal mddPeak, BigDecimal initialCapital,
+                                                               BigDecimal totalAssetKrw,
+                                                               List<BigDecimal> closedPnlNewestFirst) {
+-        return evaluateCircuitBreaker(getRiskConfig(), mddPeak, initialCapital, totalAssetKrw, () -> closedPnlNewestFirst);
++        return evaluateCircuitBreaker(getRiskConfig(), mddPeak, initialCapital, totalAssetKrw,
++                () -> closedPnlNewestFirst.stream().map(ClosedPnl::known).toList());
+     }
+ 
+     /** 모의 계좌 입력으로 같은 한도({@code risk_config})를 판단하는 엔진 (LIVE_ALIGNED). REAL 계좌·풀을 읽지 않는다. */
+@@ -386,7 +484,7 @@ public class RiskManagementService {
+     /** 순수 판정 — REAL·DYNAMIC·모의 계좌가 같은 식을 쓴다. 입력만 다르다. */
+     private static CircuitBreakerResult evaluateCircuitBreaker(RiskConfigEntity config, BigDecimal mddPeak,
+                                                                BigDecimal initialCapital, BigDecimal totalAssetKrw,
+-                                                               java.util.function.Supplier<List<BigDecimal>> closedPnlNewestFirst) {
++                                                               java.util.function.Supplier<List<ClosedPnl>> closedPnlNewestFirst) {
+         if (!Boolean.TRUE.equals(config.getCircuitBreakerEnabled())) {
+             return CircuitBreakerResult.pass();
+         }
+@@ -414,7 +512,13 @@ public class RiskManagementService {
+ 
+         // ── 연속 손실 체크 ────────────────────────────────────
+         int consecutiveLosses = 0;
+-        for (BigDecimal pnl : closedPnlNewestFirst.get()) {
++        ClosedPnl undetermined = null;
++        for (ClosedPnl c : closedPnlNewestFirst.get()) {
++            if (c.undetermined()) {
++                undetermined = c;   // v1.191 §2 — 이 칸이 손실인지 모른다. 이익으로 끊지도 손실로 세지도 않는다
++                break;
++            }
++            BigDecimal pnl = c.value();
+             if (pnl != null && pnl.compareTo(BigDecimal.ZERO) < 0) {
+                 consecutiveLosses++;
+             } else {
+@@ -425,6 +529,11 @@ public class RiskManagementService {
+             return CircuitBreakerResult.triggered(
+                     String.format("연속 손실 %d회 초과 (한도: %d회)", consecutiveLosses, consecutiveLossLimit));
+         }
++        if (undetermined != null) {
++            return CircuitBreakerResult.entryUndetermined(String.format(
++                    "연속 손실 판정 불가 — 최근 확정 손실 %d회 다음 청산(posId=%s)의 확정 비용을 구하지 못했다(한도: %d회). 신규 진입만 막고 정지·청산하지 않는다",
++                    consecutiveLosses, undetermined.positionId(), consecutiveLossLimit));
++        }
+ 
+         return CircuitBreakerResult.pass();
+     }
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/TelegramNotificationService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/TelegramNotificationService.java
+index 2b1a0121..63a96a33 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/TelegramNotificationService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/TelegramNotificationService.java
+@@ -92,6 +92,26 @@ public class TelegramNotificationService {
+     /** 매수/매도 이벤트 버퍼 (스레드 세이프) */
+     private final List<TradeEvent> tradeBuffer = new CopyOnWriteArrayList<>();
+ 
++    /**
++     * 이 서비스(= 앱 프로세스)가 뜬 시각 — 최소 알림(총괄 v1.190 §4-2, 2026-11-19).
++     * 버퍼는 메모리라 재기동 앞 거래가 사라진다. 요약 구간 안에서 재기동했으면 요약 머리에 그 사실을 한 줄 적는다.
++     * 버퍼를 영속화하지 않는다 — 원본은 DB 주문/정산이다.
++     */
++    private volatile Instant startedAt = Instant.now();
++
++    /** 알림 꺼짐일 때 버퍼에 넣지 않고 버린 거래 이벤트 수 — 요약 시각에 로그로만 남기고 0 으로 되돌린다. */
++    private final java.util.concurrent.atomic.AtomicLong droppedWhileDisabled = new java.util.concurrent.atomic.AtomicLong();
++
++    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
++
++    /**
++     * 거래 요약의 세션 표시 — {@code 종류#ID} 로 통일한다(총괄 v1.190 §4-2). LIVE·DYNAMIC 세션 id 는 독립 시퀀스라
++     * {@code "세션#5"} 처럼 종류 없이 쓰면 LIVE#5 와 DYNAMIC#5 의 거래가 한 묶음에 섞인다. 종류를 모르면 그렇다고 적는다.
++     */
++    public static String sessionLabel(String kind, Long sessionId) {
++        return (kind == null || kind.isBlank() ? "종류미상" : kind) + "#" + sessionId;
++    }
++
+     // ── 버퍼링 대상: 매수/매도 이벤트 ─────────────────────────────────────────
+ 
+     /**
+@@ -101,6 +121,11 @@ public class TelegramNotificationService {
+     public void bufferTradeEvent(String sessionLabel, String coinPair, String side,
+                                   BigDecimal price, BigDecimal quantity, BigDecimal fee,
+                                   BigDecimal realizedPnl, String reason) {
++        if (!enabled) {
++            // 꺼짐이면 요약이 돌지 않아 아무도 비우지 않는다 — 쌓지 않고 개수만 센다.
++            droppedWhileDisabled.incrementAndGet();
++            return;
++        }
+         tradeBuffer.add(new TradeEvent(sessionLabel, coinPair, side, price, quantity, fee, realizedPnl, reason, Instant.now()));
+         log.debug("[Telegram] 거래 버퍼 적재: {} {} {} @ {}", sessionLabel, side, coinPair, price);
+     }
+@@ -488,45 +513,78 @@ public class TelegramNotificationService {
+     /** 매일 정오(12:00 KST) 오전 거래 요약 전송 */
+     @Scheduled(cron = "0 0 12 * * *", zone = "Asia/Seoul")
+     public void sendNoonSummary() {
+-        sendDailySummary("오전 거래 요약 (자정~정오)");
++        sendDailySummary("오전 거래 요약 (자정~정오)", Instant.now());
+     }
+ 
+     /** 매일 자정(00:00 KST) 오후 거래 요약 전송 */
+     @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
+     public void sendMidnightSummary() {
+-        sendDailySummary("오후 거래 요약 (정오~자정)");
++        sendDailySummary("오후 거래 요약 (정오~자정)", Instant.now());
+     }
+ 
+-    private void sendDailySummary(String periodLabel) {
+-        if (!enabled) return;
++    private void sendDailySummary(String periodLabel, Instant now) {
++        for (String[] m : buildDailySummaries(periodLabel, now)) {
++            sendMarkdownAndLog(m[1], "TRADE_SUMMARY", m[0]);
++            log.info("[Telegram] {} {} 요약 전송", periodLabel, m[0] == null ? "거래 없음" : m[0]);
++        }
++    }
++
++    /** 요약 구간 시작 — 요약 시각을 KST 0시/12시로 내린 뒤 12시간 앞. 늦게 돈 회차(12:00:00.5)도 같은 구간을 가리킨다. */
++    static Instant periodStart(Instant now) {
++        java.time.ZonedDateTime z = now.atZone(KST).truncatedTo(java.time.temporal.ChronoUnit.HOURS);
++        return z.withHour(z.getHour() < 12 ? 0 : 12).minusHours(12).toInstant();
++    }
++
++    /**
++     * 요약 메시지를 만든다(전송은 호출자) — [세션 표시 또는 null(거래 없음), 본문]. 꺼낸 거래는 버퍼에서 비운다.
++     * 알림 꺼짐이면 아무것도 만들지 않고, 버퍼에 남은 것(꺼지기 전 적재분)을 버리며 버린 개수를 로그로만 남긴다.
++     */
++    List<String[]> buildDailySummaries(String periodLabel, Instant now) {
++        List<String[]> out = new ArrayList<>();
++        if (!enabled) {
++            int left = tradeBuffer.size();
++            tradeBuffer.clear();
++            long dropped = droppedWhileDisabled.getAndSet(0) + left;
++            if (dropped > 0) {
++                log.info("[Telegram] 알림 꺼짐 — {} 요약 생략, 적재하지 않은 거래 이벤트 {}건(원본은 DB 주문/정산)", periodLabel, dropped);
++            }
++            return out;
++        }
+ 
+         List<TradeEvent> events = new ArrayList<>(tradeBuffer);
+         tradeBuffer.removeAll(events);
++        String restart = restartNote(now);
+ 
+         if (events.isEmpty()) {
+-            String msg = String.format("📊 *%s*\n\n• 해당 시간대 매매 없음\n• 기준 시각: `%s`\n",
+-                    periodLabel, KST_FMT.format(Instant.now()));
+-            sendMarkdownAndLog(msg, "TRADE_SUMMARY", null);
+-            log.info("[Telegram] {} - 거래 없음 요약 전송", periodLabel);
+-            return;
++            String msg = String.format("📊 *%s*\n%s\n• 해당 시간대 매매 없음\n• 기준 시각: `%s`\n",
++                    periodLabel, restart, KST_FMT.format(now));
++            out.add(new String[]{null, msg});
++            return out;
+         }
+ 
+-        // 세션별로 그룹화하여 개별 메시지 전송
++        // 세션별로 그룹화 — 세션 하나에 메시지 하나
+         Map<String, List<TradeEvent>> bySession = events.stream()
+                 .collect(Collectors.groupingBy(TradeEvent::sessionLabel, LinkedHashMap::new, Collectors.toList()));
+-
+         for (Map.Entry<String, List<TradeEvent>> entry : bySession.entrySet()) {
+-            String sessionLabel = entry.getKey();
+-            List<TradeEvent> sessionEvents = entry.getValue();
+-            String msg = buildSessionSummary(periodLabel, sessionLabel, sessionEvents);
+-            sendMarkdownAndLog(msg, "TRADE_SUMMARY", sessionLabel);
+-            log.info("[Telegram] {} {} 요약 전송 완료: {}건", periodLabel, sessionLabel, sessionEvents.size());
++            out.add(new String[]{entry.getKey(), buildSessionSummary(periodLabel, entry.getKey(), entry.getValue(), restart, now)});
++        }
++        return out;
++    }
++
++    /** 요약 구간 안에 재기동했으면 그 한 줄(줄바꿈 포함), 아니면 빈 문자열. MarkdownV2 예약 문자(. ( ) - 등)는 쓰지 않는다. */
++    private String restartNote(Instant now) {
++        Instant s = startedAt;
++        if (s.isAfter(periodStart(now)) && !s.isAfter(now)) {
++            return String.format("⚠️ `%s` 재기동 — 그 앞 거래는 이 요약에 없음 · 원본은 DB 주문/정산\n", KST_TIME_FMT.format(s));
+         }
++        return "";
+     }
+ 
+-    private String buildSessionSummary(String periodLabel, String sessionLabel, List<TradeEvent> events) {
++    private String buildSessionSummary(String periodLabel, String sessionLabel, List<TradeEvent> events,
++                                       String restart, Instant now) {
+         StringBuilder sb = new StringBuilder();
+         sb.append(String.format("📊 *%s*\n", periodLabel));
++        sb.append(restart);
+         sb.append(String.format("📌 세션: `%s`\n\n", escapeMarkdownV2(sessionLabel)));
+ 
+         long buyCount  = events.stream().filter(e -> "BUY".equals(e.side())).count();
+@@ -545,7 +603,7 @@ public class TelegramNotificationService {
+         sb.append(String.format("• 누적 수수료: `%,.0f KRW`\n", totalFee.doubleValue()));
+         sb.append(String.format("• 실현 손익 합계: `%s%,.0f KRW`\n",
+                 totalPnl.compareTo(BigDecimal.ZERO) >= 0 ? "+" : "", totalPnl.doubleValue()));
+-        sb.append(String.format("• 기준 시각: `%s`\n\n", KST_FMT.format(Instant.now())));
++        sb.append(String.format("• 기준 시각: `%s`\n\n", KST_FMT.format(now)));
+ 
+         sb.append("*상세 내역*\n");
+         events.stream().limit(10).forEach(e -> {
+@@ -982,6 +1040,12 @@ public class TelegramNotificationService {
+             com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+     record SendMessageRequest(String chat_id, String text, String parse_mode) {}
+ 
++    int bufferedTradeEvents() { return tradeBuffer.size(); }
++
++    long droppedWhileDisabled() { return droppedWhileDisabled.get(); }
++
++    void setStartedAtForTest(Instant v) { this.startedAt = v; }
++
+     record TradeEvent(
+             String sessionLabel, String coinPair, String side,
+             BigDecimal price, BigDecimal quantity, BigDecimal fee,
