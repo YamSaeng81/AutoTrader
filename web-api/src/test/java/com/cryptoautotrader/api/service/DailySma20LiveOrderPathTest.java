@@ -290,7 +290,31 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
 
     private List<OrderEntity> orders(LiveTradingSessionEntity s, String side) {
         return orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc("LIVE", s.getId()).stream()
-                .filter(o -> side.equals(o.getSide())).toList();
+                .filter(o -> side.equals(o.getSide()))
+                .filter(o -> o.getClientOrderId() == null || !o.getClientOrderId().startsWith(CLOSED_FIXTURE))   // 앞선 청산의 원천 행은 이번 접수가 아니다
+                .toList();
+    }
+
+    private static final String CLOSED_FIXTURE = "sma20-closed-";
+
+    /**
+     * 정상 청산의 주문 원천(2026-11-19, 총괄 v1.194 §2 회귀 원인) — 확정 매수 0.001 = 15,000 + 7.5, 확정 매도 0.001 = 15,100 − 7.55.
+     * 비용 기준 계약(v1.192 §2)은 주문 원천 없는 청산을 "판정 불가"로 보고 신규 진입을 막는다. 이 시험의 뜻은 "정상 청산 뒤 재진입"이므로
+     * 원천이 있는 청산을 둔다. 확정값 열·{@code sell_applied_at} 은 엔티티가 쓰지 않는 열이라 행 직접 쓴다.
+     */
+    private void confirmedRoundTrip(LiveTradingSessionEntity s, PositionEntity p, Instant closedAt) {
+        for (String side : List.of("BUY", "SELL")) {
+            boolean buy = "BUY".equals(side);
+            OrderEntity o = orderRepository.save(OrderEntity.builder()
+                    .positionId(p.getId()).coinPair(COIN).side(side).orderType("MARKET")
+                    .quantity(buy ? new BigDecimal("15000") : new BigDecimal("0.001"))
+                    .state("FILLED").clientOrderId(CLOSED_FIXTURE + UUID.randomUUID())
+                    .createdAt(buy ? p.getOpenedAt() : closedAt)
+                    .sessionId(s.getId()).sessionKind("LIVE").build());
+            jdbc.update("UPDATE \"order\" SET filled_quantity = 0.001, applied_executed_funds = ?, applied_paid_fee = ?, sell_applied_at = ? WHERE id = ?",
+                    buy ? new BigDecimal("15000") : new BigDecimal("15100"), buy ? new BigDecimal("7.5") : new BigDecimal("7.55"),
+                    buy ? null : java.sql.Timestamp.from(closedAt), o.getId());
+        }
     }
 
     /**
@@ -448,6 +472,7 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
         old.setStatus("CLOSED");
         old.setClosedAt(Instant.now().minus(2, ChronoUnit.DAYS));
         positionRepository.save(old);
+        confirmedRoundTrip(s, old, old.getClosedAt());
         evaluate(s);
         assertSubmittedOnce(s, "BUY");
     }
