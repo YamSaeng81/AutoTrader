@@ -114,6 +114,35 @@ class LiveLossWindowPgTest extends IntegrationTestBase {
                 .sessionKind(kind == null ? "LIVE" : kind).sessionId(sid).openedAt(Instant.now().minus(2, ChronoUnit.HOURS)).build());
     }
 
+    /**
+     * LIVE 세션 청산 중 포지션 + 그 포지션의 확정 매수 원천 (2026-11-19, 총괄 v1.196 §2-1·2).
+     *
+     * <p>비용 기준 계약(v1.191·v1.192 §2)은 확정 매수 원가가 없는 세션 매도를 "판정 불가"로 보고 손실 합에 넣지 않는다(신규 진입 거절).
+     * 이 시험의 뜻은 "원가가 확정된 세션 매도의 손실 합산"이므로, 같은 REAL 세션 종류/ID·포지션 ID 에 연결된 확정 BUY 를 둔다:
+     * 체결 수량 = 포지션 수량, 반영 대금 = 수량 × 평균가(기존 포지션 원가, 예: 0.0016 × 12,495,000 = 19,992), 확정 매수 수수료 = 0(명시 —
+     * NULL 이 아니다). 체결·생성 시각은 포지션 진입 시각이다. 매도는 종전대로 폴러({@code checkOrderStatus})·정산 경로를 그대로 통과한다.
+     * 반영값 열은 엔티티 setter 로 쓴다. 이 행은 시험 준비 데이터이며 실제 엔진 매수 왕복의 증거가 아니다.</p>
+     */
+    private PositionEntity liveClosingPositionWithBuy(Long sid, BigDecimal qty) {
+        PositionEntity p = closingPosition("LIVE", sid, qty, "CLOSING");
+        BigDecimal funds = qty.multiply(AVG);
+        OrderEntity buy = OrderEntity.builder()
+                .coinPair(COIN).side("BUY").orderType("MARKET")
+                .quantity(funds).state("FILLED")
+                .sessionKind(p.getSessionKind()).sessionId(p.getSessionId()).positionId(p.getId())
+                .exchangeOrderId("lw-buy-" + UUID.randomUUID()).clientOrderId("lw-buy-" + UUID.randomUUID())
+                .createdAt(p.getOpenedAt()).submittedAt(p.getOpenedAt()).build();
+        buy.setFilledQuantity(qty);
+        buy.setFilledAt(p.getOpenedAt());
+        buy.setReportedExecutedFunds(funds);
+        buy.setReportedPaidFee(BigDecimal.ZERO);
+        buy.setAppliedExecutedFunds(funds);
+        buy.setAppliedPaidFee(BigDecimal.ZERO);
+        buy.setFeeSource(OrderExecutionEngine.FEE_SOURCE_REPORTED);
+        orderRepository.save(buy);
+        return p;
+    }
+
     /** 거래소에 낸 매도 주문(SUBMITTED) — 체결은 {@link #fill} 이 폴러 경로로 만든다. */
     private OrderEntity submittedSell(PositionEntity p, BigDecimal qty) {
         return orderRepository.save(OrderEntity.builder()
@@ -200,7 +229,7 @@ class LiveLossWindowPgTest extends IntegrationTestBase {
             jdbc.update("UPDATE risk_config SET max_daily_loss_pct = 1.5, max_weekly_loss_pct = 50, max_monthly_loss_pct = 50, "
                     + "max_portfolio_drawdown_pct = 50, max_capital_utilization_pct = 90");
             Long sid = liveSession("100000", "80008");
-            PositionEntity p = closingPosition("LIVE", sid, QTY, "CLOSING");
+            PositionEntity p = liveClosingPositionWithBuy(sid, QTY);
             OrderEntity sell = submittedSell(p, QTY);
             RiskCheckResult before = riskManagementService.checkRisk();
             fill(sell, QTY, "18000", "9");
@@ -223,7 +252,7 @@ class LiveLossWindowPgTest extends IntegrationTestBase {
     @DisplayName("② 확정 전 0 · 확정 뒤 정확히 한 번(재확정·재시도에도) · 늦은 정정은 차분만 · FILL 행은 만들지 않는다")
     void countedOnceAcrossRetryAndCorrection() throws Exception {
         Long sid = liveSession("100000", "80008");
-        PositionEntity p = closingPosition("LIVE", sid, QTY, "CLOSING");
+        PositionEntity p = liveClosingPositionWithBuy(sid, QTY);
         OrderEntity sell = submittedSell(p, QTY);
         W w0 = windows();
         fill(sell, QTY, "18000", "9");
@@ -252,7 +281,7 @@ class LiveLossWindowPgTest extends IntegrationTestBase {
     @DisplayName("③ 부분 매도 뒤 나머지 매도 — 두 매도의 손실이 각각 한 번씩(1,000.50 + 2,000.00)")
     void partialThenFinal() throws Exception {
         Long sid = liveSession("100000", "80008");
-        PositionEntity p = closingPosition("LIVE", sid, QTY, "CLOSING");
+        PositionEntity p = liveClosingPositionWithBuy(sid, QTY);
         BigDecimal half = new BigDecimal("0.0008");   // 원가 9,996
         W w0 = windows();
         OrderEntity s1 = submittedSell(p, half);
@@ -282,7 +311,7 @@ class LiveLossWindowPgTest extends IntegrationTestBase {
     @DisplayName("④ 확정 롤백(세션 갱신 실패) — 합산 0, 실패 해소 뒤 재확정에서 한 번")
     void rollbackNotCounted() throws Exception {
         Long sid = liveSession("100000", "80008");
-        PositionEntity p = closingPosition("LIVE", sid, QTY, "CLOSING");
+        PositionEntity p = liveClosingPositionWithBuy(sid, QTY);
         OrderEntity sell = submittedSell(p, QTY);
         fill(sell, QTY, "18000", "9");
         W w0 = windows();
@@ -318,11 +347,11 @@ class LiveLossWindowPgTest extends IntegrationTestBase {
     void gainsNotOffset() throws Exception {
         W w0 = windows();
         Long s1 = liveSession("100000", "80008");
-        PositionEntity win = closingPosition("LIVE", s1, QTY, "CLOSING");
+        PositionEntity win = liveClosingPositionWithBuy(s1, QTY);
         OrderEntity o1 = submittedSell(win, QTY);
         fill(o1, QTY, "22000", "11");   // +1,997
         Long s2 = liveSession("100000", "80008");
-        PositionEntity loss = closingPosition("LIVE", s2, QTY, "CLOSING");
+        PositionEntity loss = liveClosingPositionWithBuy(s2, QTY);
         OrderEntity o2 = submittedSell(loss, QTY);
         fill(o2, QTY, "18000", "9");    // −2,001
         liveTradingService.reconcileClosingPositions();
@@ -372,7 +401,7 @@ class LiveLossWindowPgTest extends IntegrationTestBase {
     @DisplayName("⑦ 창 경계 — 반영 시각 T 에서 since=T 포함(≥), since=T+1µs 제외")
     void windowBoundary() throws Exception {
         Long sid = liveSession("100000", "80008");
-        PositionEntity p = closingPosition("LIVE", sid, QTY, "CLOSING");
+        PositionEntity p = liveClosingPositionWithBuy(sid, QTY);
         OrderEntity sell = submittedSell(p, QTY);
         fill(sell, QTY, "18000", "9");
         liveTradingService.reconcileClosingPositions();
