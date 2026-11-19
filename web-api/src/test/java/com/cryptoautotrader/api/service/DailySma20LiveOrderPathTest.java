@@ -290,9 +290,7 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
 
     private List<OrderEntity> orders(LiveTradingSessionEntity s, String side) {
         return orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc("LIVE", s.getId()).stream()
-                .filter(o -> side.equals(o.getSide()))
-                .filter(o -> o.getClientOrderId() == null || !o.getClientOrderId().startsWith(CLOSED_FIXTURE))   // 앞선 청산의 원천 행은 이번 접수가 아니다
-                .toList();
+                .filter(o -> side.equals(o.getSide())).toList();
     }
 
     private static final String CLOSED_FIXTURE = "sma20-closed-";
@@ -473,8 +471,33 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
         old.setClosedAt(Instant.now().minus(2, ChronoUnit.DAYS));
         positionRepository.save(old);
         confirmedRoundTrip(s, old, old.getClosedAt());
+        LiveTradingSessionEntity fresh = liveRepo.findById(s.getId()).orElseThrow();
+        assertThat(riskManagementService.costBasisEntryBlock(fresh)).as("새 매수 전 연속 손실 입력 판정 가능(판정 불가 아님)").isNull();
+        assertThat(riskManagementService.checkCircuitBreaker(fresh).isTriggered()).as("서킷 브레이커 미발동").isFalse();
         evaluate(s);
-        assertSubmittedOnce(s, "BUY");
+
+        // 재진입 BUY — 기존 단언(접수 정확히 1회·SUBMITTED·거래소 주문번호·호출 1회) 그대로. 앞선 거래의 원천 행만 이번 접수에서 뺀다(이 시험 안에서만).
+        long until = System.currentTimeMillis() + 10_000;
+        while (reentryBuys(s).isEmpty() && System.currentTimeMillis() < until) {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+        awaitDrained();
+        List<OrderEntity> found = reentryBuys(s);
+        assertThat(found).as("BUY 주문 1건 — " + lastTrace).hasSize(1);
+        assertThat(found.get(0).getState()).as("BUY 접수 기록").isEqualTo("SUBMITTED");
+        assertThat(found.get(0).getExchangeOrderId()).as("거래소 주문번호").startsWith("sma20-new-");
+        verify(upbitOrderClient, times(1)).createOrder(anyString(), anyString(), any(), any(), anyString(), anyString());
+        verify(upbitOrderClient, times(1)).createOrder(eq(COIN), eq("bid"), any(), any(), anyString(), anyString());
+    }
+
+    private List<OrderEntity> reentryBuys(LiveTradingSessionEntity s) {
+        return orders(s, "BUY").stream()
+                .filter(o -> o.getClientOrderId() == null || !o.getClientOrderId().startsWith(CLOSED_FIXTURE)).toList();
     }
 
     @Test
