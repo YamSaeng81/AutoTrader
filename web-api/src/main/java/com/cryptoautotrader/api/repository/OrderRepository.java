@@ -469,18 +469,79 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
      *
      * <p>🔴 세션 매도는 {@code OrderExecutionEngine.handleSellFill} 이 trade_log FILL 을 쓰기 전에 반환하고 청산 확정
      * ({@code LiveTradingService.finalizeSellPosition})이 반영하므로, FILL 만 읽는 전역 일/주/월 손실 합산에 빠져 있었다.
-     * 여기서는 확정이 남긴 주문 행 값으로 매도 한 건의 실현 손익을 다시 계산한다: 반영 대금 − 반영 수수료 − 체결 수량 × 포지션 평균단가
-     * (확정·정정과 같은 식). 매도 한 건 = 한 행이라 재확정·재시도에도 한 번이고({@code sell_applied_at} 조건부 표시), 늦은 정정은
+     * 여기서는 확정이 남긴 주문 행 값으로 매도 한 건의 실현 손익을 다시 계산한다: 반영 대금 − 반영 수수료 − 체결 수량 × <b>확정 매수 단가</b>
+     * (같은 포지션 BUY 반영 대금+매수 수수료 ÷ 체결 수량, {@link #BUY_COST_BY_POSITION}). 🔴 총괄 v1.191 §2 — 종전 식은 포지션 평균단가(대금 ÷ 수량,
+     * 매수 수수료 제외)라 비용 뒤 손실인데 매수 수수료 이하의 가격 이익이 난 매도를 이익으로 분류해 손실 합에서 뺐다. 원가를 확정할 수 없는
+     * 매도는 이 합에 없고 {@link #countRealSessionCostUndeterminedSince} 가 센다. 매도 한 건 = 한 행이라 재확정·재시도에도 한 번이고({@code sell_applied_at} 조건부 표시), 늦은 정정은
      * 반영값이 바뀌어 차분만 반영되며, 롤백된 확정은 표시도 함께 되돌아가 빠진다. 추정 청산(팬텀)·취소(체결 0)는 반영 행이 없어 빠진다.
      * 비세션 체결(FILL 기록)과는 {@code session_id IS NOT NULL} 로 겹치지 않는다. DYNAMIC REAL·DYN_PAPER 는 범위 밖이다(판단 대기).</p>
      */
     @Query(value = "SELECT COALESCE(SUM(pnl), 0) FROM ("
-            + " SELECT o.applied_executed_funds - COALESCE(o.applied_paid_fee, 0) - o.filled_quantity * p.avg_price AS pnl"
-            + " FROM \"order\" o JOIN position p ON p.id = o.position_id"
+            + " SELECT o.applied_executed_funds - COALESCE(o.applied_paid_fee, 0) - (o.filled_quantity * b.cost) / b.qty AS pnl"
+            + " FROM \"order\" o JOIN " + BUY_COST_BY_POSITION + " b ON b.position_id = o.position_id"
             + " WHERE o.side = 'SELL' AND o.session_id IS NOT NULL AND o.session_kind = 'LIVE'"
             + " AND o.sell_applied_at IS NOT NULL AND o.sell_applied_at >= :since AND o.applied_executed_funds IS NOT NULL"
             + ") t WHERE pnl < 0", nativeQuery = true)
     java.math.BigDecimal sumLiveSessionRealizedLossSince(@Param("since") Instant since);
+
+    /**
+     * 비용 기준 원가 (총괄 v1.191 §2) — 포지션별 확정 매수 원가: 같은 포지션에 실제 반영된 BUY 의 대금 + 매수 수수료 합과 체결 수량 합.
+     *
+     * <p>🔴 포지션당 한 행으로 먼저 모은 뒤 매도 행에 붙인다 — 여러 BUY/SELL 을 바로 조인해 매도 행을 늘리지 않는다. 매도 한 건은 자기 체결
+     * 수량만큼만 원가를 배분받는다(부분 매도 때 매수 원가 전액을 매번 빼지 않는다). 체결 수량이 있는 BUY 중 반영 대금·반영 수수료가 하나라도
+     * NULL(모름)이면 그 포지션은 이 표에 없다(HAVING) — 0 으로 채우지 않고 {@link #countRealSessionCostUndeterminedSince} 가 센다.
+     * 늦은 정정은 반영값이 바뀌어 다음 조회부터 새 단가가 되고, 같은 응답 반복은 반영값이 그대로라 변화가 없으며, 롤백된 반영은 읽히지 않는다.</p>
+     */
+    String BUY_COST_BY_POSITION = "(SELECT bo.position_id, SUM(bo.applied_executed_funds + bo.applied_paid_fee) AS cost,"
+            + " SUM(bo.filled_quantity) AS qty FROM \"order\" bo"
+            + " WHERE bo.side = 'BUY' AND bo.position_id IS NOT NULL AND bo.filled_quantity > 0"
+            + " GROUP BY bo.position_id"
+            + " HAVING COUNT(*) = COUNT(bo.applied_executed_funds) AND COUNT(*) = COUNT(bo.applied_paid_fee))";
+
+    /**
+     * 비용 기준 손실 합의 <b>판정 불가</b> 대상 수 (총괄 v1.191 §2) — 세션 종류 {@code kind}(LIVE·DYNAMIC 실자금), {@code since} 이후.
+     *
+     * <pre>
+     * ① 확정 매도(sell_applied_at)인데 그 포지션의 확정 매수 원가가 없다 — 체결 BUY 가 없거나 반영 대금/수수료가 NULL
+     * ② 청산(CLOSED)됐는데 확정 매도 수량 합이 체결 매수 수량 합보다 작다 — 팬텀(추정 청산) 등 주문 행 없는 청산분
+     * </pre>
+     * 0 이 아니면 손실 합을 확정할 수 없으므로 관문이 신규 진입을 거절한다. 이 계수만으로 보유를 청산하거나 세션을 정지하지 않는다.
+     */
+    @Query(value = "SELECT (SELECT COUNT(*) FROM \"order\" o"
+            + "   WHERE o.side = 'SELL' AND o.session_id IS NOT NULL AND o.session_kind = :kind"
+            + "   AND o.sell_applied_at IS NOT NULL AND o.sell_applied_at >= :since AND o.applied_executed_funds IS NOT NULL"
+            + "   AND NOT EXISTS (SELECT 1 FROM " + BUY_COST_BY_POSITION + " b WHERE b.position_id = o.position_id))"
+            + " + (SELECT COUNT(*) FROM position p"
+            + "   WHERE p.session_kind = :kind AND p.session_id IS NOT NULL AND p.status = 'CLOSED'"
+            + "   AND p.closed_at IS NOT NULL AND p.closed_at >= :since"
+            + "   AND (SELECT COALESCE(SUM(bq.filled_quantity), 0) FROM \"order\" bq"
+            + "        WHERE bq.position_id = p.id AND bq.side = 'BUY' AND bq.filled_quantity > 0)"
+            + "     > (SELECT COALESCE(SUM(sq.filled_quantity), 0) FROM \"order\" sq"
+            + "        WHERE sq.position_id = p.id AND sq.side = 'SELL' AND sq.sell_applied_at IS NOT NULL"
+            + "        AND sq.applied_executed_funds IS NOT NULL))",
+            nativeQuery = true)
+    long countRealSessionCostUndeterminedSince(@Param("kind") String kind, @Param("since") Instant since);
+
+    /**
+     * 포지션별 비용 기준 손익 재료 (총괄 v1.191 §2, 세션 연속 손실) — [id, 체결 BUY 수, 원가 미상 BUY 수, 매수 원가 합, 매수 수량 합,
+     * 확정 SELL 수, 매도 순대금 합, 매도 수량 합]. 확정 SELL 은 {@code sell_applied_at} 이 있는 매도(주문 원천), 순대금은 반영 대금 − 반영 수수료
+     * (반영 수수료 NULL 은 종전 손실 합 식과 같이 0).
+     */
+    @Query(value = "SELECT p.id,"
+            + " (SELECT COUNT(*) FROM \"order\" b WHERE b.position_id = p.id AND b.side = 'BUY' AND b.filled_quantity > 0),"
+            + " (SELECT COUNT(*) FROM \"order\" b WHERE b.position_id = p.id AND b.side = 'BUY' AND b.filled_quantity > 0"
+            + "    AND (b.applied_executed_funds IS NULL OR b.applied_paid_fee IS NULL)),"
+            + " (SELECT SUM(b.applied_executed_funds + b.applied_paid_fee) FROM \"order\" b"
+            + "    WHERE b.position_id = p.id AND b.side = 'BUY' AND b.filled_quantity > 0),"
+            + " (SELECT SUM(b.filled_quantity) FROM \"order\" b WHERE b.position_id = p.id AND b.side = 'BUY' AND b.filled_quantity > 0),"
+            + " (SELECT COUNT(*) FROM \"order\" s WHERE s.position_id = p.id AND s.side = 'SELL' AND s.sell_applied_at IS NOT NULL"
+            + "    AND s.applied_executed_funds IS NOT NULL),"
+            + " (SELECT SUM(s.applied_executed_funds - COALESCE(s.applied_paid_fee, 0)) FROM \"order\" s"
+            + "    WHERE s.position_id = p.id AND s.side = 'SELL' AND s.sell_applied_at IS NOT NULL AND s.applied_executed_funds IS NOT NULL),"
+            + " (SELECT SUM(s.filled_quantity) FROM \"order\" s"
+            + "    WHERE s.position_id = p.id AND s.side = 'SELL' AND s.sell_applied_at IS NOT NULL AND s.applied_executed_funds IS NOT NULL)"
+            + " FROM position p WHERE p.id IN (:ids)", nativeQuery = true)
+    List<Object[]> costBasisPartsByPosition(@Param("ids") java.util.Collection<Long> ids);
 
     /**
      * 확정된 DYNAMIC REAL 세션 매도의 실현 손실 합(음수, 없으면 0) — 총괄 v1.158 결정 2 의 DYNAMIC REAL·전체 REAL 보호식 분자.
@@ -489,8 +550,8 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
      * 없고 세션 종류도 달라 빠진다. 매도 한 건 = 한 행(재확정에도 한 번), 늦은 정정은 반영값 차분, 롤백은 표시가 함께 되돌아가 빠진다.</p>
      */
     @Query(value = "SELECT COALESCE(SUM(pnl), 0) FROM ("
-            + " SELECT o.applied_executed_funds - COALESCE(o.applied_paid_fee, 0) - o.filled_quantity * p.avg_price AS pnl"
-            + " FROM \"order\" o JOIN position p ON p.id = o.position_id"
+            + " SELECT o.applied_executed_funds - COALESCE(o.applied_paid_fee, 0) - (o.filled_quantity * b.cost) / b.qty AS pnl"
+            + " FROM \"order\" o JOIN " + BUY_COST_BY_POSITION + " b ON b.position_id = o.position_id"
             + " WHERE o.side = 'SELL' AND o.session_id IS NOT NULL AND o.session_kind = 'DYNAMIC'"
             + " AND o.sell_applied_at IS NOT NULL AND o.sell_applied_at >= :since AND o.applied_executed_funds IS NOT NULL"
             + ") t WHERE pnl < 0", nativeQuery = true)

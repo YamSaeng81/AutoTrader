@@ -197,8 +197,19 @@ class R5RealCashflowRiskTest extends AbstractSma20SameInputFixture {
         return new Trip(liveRepo.findById(l.getId()).orElseThrow(), balanceRepo.findById(p.getId()).orElseThrow(), la, pa);
     }
 
+    /**
+     * LIVE 위험 입력(v1.191 §2 개정) — 비용 기준 = 저장 손익 − 매수 수수료(투입 − 수량 × 체결 평균가). 제품 서킷 브레이커·손실 합은 주문 원천으로
+     * 같은 값을 다시 계산한다. 주문 행 없는 저장 행(앞선 거래)은 투입 = 수량 × 평균가라 저장 손익 그대로다.
+     */
+    private static BigDecimal liveCostPnl(PositionEntity lp) {
+        if (lp.getRealizedPnl() == null || lp.getInvestedKrw() == null || lp.getSize() == null || lp.getAvgPrice() == null) {
+            return lp.getRealizedPnl();
+        }
+        return lp.getRealizedPnl().subtract(lp.getInvestedKrw().subtract(lp.getSize().multiply(lp.getAvgPrice())));
+    }
+
     private String report(String name, Trip t) {
-        BigDecimal liveRisk = t.lp().getRealizedPnl();
+        BigDecimal liveRisk = liveCostPnl(t.lp());
         BigDecimal paperRisk = PaperTradingService.riskPnl(t.pp());
         BigDecimal paperScore = t.pp().getRealizedPnl();
         jdbc.update("UPDATE risk_config SET consecutive_loss_limit = 1, max_daily_loss_pct = 0.01, circuit_breaker_enabled = true WHERE id = ?",
@@ -234,16 +245,23 @@ class R5RealCashflowRiskTest extends AbstractSma20SameInputFixture {
     }
 
     @Test
-    @DisplayName("수수료 경계(+0.20%) — LIVE 관례·PAPER 위험 입력은 이익, PAPER 성적 실현은 손실(매수 수수료 포함) — 위험 판정은 손실로 세지 않음")
+    @DisplayName("수수료 경계(+0.20%, v1.191 §2 개정) — 가격 관례로는 이익이지만 양쪽 수수료 뒤 손실: LIVE·PAPER 위험 입력 모두 손실, CB 둘 다 발동(일 손실 관문은 0.01% 해상도 아래라 승인)")
     void feeBoundary() {
         // PAPER 매도 체결가 = 틱 × (1 − 모의 슬리피지 0.1%) 이므로 틱 +0.20% → 체결 약 +0.10%. 매도 수수료 0.05% 뒤 LIVE 관례 +약 0.05%,
         // 매수 수수료 0.05% 까지 빼는 성적표는 0 부근 음수.
         Trip t = roundTrip("1.002", false);
         report("수수료 경계 +0.20%", t);
-        assertThat(PaperTradingService.riskPnl(t.pp()).signum()).as("위험 입력은 이익").isPositive();
+        // 종전(v1.147 R5): 위험 입력은 LIVE 가격 관례라 이익 → 관문 승인. v1.191 §2: 비용 기준이라 손실로 센다.
+        assertThat(t.lp().getRealizedPnl().signum()).as("LIVE 저장 손익(가격 관례)은 이익 — 저장값은 바꾸지 않는다").isPositive();
+        assertThat(liveCostPnl(t.lp()).signum()).as("LIVE 비용 기준은 손실").isNegative();
+        assertThat(PaperTradingService.riskPnl(t.pp()).signum()).as("PAPER 위험 입력 = 성적 실현, 손실").isNegative();
         assertThat(t.pp().getRealizedPnl().signum()).as("성적 실현은 매수 수수료 포함이라 손실").isNegative();
+        assertThat(riskManagementService.checkCircuitBreaker(liveRepo.findById(t.live().getId()).orElseThrow()).isTriggered())
+                .as("LIVE 연속 손실 한도1 — 비용 기준 손실로 발동").isTrue();
+        // 일 손실 관문: 손실 약 0.076원 / 자본 20,000 = 0.0004% — 손실률은 비율을 소수 넷째 자리로 반올림(0.01% 해상도, 기존 식 그대로)해
+        // 0.00% 가 되어 한도 0.01% 에서 승인된다. 위험 입력의 부호 문제가 아니라 기존 해상도의 관찰이다(v1.191 후보 범위 밖, 별도 보고).
         RiskCheckResult r = ReflectionTestUtils.invokeMethod(paperTarget(), "alignedRiskCheck", t.paper());
-        assertThat(r.isApproved()).as("일 손실 0.01% 한도에서도 손실로 세지 않음").isTrue();
+        assertThat(r.isApproved()).as("손실률 해상도(0.01%) 아래 — 승인(기존 반올림)").isTrue();
     }
 
     @Test
@@ -294,7 +312,7 @@ class R5RealCashflowRiskTest extends AbstractSma20SameInputFixture {
         List<PositionEntity> lc = positionRepository.findBySessionKindAndSessionIdAndStatusOrderByClosedAtDesc("LIVE", t.live().getId(), "CLOSED");
         List<PaperPositionEntity> pc = paperPositionRepo.findBySessionIdAndStatus(t.paper().getId(), "CLOSED").stream()
                 .sorted(java.util.Comparator.comparing(PaperPositionEntity::getClosedAt).reversed()).toList();
-        int liveStreak = streak(lc.stream().map(PositionEntity::getRealizedPnl).toList());
+        int liveStreak = streak(lc.stream().map(R5RealCashflowRiskTest::liveCostPnl).toList());
         int paperStreak = streak(pc.stream().map(PaperTradingService::riskPnl).toList());
         int paperScoreStreak = streak(pc.stream().map(PaperPositionEntity::getRealizedPnl).toList());
         var liveCb = riskManagementService.checkCircuitBreaker(liveRepo.findById(t.live().getId()).orElseThrow());
@@ -330,10 +348,10 @@ class R5RealCashflowRiskTest extends AbstractSma20SameInputFixture {
     }
 
     @Test
-    @DisplayName("연속 손실 한도 2 — 앞선 손실 + 실제 수수료 경계: 위험 입력은 이익이라 줄이 끊김(둘 다 0회·CB 없음), 성적 관례였다면 2회")
+    @DisplayName("연속 손실 한도 2(v1.191 §2 개정) — 앞선 손실 + 실제 수수료 경계: 비용 기준으로 둘 다 2회·CB 발동(종전 가격 관례는 0회)")
     void consecutiveLossThenFeeBoundary() {
         Trip t = withPrior("1.002", false, "-150");
-        judgeStreak("손실→수수료 경계", t, 0, false);
+        judgeStreak("손실→수수료 경계", t, 2, true);
         assertThat(t.pp().getRealizedPnl().signum()).as("성적 실현은 음수(종전 관례면 연속 2회)").isNegative();
     }
 

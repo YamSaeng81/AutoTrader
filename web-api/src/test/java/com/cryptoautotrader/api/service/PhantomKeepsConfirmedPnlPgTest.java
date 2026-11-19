@@ -101,6 +101,7 @@ class PhantomKeepsConfirmedPnlPgTest extends IntegrationTestBase {
                 .positionFee(BigDecimal.ZERO).realizedPnl(BigDecimal.ZERO)
                 .status("CLOSING").closingAt(Instant.now())
                 .sessionKind("LIVE").sessionId(sid).openedAt(Instant.now().minus(2, ChronoUnit.HOURS)).build());
+        confirmedBuy(p);
         OrderEntity s1 = orderRepository.save(OrderEntity.builder()
                 .coinPair(coin).side("SELL").orderType("MARKET").quantity(HALF).state("SUBMITTED")
                 .sessionKind("LIVE").sessionId(sid).positionId(p.getId())
@@ -123,6 +124,22 @@ class PhantomKeepsConfirmedPnlPgTest extends IntegrationTestBase {
         BigDecimal proceeds = remaining.multiply(px);
         BigDecimal fee = proceeds.multiply(TradingConstants.FEE_RATE);
         return proceeds.subtract(fee).subtract(remaining.multiply(AVG));
+    }
+
+    /**
+     * 비용 기준 후보(총괄 v1.191 §2) 맞춤 — 직접 만든 포지션에 <b>확정 매수 행</b>(체결 QTY, 반영 대금 QTY × AVG, 반영 매수 수수료 0 — 알려진 0)을 붙인다.
+     * 원가 = QTY × AVG 라 기존 기대 숫자가 그대로이고, 첫 다리 −1,000.50 이 주문 원천 손실 합에 들어간다(매수 행이 없으면 후보는 원가 미상으로 뺀다).
+     */
+    private void confirmedBuy(PositionEntity p) {
+        orderRepository.save(OrderEntity.builder()
+                .coinPair(p.getCoinPair()).side("BUY").orderType("MARKET").quantity(QTY.multiply(AVG)).state("FILLED")
+                .sessionKind(p.getSessionKind()).sessionId(p.getSessionId()).positionId(p.getId())
+                .filledQuantity(QTY).executedFunds(QTY.multiply(AVG))
+                .appliedExecutedFunds(QTY.multiply(AVG)).appliedPaidFee(BigDecimal.ZERO)
+                .reportedExecutedFunds(QTY.multiply(AVG)).reportedPaidFee(BigDecimal.ZERO)
+                .feeSource("REPORTED").settlementFinal(Boolean.TRUE)
+                .clientOrderId("cb-buy-" + UUID.randomUUID())
+                .createdAt(Instant.now().minus(2, ChronoUnit.HOURS)).filledAt(Instant.now().minus(2, ChronoUnit.HOURS)).build());
     }
 
     private void phantomCycles(int n) {
@@ -161,6 +178,7 @@ class PhantomKeepsConfirmedPnlPgTest extends IntegrationTestBase {
 
         assertThat(l.realizedAfterLeg()).isEqualByComparingTo("-1000.50");
         assertThat(closed.getStatus()).isEqualTo("CLOSED");
+        assertThat(orderLossBefore).as("첫 다리 확정 손실이 주문 원천에 있다(비용 기준 — 확정 매수 원가 QTY × AVG)").isEqualByComparingTo("-1000.50");
         assertThat(orderLossAfter).as("phantom 은 주문 원천(전역 확정 손실)에 더하지 않는다").isEqualByComparingTo(orderLossBefore);
         assertThat(closed.getPositionFee()).as("수수료 누적(종전 규칙)")
                 .isEqualByComparingTo(feeBefore.add(HALF.multiply(l.s1().getPrice() != null && l.s1().getPrice().signum() > 0
@@ -228,6 +246,7 @@ class PhantomKeepsConfirmedPnlPgTest extends IntegrationTestBase {
                 .positionFee(BigDecimal.ZERO).realizedPnl(BigDecimal.ZERO)
                 .stopLossPrice(new BigDecimal("12000000"))
                 .status("OPEN").sessionKind("LIVE").sessionId(sid).openedAt(Instant.now().minus(2, ChronoUnit.HOURS)).build());
+        confirmedBuy(p);
         phantomCycles(3);
         PositionEntity closed = positionRepository.findById(p.getId()).orElseThrow();
         BigDecimal proceeds = QTY.multiply(new BigDecimal("12000000"));

@@ -253,8 +253,8 @@ class AlignedV147FixesTest extends AbstractSma20SameInputFixture {
     }
 
     @Test
-    @DisplayName("R5 — 같은 현금흐름(투입 20,000·매수 수수료 10·매도 순입금 19,995) 5회: LIVE 관례 위험 입력 +5 → 서킷 브레이커 아님")
-    void r5RiskInputUsesLiveConvention() {
+    @DisplayName("R5(v1.191 §2 개정) — 같은 현금흐름(투입 20,000·매수 수수료 10·매도 순입금 19,995) 5회: 비용 기준 위험 입력 −5 → 서킷 브레이커 발동")
+    void r5RiskInputUsesCostBasis() {
         VirtualBalanceEntity p = paper(BTC);
         BigDecimal fill = new BigDecimal("10000000");
         BigDecimal size = new BigDecimal("0.00199900");   // 19,990 / 10,000,000
@@ -265,10 +265,11 @@ class AlignedV147FixesTest extends AbstractSma20SameInputFixture {
                     .realizedPnl(new BigDecimal("-5")).status("CLOSED").openedAt(closed.minus(1, ChronoUnit.HOURS)).closedAt(closed).build());
         }
         PaperPositionEntity sample = paperPositions(p).get(0);
-        assertThat(PaperTradingService.riskPnl(sample)).as("LIVE 정의 손익 = −5 + (20,000 − 19,990)").isEqualByComparingTo("5");
+        // 종전(v1.147 R5): LIVE 관례 −5 + (20,000 − 19,990) = +5 → 발동 안 함. v1.191 §2: 양쪽 수수료를 포함한 비용 기준 = 성적표 값 −5.
+        assertThat(PaperTradingService.riskPnl(sample)).as("비용 기준 손익 = 매도 순입금 19,995 − 투입 20,000").isEqualByComparingTo("-5");
         CircuitBreakerResult cb = ReflectionTestUtils.invokeMethod(target(), "alignedCircuitBreaker", balanceRepo.findById(p.getId()).orElseThrow());
-        System.out.println("[R5 보완] 위험 입력 +5 ×5 → 발동=" + cb.isTriggered() + " (성적표 realizedPnl 은 −5 그대로)");
-        assertThat(cb.isTriggered()).isFalse();
+        System.out.println("[R5 개정] 위험 입력 −5 ×5 → 발동=" + cb.isTriggered() + " (성적표 realizedPnl 도 −5)");
+        assertThat(cb.isTriggered()).isTrue();
         assertThat(sample.getRealizedPnl()).isEqualByComparingTo("-5");
 
         // 실제 손실(LIVE 정의로도 −) 5회면 둘 다 발동

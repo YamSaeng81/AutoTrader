@@ -1718,6 +1718,12 @@ public class DynamicTradingService {
                 log.warn("[Dynamic] 실자금 손실 보호식으로 매수 차단 (id={}, {}): {}", sid, coinPair, realLoss.getReason());
                 return "실자금 손실 보호식: " + realLoss.getReason();
             }
+            // 🔴 총괄 v1.191 §2: 세션 연속 손실의 판정 불가(확정 비용 미상 청산) — 신규 매수만 막는다. 정지·청산 아님.
+            String costBlock = riskManagementService.costBasisEntryBlock(session);
+            if (costBlock != null) {
+                log.warn("[Dynamic] 매수 차단 (id={}, {}): {}", sid, coinPair, costBlock);
+                return costBlock;
+            }
         }
 
         // EMA200 게이트 사이즈 배수 적용 — 정상 1.0, 근접 하회 감액 0.5. null은 방어적으로 1.0 취급.

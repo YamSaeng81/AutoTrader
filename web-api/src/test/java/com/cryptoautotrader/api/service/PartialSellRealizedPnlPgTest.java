@@ -104,12 +104,30 @@ class PartialSellRealizedPnlPgTest extends IntegrationTestBase {
     }
 
     private PositionEntity closingPosition(String kind, Long sid) {
-        return positionRepository.save(PositionEntity.builder()
+        PositionEntity p = positionRepository.save(PositionEntity.builder()
                 .coinPair(COIN).side("BUY").entryPrice(AVG).avgPrice(AVG)
                 .size(QTY).investedKrw(QTY.multiply(AVG)).entryAllocationKrw(QTY.multiply(AVG))
                 .positionFee(BigDecimal.ZERO).realizedPnl(BigDecimal.ZERO)
                 .status("CLOSING").closingAt(Instant.now())
                 .sessionKind(kind).sessionId(sid).openedAt(Instant.now().minus(2, ChronoUnit.HOURS)).build());
+        confirmedBuy(p);
+        return p;
+    }
+
+    /**
+     * 비용 기준 후보(총괄 v1.191 §2) 맞춤 — 직접 만든 포지션에 <b>확정 매수 행</b>을 붙인다: 체결 수량 QTY, 반영 대금 QTY × AVG, 반영 매수 수수료 0
+     * (알려진 0, NULL 아님). 비용 기준 원가 = QTY × AVG 라 이 시험의 기존 기대 숫자가 그대로다. 매수 행이 없으면 후보는 원가 미상(판정 불가)으로 본다.
+     */
+    private void confirmedBuy(PositionEntity p) {
+        orderRepository.save(OrderEntity.builder()
+                .coinPair(p.getCoinPair()).side("BUY").orderType("MARKET").quantity(QTY.multiply(AVG)).state("FILLED")
+                .sessionKind(p.getSessionKind()).sessionId(p.getSessionId()).positionId(p.getId())
+                .filledQuantity(QTY).executedFunds(QTY.multiply(AVG))
+                .appliedExecutedFunds(QTY.multiply(AVG)).appliedPaidFee(BigDecimal.ZERO)
+                .reportedExecutedFunds(QTY.multiply(AVG)).reportedPaidFee(BigDecimal.ZERO)
+                .feeSource("REPORTED").settlementFinal(Boolean.TRUE)
+                .clientOrderId("cb-buy-" + UUID.randomUUID())
+                .createdAt(Instant.now().minus(2, ChronoUnit.HOURS)).filledAt(Instant.now().minus(2, ChronoUnit.HOURS)).build());
     }
 
     private OrderEntity submittedSell(PositionEntity p, BigDecimal qty) {

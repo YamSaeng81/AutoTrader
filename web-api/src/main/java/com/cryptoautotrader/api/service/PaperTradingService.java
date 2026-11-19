@@ -1545,15 +1545,14 @@ public class PaperTradingService {
     }
 
     /**
-     * 위험 판단 입력 손익 — LIVE 관례(매도 순수익 − 수량 × 체결 평균가, 매수 수수료는 빼지 않음)로 맞춘다 (2026-11-11, 총괄 v1.147 R5).
-     * 성적표의 {@code realizedPnl}(투입금 기준, 매수 수수료 포함)은 바꾸지 않는다. 선택 모드의 avgPrice 는 체결가이므로
-     * realizedPnl + (investedKrw − size × avgPrice) 가 LIVE 정의의 손익이다. 값이 모자라면 realizedPnl 그대로.
+     * 위험 판단 입력 손익 — <b>비용 기준</b>(매도 순수익 − 투입금, 양쪽 수수료 포함) (총괄 v1.191 §2, 2026-11-19).
+     *
+     * <p>🔴 v1.147 R5 는 LIVE 관례(매수 수수료를 되더한 값)로 맞췄다. LIVE·DYNAMIC REAL 의 손실 합·연속 손실이 비용 기준으로 바뀌었으므로
+     * 같은 판정을 유지하려면 이쪽도 비용 기준이어야 한다. 선택 모드의 {@code realizedPnl} 이 이미 매도 순수익 − investedKrw(대금+매수 수수료)라
+     * 그대로 쓴다. 성적표 값과 같다. 가격 판단(SL/TP 평균가)은 바꾸지 않는다.</p>
      */
     static BigDecimal riskPnl(PaperPositionEntity p) {
-        if (p.getRealizedPnl() == null || p.getInvestedKrw() == null || p.getSize() == null || p.getAvgPrice() == null) {
-            return p.getRealizedPnl();
-        }
-        return p.getRealizedPnl().add(p.getInvestedKrw().subtract(p.getSize().multiply(p.getAvgPrice())));
+        return p.getRealizedPnl();
     }
 
     /** 실현 자산 경로의 고점 — 초기 자본에서 청산 순서대로 실현 손익(현금 기준)을 더한 값의 최대. */
