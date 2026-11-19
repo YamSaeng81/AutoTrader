@@ -1545,6 +1545,13 @@ public class LiveTradingService {
             log.warn("매수 스킵: 세션({})에 이미 활성 BUY 주문이 있습니다 ({})", session.getId(), coinPair);
             return "이미 활성 매수 주문이 있다";
         }
+        // 🔴 총괄 v1.191 §2: 연속 손실 줄에 확정 비용을 못 구한 청산이 걸리면 신규 매수만 막는다(즉시·회차 승인 공통 — 둘 다 여기를 지난다).
+        //    서킷 브레이커 발동(비상 정지)이 아니며 보유·청산 경로는 건드리지 않는다.
+        String costBlock = riskManagementService.costBasisEntryBlock(session);
+        if (costBlock != null) {
+            log.warn("매수 차단: 세션({}) {}", session.getId(), costBlock);
+            return costBlock;
+        }
 
         BigDecimal ratio = session.getInvestRatio() != null ? session.getInvestRatio() : exitConfig().getInvestRatio();
         BigDecimal baseAmount = session.getAvailableKrw().multiply(ratio);

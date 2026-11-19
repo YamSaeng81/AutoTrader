@@ -167,6 +167,11 @@ public class RiskManagementService {
         RiskConfigEntity configEntity = getRiskConfig();
         RiskConfig coreConfig = toRiskConfig(configEntity);
         RiskEngine engine = new RiskEngine(coreConfig);
+        // 🔴 총괄 v1.191 §2: 확정 원가를 못 구한 LIVE 세션 매도·미확정 청산이 30일 창에 있으면 손실 합을 확정할 수 없다 — 판정 불가로 거절.
+        String liveUndetermined = costUndeterminedReason("기존 보호식", "LIVE", Instant.now());
+        if (liveUndetermined != null) {
+            return RiskCheckResult.reject(liveUndetermined);
+        }
 
         // 포트폴리오 한도: 실제 운영 중인 RUNNING 세션들의 initialCapital 합을 우선 사용.
         // 실전매매 소액 운영(예: 1만원) 시 하드코딩 1,000만원 분모가 실손실을 희석해
@@ -215,6 +220,10 @@ public class RiskManagementService {
         RiskConfigEntity configEntity = getRiskConfig();
         RiskEngine engine = new RiskEngine(toRiskConfig(configEntity));
         Instant now = Instant.now();
+        String liveUndetermined = costUndeterminedReason("기존 보호식", "LIVE", now);
+        if (liveUndetermined != null) {
+            return RiskCheckResult.reject(liveUndetermined);   // v1.191 §2 — 기존 손실 원천의 LIVE 세션 매도를 확정할 수 없다
+        }
         BigDecimal legacyDenom = resolvePortfolioLimit(configEntity);
         RiskCheckResult legacy = engine.check(
                 calculateLossPct(now.minus(1, ChronoUnit.DAYS), legacyDenom),
@@ -243,6 +252,10 @@ public class RiskManagementService {
         Instant[] since = {now.minus(1, ChronoUnit.DAYS), now.minus(7, ChronoUnit.DAYS), now.minus(30, ChronoUnit.DAYS)};
         // 🔴 조회 실패는 잡지 않는다 — 예외로 이 진입을 중단한다(fail-closed). 참여 중인 트랜잭션은 이미 롤백 전용이 되어, 잡고 거절을
         //    돌려줘도 호출자 커밋에서 다시 실패하기 때문이다. 손실 0·무한 자본으로 보고 통과시키는 경로는 없다.
+        String dynUndetermined = costUndeterminedReason("DYNAMIC REAL 보호식", "DYNAMIC", now);
+        if (dynUndetermined != null) {
+            return RiskCheckResult.reject(dynUndetermined);   // v1.191 §2 — 전체 REAL 보호식도 같은 원천이라 함께 판정 불가
+        }
         {
             BigDecimal liveCap = runningLiveCapital();
             BigDecimal dynCap = runningDynamicRealCapital();
@@ -274,6 +287,19 @@ public class RiskManagementService {
             return RiskCheckResult.reject("[전체 REAL 보호식] " + total.getReason());
         }
         return RiskCheckResult.approve();
+    }
+
+    /**
+     * 비용 기준 손실 합의 판정 불가 사유 (총괄 v1.191 §2) — 30일 창(가장 넓은 창)에 확정 원가를 못 구한 세션 매도·미확정 청산이 있으면 문구, 없으면 null.
+     * 🔴 조회 실패는 잡지 않는다(fail-closed, 위 보호식과 같은 규칙).
+     */
+    private String costUndeterminedReason(String formula, String kind, Instant now) {
+        long n = orderRepository.countRealSessionCostUndeterminedSince(kind, now.minus(30, ChronoUnit.DAYS));
+        if (n <= 0) return null;
+        String msg = String.format("[%s] 판정 불가 — 30일 안 %s 세션 매도/청산 %d건의 확정 비용(매수 대금+수수료 또는 매도 체결)을 구하지 못했다"
+                + "(손실 0·이익으로 보지 않는다)", formula, kind, n);
+        log.warn("리스크 체크 거부: {}", msg);
+        return msg;
     }
 
     private static BigDecimal negOrZero(BigDecimal v) {
@@ -351,16 +377,87 @@ public class RiskManagementService {
         return evaluateCircuitBreaker(getRiskConfig(), mddPeak, initialCapital, totalAssetKrw, () -> {
             List<PositionEntity> closedPositions = positionRepository
                     .findBySessionKindAndSessionIdAndStatusOrderByClosedAtDesc(sessionKind, sessionId, "CLOSED");
-            List<BigDecimal> pnlNewestFirst = new java.util.ArrayList<>();
+            List<PositionEntity> counted = new java.util.ArrayList<>();
             for (PositionEntity pos : closedPositions) {
                 if (countLossesAfter != null
                         && (pos.getClosedAt() == null || !pos.getClosedAt().isAfter(countLossesAfter))) {
                     break; // 이번 가동 이전 청산분 — 집계 중단
                 }
-                pnlNewestFirst.add(pos.getRealizedPnl());
+                counted.add(pos);
             }
-            return pnlNewestFirst;
+            // 🔴 총괄 v1.191 §2: 실자금(LIVE·DYNAMIC)은 주문 원천의 비용 기준 손익(양쪽 수수료)으로 센다. DYN_PAPER 는 저장 손익이
+            //    이미 수수료 포함 평균가 기준이라 종전 그대로.
+            boolean real = "LIVE".equals(sessionKind) || "DYNAMIC".equals(sessionKind);
+            return real ? costBasisClosedPnl(counted)
+                    : counted.stream().map(p -> ClosedPnl.known(p.getRealizedPnl())).toList();
         });
+    }
+
+    /** 연속 손실 입력 한 칸 — 확정 손익 또는 판정 불가(v1.191 §2). {@code value} null 은 종전과 같이 손실이 아님(줄 끊김). */
+    record ClosedPnl(BigDecimal value, boolean undetermined, Long positionId) {
+        static ClosedPnl known(BigDecimal v) { return new ClosedPnl(v, false, null); }
+    }
+
+    /**
+     * 완료 포지션의 비용 기준 손익 = 확정 매도 순대금 합 − 확정 매도 수량 × (확정 매수 대금+수수료 합 ÷ 체결 매수 수량) (v1.191 §2).
+     *
+     * <pre>
+     * 주문 원천 없음(체결 BUY 0·확정 SELL 0 — 주문 행이 연결되지 않은 과거/수동 행) → 저장 손익(종전)
+     * 체결 BUY 의 반영 대금/수수료 미상, 또는 확정 매도 수량 &lt; 체결 매수 수량(팬텀 등 추정 청산분) → 판정 불가
+     * </pre>
+     */
+    private List<ClosedPnl> costBasisClosedPnl(List<PositionEntity> newestFirst) {
+        if (newestFirst.isEmpty()) return List.of();
+        java.util.Map<Long, Object[]> parts = new java.util.HashMap<>();
+        List<Object[]> rows = orderRepository.costBasisPartsByPosition(newestFirst.stream().map(PositionEntity::getId).toList());
+        if (rows != null) {
+            for (Object[] r : rows) parts.put(((Number) r[0]).longValue(), r);
+        }
+        List<ClosedPnl> out = new java.util.ArrayList<>(newestFirst.size());
+        for (PositionEntity pos : newestFirst) {
+            Object[] r = parts.get(pos.getId());
+            long buyN = r == null ? 0 : ((Number) r[1]).longValue();
+            long sellN = r == null ? 0 : ((Number) r[5]).longValue();
+            if (buyN == 0 && sellN == 0) {
+                out.add(ClosedPnl.known(pos.getRealizedPnl()));
+                continue;
+            }
+            long buyUnknown = ((Number) r[2]).longValue();
+            BigDecimal buyCost = dec(r[3]);
+            BigDecimal buyQty = dec(r[4]);
+            BigDecimal sellNet = dec(r[6]);
+            BigDecimal sellQty = dec(r[7]);
+            if (buyN == 0 || buyUnknown > 0 || buyCost == null || buyQty == null || buyQty.signum() <= 0
+                    || sellQty == null || sellQty.compareTo(buyQty) < 0) {
+                out.add(new ClosedPnl(null, true, pos.getId()));
+                continue;
+            }
+            BigDecimal cost = sellQty.multiply(buyCost).divide(buyQty, 8, RoundingMode.HALF_UP);
+            out.add(new ClosedPnl(sellNet.subtract(cost), false, pos.getId()));
+        }
+        return out;
+    }
+
+    private static BigDecimal dec(Object o) {
+        if (o == null) return null;
+        return o instanceof BigDecimal b ? b : new BigDecimal(o.toString());
+    }
+
+    /**
+     * 신규 진입 전 세션 연속 손실의 <b>판정 불가</b> 사유 (v1.191 §2) — 판정 불가면 문구, 아니면 null. 발동은 회차 시작의 서킷 브레이커가 맡는다.
+     * LIVE 즉시·회차 승인 진입({@code executeSessionBuy})과 DYNAMIC REAL 진입({@code executeBuy})이 부른다.
+     */
+    @Transactional(readOnly = true)
+    public String costBasisEntryBlock(LiveTradingSessionEntity session) {
+        CircuitBreakerResult r = checkCircuitBreaker(session);
+        return r.isEntryBlocked() && !r.isTriggered() ? r.getReason() : null;
+    }
+
+    /** @see #costBasisEntryBlock(LiveTradingSessionEntity) */
+    @Transactional(readOnly = true)
+    public String costBasisEntryBlock(com.cryptoautotrader.api.entity.DynamicSessionEntity session) {
+        CircuitBreakerResult r = checkCircuitBreaker(session);
+        return r.isEntryBlocked() && !r.isTriggered() ? r.getReason() : null;
     }
 
     /**
@@ -374,7 +471,8 @@ public class RiskManagementService {
     public CircuitBreakerResult checkCircuitBreakerFromValues(BigDecimal mddPeak, BigDecimal initialCapital,
                                                               BigDecimal totalAssetKrw,
                                                               List<BigDecimal> closedPnlNewestFirst) {
-        return evaluateCircuitBreaker(getRiskConfig(), mddPeak, initialCapital, totalAssetKrw, () -> closedPnlNewestFirst);
+        return evaluateCircuitBreaker(getRiskConfig(), mddPeak, initialCapital, totalAssetKrw,
+                () -> closedPnlNewestFirst.stream().map(ClosedPnl::known).toList());
     }
 
     /** 모의 계좌 입력으로 같은 한도({@code risk_config})를 판단하는 엔진 (LIVE_ALIGNED). REAL 계좌·풀을 읽지 않는다. */
@@ -386,7 +484,7 @@ public class RiskManagementService {
     /** 순수 판정 — REAL·DYNAMIC·모의 계좌가 같은 식을 쓴다. 입력만 다르다. */
     private static CircuitBreakerResult evaluateCircuitBreaker(RiskConfigEntity config, BigDecimal mddPeak,
                                                                BigDecimal initialCapital, BigDecimal totalAssetKrw,
-                                                               java.util.function.Supplier<List<BigDecimal>> closedPnlNewestFirst) {
+                                                               java.util.function.Supplier<List<ClosedPnl>> closedPnlNewestFirst) {
         if (!Boolean.TRUE.equals(config.getCircuitBreakerEnabled())) {
             return CircuitBreakerResult.pass();
         }
@@ -414,7 +512,13 @@ public class RiskManagementService {
 
         // ── 연속 손실 체크 ────────────────────────────────────
         int consecutiveLosses = 0;
-        for (BigDecimal pnl : closedPnlNewestFirst.get()) {
+        ClosedPnl undetermined = null;
+        for (ClosedPnl c : closedPnlNewestFirst.get()) {
+            if (c.undetermined()) {
+                undetermined = c;   // v1.191 §2 — 이 칸이 손실인지 모른다. 이익으로 끊지도 손실로 세지도 않는다
+                break;
+            }
+            BigDecimal pnl = c.value();
             if (pnl != null && pnl.compareTo(BigDecimal.ZERO) < 0) {
                 consecutiveLosses++;
             } else {
@@ -424,6 +528,11 @@ public class RiskManagementService {
         if (consecutiveLosses >= consecutiveLossLimit) {
             return CircuitBreakerResult.triggered(
                     String.format("연속 손실 %d회 초과 (한도: %d회)", consecutiveLosses, consecutiveLossLimit));
+        }
+        if (undetermined != null) {
+            return CircuitBreakerResult.entryUndetermined(String.format(
+                    "연속 손실 판정 불가 — 최근 확정 손실 %d회 다음 청산(posId=%s)의 확정 비용을 구하지 못했다(한도: %d회). 신규 진입만 막고 정지·청산하지 않는다",
+                    consecutiveLosses, undetermined.positionId(), consecutiveLossLimit));
         }
 
         return CircuitBreakerResult.pass();
