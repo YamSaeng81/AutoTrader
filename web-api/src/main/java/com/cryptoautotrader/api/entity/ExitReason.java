@@ -69,6 +69,14 @@ public enum ExitReason {
      * 전략 성과처럼 집계되고 있었다. 이 구분은 그 오독을 막기 위한 것이다.</p>
      */
     public boolean countsTowardStrategyPerformance() {
-        return this != FORCED_STOP && this != UNKNOWN;
+        return this != FORCED_STOP && this != UNKNOWN && this != ENTRY_REJECTED;
+    }
+
+    /**
+     * 거래였는가 (v1.193 §2) — {@link #ENTRY_REJECTED} 빈 슬롯은 주문·체결이 없어 거래 수·승률/손실 분모에 넣지 않는다. 행과 사유는 감사용으로 남는다.
+     * 다른 사유(사유 없음 포함)는 종전대로 거래로 센다 — 기존 집계를 바꾸지 않는다.
+     */
+    public static boolean isTrade(ExitReason reason) {
+        return reason != ENTRY_REJECTED;
     }
 }

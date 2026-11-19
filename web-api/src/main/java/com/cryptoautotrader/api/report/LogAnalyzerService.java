@@ -69,6 +69,9 @@ public class LogAnalyzerService {
         List<PositionEntity> closedPos = sessionType != null
                 ? positionRepo.findClosedByPeriodAndSessionType(sessionType, from, to)
                 : positionRepo.findClosedByPeriod(from, to);
+        // v1.193 §2 — 진입 예약 거절 빈 슬롯(ENTRY_REJECTED)은 거래가 아니다: 청산 수·승률/손실 분모·코인별 통계에서 뺀다.
+        closedPos = closedPos.stream()
+                .filter(p -> com.cryptoautotrader.api.entity.ExitReason.isTrade(p.getExitReason())).toList();
 
         SignalStats    signals      = buildSignalStats(periodLogs);
         PositionStats  positions    = buildPositionStats(closedPos);

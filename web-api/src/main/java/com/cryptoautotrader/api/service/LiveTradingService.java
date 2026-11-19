@@ -2255,6 +2255,8 @@ public class LiveTradingService {
             List<PositionEntity> positions = positionsBySession.getOrDefault(session.getId(), List.of());
             List<PositionEntity> closed = positions.stream()
                     .filter(p -> "CLOSED".equals(p.getStatus()))
+                    // v1.193 §2 — 진입 예약 거절 빈 슬롯은 거래가 아니다(거래 수·승률 분모에서 제외)
+                    .filter(p -> com.cryptoautotrader.api.entity.ExitReason.isTrade(p.getExitReason()))
                     .filter(p -> closedSince == null || p.getClosedAt() == null || !p.getClosedAt().isBefore(closedSince))
                     .toList();
             List<PositionEntity> open   = positions.stream().filter(p -> "OPEN".equals(p.getStatus())).toList();
