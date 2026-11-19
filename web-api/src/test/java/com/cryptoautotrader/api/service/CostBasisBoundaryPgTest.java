@@ -404,7 +404,7 @@ class CostBasisBoundaryPgTest extends IntegrationTestBase {
                 }
 
                 // ── N2 체결 없음이 확정된 매수 취소 → 판정 불가 아님 ──
-                setRisk("0.001", 1);
+                setRisk("50", 5);   // 매수 경로는 사전 등록 한도에서(측정 한도 0.00 은 공유 풀 예약이 RISK_CONFIG_MISMATCH 로 거절)
                 Long s2 = newSession(kind);
                 markPriceBook.record("KRW-RND", new BigDecimal("300"), Instant.now());
                 assertThat(buyPath(kind, s2)).as("%s#%d 매수 경로", kind, s2).isNull();
@@ -413,6 +413,7 @@ class CostBasisBoundaryPgTest extends IntegrationTestBase {
                 poll(buy2, resp("bid", "cancel", "0", "0", "0"));
                 OrderEntity c2 = orderRepository.findById(buy2).orElseThrow();
                 orphanReconcile(kind);
+                setRisk("0.001", 1);
                 PositionEntity p2 = positionRepository.findById(c2.getPositionId()).orElseThrow();
                 check("N2 " + kind + " 체결 0 취소 매수 → 고아 정리 CLOSED (state=" + c2.getState() + ")", "CLOSED".equals(p2.getStatus()),
                         p2.getStatus());
