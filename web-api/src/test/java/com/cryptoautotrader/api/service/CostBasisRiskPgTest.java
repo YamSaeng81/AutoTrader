@@ -241,8 +241,13 @@ class CostBasisRiskPgTest extends IntegrationTestBase {
         setRisk(pct, pct, pct, consecutive);
     }
 
-    /** 앞 단계 행을 일/주/월 창 밖(40일 전)으로 옮긴다 — 삭제하지 않는다. */
+    /**
+     * 앞 단계 행을 일/주/월 창 밖(40일 전)으로 옮기고 앞 단계 세션을 STOPPED 로 둔다 — 삭제하지 않는다. 세션을 멈추는 것은 손실률 분모
+     * (RUNNING 초기자본 합)가 단계마다 늘어 손실률이 0.01% 해상도(비율 소수 넷째 자리 반올림, 제품 그대로) 아래로 내려가지 않게 하려는 것이다.
+     */
     private void ageAll() {
+        jdbc.update("UPDATE live_trading_session SET status = 'STOPPED' WHERE status = 'RUNNING'");
+        jdbc.update("UPDATE dynamic_session SET status = 'STOPPED' WHERE status = 'RUNNING'");
         jdbc.update("UPDATE \"order\" SET sell_applied_at = sell_applied_at - interval '40 days' WHERE sell_applied_at IS NOT NULL");
         jdbc.update("UPDATE position SET closed_at = closed_at - interval '40 days' WHERE closed_at IS NOT NULL");
     }
@@ -325,6 +330,8 @@ class CostBasisRiskPgTest extends IntegrationTestBase {
         try {
             assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM \"order\"", Long.class)).as("새 DB").isZero();
             Instant far = Instant.now().minus(30, ChronoUnit.DAYS);
+            // 측정 한도 0.001%: 손실률은 비율을 소수 넷째 자리로 반올림한 값(0.01% 단위, 제품 그대로)이라 0.01% 한도는 같은 단계의 세션 수에 따라
+            // 동률(승인)이 될 수 있다. 0 이 아닌 손실이면 거절, 손실 0 이면 승인되는 한도로 잰다.
 
             // ── S1 부호: 매수 7,500+3.75 → 매도 7,504.75−3.75. 비용 뒤 −2.75 ──
             setRisk("50", 5);
@@ -332,12 +339,12 @@ class CostBasisRiskPgTest extends IntegrationTestBase {
             Long d1 = newDynamic("REAL");
             trip("LIVE", l1, "7504.75", "3.75");
             trip("DYNAMIC", d1, "7504.75", "3.75");
-            setRisk("0.01", 1);
+            setRisk("0.001", 1);
             check("S1 LIVE 손실 합 = −2.75", eq(liveLoss(far), "-2.75"), liveLoss(far));
             check("S1 DYNAMIC REAL 손실 합 = −2.75", eq(dynLoss(far), "-2.75"), dynLoss(far));
             RiskCheckResult s1Risk = risk.checkRisk();
             RiskCheckResult s1Guard = risk.checkRealLossGuard();
-            check("S1 checkRisk 거절(일 0.01%)", !s1Risk.isApproved(), verdict(s1Risk));
+            check("S1 checkRisk 거절(일 0.001%)", !s1Risk.isApproved(), verdict(s1Risk));
             check("S1 checkRealLossGuard 거절", !s1Guard.isApproved(), verdict(s1Guard));
             Map<String, Object> s1bl = breaker("LIVE", l1);
             Map<String, Object> s1bd = breaker("DYNAMIC", d1);
@@ -365,7 +372,7 @@ class CostBasisRiskPgTest extends IntegrationTestBase {
             setRisk("50", 5);
             Long l3 = newLive();
             trip("LIVE", l3, "7507.50", "3.75");
-            setRisk("0.01", 1);
+            setRisk("0.001", 1);
             check("S3 LIVE 손실 합 = 0", eq(liveLoss(far), "0"), liveLoss(far));
             RiskCheckResult s3 = risk.checkRisk();
             check("S3 checkRisk 승인(0 은 손실 아님)", s3.isApproved(), verdict(s3));
@@ -398,21 +405,21 @@ class CostBasisRiskPgTest extends IntegrationTestBase {
             Long[] w = trip("LIVE", newLive(), "7504.75", "3.75");
             Instant now = Instant.now();
             ageSell(w[1], "25 hours");
-            setRisk("0.01", "50", "50", 5);
+            setRisk("0.001", "50", "50", 5);
             RiskCheckResult d25 = risk.checkRisk();
-            check("S5 25시간 전 — 일 창 밖(일 0.01% 승인)", d25.isApproved(), verdict(d25));
-            setRisk("50", "0.01", "50", 5);
+            check("S5 25시간 전 — 일 창 밖(일 0.001% 승인)", d25.isApproved(), verdict(d25));
+            setRisk("50", "0.001", "50", 5);
             RiskCheckResult w25 = risk.checkRisk();
-            check("S5 25시간 전 — 주 창 안(주 0.01% 거절)", !w25.isApproved() && String.valueOf(w25.getReason()).startsWith("주간"), verdict(w25));
+            check("S5 25시간 전 — 주 창 안(주 0.001% 거절)", !w25.isApproved() && String.valueOf(w25.getReason()).startsWith("주간"), verdict(w25));
             ageSell(w[1], "8 days");
             RiskCheckResult w8 = risk.checkRisk();
-            check("S5 8일 전 — 주 창 밖(주 0.01% 승인)", w8.isApproved(), verdict(w8));
-            setRisk("50", "50", "0.01", 5);
+            check("S5 8일 전 — 주 창 밖(주 0.001% 승인)", w8.isApproved(), verdict(w8));
+            setRisk("50", "50", "0.001", 5);
             RiskCheckResult m8 = risk.checkRisk();
-            check("S5 8일 전 — 월 창 안(월 0.01% 거절)", !m8.isApproved() && String.valueOf(m8.getReason()).startsWith("월간"), verdict(m8));
+            check("S5 8일 전 — 월 창 안(월 0.001% 거절)", !m8.isApproved() && String.valueOf(m8.getReason()).startsWith("월간"), verdict(m8));
             ageSell(w[1], "31 days");
             RiskCheckResult m31 = risk.checkRisk();
-            check("S5 31일 전 — 월 창 밖(월 0.01% 승인)", m31.isApproved(), verdict(m31));
+            check("S5 31일 전 — 월 창 밖(월 0.001% 승인)", m31.isApproved(), verdict(m31));
             check("S5 창별 손실 합(1일/7일/30일) = 0/0/0(31일 전)", eq(liveLoss(now.minus(30, ChronoUnit.DAYS)), "0"),
                     liveLoss(now.minus(30, ChronoUnit.DAYS)));
             ageAll();
