@@ -402,8 +402,10 @@ public class RiskManagementService {
      * 완료 포지션의 비용 기준 손익 = 확정 매도 순대금 합 − 확정 매도 수량 × (확정 매수 대금+수수료 합 ÷ 체결 매수 수량) (v1.191 §2).
      *
      * <pre>
-     * 주문 원천 없음(체결 BUY 0·확정 SELL 0 — 주문 행이 연결되지 않은 과거/수동 행) → 저장 손익(종전)
-     * 체결 BUY 의 반영 대금/수수료 미상, 또는 확정 매도 수량 &lt; 체결 매수 수량(팬텀 등 추정 청산분) → 판정 불가
+     * 무거래 확정(BUY 모두 체결 0 확정·확정 SELL 없음) → 0 (손실 아님, 종전과 같이 줄 끊김)
+     * 주문 원천 없음(체결 BUY 0·확정 SELL 0, 무거래 확정 아님) → 판정 불가 (v1.192 §2 — 저장 손익으로 대신하지 않는다)
+     * 체결 BUY 의 반영 대금/수수료 미상, 확정 SELL 의 대금/수수료/수량 미상(NULL — 확정 0 과 구분),
+     *   또는 확정 매도 수량 &lt; 체결 매수 수량(팬텀 등 추정 청산분) → 판정 불가
      * </pre>
      */
     private List<ClosedPnl> costBasisClosedPnl(List<PositionEntity> newestFirst) {
@@ -418,8 +420,10 @@ public class RiskManagementService {
             Object[] r = parts.get(pos.getId());
             long buyN = r == null ? 0 : ((Number) r[1]).longValue();
             long sellN = r == null ? 0 : ((Number) r[5]).longValue();
-            if (buyN == 0 && sellN == 0) {
-                out.add(ClosedPnl.known(pos.getRealizedPnl()));
+            long sellMissing = r == null ? 0 : ((Number) r[8]).longValue();
+            boolean noTrade = r != null && ((Number) r[9]).intValue() == 1;
+            if (buyN == 0 && sellN == 0 && sellMissing == 0) {
+                out.add(noTrade ? ClosedPnl.known(BigDecimal.ZERO) : new ClosedPnl(null, true, pos.getId()));
                 continue;
             }
             long buyUnknown = ((Number) r[2]).longValue();
@@ -427,7 +431,7 @@ public class RiskManagementService {
             BigDecimal buyQty = dec(r[4]);
             BigDecimal sellNet = dec(r[6]);
             BigDecimal sellQty = dec(r[7]);
-            if (buyN == 0 || buyUnknown > 0 || buyCost == null || buyQty == null || buyQty.signum() <= 0
+            if (buyN == 0 || buyUnknown > 0 || sellMissing > 0 || sellNet == null || buyCost == null || buyQty == null || buyQty.signum() <= 0
                     || sellQty == null || sellQty.compareTo(buyQty) < 0) {
                 out.add(new ClosedPnl(null, true, pos.getId()));
                 continue;
