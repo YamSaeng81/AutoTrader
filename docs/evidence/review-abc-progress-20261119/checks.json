@@ -1,0 +1,219 @@
+{
+  "passed": 35,
+  "failed": 0,
+  "checks": [
+    {
+      "check": "docs\\evidence\\dec-costbasis-followup-20261119\\base-fail\\cost_basis_followup_checks.json",
+      "pass": true,
+      "actual": {
+        "total": 47,
+        "passed": 35,
+        "sha256": "b51d1291a8172a5022a998295b96d38c6f7fd9c852ee3d569059aa3f3d440ad4"
+      }
+    },
+    {
+      "check": "docs\\evidence\\dec-costbasis-followup-20261119\\fix1\\cost_basis_followup_checks.json",
+      "pass": true,
+      "actual": {
+        "total": 47,
+        "passed": 47,
+        "sha256": "749e455d6bdee4146d5066073cd95db376f07cbb6c5f98ada3d540dd3adbecad"
+      }
+    },
+    {
+      "check": "docs\\evidence\\dec-costbasis-followup-20261119\\affected-pg\\cost_basis_checks.json",
+      "pass": true,
+      "actual": {
+        "total": 48,
+        "passed": 48,
+        "sha256": "0d538f6add0724704fe42da403816a419cba7f91cc954f76272f468ae098701f"
+      }
+    },
+    {
+      "check": "docs\\evidence\\dec-costbasis-followup-20261119\\affected-pg\\cost_basis_boundary_checks.json",
+      "pass": true,
+      "actual": {
+        "total": 59,
+        "passed": 59,
+        "sha256": "554cd554eb4ce234a47a7cc2eea23a94527f882239c761d88dd0664597133e1c"
+      }
+    },
+    {
+      "check": "docs\\evidence\\dec-integ-abc-20261119\\cross-r2\\abc_cross_checks.json",
+      "pass": true,
+      "actual": {
+        "total": 19,
+        "passed": 19,
+        "sha256": "de284c4132853b51b4b2de64470b30dc390bd8a6425bbc5f304ba2eeb4371b35"
+      }
+    },
+    {
+      "check": "saved cross observation: BUY alert events zero",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "docs\\evidence\\dec-costbasis-followup-20261119\\affected-h2 XML summary",
+      "pass": true,
+      "actual": {
+        "files": 39,
+        "tests": 257,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "check": "docs\\evidence\\dec-costbasis-followup-20261119\\affected-pg XML summary",
+      "pass": true,
+      "actual": {
+        "files": 6,
+        "tests": 37,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "check": "docs\\evidence\\dec-integ-abc-20261119\\cross-r2 XML summary",
+      "pass": true,
+      "actual": {
+        "files": 1,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "check": "follow-up: five product Java and two test Java files, no other inputs",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "saved product diff equals fixed Git diff",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "N1 explicitly checks BUY quantity is non-NULL and zero",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "pre-deploy extraction source is fixed b408a223",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "integration map has 15 rows",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "patch-id dfe3b9f7 -> 467ce257",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "patch-id 09bf2eb5 -> 8984ee40",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "patch-id d55fa916 -> 68728a1b",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "patch-id 43017efa -> b8e9a070",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "patch-id 1744bb4b -> 989a49c7",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "patch-id b861bdf9 -> db9413c5",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "patch-id d578c95b -> ca1f4096",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "patch-id 1cadf471 -> d1efc554",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "patch-id a2c532fe -> 7ee9f022",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "patch-id 45cf9798 -> 30022638",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "patch-id ab9899c6 -> 7b1efad8",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "patch-id a243efbf -> f20bc552",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "patch-id 32d5dafd -> 9855639d",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "patch-id a533c0f4 -> a94b1b9e",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "patch-id b408a223 -> ef284214",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "mapping uses 15 unique source and destination commits",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "integration chain equals 15 mapped commits plus cross-test commit",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "60df3437 adds cross-test only",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "saved old gate permits marker row; new gate refuses",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "atomic settlement source unchanged from deployed 0e1d2a02",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "atomic BUY settlement has no trade buffer invocation",
+      "pass": true,
+      "actual": null
+    }
+  ]
+}

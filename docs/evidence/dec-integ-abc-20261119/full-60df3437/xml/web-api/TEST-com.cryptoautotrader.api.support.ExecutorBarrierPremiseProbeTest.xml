@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="실행기 장벽 시험 전제 탐침 — 아직 runWorker 전인 작업자는 활성으로 세진다" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-11-19T05:59:45" hostname="DESKTOP-SF1KUQ5" time="0.01">
+  <properties/>
+  <testcase name="workerNotYetInRunWorkerCountsAsActive()" classname="com.cryptoautotrader.api.support.ExecutorBarrierPremiseProbeTest" time="0.01"/>
+  <system-out><![CDATA[[전제 탐침] 둘째 작업자 runWorker 전: pool=2 active=1 queue=0 task=1 completed=0
+[전제 탐침] 둘째 작업자 시작 뒤: active=0 task=0
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

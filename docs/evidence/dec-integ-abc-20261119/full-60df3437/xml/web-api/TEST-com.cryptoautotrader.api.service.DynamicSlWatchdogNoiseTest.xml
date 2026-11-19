@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.DynamicSlWatchdogNoiseTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-11-19T05:57:09" hostname="DESKTOP-SF1KUQ5" time="0.039">
+  <properties/>
+  <testcase name="자가복구를 계속 시도했는데도 점검이 안 잡힐 때는 알린다 — 진짜 고장 신호" classname="com.cryptoautotrader.api.service.DynamicSlWatchdogNoiseTest" time="0.012"/>
+  <testcase name="&#x1f534; REST 자가복구가 되는 동안은 알리지 않는다 — 거래 뜸한 코인의 정상적인 틱 공백" classname="com.cryptoautotrader.api.service.DynamicSlWatchdogNoiseTest" time="0.006"/>
+  <testcase name="실전 세션도 마찬가지다 — 상태 불일치는 자가복구 가드가 다음 틱에 되돌린다" classname="com.cryptoautotrader.api.service.DynamicSlWatchdogNoiseTest" time="0.004"/>
+  <testcase name="&#x1f534; POSITION_MONITORING 인데 OPEN 포지션이 없으면 알리지 않는다 — 이게 무한 반복의 원인이었다" classname="com.cryptoautotrader.api.service.DynamicSlWatchdogNoiseTest" time="0.006"/>
+  <testcase name="포지션이 없으면 거래소 장애 중이어도 조용하다 — 감시 대상이 아니기 때문" classname="com.cryptoautotrader.api.service.DynamicSlWatchdogNoiseTest" time="0.005"/>
+  <testcase name="REST 강제 갱신 자체가 실패하면 즉시 알린다 — 거래소 장애는 기다릴 일이 아니다" classname="com.cryptoautotrader.api.service.DynamicSlWatchdogNoiseTest" time="0.005"/>
+  <system-out><![CDATA[14:57:09.859 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.DynamicSlWatchdogNoiseTest
+14:57:09.861 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+14:57:09.868 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검: sessionId=194 coin=KRW-XRP 마지막체크=기록없음 (3분 초과, 연속 1회, WS구독=있음, REST강제갱신=PUBLISHED 체결 0초 전)
+14:57:09.868 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검: sessionId=194 coin=KRW-XRP 마지막체크=기록없음 (3분 초과, 연속 2회, WS구독=있음, REST강제갱신=PUBLISHED 체결 0초 전)
+14:57:09.868 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검: sessionId=194 coin=KRW-XRP 마지막체크=기록없음 (3분 초과, 연속 3회, WS구독=있음, REST강제갱신=PUBLISHED 체결 0초 전)
+14:57:09.870 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검: sessionId=194 coin=KRW-XRP 마지막체크=기록없음 (3분 초과, 연속 4회, WS구독=있음, REST강제갱신=PUBLISHED 체결 0초 전)
+14:57:09.870 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검: sessionId=194 coin=KRW-XRP 마지막체크=기록없음 (3분 초과, 연속 5회, WS구독=있음, REST강제갱신=PUBLISHED 체결 0초 전)
+14:57:09.873 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+14:57:09.875 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검: sessionId=195 coin=KRW-XRP 마지막체크=기록없음 (3분 초과, 연속 1회, WS구독=있음, REST강제갱신=PUBLISHED 체결 0초 전)
+14:57:09.876 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검: sessionId=195 coin=KRW-XRP 마지막체크=기록없음 (3분 초과, 연속 2회, WS구독=있음, REST강제갱신=PUBLISHED 체결 0초 전)
+14:57:09.876 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검: sessionId=195 coin=KRW-XRP 마지막체크=기록없음 (3분 초과, 연속 3회, WS구독=있음, REST강제갱신=PUBLISHED 체결 0초 전)
+14:57:09.879 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+14:57:09.884 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+14:57:09.890 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+14:57:09.895 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+14:57:09.897 [Test worker] ERROR c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검 세션 강제 복구 실패 ? 조회·변환 예외(원문 생략)
+14:57:09.897 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검: sessionId=199 coin=KRW-XRP 마지막체크=기록없음 (3분 초과, 연속 1회, WS구독=있음, REST강제갱신=FAILED 체결 시각 없음)
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

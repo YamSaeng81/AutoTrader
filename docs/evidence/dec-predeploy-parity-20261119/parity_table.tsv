@@ -1,0 +1,97 @@
+input	item	expected_sql_v3	actual_product	match
+LIVE P1 확정 손실 1건	LIVE 전역 30일 판정 불가 수	0	0	True
+LIVE P1 확정 손실 1건	LIVE 전역 30일 손실 합	-107.45	-107.45	True
+LIVE P1 확정 손실 1건	DYNAMIC 전역 30일 판정 불가 수	0	0	True
+LIVE P1 확정 손실 1건	DYNAMIC 전역 30일 손실 합	0	0	True
+LIVE P1 확정 손실 1건	LIVE#1 연속 손실 입력 범위·최신순 id	[1]	[1]	True
+LIVE P1 확정 손실 1건	LIVE#1 세션 판정	PASS	PASS	True
+LIVE P2 확정 손실 2건 = 한도	LIVE 전역 30일 판정 불가 수	0	0	True
+LIVE P2 확정 손실 2건 = 한도	LIVE 전역 30일 손실 합	-314.85	-314.85	True
+LIVE P2 확정 손실 2건 = 한도	DYNAMIC 전역 30일 판정 불가 수	0	0	True
+LIVE P2 확정 손실 2건 = 한도	DYNAMIC 전역 30일 손실 합	0	0	True
+LIVE P2 확정 손실 2건 = 한도	LIVE#1 연속 손실 입력 범위·최신순 id	[2, 1]	[2, 1]	True
+LIVE P2 확정 손실 2건 = 한도	LIVE#1 세션 판정	TRIGGERED	TRIGGERED	True
+LIVE P3 매도 수수료 NULL(행 직접)	LIVE 전역 30일 판정 불가 수	1	1	True
+LIVE P3 매도 수수료 NULL(행 직접)	LIVE 전역 30일 손실 합	0	0	True
+LIVE P3 매도 수수료 NULL(행 직접)	DYNAMIC 전역 30일 판정 불가 수	0	0	True
+LIVE P3 매도 수수료 NULL(행 직접)	DYNAMIC 전역 30일 손실 합	0	0	True
+LIVE P3 매도 수수료 NULL(행 직접)	LIVE#2 연속 손실 입력 범위·최신순 id	[3]	[3]	True
+LIVE P3 매도 수수료 NULL(행 직접)	LIVE#2 세션 판정	UNDETERMINED 3	UNDETERMINED 3	True
+LIVE P4 매도 수수료 확정 0(행 직접)	LIVE 전역 30일 판정 불가 수	0	0	True
+LIVE P4 매도 수수료 확정 0(행 직접)	LIVE 전역 30일 손실 합	-103.75	-103.75	True
+LIVE P4 매도 수수료 확정 0(행 직접)	DYNAMIC 전역 30일 판정 불가 수	0	0	True
+LIVE P4 매도 수수료 확정 0(행 직접)	DYNAMIC 전역 30일 손실 합	0	0	True
+LIVE P4 매도 수수료 확정 0(행 직접)	LIVE#2 연속 손실 입력 범위·최신순 id	[3]	[3]	True
+LIVE P4 매도 수수료 확정 0(행 직접)	LIVE#2 세션 판정	PASS	PASS	True
+LIVE P5 확정 수수료 3.70 복구 → 해제	LIVE 전역 30일 판정 불가 수	0	0	True
+LIVE P5 확정 수수료 3.70 복구 → 해제	LIVE 전역 30일 손실 합	-107.45	-107.45	True
+LIVE P5 확정 수수료 3.70 복구 → 해제	DYNAMIC 전역 30일 판정 불가 수	0	0	True
+LIVE P5 확정 수수료 3.70 복구 → 해제	DYNAMIC 전역 30일 손실 합	0	0	True
+LIVE P5 확정 수수료 3.70 복구 → 해제	LIVE#2 연속 손실 입력 범위·최신순 id	[3]	[3]	True
+LIVE P5 확정 수수료 3.70 복구 → 해제	LIVE#2 세션 판정	PASS	PASS	True
+LIVE P6 표시 없는 빈 청산	LIVE 전역 30일 판정 불가 수	1	1	True
+LIVE P6 표시 없는 빈 청산	LIVE 전역 30일 손실 합	0	0	True
+LIVE P6 표시 없는 빈 청산	DYNAMIC 전역 30일 판정 불가 수	0	0	True
+LIVE P6 표시 없는 빈 청산	DYNAMIC 전역 30일 손실 합	0	0	True
+LIVE P6 표시 없는 빈 청산	LIVE#3 연속 손실 입력 범위·최신순 id	[4]	[4]	True
+LIVE P6 표시 없는 빈 청산	LIVE#3 세션 판정	UNDETERMINED 4	UNDETERMINED 4	True
+LIVE P7 확정 손실 뒤 더 이른 빈 청산(최신순)	LIVE 전역 30일 판정 불가 수	1	1	True
+LIVE P7 확정 손실 뒤 더 이른 빈 청산(최신순)	LIVE 전역 30일 손실 합	-107.45	-107.45	True
+LIVE P7 확정 손실 뒤 더 이른 빈 청산(최신순)	DYNAMIC 전역 30일 판정 불가 수	0	0	True
+LIVE P7 확정 손실 뒤 더 이른 빈 청산(최신순)	DYNAMIC 전역 30일 손실 합	0	0	True
+LIVE P7 확정 손실 뒤 더 이른 빈 청산(최신순)	LIVE#4 연속 손실 입력 범위·최신순 id	[5, 6]	[5, 6]	True
+LIVE P7 확정 손실 뒤 더 이른 빈 청산(최신순)	LIVE#4 세션 판정	UNDETERMINED 6	UNDETERMINED 6	True
+LIVE P8 가동 시작 전·30일 밖 빈 청산	LIVE 전역 30일 판정 불가 수	0	0	True
+LIVE P8 가동 시작 전·30일 밖 빈 청산	LIVE 전역 30일 손실 합	0	0	True
+LIVE P8 가동 시작 전·30일 밖 빈 청산	DYNAMIC 전역 30일 판정 불가 수	0	0	True
+LIVE P8 가동 시작 전·30일 밖 빈 청산	DYNAMIC 전역 30일 손실 합	0	0	True
+LIVE P8 가동 시작 전·30일 밖 빈 청산	LIVE#5 연속 손실 입력 범위·최신순 id	[7]	[7]	True
+LIVE P8 가동 시작 전·30일 밖 빈 청산	LIVE#5 세션 판정	UNDETERMINED 7	UNDETERMINED 7	True
+DYNAMIC P1 확정 손실 1건	LIVE 전역 30일 판정 불가 수	0	0	True
+DYNAMIC P1 확정 손실 1건	LIVE 전역 30일 손실 합	0	0	True
+DYNAMIC P1 확정 손실 1건	DYNAMIC 전역 30일 판정 불가 수	0	0	True
+DYNAMIC P1 확정 손실 1건	DYNAMIC 전역 30일 손실 합	-107.45	-107.45	True
+DYNAMIC P1 확정 손실 1건	DYNAMIC#1 연속 손실 입력 범위·최신순 id	[8]	[8]	True
+DYNAMIC P1 확정 손실 1건	DYNAMIC#1 세션 판정	PASS	PASS	True
+DYNAMIC P2 확정 손실 2건 = 한도	LIVE 전역 30일 판정 불가 수	0	0	True
+DYNAMIC P2 확정 손실 2건 = 한도	LIVE 전역 30일 손실 합	0	0	True
+DYNAMIC P2 확정 손실 2건 = 한도	DYNAMIC 전역 30일 판정 불가 수	0	0	True
+DYNAMIC P2 확정 손실 2건 = 한도	DYNAMIC 전역 30일 손실 합	-314.85	-314.85	True
+DYNAMIC P2 확정 손실 2건 = 한도	DYNAMIC#1 연속 손실 입력 범위·최신순 id	[9, 8]	[9, 8]	True
+DYNAMIC P2 확정 손실 2건 = 한도	DYNAMIC#1 세션 판정	TRIGGERED	TRIGGERED	True
+DYNAMIC P3 매도 수수료 NULL(행 직접)	LIVE 전역 30일 판정 불가 수	0	0	True
+DYNAMIC P3 매도 수수료 NULL(행 직접)	LIVE 전역 30일 손실 합	0	0	True
+DYNAMIC P3 매도 수수료 NULL(행 직접)	DYNAMIC 전역 30일 판정 불가 수	1	1	True
+DYNAMIC P3 매도 수수료 NULL(행 직접)	DYNAMIC 전역 30일 손실 합	0	0	True
+DYNAMIC P3 매도 수수료 NULL(행 직접)	DYNAMIC#2 연속 손실 입력 범위·최신순 id	[10]	[10]	True
+DYNAMIC P3 매도 수수료 NULL(행 직접)	DYNAMIC#2 세션 판정	UNDETERMINED 10	UNDETERMINED 10	True
+DYNAMIC P4 매도 수수료 확정 0(행 직접)	LIVE 전역 30일 판정 불가 수	0	0	True
+DYNAMIC P4 매도 수수료 확정 0(행 직접)	LIVE 전역 30일 손실 합	0	0	True
+DYNAMIC P4 매도 수수료 확정 0(행 직접)	DYNAMIC 전역 30일 판정 불가 수	0	0	True
+DYNAMIC P4 매도 수수료 확정 0(행 직접)	DYNAMIC 전역 30일 손실 합	-103.75	-103.75	True
+DYNAMIC P4 매도 수수료 확정 0(행 직접)	DYNAMIC#2 연속 손실 입력 범위·최신순 id	[10]	[10]	True
+DYNAMIC P4 매도 수수료 확정 0(행 직접)	DYNAMIC#2 세션 판정	PASS	PASS	True
+DYNAMIC P5 확정 수수료 3.70 복구 → 해제	LIVE 전역 30일 판정 불가 수	0	0	True
+DYNAMIC P5 확정 수수료 3.70 복구 → 해제	LIVE 전역 30일 손실 합	0	0	True
+DYNAMIC P5 확정 수수료 3.70 복구 → 해제	DYNAMIC 전역 30일 판정 불가 수	0	0	True
+DYNAMIC P5 확정 수수료 3.70 복구 → 해제	DYNAMIC 전역 30일 손실 합	-107.45	-107.45	True
+DYNAMIC P5 확정 수수료 3.70 복구 → 해제	DYNAMIC#2 연속 손실 입력 범위·최신순 id	[10]	[10]	True
+DYNAMIC P5 확정 수수료 3.70 복구 → 해제	DYNAMIC#2 세션 판정	PASS	PASS	True
+DYNAMIC P6 표시 없는 빈 청산	LIVE 전역 30일 판정 불가 수	0	0	True
+DYNAMIC P6 표시 없는 빈 청산	LIVE 전역 30일 손실 합	0	0	True
+DYNAMIC P6 표시 없는 빈 청산	DYNAMIC 전역 30일 판정 불가 수	1	1	True
+DYNAMIC P6 표시 없는 빈 청산	DYNAMIC 전역 30일 손실 합	0	0	True
+DYNAMIC P6 표시 없는 빈 청산	DYNAMIC#3 연속 손실 입력 범위·최신순 id	[11]	[11]	True
+DYNAMIC P6 표시 없는 빈 청산	DYNAMIC#3 세션 판정	UNDETERMINED 11	UNDETERMINED 11	True
+DYNAMIC P7 확정 손실 뒤 더 이른 빈 청산(최신순)	LIVE 전역 30일 판정 불가 수	0	0	True
+DYNAMIC P7 확정 손실 뒤 더 이른 빈 청산(최신순)	LIVE 전역 30일 손실 합	0	0	True
+DYNAMIC P7 확정 손실 뒤 더 이른 빈 청산(최신순)	DYNAMIC 전역 30일 판정 불가 수	1	1	True
+DYNAMIC P7 확정 손실 뒤 더 이른 빈 청산(최신순)	DYNAMIC 전역 30일 손실 합	-107.45	-107.45	True
+DYNAMIC P7 확정 손실 뒤 더 이른 빈 청산(최신순)	DYNAMIC#4 연속 손실 입력 범위·최신순 id	[12, 13]	[12, 13]	True
+DYNAMIC P7 확정 손실 뒤 더 이른 빈 청산(최신순)	DYNAMIC#4 세션 판정	UNDETERMINED 13	UNDETERMINED 13	True
+DYNAMIC P8 가동 시작 전·30일 밖 빈 청산	LIVE 전역 30일 판정 불가 수	0	0	True
+DYNAMIC P8 가동 시작 전·30일 밖 빈 청산	LIVE 전역 30일 손실 합	0	0	True
+DYNAMIC P8 가동 시작 전·30일 밖 빈 청산	DYNAMIC 전역 30일 판정 불가 수	0	0	True
+DYNAMIC P8 가동 시작 전·30일 밖 빈 청산	DYNAMIC 전역 30일 손실 합	0	0	True
+DYNAMIC P8 가동 시작 전·30일 밖 빈 청산	DYNAMIC#5 연속 손실 입력 범위·최신순 id	[]	[]	True
+DYNAMIC P8 가동 시작 전·30일 밖 빈 청산	DYNAMIC#5 세션 판정	PASS	PASS	True

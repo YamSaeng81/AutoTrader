@@ -1,0 +1,40 @@
+{
+  "checks" : [ {
+    "check" : "시험 알림 꺼짐(실제 전송 없음)",
+    "pass" : true,
+    "actual" : "false"
+  }, {
+    "check" : "X1 기점: 다른 DYNAMIC 세션 수수료 NULL → 전역 판정 불가",
+    "pass" : true,
+    "actual" : "{approved=false, reason=[DYNAMIC REAL 보호식] 판정 불가 — 30일 안 DYNAMIC 세션 매도/청산 1건의 확정 비용(매수 대금+수수료 또는 매도 체결)을 구하지 못했다(손실 0·이익으로 보지 않는다)}"
+  }, {
+    "check" : "X1 제외 코인 KRW-BTC → A 제외 사유(판정 불가보다 먼저)",
+    "pass" : true,
+    "actual" : "제외 코인(excludeCoins) — KRW-BTC 신규 매수 안 함"
+  }, {
+    "check" : "X1 일반 코인 → C 판정 불가 거절",
+    "pass" : true,
+    "actual" : "실자금 손실 보호식: [DYNAMIC REAL 보호식] 판정 불가 — 30일 안 DYNAMIC 세션 매도/청산 1건의 확정 비용(매수 대금+수수료 또는 매도 체결)을 구하지 못했다(손실 0·이익으로 보지 않는다)"
+  }, {
+    "check" : "X1 두 거절 뒤 포지션·주문·예약·잔액 변화 0",
+    "pass" : true,
+    "actual" : "pos=0 ord=0 reserved=0 avail=10000.37 → pos=0 ord=0 reserved=0 avail=10000.37"
+  }, {
+    "check" : "X1 거절 알림 이벤트 0",
+    "pass" : true,
+    "actual" : "[]"
+  }, {
+    "check" : "X2 복구 → 판정 불가 해제(50% 한도라 승인)",
+    "pass" : true,
+    "actual" : "{approved=true, reason=null}"
+  }, {
+    "check" : "X2 복구 뒤 매수 진행",
+    "pass" : true,
+    "actual" : "null"
+  }, {
+    "check" : "X2 요청액 = maxOrderKrw 6000(A 상한)",
+    "pass" : true,
+    "actual" : "6000.00000000"
+  } ],
+  "failures" : [ ]
+}

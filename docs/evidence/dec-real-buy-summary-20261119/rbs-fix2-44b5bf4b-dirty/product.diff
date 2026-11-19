@@ -1,0 +1,120 @@
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/OrderSettlementService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/OrderSettlementService.java
+index 072945c0..e88ad302 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/OrderSettlementService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/OrderSettlementService.java
+@@ -103,6 +103,17 @@ public class OrderSettlementService {
+ 
+     private TransactionTemplate settlementTx;
+ 
++    /**
++     * 거래 요약 버퍼(총괄 v1.194 §3). 원자적 매수 정산은 {@code processFilledOrder} 를 지나지 않아 LIVE·DYNAMIC REAL 매수가 일별 요약에서
++     * 빠졌다. 커밋이 끝난 체결 증가분만 적재한다. 없으면(일부 단위 구성) 적재하지 않는다.
++     */
++    @org.springframework.beans.factory.annotation.Autowired(required = false)
++    private TelegramNotificationService telegramService;
++
++    /** 한 번의 회계 반영이 커밋한 매수 증가분 — 요약 적재 입력. 수량 증가 0 이면 반영은 했지만 적재하지 않는다(수수료·대금만 정정). */
++    private record BuyIncrement(String kind, Long sessionId, String coinPair, BigDecimal deltaVolume,
++                                BigDecimal deltaFunds, BigDecimal deltaFee, String reason) {}
++
+     @PostConstruct
+     void initTx() {
+         this.settlementTx = new TransactionTemplate(txManager);
+@@ -348,19 +359,40 @@ public class OrderSettlementService {
+ 
+         // 회계 반영 — 주문·잔액·포지션이 **한 트랜잭션**. 실패하면 전부 롤백되고 관측과 대기 표시는
+         // 남는다(앞의 트랜잭션에서 이미 커밋했다).
+-        return Boolean.TRUE.equals(settlementTx.execute(st -> applyBuyFillAccounting(orderId)));
++        BuyIncrement applied = settlementTx.execute(st -> applyBuyFillAccounting(orderId));
++        if (applied == null) return false;
++        // 🔴 여기는 REQUIRES_NEW 트랜잭션이 **커밋된 뒤**다 — 롤백된 반영·권한을 얻지 못한 반영·변화 없는 반복 응답은 위에서 null 이다.
++        bufferCommittedBuy(applied);
++        return true;
++    }
++
++    /**
++     * 커밋된 매수 증가분을 거래 요약 버퍼에 싣는다. 수량 증가분만 싣는다 — 부분 체결 뒤 취소 확정은 남은 증가분만, 수수료·대금만 바뀐
++     * 정정은 싣지 않는다. 버퍼 실패는 로그만 남긴다(정산은 이미 커밋됐고 되돌리지 않는다).
++     */
++    private void bufferCommittedBuy(BuyIncrement a) {
++        if (telegramService == null || a.sessionId() == null || a.deltaVolume().signum() <= 0) return;
++        try {
++            BigDecimal price = a.deltaFunds().divide(a.deltaVolume(), 8, RoundingMode.HALF_UP);
++            telegramService.bufferTradeEvent(TelegramNotificationService.sessionLabel(a.kind(), a.sessionId()), a.coinPair(), "BUY",
++                    price, a.deltaVolume(), a.deltaFee(), null, a.reason());
++        } catch (RuntimeException e) {
++            log.warn("매수 요약 적재 실패 — 정산은 커밋됨, 요약에서만 빠진다 ({}#{} {}): {}",
++                    a.kind(), a.sessionId(), a.coinPair(), e.getMessage());
++        }
+     }
+ 
+-    private Boolean applyBuyFillAccounting(Long orderId) {
++    /** @return 커밋할 반영의 증가분, 반영하지 않았으면 null */
++    private BuyIncrement applyBuyFillAccounting(Long orderId) {
+         OrderEntity order = orderRepository.findById(orderId).orElse(null);
+-        if (order == null) return Boolean.FALSE;
++        if (order == null) return null;
+ 
+         BigDecimal volume = order.getReportedExecutedVolume();
+         BigDecimal funds = order.getReportedExecutedFunds();
+         BigDecimal fee = order.getReportedPaidFee();
+         if (volume == null || volume.signum() <= 0 || funds == null || funds.signum() <= 0) {
+             // 체결 수량·금액이 없으면 회계를 반영할 수 없다. 대기를 유지해 다음 조회에서 다시 본다.
+-            return Boolean.FALSE;
++            return null;
+         }
+ 
+         BigDecimal appliedVolume = nz(order.getFilledQuantity());
+@@ -371,13 +403,13 @@ public class OrderSettlementService {
+             recordDiscrepancy(order, OrderSettlementDiscrepancyEntity.KIND_VOLUME_DECREASE,
+                     appliedVolume, volume, null, null);
+             clearPending(order.getId());
+-            return Boolean.FALSE;
++            return null;
+         }
+         if (funds.compareTo(appliedFunds) < 0) {
+             recordDiscrepancy(order, OrderSettlementDiscrepancyEntity.KIND_FUNDS_DECREASE,
+                     appliedFunds, funds, null, null);
+             clearPending(order.getId());
+-            return Boolean.FALSE;
++            return null;
+         }
+         // 🔴 수수료 감소는 **실측값끼리**일 때만 불일치다 — 추정에서 실측으로 가는 전환에서는
+         //    감소가 정상이다.
+@@ -389,7 +421,7 @@ public class OrderSettlementService {
+             recordDiscrepancy(order, OrderSettlementDiscrepancyEntity.KIND_FEE_DECREASE,
+                     appliedFee, fee, null, null);
+             clearPending(order.getId());
+-            return Boolean.FALSE;
++            return null;
+         }
+ 
+         BigDecimal targetFee = fee != null ? fee : appliedFee;
+@@ -399,7 +431,7 @@ public class OrderSettlementService {
+ 
+         if (deltaVolume.signum() == 0 && deltaFunds.signum() == 0 && deltaFee.signum() == 0) {
+             clearPending(order.getId());
+-            return Boolean.FALSE;
++            return null;
+         }
+ 
+         // 🔴 평균단가는 **실제 사용액 ÷ 체결수량**이다. 요청액 폴백을 쓰지 않는다.
+@@ -414,7 +446,7 @@ public class OrderSettlementService {
+         if (won == 0) {
+             log.debug("체결 회계 반영 권한을 얻지 못했다 (orderId={}, ver={})",
+                     order.getId(), order.getSettlementVersion());
+-            return Boolean.FALSE;
++            return null;
+         }
+ 
+         if (deltaVolume.signum() > 0) {
+@@ -435,7 +467,8 @@ public class OrderSettlementService {
+         }
+         log.info("체결 회계 반영 (orderId={}): 수량 Δ{} 체결금액 Δ{} 수수료 Δ{} 평균단가={} (출처={})",
+                 order.getId(), deltaVolume, deltaFunds, deltaFee, avgPrice, nextSource);
+-        return Boolean.TRUE;
++        return new BuyIncrement(order.getSessionKind(), order.getSessionId(), order.getCoinPair(),
++                deltaVolume, deltaFunds, deltaFee, order.getSignalReason());
+     }
+ 
+     /**

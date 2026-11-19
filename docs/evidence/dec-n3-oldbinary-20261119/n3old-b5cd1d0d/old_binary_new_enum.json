@@ -1,0 +1,92 @@
+{
+  "binary_exit_reasons" : "[STOP_LOSS, TAKE_PROFIT, TRAILING_STOP, TIME_STOP, STRATEGY_SIGNAL, BLACK_SWAN, FORCED_STOP, UNKNOWN]",
+  "stage1_new_value_present" : {
+    "P1_repo_findBySessionKindAndSessionId_DYNAMIC" : {
+      "ok" : false,
+      "error" : "org.springframework.dao.InvalidDataAccessApiUsageException",
+      "message" : "No enum constant com.cryptoautotrader.api.entity.ExitReason.ENTRY_REJECTED",
+      "root" : "java.lang.IllegalArgumentException: No enum constant com.cryptoautotrader.api.entity.ExitReason.ENTRY_REJECTED"
+    },
+    "P2_dynamic_checkCircuitBreaker" : {
+      "ok" : false,
+      "error" : "org.springframework.dao.InvalidDataAccessApiUsageException",
+      "message" : "No enum constant com.cryptoautotrader.api.entity.ExitReason.ENTRY_REJECTED",
+      "root" : "java.lang.IllegalArgumentException: No enum constant com.cryptoautotrader.api.entity.ExitReason.ENTRY_REJECTED"
+    },
+    "P3_dynamic_isInLossCooldown" : {
+      "ok" : false,
+      "error" : "java.lang.reflect.InvocationTargetException",
+      "message" : "null",
+      "root" : "java.lang.NullPointerException: Cannot invoke \"com.cryptoautotrader.api.repository.PositionRepository.findTopBySessionKindAndSessionIdAndCoinPairAndStatusOrderByClosedAtDesc(String, java.lang.Long, String, String)\" because \"this.pos"
+    },
+    "P4_live_checkCircuitBreaker" : {
+      "ok" : false,
+      "error" : "org.springframework.dao.InvalidDataAccessApiUsageException",
+      "message" : "No enum constant com.cryptoautotrader.api.entity.ExitReason.ENTRY_REJECTED",
+      "root" : "java.lang.IllegalArgumentException: No enum constant com.cryptoautotrader.api.entity.ExitReason.ENTRY_REJECTED"
+    },
+    "P5_live_getSessionPositions" : {
+      "ok" : false,
+      "error" : "org.springframework.dao.InvalidDataAccessApiUsageException",
+      "message" : "No enum constant com.cryptoautotrader.api.entity.ExitReason.ENTRY_REJECTED",
+      "root" : "java.lang.IllegalArgumentException: No enum constant com.cryptoautotrader.api.entity.ExitReason.ENTRY_REJECTED"
+    },
+    "P6_positions_page" : {
+      "ok" : false,
+      "error" : "org.springframework.dao.InvalidDataAccessApiUsageException",
+      "message" : "No enum constant com.cryptoautotrader.api.entity.ExitReason.ENTRY_REJECTED",
+      "root" : "java.lang.IllegalArgumentException: No enum constant com.cryptoautotrader.api.entity.ExitReason.ENTRY_REJECTED"
+    },
+    "P7_native_count_by_reason" : {
+      "ok" : true,
+      "value" : "[{r=ENTRY_REJECTED, n=2}]"
+    }
+  },
+  "stage2_same_rows_reason_null" : {
+    "P1_repo_findBySessionKindAndSessionId_DYNAMIC" : {
+      "ok" : true,
+      "value" : "1"
+    },
+    "P2_dynamic_checkCircuitBreaker" : {
+      "ok" : true,
+      "value" : "false/null"
+    },
+    "P3_dynamic_isInLossCooldown" : {
+      "ok" : false,
+      "error" : "java.lang.reflect.InvocationTargetException",
+      "message" : "null",
+      "root" : "java.lang.NullPointerException: Cannot invoke \"com.cryptoautotrader.api.repository.PositionRepository.findTopBySessionKindAndSessionIdAndCoinPairAndStatusOrderByClosedAtDesc(String, java.lang.Long, String, String)\" because \"this.pos"
+    },
+    "P4_live_checkCircuitBreaker" : {
+      "ok" : true,
+      "value" : "false/null"
+    },
+    "P5_live_getSessionPositions" : {
+      "ok" : true,
+      "value" : "1"
+    },
+    "P7_native_count_by_reason" : {
+      "ok" : true,
+      "value" : "[{r=(null), n=2}]"
+    }
+  },
+  "left_in_db" : [ {
+    "id" : 1,
+    "session_kind" : "LIVE",
+    "session_id" : 1,
+    "exit_reason" : "ENTRY_REJECTED",
+    "status" : "CLOSED",
+    "size" : 0E-8
+  }, {
+    "id" : 2,
+    "session_kind" : "DYNAMIC",
+    "session_id" : 1,
+    "exit_reason" : "ENTRY_REJECTED",
+    "status" : "CLOSED",
+    "size" : 0E-8
+  } ],
+  "sessions" : {
+    "stage1" : "1/1",
+    "stage2" : "2/2"
+  }
+}

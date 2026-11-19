@@ -1,0 +1,81 @@
+{
+  "checks" : [ {
+    "check" : "시험 알림 꺼짐(실제 전송 없음)",
+    "pass" : true,
+    "actual" : "false"
+  }, {
+    "check" : "X1 기점: 다른 DYNAMIC 세션 수수료 NULL → 전역 판정 불가",
+    "pass" : true,
+    "actual" : "{approved=false, reason=[DYNAMIC REAL 보호식] 판정 불가 — 30일 안 DYNAMIC 세션 매도/청산 1건의 확정 비용(매수 대금+수수료 또는 매도 체결)을 구하지 못했다(손실 0·이익으로 보지 않는다)}"
+  }, {
+    "check" : "X1 제외 코인 KRW-BTC → A 제외 사유(판정 불가보다 먼저)",
+    "pass" : true,
+    "actual" : "제외 코인(excludeCoins) — KRW-BTC 신규 매수 안 함"
+  }, {
+    "check" : "X1 일반 코인 → C 판정 불가 거절",
+    "pass" : true,
+    "actual" : "실자금 손실 보호식: [DYNAMIC REAL 보호식] 판정 불가 — 30일 안 DYNAMIC 세션 매도/청산 1건의 확정 비용(매수 대금+수수료 또는 매도 체결)을 구하지 못했다(손실 0·이익으로 보지 않는다)"
+  }, {
+    "check" : "X1 두 거절 뒤 포지션·주문·예약·잔액 변화 0",
+    "pass" : true,
+    "actual" : "pos=0 ord=0 reserved=0 avail=10000.37 → pos=0 ord=0 reserved=0 avail=10000.37"
+  }, {
+    "check" : "X1 거절 알림 이벤트 0",
+    "pass" : true,
+    "actual" : "[]"
+  }, {
+    "check" : "X2 복구 → 판정 불가 해제(50% 한도라 승인)",
+    "pass" : true,
+    "actual" : "{approved=true, reason=null}"
+  }, {
+    "check" : "X2 복구 뒤 매수 진행",
+    "pass" : true,
+    "actual" : "null"
+  }, {
+    "check" : "X2 요청액 = maxOrderKrw 6000(A 상한)",
+    "pass" : true,
+    "actual" : "6000.00000000"
+  }, {
+    "check" : "X2 상한 매수 체결 반영(포지션 19.99)",
+    "pass" : true,
+    "actual" : "19.99000000"
+  }, {
+    "check" : "X2 청산 알림 표시 DYNAMIC#2(B)·거절 사유 문구 없음",
+    "pass" : true,
+    "actual" : "[[DYNAMIC#2, KRW-RND, SELL, 300.65032516, 19.99000000, 3.00500000, 9.9950000000000000, 동적 세션 매도]]"
+  }, {
+    "check" : "X3 제한 세션 예약 거절",
+    "pass" : true,
+    "actual" : "공유 풀 예약 거절(RISK_CONFIG_MISMATCH): 위험 한도 설정이 사전 등록과 맞지 않는다 — 실자금 진입을 승인하지 않는다: max_daily_loss_pct=0.00 max_portfolio_drawdown_pct=15.00 — 한도 값이 없다"
+  }, {
+    "check" : "X3 슬롯 CLOSED·ENTRY_REJECTED",
+    "pass" : true,
+    "actual" : "CLOSED/ENTRY_REJECTED"
+  }, {
+    "check" : "X3 주문 0·예약 0·잔액 그대로",
+    "pass" : true,
+    "actual" : "pos=0 ord=0 reserved=0 avail=10000.37 → pos=1 ord=0 reserved=0 avail=10000.37"
+  }, {
+    "check" : "X3 관문 판정 불가 아님",
+    "pass" : true,
+    "actual" : "{approved=true, reason=null}"
+  }, {
+    "check" : "X3 연속 손실 판정 불가 아님·미발동",
+    "pass" : true,
+    "actual" : "{session=DYNAMIC#3, triggered=false, reason=null}"
+  }, {
+    "check" : "X3 진입 차단(비용) 없음",
+    "pass" : true,
+    "actual" : "null"
+  }, {
+    "check" : "X3 킬 기준 거래 0(행 없음)",
+    "pass" : true,
+    "actual" : "false"
+  }, {
+    "check" : "X3 예약 거절 알림 이벤트 0",
+    "pass" : true,
+    "actual" : "[]"
+  } ],
+  "obs_real_buy_fill_alert_events" : 0,
+  "failures" : [ ]
+}

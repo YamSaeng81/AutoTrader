@@ -1,0 +1,2559 @@
+{
+  "anchors": {
+    "9687b751": "9687b751480fd037ae91269e9708ecf0691a64f4",
+    "b861bdf9": "b861bdf90048cc94b6a2e239b3d1f545a56ed4cb",
+    "32d5dafd": "32d5dafdd5d2d07753d47eae216c93f8657397ff",
+    "origin/main": "f55f5af0c460d634c1eb58dae8b44e3cec3b6a8b"
+  },
+  "passed": 482,
+  "failed": 0,
+  "checks": [
+    {
+      "name": "local HEAD fixed submission",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "saved origin/main is prior N03, no network query",
+      "passed": true,
+      "actual": "f55f5af0c460d634c1eb58dae8b44e3cec3b6a8b"
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob README.md",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace README.md",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob affected-h2/TEST-com.cryptoautotrader.api.service.AlignedV147FixesTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace affected-h2/TEST-com.cryptoautotrader.api.service.AlignedV147FixesTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob affected-h2/TEST-com.cryptoautotrader.api.service.BtcGateSupplyEndToEndTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace affected-h2/TEST-com.cryptoautotrader.api.service.BtcGateSupplyEndToEndTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob affected-h2/TEST-com.cryptoautotrader.api.service.BtcGateUnknownEntryTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace affected-h2/TEST-com.cryptoautotrader.api.service.BtcGateUnknownEntryTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob affected-h2/TEST-com.cryptoautotrader.api.service.ConcurrentEntryCapTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace affected-h2/TEST-com.cryptoautotrader.api.service.ConcurrentEntryCapTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob affected-h2/TEST-com.cryptoautotrader.api.service.DynamicBlackSwanCooldownCrossKindTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace affected-h2/TEST-com.cryptoautotrader.api.service.DynamicBlackSwanCooldownCrossKindTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob affected-h2/TEST-com.cryptoautotrader.api.service.DynamicBuyCompletesConsistentlyTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace affected-h2/TEST-com.cryptoautotrader.api.service.DynamicBuyCompletesConsistentlyTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob affected-h2/TEST-com.cryptoautotrader.api.service.DynamicBuyExternalSubmissionBoundaryTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace affected-h2/TEST-com.cryptoautotrader.api.service.DynamicBuyExternalSubmissionBoundaryTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob affected-h2/TEST-com.cryptoautotrader.api.service.DynamicBuyOuterWriteOrderingTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace affected-h2/TEST-com.cryptoautotrader.api.service.DynamicBuyOuterWriteOrderingTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob affected-h2/TEST-com.cryptoautotrader.api.service.DynamicCircuitBreakerTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace affected-h2/TEST-com.cryptoautotrader.api.service.DynamicCircuitBreakerTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob affected-h2/TEST-com.cryptoautotrader.api.service.DynamicPaperBuySameTickWatchlistTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace affected-h2/TEST-com.cryptoautotrader.api.service.DynamicPaperBuySameTickWatchlistTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob affected-h2/TEST-com.cryptoautotrader.api.service.DynamicPaperLiveRuleParityTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace affected-h2/TEST-com.cryptoautotrader.api.service.DynamicPaperLiveRuleParityTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob affected-h2/TEST-com.cryptoautotrader.api.service.DynamicPaperTradingTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace affected-h2/TEST-com.cryptoautotrader.api.service.DynamicPaperTradingTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob affected-h2/TEST-com.cryptoautotrader.api.service.DynamicPoolReservationTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace affected-h2/TEST-com.cryptoautotrader.api.service.DynamicPoolReservationTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob affected-h2/TEST-com.cryptoautotrader.api.service.EngineParityTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace affected-h2/TEST-com.cryptoautotrader.api.service.EngineParityTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob affected-h2/TEST-com.cryptoautotrader.api.service.EntryPriorityEndToEndTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace affected-h2/TEST-com.cryptoautotrader.api.service.EntryPriorityEndToEndTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob affected-h2/TEST-com.cryptoautotrader.api.service.EntryPriorityRoundsTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace affected-h2/TEST-com.cryptoautotrader.api.service.EntryPriorityRoundsTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob affected-h2/TEST-com.cryptoautotrader.api.service.LiveEmergencyStopUnderConcurrentWriteTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace affected-h2/TEST-com.cryptoautotrader.api.service.LiveEmergencyStopUnderConcurrentWriteTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob affected-h2/TEST-com.cryptoautotrader.api.service.LiveTradingReliabilityTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace affected-h2/TEST-com.cryptoautotrader.api.service.LiveTradingReliabilityTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob affected-h2/TEST-com.cryptoautotrader.api.service.N15EntryExpiryTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace affected-h2/TEST-com.cryptoautotrader.api.service.N15EntryExpiryTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob affected-h2/TEST-com.cryptoautotrader.api.service.N15FinalApprovalBoundaryTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace affected-h2/TEST-com.cryptoautotrader.api.service.N15FinalApprovalBoundaryTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob affected-h2/TEST-com.cryptoautotrader.api.service.PoolLossLimitTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace affected-h2/TEST-com.cryptoautotrader.api.service.PoolLossLimitTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob affected-h2/TEST-com.cryptoautotrader.api.service.PositionLimitTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace affected-h2/TEST-com.cryptoautotrader.api.service.PositionLimitTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob affected-h2/TEST-com.cryptoautotrader.api.service.R5RealCashflowRiskTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace affected-h2/TEST-com.cryptoautotrader.api.service.R5RealCashflowRiskTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob affected-h2/TEST-com.cryptoautotrader.api.service.RiskCircuitBreakerOrderTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace affected-h2/TEST-com.cryptoautotrader.api.service.RiskCircuitBreakerOrderTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob affected-h2/TEST-com.cryptoautotrader.api.service.RiskConfigMissingTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace affected-h2/TEST-com.cryptoautotrader.api.service.RiskConfigMissingTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob affected-h2/TEST-com.cryptoautotrader.api.service.RiskManagementServiceTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace affected-h2/TEST-com.cryptoautotrader.api.service.RiskManagementServiceTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob affected-h2/TEST-com.cryptoautotrader.api.service.RulesetRegistryCompositionTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace affected-h2/TEST-com.cryptoautotrader.api.service.RulesetRegistryCompositionTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob affected-h2/TEST-com.cryptoautotrader.api.service.Sma20LiveAlignedGapsTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace affected-h2/TEST-com.cryptoautotrader.api.service.Sma20LiveAlignedGapsTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob affected-h2/TEST-com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest$CapitalProtection.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace affected-h2/TEST-com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest$CapitalProtection.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob affected-h2/TEST-com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest$EdgeSafetyNet.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace affected-h2/TEST-com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest$EdgeSafetyNet.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob affected-h2/TEST-com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace affected-h2/TEST-com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob affected-h2/gradle.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace affected-h2/gradle.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob affected-h2/rerun5.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace affected-h2/rerun5.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob affected-pg/CostBasisRiskPgTest.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace affected-pg/CostBasisRiskPgTest.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob affected-pg/PartialSellRealizedPnlPgTest.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace affected-pg/PartialSellRealizedPnlPgTest.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob affected-pg/PhantomKeepsConfirmedPnlPgTest.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace affected-pg/PhantomKeepsConfirmedPnlPgTest.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob affected-pg/RealLossThreeFormulaPgTest.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace affected-pg/RealLossThreeFormulaPgTest.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob affected-pg/SettlementRoundingPgTest.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace affected-pg/SettlementRoundingPgTest.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob affected-pg/TEST-com.cryptoautotrader.api.service.CostBasisRiskPgTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace affected-pg/TEST-com.cryptoautotrader.api.service.CostBasisRiskPgTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob affected-pg/TEST-com.cryptoautotrader.api.service.PartialSellRealizedPnlPgTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace affected-pg/TEST-com.cryptoautotrader.api.service.PartialSellRealizedPnlPgTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob affected-pg/TEST-com.cryptoautotrader.api.service.PhantomKeepsConfirmedPnlPgTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace affected-pg/TEST-com.cryptoautotrader.api.service.PhantomKeepsConfirmedPnlPgTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob affected-pg/TEST-com.cryptoautotrader.api.service.RealLossThreeFormulaPgTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace affected-pg/TEST-com.cryptoautotrader.api.service.RealLossThreeFormulaPgTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob affected-pg/TEST-com.cryptoautotrader.api.service.SettlementRoundingPgTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace affected-pg/TEST-com.cryptoautotrader.api.service.SettlementRoundingPgTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob affected-pg/cost_basis_checks.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace affected-pg/cost_basis_checks.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt-run2-null-logic/TEST-com.cryptoautotrader.api.service.CostBasisBoundaryPgTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt-run2-null-logic/TEST-com.cryptoautotrader.api.service.CostBasisBoundaryPgTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt-run2-null-logic/cost_basis_boundary_checks.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt-run2-null-logic/cost_basis_boundary_checks.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt-run2-null-logic/gradle.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt-run2-null-logic/gradle.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.AlignedV147FixesTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.AlignedV147FixesTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.BtcGateSupplyEndToEndTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.BtcGateSupplyEndToEndTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.BtcGateUnknownEntryTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.BtcGateUnknownEntryTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.ConcurrentEntryCapTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.ConcurrentEntryCapTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.DynamicBlackSwanCooldownCrossKindTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.DynamicBlackSwanCooldownCrossKindTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.DynamicBuyCompletesConsistentlyTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.DynamicBuyCompletesConsistentlyTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.DynamicBuyExternalSubmissionBoundaryTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.DynamicBuyExternalSubmissionBoundaryTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.DynamicBuyOuterWriteOrderingTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.DynamicBuyOuterWriteOrderingTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.DynamicCircuitBreakerTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.DynamicCircuitBreakerTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.DynamicPaperBuySameTickWatchlistTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.DynamicPaperBuySameTickWatchlistTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.DynamicPaperLiveRuleParityTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.DynamicPaperLiveRuleParityTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.DynamicPaperTradingTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.DynamicPaperTradingTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.DynamicPoolReservationTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.DynamicPoolReservationTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.EngineParityTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.EngineParityTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.EntryPriorityEndToEndTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.EntryPriorityEndToEndTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.EntryPriorityRoundsTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.EntryPriorityRoundsTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.LiveEmergencyStopUnderConcurrentWriteTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.LiveEmergencyStopUnderConcurrentWriteTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.LiveTradingReliabilityTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.LiveTradingReliabilityTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.N15EntryExpiryTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.N15EntryExpiryTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.N15FinalApprovalBoundaryTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.N15FinalApprovalBoundaryTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.PoolLossLimitTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.PoolLossLimitTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.PositionLimitTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.PositionLimitTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.R5RealCashflowRiskTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.R5RealCashflowRiskTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.RiskCircuitBreakerOrderTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.RiskCircuitBreakerOrderTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.RiskConfigMissingTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.RiskConfigMissingTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.RiskManagementServiceTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.RiskManagementServiceTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.RulesetRegistryCompositionTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.RulesetRegistryCompositionTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.Sma20LiveAlignedGapsTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.Sma20LiveAlignedGapsTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest$CapitalProtection.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest$CapitalProtection.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest$EdgeSafetyNet.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest$EdgeSafetyNet.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt1-affected-h2/TEST-com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt1-affected-h2/gradle.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt1-affected-h2/gradle.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt1-affected-pg/CostBasisRiskPgTest.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt1-affected-pg/CostBasisRiskPgTest.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt1-affected-pg/PartialSellRealizedPnlPgTest.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt1-affected-pg/PartialSellRealizedPnlPgTest.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt1-affected-pg/PhantomKeepsConfirmedPnlPgTest.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt1-affected-pg/PhantomKeepsConfirmedPnlPgTest.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt1-affected-pg/RealLossThreeFormulaPgTest.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt1-affected-pg/RealLossThreeFormulaPgTest.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt1-affected-pg/SettlementRoundingPgTest.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt1-affected-pg/SettlementRoundingPgTest.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt1-affected-pg/TEST-com.cryptoautotrader.api.service.PartialSellRealizedPnlPgTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt1-affected-pg/TEST-com.cryptoautotrader.api.service.PartialSellRealizedPnlPgTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt1-affected-pg/cost_basis_checks.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt1-affected-pg/cost_basis_checks.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt1-n2-risk/TEST-com.cryptoautotrader.api.service.CostBasisBoundaryPgTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt1-n2-risk/TEST-com.cryptoautotrader.api.service.CostBasisBoundaryPgTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt1-n2-risk/cost_basis_boundary_checks.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt1-n2-risk/cost_basis_boundary_checks.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt1-n2-risk/gradle.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt1-n2-risk/gradle.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.AlignedV147FixesTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.AlignedV147FixesTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.BtcGateSupplyEndToEndTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.BtcGateSupplyEndToEndTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.BtcGateUnknownEntryTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.BtcGateUnknownEntryTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.ConcurrentEntryCapTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.ConcurrentEntryCapTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.DynamicBlackSwanCooldownCrossKindTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.DynamicBlackSwanCooldownCrossKindTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.DynamicBuyCompletesConsistentlyTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.DynamicBuyCompletesConsistentlyTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.DynamicBuyExternalSubmissionBoundaryTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.DynamicBuyExternalSubmissionBoundaryTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.DynamicBuyOuterWriteOrderingTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.DynamicBuyOuterWriteOrderingTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.DynamicCircuitBreakerTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.DynamicCircuitBreakerTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.DynamicPaperBuySameTickWatchlistTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.DynamicPaperBuySameTickWatchlistTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.DynamicPaperLiveRuleParityTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.DynamicPaperLiveRuleParityTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.DynamicPaperTradingTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.DynamicPaperTradingTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.DynamicPoolReservationTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.DynamicPoolReservationTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.EngineParityTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.EngineParityTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.EntryPriorityEndToEndTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.EntryPriorityEndToEndTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.EntryPriorityRoundsTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.EntryPriorityRoundsTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.LiveEmergencyStopUnderConcurrentWriteTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.LiveEmergencyStopUnderConcurrentWriteTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.LiveTradingReliabilityTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.LiveTradingReliabilityTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.N15EntryExpiryTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.N15EntryExpiryTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.N15FinalApprovalBoundaryTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.N15FinalApprovalBoundaryTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.PoolLossLimitTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.PoolLossLimitTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.PositionLimitTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.PositionLimitTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.R5RealCashflowRiskTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.R5RealCashflowRiskTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.RiskCircuitBreakerOrderTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.RiskCircuitBreakerOrderTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.RiskConfigMissingTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.RiskConfigMissingTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.RiskManagementServiceTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.RiskManagementServiceTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.RulesetRegistryCompositionTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.RulesetRegistryCompositionTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.Sma20LiveAlignedGapsTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.Sma20LiveAlignedGapsTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest$CapitalProtection.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest$CapitalProtection.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest$EdgeSafetyNet.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest$EdgeSafetyNet.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt2-affected-h2/TEST-com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob attempt2-affected-h2/gradle.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace attempt2-affected-h2/gradle.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob base-fail/TEST-com.cryptoautotrader.api.service.CostBasisBoundaryPgTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace base-fail/TEST-com.cryptoautotrader.api.service.CostBasisBoundaryPgTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob base-fail/cost_basis_boundary_checks.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace base-fail/cost_basis_boundary_checks.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob base-fail/gradle.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace base-fail/gradle.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob fix1-n2b-fail/TEST-com.cryptoautotrader.api.service.CostBasisBoundaryPgTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace fix1-n2b-fail/TEST-com.cryptoautotrader.api.service.CostBasisBoundaryPgTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob fix1-n2b-fail/cost_basis_boundary_checks.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace fix1-n2b-fail/cost_basis_boundary_checks.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob fix1-n2b-fail/gradle.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace fix1-n2b-fail/gradle.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob gen_predeploy.py",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace gen_predeploy.py",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob predeploy_local_syntax.txt",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace predeploy_local_syntax.txt",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob predeploy_read.v2.sql",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace predeploy_read.v2.sql",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob product.diff",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace product.diff",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob run1/TEST-com.cryptoautotrader.api.service.CostBasisBoundaryPgTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace run1/TEST-com.cryptoautotrader.api.service.CostBasisBoundaryPgTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob run1/cost_basis_boundary_checks.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace run1/cost_basis_boundary_checks.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob run1/gradle.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace run1/gradle.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob run3/TEST-com.cryptoautotrader.api.service.CostBasisBoundaryPgTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace run3/TEST-com.cryptoautotrader.api.service.CostBasisBoundaryPgTest.xml",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob run3/cost_basis_boundary_checks.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace run3/cost_basis_boundary_checks.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob run3/gradle.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace run3/gradle.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 blob test.diff",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-costbasis-boundary-20261119 workspace test.diff",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "boundary tracked coverage",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "review-0bc5d295 blob .gitattributes",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "review-0bc5d295 workspace .gitattributes",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "review-0bc5d295 blob audit_review.py",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "review-0bc5d295 workspace audit_review.py",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "review-0bc5d295 blob checks.attempt1.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "review-0bc5d295 workspace checks.attempt1.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "review-0bc5d295 blob checks.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "review-0bc5d295 workspace checks.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "review-0bc5d295 blob observations.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "review-0bc5d295 workspace observations.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "review-0bc5d295 blob README.md",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "review-0bc5d295 workspace README.md",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "review-f55f5af0 blob checks.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "review-f55f5af0 workspace checks.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "review-f55f5af0 blob README.md",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "review-f55f5af0 workspace README.md",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/cases_scorecard.py",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/cases_scorecard.py",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/mutate.py",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/mutate.py",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/red_v2.py",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/red_v2.py",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run0-v2-red/fee_time_unknown.v2.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run0-v2-red/fee_time_unknown.v2.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run0-v2-red/red.out.txt",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run0-v2-red/red.out.txt",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run0-v2-red/sell_before_buy.v2.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run0-v2-red/sell_before_buy.v2.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1-v3-green/fee_time_unknown.v2.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1-v3-green/fee_time_unknown.v2.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1-v3-green/red.out.txt",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1-v3-green/red.out.txt",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1-v3-green/sell_before_buy.v2.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1-v3-green/sell_before_buy.v2.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/C01_float_rejected.input.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/C01_float_rejected.input.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/C02_duplicate_session.input.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/C02_duplicate_session.input.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/C03_unknown_position_status.input.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/C03_unknown_position_status.input.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/C04_out_of_period_flow_cli.input.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/C04_out_of_period_flow_cli.input.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/R1_carry_in_unrealized.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/R1_carry_in_unrealized.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/R1b_carry_in_with_cost.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/R1b_carry_in_with_cost.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/R1c_sells_across_months.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/R1c_sells_across_months.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/R1d_missing_settle_time.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/R1d_missing_settle_time.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/R1e_pending_buy_reserved.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/R1e_pending_buy_reserved.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/R1f_pending_buy_unknown.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/R1f_pending_buy_unknown.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/R1g_pending_buys_required.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/R1g_pending_buys_required.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/R1h_v1_at_rejected.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/R1h_v1_at_rejected.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/R2_out_of_period_flow.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/R2_out_of_period_flow.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/R2b_flows_missing_unconfirmed.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/R2b_flows_missing_unconfirmed.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/R2c_flow_before_created.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/R2c_flow_before_created.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/R2d_flow_sign.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/R2d_flow_sign.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/R2e_recover_in_period.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/R2e_recover_in_period.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/R2f_created_in_period_not_flagged.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/R2f_created_in_period_not_flagged.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/R2g_account_deposit_out_of_period.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/R2g_account_deposit_out_of_period.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/R2h_account_net_without_time.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/R2h_account_net_without_time.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/R3_paper_real_account_mix.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/R3_paper_real_account_mix.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/R3b_dynamic_real_and_paper_split.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/R3b_dynamic_real_and_paper_split.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/R3c_groups_by_version.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/R3c_groups_by_version.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/R3d_mode_required.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/R3d_mode_required.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/R3e_live_paper_contradiction.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/R3e_live_paper_contradiction.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/R3f_no_real_sessions.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/R3f_no_real_sessions.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/R4_drawdown_percentage.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/R4_drawdown_percentage.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/R4b_withdrawal_not_loss.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/R4b_withdrawal_not_loss.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/R4c_allocation_not_gain.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/R4c_allocation_not_gain.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/R4d_reverse_order.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/R4d_reverse_order.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/R4e_duplicate_sample.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/R4e_duplicate_sample.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/R4f_missing_days_shown.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/R4f_missing_days_shown.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/R4g_flows_unknown.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/R4g_flows_unknown.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/R4h_v1_date_rejected.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/R4h_v1_date_rejected.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/S01_fee_not_double_counted.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/S01_fee_not_double_counted.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/S02_closing_unconfirmed.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/S02_closing_unconfirmed.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/S03_loss_zero_stopped_included.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/S03_loss_zero_stopped_included.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/S04_deposit_excluded.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/S04_deposit_excluded.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/S05_missing_price_unconfirmed.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/S05_missing_price_unconfirmed.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/S06_provenance_unknown_and_split.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/S06_provenance_unknown_and_split.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/S07_drawdown_daily_samples_only.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/S07_drawdown_daily_samples_only.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/S08_stored_realized_mismatch.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/S08_stored_realized_mismatch.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/S09_btc_benchmark.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/S09_btc_benchmark.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/S09b_btc_benchmark_missing.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/S09b_btc_benchmark_missing.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/S10_account_matches_sessions.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/S10_account_matches_sessions.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/S10b_account_gap_shown.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/S10b_account_gap_shown.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/S10c_account_coin_without_price.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/S10c_account_coin_without_price.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/S11_new_session_in_period.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/S11_new_session_in_period.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/S11b_missing_start_unconfirmed.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/S11b_missing_start_unconfirmed.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/S12_sell_outside_period.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/S12_sell_outside_period.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/S13_real_stored_excludes_buy_fee.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/S13_real_stored_excludes_buy_fee.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/V1_fee_time_unknown.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/V1_fee_time_unknown.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/V1b_sell_time_unknown_fee.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/V1b_sell_time_unknown_fee.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/V1c_all_times_known_fee_confirmed.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/V1c_all_times_known_fee_confirmed.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/V1d_buy_before_period_known.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/V1d_buy_before_period_known.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/V2_sell_before_buy.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/V2_sell_before_buy.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/V2b_second_sell_before_buy.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/V2b_second_sell_before_buy.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/V2c_same_instant_allowed.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/V2c_same_instant_allowed.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/V2d_unknown_time_not_inferred.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/V2d_unknown_time_not_inferred.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/cases.out.txt",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/cases.out.txt",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/demo.input.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/demo.input.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/demo/scorecard.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/demo/scorecard.json",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/demo/scorecard.md",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/demo/scorecard.md",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/run1/mutate.out.txt",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/run1/mutate.out.txt",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 blob scorecard/scorecard.py",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dec-scorecard-v3-20261119 workspace scorecard/scorecard.py",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "scorecard submission excludes pyc",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "restored raw log dec-costbasis-20261119/affected-h2/gradle.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "restored raw log dec-costbasis-20261119/affected-pg/PartialSellRealizedPnlPgTest.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "restored raw log dec-costbasis-20261119/affected-pg/PhantomKeepsConfirmedPnlPgTest.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "restored raw log dec-costbasis-20261119/affected-pg/RealLossThreeFormulaPgTest.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "restored raw log dec-costbasis-20261119/affected-pg/SettlementRoundingPgTest.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "restored raw log dec-costbasis-20261119/affected-pg/attempt1-SettlementRounding/SettlementRoundingPgTest.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "restored raw log dec-costbasis-20261119/affected-pg/attempt2-SettlementRounding/SettlementRoundingPgTest.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "restored raw log dec-costbasis-20261119/attempt1-measure/gradle.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "restored raw log dec-costbasis-20261119/attempt2-noxml/gradle.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "restored raw log dec-costbasis-20261119/base-fail/gradle.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "restored raw log dec-costbasis-20261119/base-fail2/gradle.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "restored raw log dec-costbasis-20261119/run-final/gradle.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "restored raw log dec-inclusion-20261119/compile.log",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "saved product.diff equals fixed candidate diff",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "saved test.diff equals fixed candidate diff",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "candidate scope four product six test files",
+      "passed": true,
+      "actual": [
+        "web-api/src/main/java/com/cryptoautotrader/api/entity/ExitReason.java",
+        "web-api/src/main/java/com/cryptoautotrader/api/repository/OrderRepository.java",
+        "web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java",
+        "web-api/src/main/java/com/cryptoautotrader/api/service/RiskManagementService.java",
+        "web-api/src/test/java/com/cryptoautotrader/api/service/CostBasisBoundaryPgTest.java",
+        "web-api/src/test/java/com/cryptoautotrader/api/service/CostSourceFixture.java",
+        "web-api/src/test/java/com/cryptoautotrader/api/service/DynamicCircuitBreakerTest.java",
+        "web-api/src/test/java/com/cryptoautotrader/api/service/R5RealCashflowRiskTest.java",
+        "web-api/src/test/java/com/cryptoautotrader/api/service/RiskCircuitBreakerOrderTest.java",
+        "web-api/src/test/java/com/cryptoautotrader/api/service/Sma20LiveAlignedGapsTest.java"
+      ]
+    },
+    {
+      "name": "saved assertions base-fail",
+      "passed": true,
+      "actual": [
+        54,
+        39
+      ]
+    },
+    {
+      "name": "saved assertions run1",
+      "passed": true,
+      "actual": [
+        54,
+        54
+      ]
+    },
+    {
+      "name": "saved assertions fix1-n2b-fail",
+      "passed": true,
+      "actual": [
+        59,
+        56
+      ]
+    },
+    {
+      "name": "saved assertions attempt-run2-null-logic",
+      "passed": true,
+      "actual": [
+        59,
+        54
+      ]
+    },
+    {
+      "name": "saved assertions run3",
+      "passed": true,
+      "actual": [
+        59,
+        59
+      ]
+    },
+    {
+      "name": "saved XML run3",
+      "passed": true,
+      "actual": {
+        "files": 1,
+        "tests_fail_skip": [
+          1,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "saved XML affected-h2",
+      "passed": true,
+      "actual": {
+        "files": 31,
+        "tests_fail_skip": [
+          215,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "saved XML affected-pg",
+      "passed": true,
+      "actual": {
+        "files": 5,
+        "tests_fail_skip": [
+          36,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "prior PG assertion set preserved 48/48",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "exact SQL prior no-source counterexample now counted",
+      "passed": true,
+      "actual": {
+        "count": 1,
+        "parts": [
+          1,
+          0,
+          0,
+          null,
+          null,
+          0,
+          null,
+          null,
+          0,
+          0
+        ],
+        "loss": 0
+      }
+    },
+    {
+      "name": "exact SQL prior NULL sell fee counterexample now counted",
+      "passed": true,
+      "actual": {
+        "count": 1,
+        "parts": [
+          1,
+          1,
+          0,
+          7503.75,
+          25.0,
+          1,
+          null,
+          25.0,
+          1,
+          0
+        ],
+        "loss": 0
+      }
+    },
+    {
+      "name": "exact SQL confirmed zero releases unknown",
+      "passed": true,
+      "actual": {
+        "count": 0,
+        "parts": [
+          1,
+          1,
+          0,
+          7503.75,
+          25.0,
+          1,
+          7504.75,
+          25.0,
+          0,
+          0
+        ],
+        "loss": 0
+      }
+    },
+    {
+      "name": "exact SQL confirmed fee restores -2.75",
+      "passed": true,
+      "actual": {
+        "count": 0,
+        "parts": [
+          1,
+          1,
+          0,
+          7503.75,
+          25.0,
+          1,
+          7501.0,
+          25.0,
+          0,
+          0
+        ],
+        "loss": -2.75
+      }
+    },
+    {
+      "name": "marker plus zero size plus no orders is no-trade",
+      "passed": true,
+      "actual": {
+        "count": 0,
+        "parts": [
+          1,
+          0,
+          0,
+          null,
+          null,
+          0,
+          null,
+          null,
+          0,
+          1
+        ],
+        "loss": 0
+      }
+    },
+    {
+      "name": "marker alone cannot exempt nonzero size",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "new probe: NULL BUY quantity can currently be treated as zero",
+      "passed": true,
+      "actual": {
+        "count": 0,
+        "parts": [
+          1,
+          0,
+          0,
+          null,
+          null,
+          0,
+          null,
+          null,
+          0,
+          1
+        ],
+        "loss": 0
+      }
+    },
+    {
+      "name": "comparison: explicit zero BUY quantity is no-trade",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "marker currently included by strategy-performance predicate",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "report counts every supplied CLOSED row, zero pnl as loss",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "old production enum lacks marker, STRING mapping requires rollback review",
+      "passed": true,
+      "actual": null
+    }
+  ]
+}

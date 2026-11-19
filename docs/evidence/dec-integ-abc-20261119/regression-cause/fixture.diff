@@ -1,0 +1,69 @@
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/DailySma20LiveOrderPathTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/DailySma20LiveOrderPathTest.java
+index eca711ab..c12c4c32 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/DailySma20LiveOrderPathTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/DailySma20LiveOrderPathTest.java
+@@ -293,6 +293,28 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
+                 .filter(o -> side.equals(o.getSide())).toList();
+     }
+ 
++    private static final String CLOSED_FIXTURE = "sma20-closed-";
++
++    /**
++     * 정상 청산의 주문 원천(2026-11-19, 총괄 v1.194 §2 회귀 원인) — 확정 매수 0.001 = 15,000 + 7.5, 확정 매도 0.001 = 15,100 − 7.55.
++     * 비용 기준 계약(v1.192 §2)은 주문 원천 없는 청산을 "판정 불가"로 보고 신규 진입을 막는다. 이 시험의 뜻은 "정상 청산 뒤 재진입"이므로
++     * 원천이 있는 청산을 둔다. 확정값 열·{@code sell_applied_at} 은 엔티티가 쓰지 않는 열이라 행 직접 쓴다.
++     */
++    private void confirmedRoundTrip(LiveTradingSessionEntity s, PositionEntity p, Instant closedAt) {
++        for (String side : List.of("BUY", "SELL")) {
++            boolean buy = "BUY".equals(side);
++            OrderEntity o = orderRepository.save(OrderEntity.builder()
++                    .positionId(p.getId()).coinPair(COIN).side(side).orderType("MARKET")
++                    .quantity(buy ? new BigDecimal("15000") : new BigDecimal("0.001"))
++                    .state("FILLED").clientOrderId(CLOSED_FIXTURE + UUID.randomUUID())
++                    .createdAt(buy ? p.getOpenedAt() : closedAt)
++                    .sessionId(s.getId()).sessionKind("LIVE").build());
++            jdbc.update("UPDATE \"order\" SET filled_quantity = 0.001, applied_executed_funds = ?, applied_paid_fee = ?, sell_applied_at = ? WHERE id = ?",
++                    buy ? new BigDecimal("15000") : new BigDecimal("15100"), buy ? new BigDecimal("7.5") : new BigDecimal("7.55"),
++                    buy ? null : java.sql.Timestamp.from(closedAt), o.getId());
++        }
++    }
++
+     /**
+      * 매도 주문은 {@code OrderExecutionEngine.submitOrder}(@Async) 가 다른 스레드에서 만든다 — 전체 시험 실행 중에는
+      * 주문 실행기가 바빠 바로 단언하면 행이 아직 없다(2026-10-29 전체 실행에서 2건 실패). 최대 10초 기다린다.
+@@ -448,8 +470,34 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
+         old.setStatus("CLOSED");
+         old.setClosedAt(Instant.now().minus(2, ChronoUnit.DAYS));
+         positionRepository.save(old);
++        confirmedRoundTrip(s, old, old.getClosedAt());
++        LiveTradingSessionEntity fresh = liveRepo.findById(s.getId()).orElseThrow();
++        assertThat(riskManagementService.costBasisEntryBlock(fresh)).as("새 매수 전 연속 손실 입력 판정 가능(판정 불가 아님)").isNull();
++        assertThat(riskManagementService.checkCircuitBreaker(fresh).isTriggered()).as("서킷 브레이커 미발동").isFalse();
+         evaluate(s);
+-        assertSubmittedOnce(s, "BUY");
++
++        // 재진입 BUY — 기존 단언(접수 정확히 1회·SUBMITTED·거래소 주문번호·호출 1회) 그대로. 앞선 거래의 원천 행만 이번 접수에서 뺀다(이 시험 안에서만).
++        long until = System.currentTimeMillis() + 10_000;
++        while (reentryBuys(s).isEmpty() && System.currentTimeMillis() < until) {
++            try {
++                Thread.sleep(100);
++            } catch (InterruptedException e) {
++                Thread.currentThread().interrupt();
++                break;
++            }
++        }
++        awaitDrained();
++        List<OrderEntity> found = reentryBuys(s);
++        assertThat(found).as("BUY 주문 1건 — " + lastTrace).hasSize(1);
++        assertThat(found.get(0).getState()).as("BUY 접수 기록").isEqualTo("SUBMITTED");
++        assertThat(found.get(0).getExchangeOrderId()).as("거래소 주문번호").startsWith("sma20-new-");
++        verify(upbitOrderClient, times(1)).createOrder(anyString(), anyString(), any(), any(), anyString(), anyString());
++        verify(upbitOrderClient, times(1)).createOrder(eq(COIN), eq("bid"), any(), any(), anyString(), anyString());
++    }
++
++    private List<OrderEntity> reentryBuys(LiveTradingSessionEntity s) {
++        return orders(s, "BUY").stream()
++                .filter(o -> o.getClientOrderId() == null || !o.getClientOrderId().startsWith(CLOSED_FIXTURE)).toList();
+     }
+ 
+     @Test

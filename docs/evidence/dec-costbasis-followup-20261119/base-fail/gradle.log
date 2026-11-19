@@ -1,0 +1,46 @@
+D:\tmp\costbasis-0e1d2a02\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationExtension.java:66: warning: [removal] getSecurityManager() in System has been deprecated and marked for removal
+                    + "\nrestored_security_manager=" + System.getSecurityManager()
+                                                             ^
+D:\tmp\costbasis-0e1d2a02\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationGuard.java:33: warning: [removal] SecurityManager in java.lang has been deprecated and marked for removal
+    private static volatile SecurityManager previous;
+                            ^
+D:\tmp\costbasis-0e1d2a02\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationGuard.java:74: warning: [removal] getSecurityManager() in System has been deprecated and marked for removal
+        previous = System.getSecurityManager();
+                         ^
+D:\tmp\costbasis-0e1d2a02\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationGuard.java:75: warning: [removal] setSecurityManager(SecurityManager) in System has been deprecated and marked for removal
+        System.setSecurityManager(new Guard());
+              ^
+D:\tmp\costbasis-0e1d2a02\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationGuard.java:136: warning: [removal] getSecurityManager() in System has been deprecated and marked for removal
+        if (System.getSecurityManager() instanceof Guard) {
+                  ^
+D:\tmp\costbasis-0e1d2a02\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationGuard.java:137: warning: [removal] setSecurityManager(SecurityManager) in System has been deprecated and marked for removal
+            System.setSecurityManager(previous);
+                  ^
+D:\tmp\costbasis-0e1d2a02\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationGuard.java:143: warning: [removal] getSecurityManager() in System has been deprecated and marked for removal
+        return installed && System.getSecurityManager() instanceof Guard;
+                                  ^
+D:\tmp\costbasis-0e1d2a02\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationGuard.java:236: warning: [removal] SecurityManager in java.lang has been deprecated and marked for removal
+    private static final class Guard extends SecurityManager {
+                                             ^
+8 warnings
+WARNING: A terminally deprecated method in java.lang.System has been called
+WARNING: System::setSecurityManager has been called by com.cryptoautotrader.api.support.NetworkIsolationGuard (file:/D:/tmp/costbasis-0e1d2a02/web-api/build/classes/java/test/)
+WARNING: Please consider reporting this to the maintainers of com.cryptoautotrader.api.support.NetworkIsolationGuard
+WARNING: System::setSecurityManager will be removed in a future release
+Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+14:23:17.335 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+14:23:17.337 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+14:23:17.342 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+
+1 test completed, 1 failed
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':web-api:test'.
+> There were failing tests. See the report at: file:///D:/tmp/costbasis-0e1d2a02/web-api/build/reports/tests/test/index.html
+
+* Try:
+> Run with --scan to get full insights.
+
+BUILD FAILED in 35s

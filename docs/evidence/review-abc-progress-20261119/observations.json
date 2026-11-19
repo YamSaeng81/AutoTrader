@@ -1,0 +1,27 @@
+{
+  "anchors": {
+    "HEAD": "9687b751480fd037ae91269e9708ecf0691a64f4",
+    "origin/main": "f55f5af0c460d634c1eb58dae8b44e3cec3b6a8b",
+    "32d5dafd": "32d5dafdd5d2d07753d47eae216c93f8657397ff",
+    "b408a223": "b408a223aea32c5674152bce4aa64ae5def17c12",
+    "aff357e2": "aff357e2ae3fd9278373704460968dfca05cd240",
+    "60df3437": "60df343750c330e90e6023ebbb115ce1ad140384"
+  },
+  "buy_alert_observation": 0,
+  "followup_paths": [
+    "web-api/src/main/java/com/cryptoautotrader/api/entity/ExitReason.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/report/LogAnalyzerService.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/repository/OrderRepository.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/repository/PositionRepository.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/CostBasisFollowupPgTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/ExitReasonRecordingTest.java"
+  ],
+  "limits": [
+    "Interim files are uncommitted and no manifest was available; final committed-byte verification is pending.",
+    "Saved XML/JSON were parsed; PostgreSQL, Spring, full regression, builds and production were not run by reviewer.",
+    "Full regression on 60df3437 was reported running; no completion or pass is inferred.",
+    "Pre-deploy v3 evidence includes syntax and one widened-window NULL probe, not full product-value parity.",
+    "BUY buffer omission is supported by saved cross observation and unchanged settlement source; historic production events and V83 introduction were not independently verified."
+  ]
+}

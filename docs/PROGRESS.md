@@ -6,7 +6,8 @@
 
 | 구분 | 기준 | 상태 |
 |---|---|---|
-| 최신 총괄 판단 | [v1.192](evidence/review-0bc5d295/README.md) | 443차 일부 범위 수용. 성적표 v3·원문 고정 수용, 비용 후보 두 경계/실행 로그 보존 보완 뒤 통합 검증 |
+| 최신 총괄 판단 | [v1.195](evidence/review-abc-regression-20261119/README.md) | 60df3437 실패1 보존·독립19대조 성공. A/C 원인 확인 뒤 확정 주문 원천 시험 커밋 포함 허용. N3/SQL·별도 BUY 요약 후보 계속, 최종 고정 전 전체 회귀 반복 없음 |
+| **최근 개발 제출(판정 전)** | 445차 [통합·회귀 원인](evidence/dec-integ-abc-20261119/README.md) · [N3 구판](evidence/dec-n3-oldbinary-20261119/README.md) · [SQL v3 대조](evidence/dec-predeploy-parity-20261119/README.md) · [매수 요약 후보](evidence/dec-real-buy-summary-20261119/README.md) | 60df3437 회귀 실패1 = C 계약·시험 준비 데이터 충돌(A 24/24·C 23/24) → 시험 보정 09fa2d1c 24/24. 구판 둘 다 새 값 1행에 실조회 실패·4판 STOP_INCOMPATIBLE. SQL v3 96/96. 매수 요약 69c81c3d 기점 18/23 실패→23/23. **추가 발견: LiveLossWindowPgTest가 C에서 1/7**(0e1d2a02 7/7) |
 | **최근 개발 결과(일부 범위 수용)** | 443차 [비용 기준 후보](evidence/dec-costbasis-20261119/README.md) · [성적표 v3](evidence/dec-scorecard-v3-20261119/README.md) · [포함표](evidence/dec-inclusion-20261119/README.md) · [N03 22:00 회수](evidence/n03-1118-2200/README.md) | 후보 b861bdf9(로컬): 같은 PG 시험 기점 15/48 → 후보 48/48(XML1/1), 영향 H2 214/215→고정물 뒤 13/13, PG 4클래스 35/35. 성적표 v2 red 2/2 → v3 60/60·변형14/14. 시험 원문 두 가지 test-only 커밋·원격 보존 |
 | 최근 개발 결과(로컬 범위 수용) | 442차 **16595682** [손익 정의 영향](evidence/dec-pnl-definition-20261119/README.md) · [성적표 v2](evidence/dec-scorecard-v2-20261118/README.md) · [금액/BTC PG](evidence/dec-amtbtc-pg-20261119/README.md) · [최소 알림](evidence/dec-min-alert-20261119/README.md) · [운용안](evidence/dec-ops-plan-20261119/README.md) | 각 PG1/1·성적표52/52/변형10·알림 XML8개81성공. 조사/후보 수용, 성적표 실제 평가 사용은 잔여 보완·출처 연결 뒤 |
 | 최근 개발 결과(로컬 범위 수용) | 441차 f14ff757 [금액/BTC](evidence/dec-amtbtc-20261118/README.md) · [매도 PG](evidence/dec-pg-sell-20261118/README.md) · [성적표](evidence/dec-scorecard-20261118/README.md) | 금액/BTC·매도 PG 범위 수용, 성적표는 시제품 제출만 수용하고 판정 도구 사용은 보완 뒤 |
@@ -19,11 +20,19 @@
 | 이전 조사(로컬 범위 수용) | 436차 [원문 연결·P7 v2·쿨다운/알림/성적표](evidence/dec-reconcile-20261118/README.md) | c2a09f9c. XML48/8/53성공, P7 저장35입력 일치·추가 반례7개로 보완 전 |
 | 운영 반영(수용) | [427차 결과](evidence/v172run-20261116/README.md) | backend0e1d2a02/2c5d8427·V96·frontend9d7f123a. U2 rc1·U3 지연 편차 보존 |
 
-### 444차 결과 — 비용 기준 판정 불가 두 경계 보완·원문 보존 보충 (제출, 판정 전)
+### 445차 결과 — 회귀 원인·N3 구판 실조회·SQL v3 대조·REAL 매수 요약 후보 (판정 전)
+
+- **회귀 원인**: 60df3437 전체 회귀 실패1(`DailySma20 reentersAfterClose`)은 A 단독 24/24·C 단독 23/24로 C 계약(원천 없는 청산 = 판정 불가)과 준비 데이터의 충돌이다. 시험 전용 `fixture/dailysma20-reentry-60df3437` **09fa2d1c**(시험 1파일)는 확정 매수·매도 원천을 두고 기존 단언을 유지해 24/24. 60df3437 불변. [근거](evidence/dec-integ-abc-20261119/README.md)
+- **추가 발견**: 회귀에서 건너뛴 `LiveLossWindowPgTest`가 C 단독·통합에서 1/7(운영 기점 7/7). 원인은 매수 원천 없이 만든 포지션이며, v1.195 §2-3에 따라 고치지 않고 판단을 요청한다.
+- **N3**: 0e1d2a02·b5cd1d0d 실제 바이너리가 ENTRY_REJECTED 1행에서 서킷 브레이커·손실 냉각·LIVE 화면·목록 조회에 실패한다(NULL 대조는 정상). 같은 DB에서 3판은 OK, 4판은 STOP_INCOMPATIBLE이며 원래 값은 불변. [근거](evidence/dec-n3-oldbinary-20261119/README.md)
+- **SQL v3 ↔ 제품**: 전역 30일 판정 불가/손실 합·세션 입력 범위·최신순·NULL/확정 0·해제·빈 청산·가동 전 범위가 **96/96** 일치한다. [근거](evidence/dec-predeploy-parity-20261119/README.md)
+- **REAL 매수 요약 후보** `candidate/real-buy-summary-60df3437` **69c81c3d**(+596ed4b0 교차 시험 도우미 1줄): 커밋된 체결 증가분만 기존 버퍼에 적재한다. 기점 18/23 실패 → 23/23. 영향 H2 93/93, PG AbcCross 19/19 등 통과. 60df3437에는 넣지 않았다. [근거](evidence/dec-real-buy-summary-20261119/README.md)
+
+### 444차 결과 — 비용 기준 두 경계·원문 보존 (v1.193 범위 수용)
 
 - **비용 경계 후보** `candidate/cost-basis-boundary-b861bdf9` **32d5dafd**(b861bdf9 기점, 로컬 — 원격 올리기는 권한 검사 거절로 미실행): 새 PG 시험 `CostBasisBoundaryPgTest`를 먼저 커밋, 기점 **39/54**(실패15 = 원천 없는 청산·매도 수수료 NULL) → **59/59**. 매도 대금/수수료/수량 NULL은 합에 0으로 넣지 않고 판정 불가, 주문 원천 없는 청산은 저장 손익 대신 판정 불가, 무거래 확정(체결0 확정 취소·DYNAMIC 예약 거절 빈 슬롯 `ENTRY_REJECTED` 새 표시)만 예외. 확정 원천 복구 뒤 다음 조회에서 자동 해제. 영향 H2 29클래스 **215/215**, PG 5클래스 **36/36**(기존 48단언 포함). 고정물 4클래스에 같은 손익 확정 주문 원천. 해제 범위표·배포 전 읽기 v2(제품 조회문 기계 추출, 로컬 문법만). [비용 경계](evidence/dec-costbasis-boundary-20261119/README.md)
 - **원문 보존 보충:** 커밋 누락 실행 로그13개를 바이트 그대로 강제 추가(목록 해시13/13·저장 blob 13/13 일치), 성적표 `.pyc` 제외 목록 `SHA256SUMS.submitted`(74) 별도. 과거 목록 보존.
-- **판정 필요:** `ENTRY_REJECTED` 열거값 추가, 과거 예약 거절 빈 슬롯(표시 없음)의 판정 불가는 배포 전 읽기 R1·R3로 확인.
+- **v1.193 판정:** 두 비용 경계/로그13개 보충 수용, 독립482대조 성공·실패0. 새 표시의 제한된 로컬 기록은 허용하고 NULL 매수 수량 무거래 판정·성과 분모·구판 열거값 호환성은 보완한다. 원격 보존 허용 유지, 11-19 PAPER9 날짜 파일은 미승인 만료. [지시](evidence/review-9687b751/README.md)
 
 ### v1.192 — 443차 검토·비용 후보 두 경계 보완 지시
 
@@ -43,14 +52,6 @@
 ### v1.191 — 442차 검토와 비용 기준 보완 지시
 
 - 고정16595682의 목록4/65/4/10·앞 총괄5개와 Git 블롭 일치, 독립328대조 성공. REAL 비용 뒤 손실 누락을 제품 보완 대상으로 판정했다. 비용 기준 독립 후보와 성적표 잔여2건·원문 고정/포함표를 지시했다. 최소 알림은 실제8클래스81성공이며 문서9클래스를 정정한다. [판정/지시](evidence/review-16595682/README.md)
-
-### 442차 결과 — 손익 정의 영향·성적표 v2·금액/BTC PG·최소 알림·운용안 (로컬 범위 수용)
-
-- **손익 정의:** 0e1d2a02 실제 경로·격리 PG 1회. 매수 7,500+3.75·순매도 7,501이면 LIVE·DYNAMIC REAL 저장 +1(비용 뒤 −2.75) → 손실 합 SQL 0·관문 승인·연속 손실 미발동, 같은 구간 DYN_PAPER는 연속 손실 발동. 실제 손실은 매수 수수료만큼 과소(−103.70 vs −107.45), 정적 손절 함수는 평균가 두 입력을 넣었을 때285.10에서 갈림(엔진 경로 확인은 후속). 가격/비용 기준 분리 최소안 제출(구현 안 함). [근거](evidence/dec-pnl-definition-20261119/README.md)
-- **성적표 v2:** v1 원문에 네 반례 4/4 실패 재현 → 새 사본 보완(미실현 기초/기말/증감 분리·생애/이 달 실현 분리, 월 밖 입출금 rc2, 실자금/모의 분리·계좌는 실자금만, 금액/비율 낙폭 각각·입출금 보정, 정산 시각만 월 귀속, 매수 예약 평가). 52/52·변형10/10. [근거](evidence/dec-scorecard-v2-20261118/README.md)
-- **금액/BTC PG:** aff357e2 그대로 JSONB 정렬·정수 저장, 재조회 지문 895ab6b8dc16 유지, 상한 10,000 예약·주문 행, BTC 제외·관문 입력 유지, 제외 코인 보유 REAL 매도 CLOSED. c70a8330·aff357e2 원격 보존 푸시. [근거](evidence/dec-amtbtc-pg-20261119/README.md)
-- **최소 알림:** 후보 dfe3b9f7(0e1d2a02 기점, 로컬): `종류#ID`·구간 안 재기동 줄·꺼짐 때 미적재. 새 8 + 관련 기존 73 = 81/81. [근거](evidence/dec-min-alert-20261119/README.md)
-- **운용안:** 고정1=SID203, 동적1=사전 규칙으로 COMPOSITE_BREAKOUT H1 초안·BTC 제외·가상 상한 10,000. 금액·최종 전략은 사용자 결정 대기. [근거](evidence/dec-ops-plan-20261119/README.md)
 
 ## 최근 완료 기록
 
@@ -73,7 +74,7 @@
 
 ## 마지막 운영 읽기와 인계
 
-마지막 운영 읽기는 **11-19 10:13:09 KST** N03 10:00 보고·09:30 장부 rc0(🔴 미분류 ERROR 3 = 뉴스·LLM 외부 통신, 자정 TRADE_SUMMARY 텔레그램 1건 실패, SID203 CREATED·장부 balance_diff 0) — [N03 10:00](evidence/n03-1119-1000/README.md). 그 앞 11-19 09:15:58 KST — N03 11-18 22:00 보고 늦은 회수 rc0(22:00:04 전송 성공·🟢·ERROR 0, 설치 상태 HEAD 0e1d2a02·backend 재시작0), DB는 보고 값이다 — [N03 22:00](evidence/n03-1118-2200/README.md). 다음은11-19 22:00 보고 생성·전송 뒤22:12 이후 읽기다. 그 앞은 N03 10:00 보고·09:30 장부 예약 읽기 11-18 10:13:21 KST rc0(보고 🔴1=미분류 ERROR 기존 반복 tokenpost_rss 시간 초과, SID203 CREATED·밖 실자금0·정산 이상0, 장부 balance_diff0)다 — [N03 10:00](evidence/n03-1118-1000/README.md). 앞 22:00 보고는 08:18:23 늦은 읽기(DB는 보고 값, 직접 조회 없음). 22:12 예약은 개발 PC 절전으로 실행되지 않았고 11-17 17:18~11-18 08:18은 미관측이다. SSH 로그 10:40:59~10:42:07, 인증 방식 시도 11:22:55. [현재 인계](CURRENT_HANDOFF.md)
+마지막 운영 읽기는 **11-19 10:13:09 KST** N03 10:00 보고·09:30 장부 rc0(🔴 미분류 ERROR 3 = 뉴스3건, Claude 오류는 별도 로그, 자정 TRADE_SUMMARY 텔레그램 1건 실패, SID203 CREATED·장부 balance_diff 0) — [N03 10:00](evidence/n03-1119-1000/README.md). 그 앞 11-19 09:15:58 KST — N03 11-18 22:00 보고 늦은 회수 rc0(22:00:04 전송 성공·🟢·ERROR 0, 설치 상태 HEAD 0e1d2a02·backend 재시작0), DB는 보고 값이다 — [N03 22:00](evidence/n03-1118-2200/README.md). 다음은11-19 22:00 보고 생성·전송 뒤22:12 이후 읽기다. 그 앞은 N03 10:00 보고·09:30 장부 예약 읽기 11-18 10:13:21 KST rc0(보고 🔴1=미분류 ERROR 기존 반복 tokenpost_rss 시간 초과, SID203 CREATED·밖 실자금0·정산 이상0, 장부 balance_diff0)다 — [N03 10:00](evidence/n03-1118-1000/README.md). 앞 22:00 보고는 08:18:23 늦은 읽기(DB는 보고 값, 직접 조회 없음). 22:12 예약은 개발 PC 절전으로 실행되지 않았고 11-17 17:18~11-18 08:18은 미관측이다. SSH 로그 10:40:59~10:42:07, 인증 방식 시도 11:22:55. [현재 인계](CURRENT_HANDOFF.md)
 
 ## 이력 보존과 갱신
 

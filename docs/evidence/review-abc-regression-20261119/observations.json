@@ -1,0 +1,32 @@
+{
+  "totals": {
+    "tests": 1866,
+    "passed": 1772,
+    "failed": 1,
+    "skipped": 93
+  },
+  "failures": [
+    {
+      "file": "xml/web-api/TEST-com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest.xml",
+      "class": "com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest",
+      "test": "이전 포지션이 청산된 세션은 다음 마감 봉의 BUY 로 다시 들어간다(재진입)",
+      "message": "java.lang.AssertionError: [BUY 주문 1건 — 회차 키 H1 2026-11-19T04:55:31Z · 신호 BUY / 접수 거절=null · 승인 [LIVE#131→연속 손실 판정 불가 — 최근 확정 손실 0회 다음 청산(posId=226)의 확정 비용을 구하지 못했다(한도: 5회). 신규 진입만 막고 정지·청산하지 않는다]] \r\nExpected size: 1 but was: 0 in:\r\n[]"
+    }
+  ],
+  "guard_header": [
+    "installed_during_run=true",
+    "disabled_reason=null",
+    "classes_checked=194",
+    "blocked_external_attempts=0",
+    "allowed_jndi_nameserver_probes=3",
+    "allowed_own_interface_connections=75",
+    "restored_security_manager=null"
+  ],
+  "artifact_count": 307,
+  "limits": [
+    "No Java/PG/build/network operation executed.",
+    "Generated-to-preserved XML equality uses the saved copy record; original build folders were not rechecked.",
+    "A-only/C-only executions, old-version query and BUY-summary fail-first runs were reported in progress and are not judged here.",
+    "The final development submission manifest and committed blobs are not available yet."
+  ]
+}

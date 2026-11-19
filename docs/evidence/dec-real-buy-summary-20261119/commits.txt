@@ -1,0 +1,5 @@
+596ed4b0a7efcec53678518cbcd9f125582ba94e test: AbcCrossPgTest alertEvents — null 인자 허용(매수 요약 적재 뒤 BUY 이벤트의 손익 null)
+69c81c3d47dd6f2f1325a2f7c57f110c41d8a887 fix: 공유 풀 REAL 매수 요약 — 원자 정산 커밋 뒤 확정 체결 증가분만 기존 요약 버퍼에 적재(LIVE·DYNAMIC, 종류#ID)
+44b5bf4bb778693c05f221123e8674422f8021e0 test: RealBuySummaryPgTest alertEvents — null 인자(매수 손익) 허용
+c8cb48a007a6dbccf90c30c35ce1b9fc435d26fe test: RealBuySummaryPgTest R3 — 늦은 정정 재조회 백오프 경과 재현(시각만 당김)
+9a29706956496e866ca103a61227163eef386f8a test: RealBuySummaryPgTest — 공유 풀 REAL 매수 요약 적재 실패 시험 먼저(v1.194 §3)

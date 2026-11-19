@@ -1,0 +1,232 @@
+{
+  "dec-costbasis-boundary-20261119": {
+    "manifest": "SHA256SUMS",
+    "entries": 139,
+    "tracked_files": 141,
+    "not_listed": []
+  },
+  "review-0bc5d295": {
+    "manifest": "SHA256SUMS",
+    "entries": 6,
+    "tracked_files": 7,
+    "not_listed": []
+  },
+  "review-f55f5af0": {
+    "manifest": "SHA256SUMS",
+    "entries": 2,
+    "tracked_files": 3,
+    "not_listed": []
+  },
+  "dec-scorecard-v3-20261119": {
+    "manifest": "SHA256SUMS.submitted",
+    "entries": 74,
+    "tracked_files": 78,
+    "not_listed": [
+      "README.md"
+    ]
+  },
+  "assertion_runs": {
+    "base-fail": {
+      "total": 54,
+      "passed": 39,
+      "failed_labels": [
+        "N1 LIVE 원천 없는 청산 → 전역 관문 판정 불가 거절",
+        "N1 LIVE 세션 연속 손실 판정 불가(발동 아님, 저장 손익 +1 을 쓰지 않음)",
+        "N1 LIVE 신규 진입 차단 사유",
+        "N1 LIVE 원천이 끝내 없음 — 다음 조회도 판정 불가",
+        "N1 LIVE 주문 없는 고아 청산 → checkRisk 판정 불가 거절",
+        "N3 LIVE 매도 수수료 NULL → 관문 판정 불가 거절",
+        "N3 LIVE 매도 수수료 NULL → 연속 손실 판정 불가(발동 아님)",
+        "N3 LIVE 매도 수수료 NULL → 진입 차단",
+        "N1 DYNAMIC 원천 없는 청산 → 전역 관문 판정 불가 거절",
+        "N1 DYNAMIC 세션 연속 손실 판정 불가(발동 아님, 저장 손익 +1 을 쓰지 않음)",
+        "N1 DYNAMIC 신규 진입 차단 사유",
+        "N1 DYNAMIC 원천이 끝내 없음 — 다음 조회도 판정 불가",
+        "N3 DYNAMIC 매도 수수료 NULL → 관문 판정 불가 거절",
+        "N3 DYNAMIC 매도 수수료 NULL → 연속 손실 판정 불가(발동 아님)",
+        "N3 DYNAMIC 매도 수수료 NULL → 진입 차단"
+      ]
+    },
+    "run1": {
+      "total": 54,
+      "passed": 54,
+      "failed_labels": []
+    },
+    "fix1-n2b-fail": {
+      "total": 59,
+      "passed": 56,
+      "failed_labels": [
+        "N2b DYNAMIC 예약 거절 빈 슬롯 → 관문 판정 불가 아님",
+        "N2b DYNAMIC 예약 거절 빈 슬롯 → 연속 손실 판정 불가 아님",
+        "N2b DYNAMIC 예약 거절 빈 슬롯 → 진입 차단 없음"
+      ]
+    },
+    "attempt-run2-null-logic": {
+      "total": 59,
+      "passed": 54,
+      "failed_labels": [
+        "N1 LIVE 원천 없는 청산 → 전역 관문 판정 불가 거절",
+        "N1 LIVE 원천이 끝내 없음 — 다음 조회도 판정 불가",
+        "N1 LIVE 주문 없는 고아 청산 → checkRisk 판정 불가 거절",
+        "N1 DYNAMIC 원천 없는 청산 → 전역 관문 판정 불가 거절",
+        "N1 DYNAMIC 원천이 끝내 없음 — 다음 조회도 판정 불가"
+      ]
+    },
+    "run3": {
+      "total": 59,
+      "passed": 59,
+      "failed_labels": []
+    }
+  },
+  "xml": {
+    "run3": {
+      "files": 1,
+      "tests_fail_skip": [
+        1,
+        0,
+        0
+      ]
+    },
+    "affected-h2": {
+      "files": 31,
+      "tests_fail_skip": [
+        215,
+        0,
+        0
+      ]
+    },
+    "affected-pg": {
+      "files": 5,
+      "tests_fail_skip": [
+        36,
+        0,
+        0
+      ]
+    }
+  },
+  "sql_probes": {
+    "method": "Unmodified Java annotation SQL extracted from fixed candidate, executed only in SQLite memory. Not a PostgreSQL or engine run.",
+    "no_source": {
+      "count": 1,
+      "parts": [
+        1,
+        0,
+        0,
+        null,
+        null,
+        0,
+        null,
+        null,
+        0,
+        0
+      ],
+      "loss": 0
+    },
+    "NULL_sell_fee": {
+      "count": 1,
+      "parts": [
+        1,
+        1,
+        0,
+        7503.75,
+        25.0,
+        1,
+        null,
+        25.0,
+        1,
+        0
+      ],
+      "loss": 0
+    },
+    "confirmed_zero": {
+      "count": 0,
+      "parts": [
+        1,
+        1,
+        0,
+        7503.75,
+        25.0,
+        1,
+        7504.75,
+        25.0,
+        0,
+        0
+      ],
+      "loss": 0
+    },
+    "confirmed_fee": {
+      "count": 0,
+      "parts": [
+        1,
+        1,
+        0,
+        7503.75,
+        25.0,
+        1,
+        7501.0,
+        25.0,
+        0,
+        0
+      ],
+      "loss": -2.75
+    },
+    "marker": {
+      "count": 0,
+      "parts": [
+        1,
+        0,
+        0,
+        null,
+        null,
+        0,
+        null,
+        null,
+        0,
+        1
+      ],
+      "loss": 0
+    },
+    "NULL_buy_qty_cancel_confirmed": {
+      "count": 0,
+      "parts": [
+        1,
+        0,
+        0,
+        null,
+        null,
+        0,
+        null,
+        null,
+        0,
+        1
+      ],
+      "loss": 0
+    },
+    "zero_buy_qty": {
+      "count": 0,
+      "parts": [
+        1,
+        0,
+        0,
+        null,
+        null,
+        0,
+        null,
+        null,
+        0,
+        1
+      ],
+      "loss": 0
+    },
+    "queries": {
+      "countRealSessionCostUndeterminedSince": "SELECT (SELECT COUNT(*) FROM \"order\" o   WHERE o.side = 'SELL' AND o.session_id IS NOT NULL AND o.session_kind = :kind   AND o.sell_applied_at IS NOT NULL AND o.sell_applied_at >= :since   AND (NOT (o.applied_executed_funds IS NOT NULL AND o.applied_paid_fee IS NOT NULL AND o.filled_quantity IS NOT NULL AND o.filled_quantity > 0)        OR NOT EXISTS (SELECT 1 FROM (SELECT bo.position_id, SUM(bo.applied_executed_funds + bo.applied_paid_fee) AS cost, SUM(bo.filled_quantity) AS qty FROM \"order\" bo WHERE bo.side = 'BUY' AND bo.position_id IS NOT NULL AND bo.filled_quantity > 0 GROUP BY bo.position_id HAVING COUNT(*) = COUNT(bo.applied_executed_funds) AND COUNT(*) = COUNT(bo.applied_paid_fee)) b WHERE b.position_id = o.position_id))) + (SELECT COUNT(*) FROM position p   WHERE p.session_kind = :kind AND p.session_id IS NOT NULL AND p.status = 'CLOSED'   AND p.closed_at IS NOT NULL AND p.closed_at >= :since   AND ((SELECT COALESCE(SUM(bq.filled_quantity), 0) FROM \"order\" bq        WHERE bq.position_id = p.id AND bq.side = 'BUY' AND bq.filled_quantity > 0)     > (SELECT COALESCE(SUM(sq.filled_quantity), 0) FROM \"order\" sq        WHERE sq.position_id = p.id AND sq.side = 'SELL' AND sq.sell_applied_at IS NOT NULL        AND sq.applied_executed_funds IS NOT NULL)     OR (NOT EXISTS (SELECT 1 FROM \"order\" x WHERE x.position_id = p.id           AND ((x.side = 'BUY' AND x.filled_quantity > 0) OR (x.side = 'SELL' AND x.sell_applied_at IS NOT NULL)))         AND NOT (((COALESCE(p.exit_reason, '') = 'ENTRY_REJECTED' AND COALESCE(p.size, -1) = 0   AND NOT EXISTS (SELECT 1 FROM \"order\" nx WHERE nx.position_id = p.id)) OR (EXISTS (SELECT 1 FROM \"order\" nb WHERE nb.position_id = p.id AND nb.side = 'BUY') AND NOT EXISTS (SELECT 1 FROM \"order\" nb WHERE nb.position_id = p.id AND nb.side = 'BUY'   AND NOT (COALESCE(nb.filled_quantity, 0) = 0 AND (nb.state = 'FAILED'     OR (nb.state = 'CANCELLED' AND (nb.fee_source IS NULL OR nb.cancel_confirmed_at IS NOT NULL))))) AND NOT EXISTS (SELECT 1 FROM \"order\" ns WHERE ns.position_id = p.id AND ns.side = 'SELL'   AND ns.sell_applied_at IS NOT NULL)))))))",
+      "costBasisPartsByPosition": "SELECT p.id, (SELECT COUNT(*) FROM \"order\" b WHERE b.position_id = p.id AND b.side = 'BUY' AND b.filled_quantity > 0), (SELECT COUNT(*) FROM \"order\" b WHERE b.position_id = p.id AND b.side = 'BUY' AND b.filled_quantity > 0    AND (b.applied_executed_funds IS NULL OR b.applied_paid_fee IS NULL)), (SELECT SUM(b.applied_executed_funds + b.applied_paid_fee) FROM \"order\" b    WHERE b.position_id = p.id AND b.side = 'BUY' AND b.filled_quantity > 0), (SELECT SUM(b.filled_quantity) FROM \"order\" b WHERE b.position_id = p.id AND b.side = 'BUY' AND b.filled_quantity > 0), (SELECT COUNT(*) FROM \"order\" s WHERE s.position_id = p.id AND s.side = 'SELL' AND s.sell_applied_at IS NOT NULL    AND s.applied_executed_funds IS NOT NULL), (SELECT SUM(s.applied_executed_funds - s.applied_paid_fee) FROM \"order\" s    WHERE s.position_id = p.id AND s.side = 'SELL' AND s.sell_applied_at IS NOT NULL AND s.applied_executed_funds IS NOT NULL), (SELECT SUM(s.filled_quantity) FROM \"order\" s    WHERE s.position_id = p.id AND s.side = 'SELL' AND s.sell_applied_at IS NOT NULL AND s.applied_executed_funds IS NOT NULL), (SELECT COUNT(*) FROM \"order\" o WHERE o.position_id = p.id AND o.side = 'SELL' AND o.sell_applied_at IS NOT NULL    AND NOT (o.applied_executed_funds IS NOT NULL AND o.applied_paid_fee IS NOT NULL AND o.filled_quantity IS NOT NULL AND o.filled_quantity > 0)), CASE WHEN ((COALESCE(p.exit_reason, '') = 'ENTRY_REJECTED' AND COALESCE(p.size, -1) = 0   AND NOT EXISTS (SELECT 1 FROM \"order\" nx WHERE nx.position_id = p.id)) OR (EXISTS (SELECT 1 FROM \"order\" nb WHERE nb.position_id = p.id AND nb.side = 'BUY') AND NOT EXISTS (SELECT 1 FROM \"order\" nb WHERE nb.position_id = p.id AND nb.side = 'BUY'   AND NOT (COALESCE(nb.filled_quantity, 0) = 0 AND (nb.state = 'FAILED'     OR (nb.state = 'CANCELLED' AND (nb.fee_source IS NULL OR nb.cancel_confirmed_at IS NOT NULL))))) AND NOT EXISTS (SELECT 1 FROM \"order\" ns WHERE ns.position_id = p.id AND ns.side = 'SELL'   AND ns.sell_applied_at IS NOT NULL))) THEN 1 ELSE 0 END FROM position p WHERE p.id IN (:ids)",
+      "sumLiveSessionRealizedLossSince": "SELECT COALESCE(SUM(pnl), 0) FROM ( SELECT o.applied_executed_funds - o.applied_paid_fee - (o.filled_quantity * b.cost) / b.qty AS pnl FROM \"order\" o JOIN (SELECT bo.position_id, SUM(bo.applied_executed_funds + bo.applied_paid_fee) AS cost, SUM(bo.filled_quantity) AS qty FROM \"order\" bo WHERE bo.side = 'BUY' AND bo.position_id IS NOT NULL AND bo.filled_quantity > 0 GROUP BY bo.position_id HAVING COUNT(*) = COUNT(bo.applied_executed_funds) AND COUNT(*) = COUNT(bo.applied_paid_fee)) b ON b.position_id = o.position_id WHERE o.side = 'SELL' AND o.session_id IS NOT NULL AND o.session_kind = 'LIVE' AND o.sell_applied_at IS NOT NULL AND o.sell_applied_at >= :since AND o.applied_executed_funds IS NOT NULL AND o.applied_paid_fee IS NOT NULL AND o.filled_quantity IS NOT NULL AND o.filled_quantity > 0) t WHERE pnl < 0"
+    }
+  },
+  "findings": {
+    "F1": "ENTRY_REJECTED passes countsTowardStrategyPerformance; unfiltered LogAnalyzer row count includes it and lossCount classifies zero as loss. Source observation, not engine reproduction.",
+    "F2": "Prior production ExitReason has no ENTRY_REJECTED while PositionEntity uses EnumType.STRING. Old-binary entity hydration compatibility is a static risk; not run against old jar.",
+    "F3": "CONFIRMED_NO_TRADE coalesces NULL BUY filled_quantity to zero, including CANCELLED with cancel_confirmed_at. Exact SQL counterexample above; PG reproduction required before treating it as confirmed no-trade."
+  }
+}

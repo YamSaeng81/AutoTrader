@@ -1,0 +1,111 @@
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/entity/ExitReason.java b/web-api/src/main/java/com/cryptoautotrader/api/entity/ExitReason.java
+index f3b8fed4..0ad6a425 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/entity/ExitReason.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/entity/ExitReason.java
+@@ -69,6 +69,14 @@ public enum ExitReason {
+      * 전략 성과처럼 집계되고 있었다. 이 구분은 그 오독을 막기 위한 것이다.</p>
+      */
+     public boolean countsTowardStrategyPerformance() {
+-        return this != FORCED_STOP && this != UNKNOWN;
++        return this != FORCED_STOP && this != UNKNOWN && this != ENTRY_REJECTED;
++    }
++
++    /**
++     * 거래였는가 (v1.193 §2) — {@link #ENTRY_REJECTED} 빈 슬롯은 주문·체결이 없어 거래 수·승률/손실 분모에 넣지 않는다. 행과 사유는 감사용으로 남는다.
++     * 다른 사유(사유 없음 포함)는 종전대로 거래로 센다 — 기존 집계를 바꾸지 않는다.
++     */
++    public static boolean isTrade(ExitReason reason) {
++        return reason != ENTRY_REJECTED;
+     }
+ }
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/report/LogAnalyzerService.java b/web-api/src/main/java/com/cryptoautotrader/api/report/LogAnalyzerService.java
+index 46f0187c..f4b8f55e 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/report/LogAnalyzerService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/report/LogAnalyzerService.java
+@@ -69,6 +69,9 @@ public class LogAnalyzerService {
+         List<PositionEntity> closedPos = sessionType != null
+                 ? positionRepo.findClosedByPeriodAndSessionType(sessionType, from, to)
+                 : positionRepo.findClosedByPeriod(from, to);
++        // v1.193 §2 — 진입 예약 거절 빈 슬롯(ENTRY_REJECTED)은 거래가 아니다: 청산 수·승률/손실 분모·코인별 통계에서 뺀다.
++        closedPos = closedPos.stream()
++                .filter(p -> com.cryptoautotrader.api.entity.ExitReason.isTrade(p.getExitReason())).toList();
+ 
+         SignalStats    signals      = buildSignalStats(periodLogs);
+         PositionStats  positions    = buildPositionStats(closedPos);
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/repository/OrderRepository.java b/web-api/src/main/java/com/cryptoautotrader/api/repository/OrderRepository.java
+index 2523b8e0..b72bda24 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/repository/OrderRepository.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/repository/OrderRepository.java
+@@ -501,12 +501,14 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
+      * ({@code OrderExecutionEngine.isConfirmedUnfilledBuy}: FAILED, 또는 CANCELLED 이고 정산 추적 밖이거나 취소 확정)이며 확정 매도가 없다.
+      * 주문이 아예 없는 청산은 여기에 들지 않는다 — 주문이 없다는 사실만으로 손실 0 으로 보지 않는다. 예외는 진입 예약 거절로 같은
+      * 트랜잭션에서 닫은 빈 슬롯({@code exit_reason = 'ENTRY_REJECTED'}, 수량 0, 주문 행 없음)뿐이다.
++     * 🔴 v1.193 §2 — BUY 체결 수량은 <b>확정 0 값</b>이어야 한다. NULL(미보고)을 0 으로 채우지 않는다: 정상 경로는 저장 직전 0 을 넣으므로
++     * (엔티티 prePersist·열 기본값) NULL 은 미보고/수동 행뿐이고, 그 포지션은 무거래 확정이 아니라 판정 불가(④)로 남는다. 상태 판정만으로 대신하지 않는다.
+      */
+     String CONFIRMED_NO_TRADE = "((COALESCE(p.exit_reason, '') = 'ENTRY_REJECTED' AND COALESCE(p.size, -1) = 0"
+             + "   AND NOT EXISTS (SELECT 1 FROM \"order\" nx WHERE nx.position_id = p.id)) OR"
+             + " (EXISTS (SELECT 1 FROM \"order\" nb WHERE nb.position_id = p.id AND nb.side = 'BUY')"
+             + " AND NOT EXISTS (SELECT 1 FROM \"order\" nb WHERE nb.position_id = p.id AND nb.side = 'BUY'"
+-            + "   AND NOT (COALESCE(nb.filled_quantity, 0) = 0 AND (nb.state = 'FAILED'"
++            + "   AND NOT (nb.filled_quantity IS NOT NULL AND nb.filled_quantity = 0 AND (nb.state = 'FAILED'"
+             + "     OR (nb.state = 'CANCELLED' AND (nb.fee_source IS NULL OR nb.cancel_confirmed_at IS NOT NULL)))))"
+             + " AND NOT EXISTS (SELECT 1 FROM \"order\" ns WHERE ns.position_id = p.id AND ns.side = 'SELL'"
+             + "   AND ns.sell_applied_at IS NOT NULL)))";
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/repository/PositionRepository.java b/web-api/src/main/java/com/cryptoautotrader/api/repository/PositionRepository.java
+index d12b1929..0277bc37 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/repository/PositionRepository.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/repository/PositionRepository.java
+@@ -259,6 +259,7 @@ public interface PositionRepository extends JpaRepository<PositionEntity, Long>
+             "WHERE p.status = 'CLOSED' " +
+             "  AND p.closed_at >= :since " +
+             "  AND p.invested_krw > 0 " +
++            "  AND COALESCE(p.exit_reason, '') <> 'ENTRY_REJECTED' " +
+             "  AND p.market_regime IS NOT NULL " +
+             "  AND s.session_type = 'REAL' " +
+             "GROUP BY s.strategy_type, p.market_regime",
+@@ -281,6 +282,7 @@ public interface PositionRepository extends JpaRepository<PositionEntity, Long>
+             "WHERE p.status = 'CLOSED' " +
+             "  AND p.closed_at >= :since " +
+             "  AND p.invested_krw > 0 " +
++            "  AND COALESCE(p.exit_reason, '') <> 'ENTRY_REJECTED' " +
+             "  AND p.market_regime IS NOT NULL " +
+             "  AND s.session_type = 'REAL'",
+             nativeQuery = true)
+@@ -297,6 +299,7 @@ public interface PositionRepository extends JpaRepository<PositionEntity, Long>
+             "WHERE p.status = 'CLOSED' " +
+             "  AND p.closed_at >= :since " +
+             "  AND p.invested_krw > 0 " +
++            "  AND COALESCE(p.exit_reason, '') <> 'ENTRY_REJECTED' " +
+             "  AND p.market_regime IS NOT NULL " +
+             "  AND s.session_type = 'REAL'",
+             nativeQuery = true)
+@@ -318,6 +321,7 @@ public interface PositionRepository extends JpaRepository<PositionEntity, Long>
+             "WHERE p.status = 'CLOSED' " +
+             "  AND p.closed_at >= :since " +
+             "  AND p.invested_krw > 0 " +
++            "  AND COALESCE(p.exit_reason, '') <> 'ENTRY_REJECTED' " +
+             "  AND p.market_regime IS NOT NULL " +
+             "  AND s.session_type = 'REAL' " +
+             "GROUP BY s.strategy_type, p.market_regime, p.coin_pair",
+@@ -349,6 +353,7 @@ public interface PositionRepository extends JpaRepository<PositionEntity, Long>
+            "       p.rulesetHash " +
+            "FROM PositionEntity p " +
+            "WHERE p.status = 'CLOSED' AND p.investedKrw > 0 AND p.sessionId IS NOT NULL " +
++           "  AND (p.exitReason IS NULL OR p.exitReason <> com.cryptoautotrader.api.entity.ExitReason.ENTRY_REJECTED) " +
+            "GROUP BY p.sessionKind, p.sessionId, p.rulesetHash")
+     List<Object[]> aggregateClosedTradesPerSession();
+ }
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
+index 0af6048e..ce142a69 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
+@@ -2255,6 +2255,8 @@ public class LiveTradingService {
+             List<PositionEntity> positions = positionsBySession.getOrDefault(session.getId(), List.of());
+             List<PositionEntity> closed = positions.stream()
+                     .filter(p -> "CLOSED".equals(p.getStatus()))
++                    // v1.193 §2 — 진입 예약 거절 빈 슬롯은 거래가 아니다(거래 수·승률 분모에서 제외)
++                    .filter(p -> com.cryptoautotrader.api.entity.ExitReason.isTrade(p.getExitReason()))
+                     .filter(p -> closedSince == null || p.getClosedAt() == null || !p.getClosedAt().isBefore(closedSince))
+                     .toList();
+             List<PositionEntity> open   = positions.stream().filter(p -> "OPEN".equals(p.getStatus())).toList();

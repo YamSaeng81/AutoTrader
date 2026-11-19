@@ -1,0 +1,192 @@
+{
+  "checks" : [ {
+    "check" : "F1 LIVE 기점: 체결 0 취소 매수(state=CANCELLED, 수량=0E-8, 취소 확정=true) → 고아 정리 CLOSED",
+    "pass" : true,
+    "actual" : "CLOSED"
+  }, {
+    "check" : "F1 LIVE 기점: 확정 0 무거래 → 관문 승인",
+    "pass" : true,
+    "actual" : "{approved=true, reason=null}"
+  }, {
+    "check" : "F1 LIVE CANCELLED·취소 확정·수량 NULL → 관문 판정 불가 거절(NULL 을 확정 0 으로 보지 않음)",
+    "pass" : false,
+    "actual" : "{approved=true, reason=null}"
+  }, {
+    "check" : "F1 LIVE 수량 NULL → 연속 손실 판정 불가(발동 아님)",
+    "pass" : false,
+    "actual" : "{session=LIVE#1, triggered=false, reason=null}"
+  }, {
+    "check" : "F1 LIVE 수량 NULL → 신규 진입 차단 사유",
+    "pass" : false,
+    "actual" : "null"
+  }, {
+    "check" : "F1 LIVE FAILED·수량 NULL → 관문 판정 불가 거절",
+    "pass" : false,
+    "actual" : "{approved=true, reason=null}"
+  }, {
+    "check" : "F1 LIVE 확정 0 → 다음 조회 자동 해제·무거래 승인",
+    "pass" : true,
+    "actual" : "{approved=true, reason=null}"
+  }, {
+    "check" : "F1 LIVE 확정 0 → 연속 손실 판정 불가 아님",
+    "pass" : true,
+    "actual" : "{session=LIVE#1, triggered=false, reason=null}"
+  }, {
+    "check" : "F1 LIVE 확정 0 → 진입 차단 없음",
+    "pass" : true,
+    "actual" : "null"
+  }, {
+    "check" : "F2 LIVE 대금 NULL 매도는 손실 합에 0 으로 넣지 않음(합 0)",
+    "pass" : true,
+    "actual" : "0"
+  }, {
+    "check" : "F2 LIVE 매도 대금 NULL → 관문 판정 불가 거절",
+    "pass" : true,
+    "actual" : "{approved=false, reason=[기존 보호식] 판정 불가 — 30일 안 LIVE 세션 매도/청산 2건의 확정 비용(매수 대금+수수료 또는 매도 체결)을 구하지 못했다(손실 0·이익으로 보지 않는다)}"
+  }, {
+    "check" : "F2 LIVE 매도 대금 NULL → 연속 손실 판정 불가(발동 아님)",
+    "pass" : true,
+    "actual" : "{session=LIVE#2, triggered=false, reason=연속 손실 판정 불가 — 최근 확정 손실 0회 다음 청산(posId=2)의 확정 비용을 구하지 못했다(한도: 1회). 신규 진입만 막고 정지·청산하지 않는다}"
+  }, {
+    "check" : "F2 LIVE 매도 대금 NULL → 진입 차단",
+    "pass" : true,
+    "actual" : "연속 손실 판정 불가 — 최근 확정 손실 0회 다음 청산(posId=2)의 확정 비용을 구하지 못했다(한도: 1회). 신규 진입만 막고 정지·청산하지 않는다"
+  }, {
+    "check" : "F2 LIVE 대금 복구 → 손실 합 −2.75",
+    "pass" : true,
+    "actual" : "-2.7500000000000000"
+  }, {
+    "check" : "F2 LIVE 대금 복구 → 손실로 거절(판정 불가 아님)",
+    "pass" : true,
+    "actual" : "{approved=false, reason=일일 손실 한도 초과: 0.02% > 0.00%}"
+  }, {
+    "check" : "F2 LIVE 수량 NULL 매도는 손실 합에 0 으로 넣지 않음(합 0)",
+    "pass" : true,
+    "actual" : "0"
+  }, {
+    "check" : "F2 LIVE 매도 수량 NULL → 관문 판정 불가 거절",
+    "pass" : true,
+    "actual" : "{approved=false, reason=[기존 보호식] 판정 불가 — 30일 안 LIVE 세션 매도/청산 2건의 확정 비용(매수 대금+수수료 또는 매도 체결)을 구하지 못했다(손실 0·이익으로 보지 않는다)}"
+  }, {
+    "check" : "F2 LIVE 수량 복구 → 손실 합 −2.75",
+    "pass" : true,
+    "actual" : "-2.7500000000000000"
+  }, {
+    "check" : "F2 LIVE 수량 복구 → 손실로 거절(판정 불가 아님)",
+    "pass" : true,
+    "actual" : "{approved=false, reason=일일 손실 한도 초과: 0.02% > 0.00%}"
+  }, {
+    "check" : "F1 DYNAMIC 기점: 체결 0 취소 매수(state=CANCELLED, 수량=0E-8, 취소 확정=true) → 고아 정리 CLOSED",
+    "pass" : true,
+    "actual" : "CLOSED"
+  }, {
+    "check" : "F1 DYNAMIC 기점: 확정 0 무거래 → 관문 승인",
+    "pass" : true,
+    "actual" : "{approved=true, reason=null}"
+  }, {
+    "check" : "F1 DYNAMIC CANCELLED·취소 확정·수량 NULL → 관문 판정 불가 거절(NULL 을 확정 0 으로 보지 않음)",
+    "pass" : false,
+    "actual" : "{approved=true, reason=null}"
+  }, {
+    "check" : "F1 DYNAMIC 수량 NULL → 연속 손실 판정 불가(발동 아님)",
+    "pass" : false,
+    "actual" : "{session=DYNAMIC#1, triggered=false, reason=null}"
+  }, {
+    "check" : "F1 DYNAMIC 수량 NULL → 신규 진입 차단 사유",
+    "pass" : false,
+    "actual" : "null"
+  }, {
+    "check" : "F1 DYNAMIC FAILED·수량 NULL → 관문 판정 불가 거절",
+    "pass" : false,
+    "actual" : "{approved=true, reason=null}"
+  }, {
+    "check" : "F1 DYNAMIC 확정 0 → 다음 조회 자동 해제·무거래 승인",
+    "pass" : true,
+    "actual" : "{approved=true, reason=null}"
+  }, {
+    "check" : "F1 DYNAMIC 확정 0 → 연속 손실 판정 불가 아님",
+    "pass" : true,
+    "actual" : "{session=DYNAMIC#1, triggered=false, reason=null}"
+  }, {
+    "check" : "F1 DYNAMIC 확정 0 → 진입 차단 없음",
+    "pass" : true,
+    "actual" : "null"
+  }, {
+    "check" : "F2 DYNAMIC 대금 NULL 매도는 손실 합에 0 으로 넣지 않음(합 0)",
+    "pass" : true,
+    "actual" : "0"
+  }, {
+    "check" : "F2 DYNAMIC 매도 대금 NULL → 관문 판정 불가 거절",
+    "pass" : true,
+    "actual" : "{approved=false, reason=[DYNAMIC REAL 보호식] 판정 불가 — 30일 안 DYNAMIC 세션 매도/청산 2건의 확정 비용(매수 대금+수수료 또는 매도 체결)을 구하지 못했다(손실 0·이익으로 보지 않는다)}"
+  }, {
+    "check" : "F2 DYNAMIC 매도 대금 NULL → 연속 손실 판정 불가(발동 아님)",
+    "pass" : true,
+    "actual" : "{session=DYNAMIC#2, triggered=false, reason=연속 손실 판정 불가 — 최근 확정 손실 0회 다음 청산(posId=4)의 확정 비용을 구하지 못했다(한도: 1회). 신규 진입만 막고 정지·청산하지 않는다}"
+  }, {
+    "check" : "F2 DYNAMIC 매도 대금 NULL → 진입 차단",
+    "pass" : true,
+    "actual" : "연속 손실 판정 불가 — 최근 확정 손실 0회 다음 청산(posId=4)의 확정 비용을 구하지 못했다(한도: 1회). 신규 진입만 막고 정지·청산하지 않는다"
+  }, {
+    "check" : "F2 DYNAMIC 대금 복구 → 손실 합 −2.75",
+    "pass" : true,
+    "actual" : "-2.7500000000000000"
+  }, {
+    "check" : "F2 DYNAMIC 대금 복구 → 손실로 거절(판정 불가 아님)",
+    "pass" : true,
+    "actual" : "{approved=false, reason=[DYNAMIC REAL 보호식] 일일 손실 한도 초과: 0.03% > 0.00%}"
+  }, {
+    "check" : "F2 DYNAMIC 수량 NULL 매도는 손실 합에 0 으로 넣지 않음(합 0)",
+    "pass" : true,
+    "actual" : "0"
+  }, {
+    "check" : "F2 DYNAMIC 매도 수량 NULL → 관문 판정 불가 거절",
+    "pass" : true,
+    "actual" : "{approved=false, reason=[DYNAMIC REAL 보호식] 판정 불가 — 30일 안 DYNAMIC 세션 매도/청산 2건의 확정 비용(매수 대금+수수료 또는 매도 체결)을 구하지 못했다(손실 0·이익으로 보지 않는다)}"
+  }, {
+    "check" : "F2 DYNAMIC 수량 복구 → 손실 합 −2.75",
+    "pass" : true,
+    "actual" : "-2.7500000000000000"
+  }, {
+    "check" : "F2 DYNAMIC 수량 복구 → 손실로 거절(판정 불가 아님)",
+    "pass" : true,
+    "actual" : "{approved=false, reason=[DYNAMIC REAL 보호식] 일일 손실 한도 초과: 0.03% > 0.00%}"
+  }, {
+    "check" : "F3 사례 구성: DYNAMIC#4 과 같은 id 의 LIVE 세션",
+    "pass" : true,
+    "actual" : "true"
+  }, {
+    "check" : "F3 DYNAMIC 매수 예약 거절",
+    "pass" : true,
+    "actual" : "공유 풀 예약 거절(RISK_CONFIG_MISMATCH): 위험 한도 설정이 사전 등록과 맞지 않는다 — 실자금 진입을 승인하지 않는다: max_daily_loss_pct=0.00 max_portfolio_drawdown_pct=15.00 — 한도 값이 없다"
+  }, {
+    "check" : "F3 거절 슬롯 CLOSED·ENTRY_REJECTED·주문 없음(행은 감사용으로 남음)",
+    "pass" : true,
+    "actual" : "CLOSED/0E-8/ENTRY_REJECTED/invested=8000.29000000"
+  }, {
+    "check" : "F3 ENTRY_REJECTED 는 전략 성과 집계 대상 아님",
+    "pass" : false,
+    "actual" : "true"
+  }, {
+    "check" : "F3 기존 사유(TAKE_PROFIT·STOP_LOSS)는 성과 집계 대상 그대로",
+    "pass" : true,
+    "actual" : "TP/SL/FORCED"
+  }, {
+    "check" : "F3 킬 기준 집계: 정상 왕복 DYNAMIC#3 거래 1·승 1 그대로",
+    "pass" : true,
+    "actual" : "1/1"
+  }, {
+    "check" : "F3 킬 기준 집계: 예약 거절 DYNAMIC#4 거래 0(행 없음)",
+    "pass" : false,
+    "actual" : "1/0"
+  }, {
+    "check" : "F3 보고서 청산 수 = 예약 거절 제외 CLOSED 수(거절 1건 제외)",
+    "pass" : false,
+    "actual" : "2/기대 1/승 1/패 1"
+  }, {
+    "check" : "F3 LIVE 성과 요약 거래 수 불변(겹치는 id 의 예약 거절 행 미포함)",
+    "pass" : false,
+    "actual" : "5→6"
+  } ],
+  "failures" : [ "F1 LIVE CANCELLED·취소 확정·수량 NULL → 관문 판정 불가 거절(NULL 을 확정 0 으로 보지 않음) → {approved=true, reason=null}", "F1 LIVE 수량 NULL → 연속 손실 판정 불가(발동 아님) → {session=LIVE#1, triggered=false, reason=null}", "F1 LIVE 수량 NULL → 신규 진입 차단 사유 → null", "F1 LIVE FAILED·수량 NULL → 관문 판정 불가 거절 → {approved=true, reason=null}", "F1 DYNAMIC CANCELLED·취소 확정·수량 NULL → 관문 판정 불가 거절(NULL 을 확정 0 으로 보지 않음) → {approved=true, reason=null}", "F1 DYNAMIC 수량 NULL → 연속 손실 판정 불가(발동 아님) → {session=DYNAMIC#1, triggered=false, reason=null}", "F1 DYNAMIC 수량 NULL → 신규 진입 차단 사유 → null", "F1 DYNAMIC FAILED·수량 NULL → 관문 판정 불가 거절 → {approved=true, reason=null}", "F3 ENTRY_REJECTED 는 전략 성과 집계 대상 아님 → true", "F3 킬 기준 집계: 예약 거절 DYNAMIC#4 거래 0(행 없음) → 1/0", "F3 보고서 청산 수 = 예약 거절 제외 CLOSED 수(거절 1건 제외) → 2/기대 1/승 1/패 1", "F3 LIVE 성과 요약 거래 수 불변(겹치는 id 의 예약 거절 행 미포함) → 5→6" ]
+}

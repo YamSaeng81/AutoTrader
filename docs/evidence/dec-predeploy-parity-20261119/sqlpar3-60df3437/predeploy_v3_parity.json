@@ -1,0 +1,580 @@
+{
+  "parity" : [ {
+    "input" : "LIVE P1 확정 손실 1건",
+    "item" : "LIVE 전역 30일 판정 불가 수",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "LIVE P1 확정 손실 1건",
+    "item" : "LIVE 전역 30일 손실 합",
+    "expected_sql_v3" : "-107.45",
+    "actual_product" : "-107.45",
+    "match" : true
+  }, {
+    "input" : "LIVE P1 확정 손실 1건",
+    "item" : "DYNAMIC 전역 30일 판정 불가 수",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "LIVE P1 확정 손실 1건",
+    "item" : "DYNAMIC 전역 30일 손실 합",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "LIVE P1 확정 손실 1건",
+    "item" : "LIVE#1 연속 손실 입력 범위·최신순 id",
+    "expected_sql_v3" : "[1]",
+    "actual_product" : "[1]",
+    "match" : true
+  }, {
+    "input" : "LIVE P1 확정 손실 1건",
+    "item" : "LIVE#1 세션 판정",
+    "expected_sql_v3" : "PASS",
+    "actual_product" : "PASS",
+    "match" : true
+  }, {
+    "input" : "LIVE P2 확정 손실 2건 = 한도",
+    "item" : "LIVE 전역 30일 판정 불가 수",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "LIVE P2 확정 손실 2건 = 한도",
+    "item" : "LIVE 전역 30일 손실 합",
+    "expected_sql_v3" : "-314.85",
+    "actual_product" : "-314.85",
+    "match" : true
+  }, {
+    "input" : "LIVE P2 확정 손실 2건 = 한도",
+    "item" : "DYNAMIC 전역 30일 판정 불가 수",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "LIVE P2 확정 손실 2건 = 한도",
+    "item" : "DYNAMIC 전역 30일 손실 합",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "LIVE P2 확정 손실 2건 = 한도",
+    "item" : "LIVE#1 연속 손실 입력 범위·최신순 id",
+    "expected_sql_v3" : "[2, 1]",
+    "actual_product" : "[2, 1]",
+    "match" : true
+  }, {
+    "input" : "LIVE P2 확정 손실 2건 = 한도",
+    "item" : "LIVE#1 세션 판정",
+    "expected_sql_v3" : "TRIGGERED",
+    "actual_product" : "TRIGGERED",
+    "match" : true
+  }, {
+    "input" : "LIVE P3 매도 수수료 NULL(행 직접)",
+    "item" : "LIVE 전역 30일 판정 불가 수",
+    "expected_sql_v3" : "1",
+    "actual_product" : "1",
+    "match" : true
+  }, {
+    "input" : "LIVE P3 매도 수수료 NULL(행 직접)",
+    "item" : "LIVE 전역 30일 손실 합",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "LIVE P3 매도 수수료 NULL(행 직접)",
+    "item" : "DYNAMIC 전역 30일 판정 불가 수",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "LIVE P3 매도 수수료 NULL(행 직접)",
+    "item" : "DYNAMIC 전역 30일 손실 합",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "LIVE P3 매도 수수료 NULL(행 직접)",
+    "item" : "LIVE#2 연속 손실 입력 범위·최신순 id",
+    "expected_sql_v3" : "[3]",
+    "actual_product" : "[3]",
+    "match" : true
+  }, {
+    "input" : "LIVE P3 매도 수수료 NULL(행 직접)",
+    "item" : "LIVE#2 세션 판정",
+    "expected_sql_v3" : "UNDETERMINED 3",
+    "actual_product" : "UNDETERMINED 3",
+    "match" : true
+  }, {
+    "input" : "LIVE P4 매도 수수료 확정 0(행 직접)",
+    "item" : "LIVE 전역 30일 판정 불가 수",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "LIVE P4 매도 수수료 확정 0(행 직접)",
+    "item" : "LIVE 전역 30일 손실 합",
+    "expected_sql_v3" : "-103.75",
+    "actual_product" : "-103.75",
+    "match" : true
+  }, {
+    "input" : "LIVE P4 매도 수수료 확정 0(행 직접)",
+    "item" : "DYNAMIC 전역 30일 판정 불가 수",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "LIVE P4 매도 수수료 확정 0(행 직접)",
+    "item" : "DYNAMIC 전역 30일 손실 합",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "LIVE P4 매도 수수료 확정 0(행 직접)",
+    "item" : "LIVE#2 연속 손실 입력 범위·최신순 id",
+    "expected_sql_v3" : "[3]",
+    "actual_product" : "[3]",
+    "match" : true
+  }, {
+    "input" : "LIVE P4 매도 수수료 확정 0(행 직접)",
+    "item" : "LIVE#2 세션 판정",
+    "expected_sql_v3" : "PASS",
+    "actual_product" : "PASS",
+    "match" : true
+  }, {
+    "input" : "LIVE P5 확정 수수료 3.70 복구 → 해제",
+    "item" : "LIVE 전역 30일 판정 불가 수",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "LIVE P5 확정 수수료 3.70 복구 → 해제",
+    "item" : "LIVE 전역 30일 손실 합",
+    "expected_sql_v3" : "-107.45",
+    "actual_product" : "-107.45",
+    "match" : true
+  }, {
+    "input" : "LIVE P5 확정 수수료 3.70 복구 → 해제",
+    "item" : "DYNAMIC 전역 30일 판정 불가 수",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "LIVE P5 확정 수수료 3.70 복구 → 해제",
+    "item" : "DYNAMIC 전역 30일 손실 합",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "LIVE P5 확정 수수료 3.70 복구 → 해제",
+    "item" : "LIVE#2 연속 손실 입력 범위·최신순 id",
+    "expected_sql_v3" : "[3]",
+    "actual_product" : "[3]",
+    "match" : true
+  }, {
+    "input" : "LIVE P5 확정 수수료 3.70 복구 → 해제",
+    "item" : "LIVE#2 세션 판정",
+    "expected_sql_v3" : "PASS",
+    "actual_product" : "PASS",
+    "match" : true
+  }, {
+    "input" : "LIVE P6 표시 없는 빈 청산",
+    "item" : "LIVE 전역 30일 판정 불가 수",
+    "expected_sql_v3" : "1",
+    "actual_product" : "1",
+    "match" : true
+  }, {
+    "input" : "LIVE P6 표시 없는 빈 청산",
+    "item" : "LIVE 전역 30일 손실 합",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "LIVE P6 표시 없는 빈 청산",
+    "item" : "DYNAMIC 전역 30일 판정 불가 수",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "LIVE P6 표시 없는 빈 청산",
+    "item" : "DYNAMIC 전역 30일 손실 합",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "LIVE P6 표시 없는 빈 청산",
+    "item" : "LIVE#3 연속 손실 입력 범위·최신순 id",
+    "expected_sql_v3" : "[4]",
+    "actual_product" : "[4]",
+    "match" : true
+  }, {
+    "input" : "LIVE P6 표시 없는 빈 청산",
+    "item" : "LIVE#3 세션 판정",
+    "expected_sql_v3" : "UNDETERMINED 4",
+    "actual_product" : "UNDETERMINED 4",
+    "match" : true
+  }, {
+    "input" : "LIVE P7 확정 손실 뒤 더 이른 빈 청산(최신순)",
+    "item" : "LIVE 전역 30일 판정 불가 수",
+    "expected_sql_v3" : "1",
+    "actual_product" : "1",
+    "match" : true
+  }, {
+    "input" : "LIVE P7 확정 손실 뒤 더 이른 빈 청산(최신순)",
+    "item" : "LIVE 전역 30일 손실 합",
+    "expected_sql_v3" : "-107.45",
+    "actual_product" : "-107.45",
+    "match" : true
+  }, {
+    "input" : "LIVE P7 확정 손실 뒤 더 이른 빈 청산(최신순)",
+    "item" : "DYNAMIC 전역 30일 판정 불가 수",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "LIVE P7 확정 손실 뒤 더 이른 빈 청산(최신순)",
+    "item" : "DYNAMIC 전역 30일 손실 합",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "LIVE P7 확정 손실 뒤 더 이른 빈 청산(최신순)",
+    "item" : "LIVE#4 연속 손실 입력 범위·최신순 id",
+    "expected_sql_v3" : "[5, 6]",
+    "actual_product" : "[5, 6]",
+    "match" : true
+  }, {
+    "input" : "LIVE P7 확정 손실 뒤 더 이른 빈 청산(최신순)",
+    "item" : "LIVE#4 세션 판정",
+    "expected_sql_v3" : "UNDETERMINED 6",
+    "actual_product" : "UNDETERMINED 6",
+    "match" : true
+  }, {
+    "input" : "LIVE P8 가동 시작 전·30일 밖 빈 청산",
+    "item" : "LIVE 전역 30일 판정 불가 수",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "LIVE P8 가동 시작 전·30일 밖 빈 청산",
+    "item" : "LIVE 전역 30일 손실 합",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "LIVE P8 가동 시작 전·30일 밖 빈 청산",
+    "item" : "DYNAMIC 전역 30일 판정 불가 수",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "LIVE P8 가동 시작 전·30일 밖 빈 청산",
+    "item" : "DYNAMIC 전역 30일 손실 합",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "LIVE P8 가동 시작 전·30일 밖 빈 청산",
+    "item" : "LIVE#5 연속 손실 입력 범위·최신순 id",
+    "expected_sql_v3" : "[7]",
+    "actual_product" : "[7]",
+    "match" : true
+  }, {
+    "input" : "LIVE P8 가동 시작 전·30일 밖 빈 청산",
+    "item" : "LIVE#5 세션 판정",
+    "expected_sql_v3" : "UNDETERMINED 7",
+    "actual_product" : "UNDETERMINED 7",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P1 확정 손실 1건",
+    "item" : "LIVE 전역 30일 판정 불가 수",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P1 확정 손실 1건",
+    "item" : "LIVE 전역 30일 손실 합",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P1 확정 손실 1건",
+    "item" : "DYNAMIC 전역 30일 판정 불가 수",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P1 확정 손실 1건",
+    "item" : "DYNAMIC 전역 30일 손실 합",
+    "expected_sql_v3" : "-107.45",
+    "actual_product" : "-107.45",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P1 확정 손실 1건",
+    "item" : "DYNAMIC#1 연속 손실 입력 범위·최신순 id",
+    "expected_sql_v3" : "[8]",
+    "actual_product" : "[8]",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P1 확정 손실 1건",
+    "item" : "DYNAMIC#1 세션 판정",
+    "expected_sql_v3" : "PASS",
+    "actual_product" : "PASS",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P2 확정 손실 2건 = 한도",
+    "item" : "LIVE 전역 30일 판정 불가 수",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P2 확정 손실 2건 = 한도",
+    "item" : "LIVE 전역 30일 손실 합",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P2 확정 손실 2건 = 한도",
+    "item" : "DYNAMIC 전역 30일 판정 불가 수",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P2 확정 손실 2건 = 한도",
+    "item" : "DYNAMIC 전역 30일 손실 합",
+    "expected_sql_v3" : "-314.85",
+    "actual_product" : "-314.85",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P2 확정 손실 2건 = 한도",
+    "item" : "DYNAMIC#1 연속 손실 입력 범위·최신순 id",
+    "expected_sql_v3" : "[9, 8]",
+    "actual_product" : "[9, 8]",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P2 확정 손실 2건 = 한도",
+    "item" : "DYNAMIC#1 세션 판정",
+    "expected_sql_v3" : "TRIGGERED",
+    "actual_product" : "TRIGGERED",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P3 매도 수수료 NULL(행 직접)",
+    "item" : "LIVE 전역 30일 판정 불가 수",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P3 매도 수수료 NULL(행 직접)",
+    "item" : "LIVE 전역 30일 손실 합",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P3 매도 수수료 NULL(행 직접)",
+    "item" : "DYNAMIC 전역 30일 판정 불가 수",
+    "expected_sql_v3" : "1",
+    "actual_product" : "1",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P3 매도 수수료 NULL(행 직접)",
+    "item" : "DYNAMIC 전역 30일 손실 합",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P3 매도 수수료 NULL(행 직접)",
+    "item" : "DYNAMIC#2 연속 손실 입력 범위·최신순 id",
+    "expected_sql_v3" : "[10]",
+    "actual_product" : "[10]",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P3 매도 수수료 NULL(행 직접)",
+    "item" : "DYNAMIC#2 세션 판정",
+    "expected_sql_v3" : "UNDETERMINED 10",
+    "actual_product" : "UNDETERMINED 10",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P4 매도 수수료 확정 0(행 직접)",
+    "item" : "LIVE 전역 30일 판정 불가 수",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P4 매도 수수료 확정 0(행 직접)",
+    "item" : "LIVE 전역 30일 손실 합",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P4 매도 수수료 확정 0(행 직접)",
+    "item" : "DYNAMIC 전역 30일 판정 불가 수",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P4 매도 수수료 확정 0(행 직접)",
+    "item" : "DYNAMIC 전역 30일 손실 합",
+    "expected_sql_v3" : "-103.75",
+    "actual_product" : "-103.75",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P4 매도 수수료 확정 0(행 직접)",
+    "item" : "DYNAMIC#2 연속 손실 입력 범위·최신순 id",
+    "expected_sql_v3" : "[10]",
+    "actual_product" : "[10]",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P4 매도 수수료 확정 0(행 직접)",
+    "item" : "DYNAMIC#2 세션 판정",
+    "expected_sql_v3" : "PASS",
+    "actual_product" : "PASS",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P5 확정 수수료 3.70 복구 → 해제",
+    "item" : "LIVE 전역 30일 판정 불가 수",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P5 확정 수수료 3.70 복구 → 해제",
+    "item" : "LIVE 전역 30일 손실 합",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P5 확정 수수료 3.70 복구 → 해제",
+    "item" : "DYNAMIC 전역 30일 판정 불가 수",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P5 확정 수수료 3.70 복구 → 해제",
+    "item" : "DYNAMIC 전역 30일 손실 합",
+    "expected_sql_v3" : "-107.45",
+    "actual_product" : "-107.45",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P5 확정 수수료 3.70 복구 → 해제",
+    "item" : "DYNAMIC#2 연속 손실 입력 범위·최신순 id",
+    "expected_sql_v3" : "[10]",
+    "actual_product" : "[10]",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P5 확정 수수료 3.70 복구 → 해제",
+    "item" : "DYNAMIC#2 세션 판정",
+    "expected_sql_v3" : "PASS",
+    "actual_product" : "PASS",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P6 표시 없는 빈 청산",
+    "item" : "LIVE 전역 30일 판정 불가 수",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P6 표시 없는 빈 청산",
+    "item" : "LIVE 전역 30일 손실 합",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P6 표시 없는 빈 청산",
+    "item" : "DYNAMIC 전역 30일 판정 불가 수",
+    "expected_sql_v3" : "1",
+    "actual_product" : "1",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P6 표시 없는 빈 청산",
+    "item" : "DYNAMIC 전역 30일 손실 합",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P6 표시 없는 빈 청산",
+    "item" : "DYNAMIC#3 연속 손실 입력 범위·최신순 id",
+    "expected_sql_v3" : "[11]",
+    "actual_product" : "[11]",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P6 표시 없는 빈 청산",
+    "item" : "DYNAMIC#3 세션 판정",
+    "expected_sql_v3" : "UNDETERMINED 11",
+    "actual_product" : "UNDETERMINED 11",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P7 확정 손실 뒤 더 이른 빈 청산(최신순)",
+    "item" : "LIVE 전역 30일 판정 불가 수",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P7 확정 손실 뒤 더 이른 빈 청산(최신순)",
+    "item" : "LIVE 전역 30일 손실 합",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P7 확정 손실 뒤 더 이른 빈 청산(최신순)",
+    "item" : "DYNAMIC 전역 30일 판정 불가 수",
+    "expected_sql_v3" : "1",
+    "actual_product" : "1",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P7 확정 손실 뒤 더 이른 빈 청산(최신순)",
+    "item" : "DYNAMIC 전역 30일 손실 합",
+    "expected_sql_v3" : "-107.45",
+    "actual_product" : "-107.45",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P7 확정 손실 뒤 더 이른 빈 청산(최신순)",
+    "item" : "DYNAMIC#4 연속 손실 입력 범위·최신순 id",
+    "expected_sql_v3" : "[12, 13]",
+    "actual_product" : "[12, 13]",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P7 확정 손실 뒤 더 이른 빈 청산(최신순)",
+    "item" : "DYNAMIC#4 세션 판정",
+    "expected_sql_v3" : "UNDETERMINED 13",
+    "actual_product" : "UNDETERMINED 13",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P8 가동 시작 전·30일 밖 빈 청산",
+    "item" : "LIVE 전역 30일 판정 불가 수",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P8 가동 시작 전·30일 밖 빈 청산",
+    "item" : "LIVE 전역 30일 손실 합",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P8 가동 시작 전·30일 밖 빈 청산",
+    "item" : "DYNAMIC 전역 30일 판정 불가 수",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P8 가동 시작 전·30일 밖 빈 청산",
+    "item" : "DYNAMIC 전역 30일 손실 합",
+    "expected_sql_v3" : "0",
+    "actual_product" : "0",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P8 가동 시작 전·30일 밖 빈 청산",
+    "item" : "DYNAMIC#5 연속 손실 입력 범위·최신순 id",
+    "expected_sql_v3" : "[]",
+    "actual_product" : "[]",
+    "match" : true
+  }, {
+    "input" : "DYNAMIC P8 가동 시작 전·30일 밖 빈 청산",
+    "item" : "DYNAMIC#5 세션 판정",
+    "expected_sql_v3" : "PASS",
+    "actual_product" : "PASS",
+    "match" : true
+  } ],
+  "failures" : [ ]
+}

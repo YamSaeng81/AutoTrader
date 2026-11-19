@@ -1,0 +1,96 @@
+{
+  "checks" : [ {
+    "check" : "시험 알림 꺼짐(실제 전송 없음)",
+    "pass" : true,
+    "actual" : "false"
+  }, {
+    "check" : "LIVE 완전 체결 → 매수 요약 1건(LIVE#1·25@300·수수료 3.75)",
+    "pass" : false,
+    "actual" : "[]"
+  }, {
+    "check" : "LIVE 적재 수량 = 확정 체결 수량",
+    "pass" : false,
+    "actual" : "FILLED qty=25 funds=7500 fee=3.75 pending=false"
+  }, {
+    "check" : "LIVE 같은 응답 반복 → 추가 0",
+    "pass" : false,
+    "actual" : "[]"
+  }, {
+    "check" : "LIVE 수수료만 정정(3.75→3.80, 회계 반영) → 매수 이벤트 추가 0",
+    "pass" : false,
+    "actual" : "FILLED qty=25 funds=7500 fee=3.8 pending=false []"
+  }, {
+    "check" : "LIVE 매도 요약 1건·매수 이벤트 0(매도가 매수를 다시 싣지 않음)",
+    "pass" : true,
+    "actual" : "[[LIVE#1, KRW-RND, SELL, 300.19000000, 25.00000000, 3.75000000, 1.0000000000000000, 전략 매도]]"
+  }, {
+    "check" : "DYNAMIC 완전 체결 → 매수 요약 1건(DYNAMIC#1·25@300·수수료 3.75)",
+    "pass" : false,
+    "actual" : "[]"
+  }, {
+    "check" : "DYNAMIC 적재 수량 = 확정 체결 수량",
+    "pass" : false,
+    "actual" : "FILLED qty=25 funds=7500 fee=3.75 pending=false"
+  }, {
+    "check" : "DYNAMIC 같은 응답 반복 → 추가 0",
+    "pass" : false,
+    "actual" : "[]"
+  }, {
+    "check" : "DYNAMIC 수수료만 정정(3.75→3.80, 회계 반영) → 매수 이벤트 추가 0",
+    "pass" : false,
+    "actual" : "FILLED qty=25 funds=7500 fee=3.8 pending=false []"
+  }, {
+    "check" : "DYNAMIC 매도 요약 1건·매수 이벤트 0(매도가 매수를 다시 싣지 않음)",
+    "pass" : true,
+    "actual" : "[[DYNAMIC#1, KRW-RND, SELL, 300.19000000, 25.00000000, 3.75000000, 1.0000000000000000, 동적 세션 매도]]"
+  }, {
+    "check" : "LIVE 부분 체결 10 → 증가분 10 적재",
+    "pass" : false,
+    "actual" : "[]"
+  }, {
+    "check" : "LIVE 취소 확정 19.99 → 둘째 증가분 9.99만(앞 10 다시 더하지 않음)",
+    "pass" : false,
+    "actual" : "[]"
+  }, {
+    "check" : "LIVE 적재 합 = 확정 체결 수량 19.99",
+    "pass" : false,
+    "actual" : "FILLED qty=19.99 funds=5997 fee=2.9985 pending=false"
+  }, {
+    "check" : "LIVE 같은 취소 응답 반복 → 추가 0",
+    "pass" : false,
+    "actual" : "[]"
+  }, {
+    "check" : "DYNAMIC 부분 체결 10 → 증가분 10 적재",
+    "pass" : false,
+    "actual" : "[]"
+  }, {
+    "check" : "DYNAMIC 취소 확정 19.99 → 둘째 증가분 9.99만(앞 10 다시 더하지 않음)",
+    "pass" : false,
+    "actual" : "[]"
+  }, {
+    "check" : "DYNAMIC 적재 합 = 확정 체결 수량 19.99",
+    "pass" : false,
+    "actual" : "FILLED qty=19.99 funds=5997 fee=2.9985 pending=false"
+  }, {
+    "check" : "DYNAMIC 같은 취소 응답 반복 → 추가 0",
+    "pass" : false,
+    "actual" : "[]"
+  }, {
+    "check" : "미체결 취소 → 매수 이벤트 0",
+    "pass" : true,
+    "actual" : "CANCELLED qty=0 funds=null fee=null pending=false []"
+  }, {
+    "check" : "회계 롤백(포지션 갱신 실패) → 수량 미반영·매수 이벤트 0",
+    "pass" : true,
+    "actual" : "SUBMITTED qty=0 funds=null fee=null pending=true []"
+  }, {
+    "check" : "트리거 제거 뒤 재처리 → 매수 이벤트 1건(25)",
+    "pass" : false,
+    "actual" : "FILLED qty=25 funds=7500 fee=3.75 pending=false []"
+  }, {
+    "check" : "버퍼 실패 → 주문 FILLED·수량 25·대기 해제(정산 유지), 버퍼 호출 1회",
+    "pass" : false,
+    "actual" : "FILLED qty=25 funds=7500 fee=3.75 pending=false []"
+  } ],
+  "failures" : [ "LIVE 완전 체결 → 매수 요약 1건(LIVE#1·25@300·수수료 3.75) → []", "LIVE 적재 수량 = 확정 체결 수량 → FILLED qty=25 funds=7500 fee=3.75 pending=false", "LIVE 같은 응답 반복 → 추가 0 → []", "LIVE 수수료만 정정(3.75→3.80, 회계 반영) → 매수 이벤트 추가 0 → FILLED qty=25 funds=7500 fee=3.8 pending=false []", "DYNAMIC 완전 체결 → 매수 요약 1건(DYNAMIC#1·25@300·수수료 3.75) → []", "DYNAMIC 적재 수량 = 확정 체결 수량 → FILLED qty=25 funds=7500 fee=3.75 pending=false", "DYNAMIC 같은 응답 반복 → 추가 0 → []", "DYNAMIC 수수료만 정정(3.75→3.80, 회계 반영) → 매수 이벤트 추가 0 → FILLED qty=25 funds=7500 fee=3.8 pending=false []", "LIVE 부분 체결 10 → 증가분 10 적재 → []", "LIVE 취소 확정 19.99 → 둘째 증가분 9.99만(앞 10 다시 더하지 않음) → []", "LIVE 적재 합 = 확정 체결 수량 19.99 → FILLED qty=19.99 funds=5997 fee=2.9985 pending=false", "LIVE 같은 취소 응답 반복 → 추가 0 → []", "DYNAMIC 부분 체결 10 → 증가분 10 적재 → []", "DYNAMIC 취소 확정 19.99 → 둘째 증가분 9.99만(앞 10 다시 더하지 않음) → []", "DYNAMIC 적재 합 = 확정 체결 수량 19.99 → FILLED qty=19.99 funds=5997 fee=2.9985 pending=false", "DYNAMIC 같은 취소 응답 반복 → 추가 0 → []", "트리거 제거 뒤 재처리 → 매수 이벤트 1건(25) → FILLED qty=25 funds=7500 fee=3.75 pending=false []", "버퍼 실패 → 주문 FILLED·수량 25·대기 해제(정산 유지), 버퍼 호출 1회 → FILLED qty=25 funds=7500 fee=3.75 pending=false []" ]
+}
