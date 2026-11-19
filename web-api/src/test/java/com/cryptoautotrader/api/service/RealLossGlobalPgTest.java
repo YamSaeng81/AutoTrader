@@ -106,6 +106,23 @@ class RealLossGlobalPgTest extends IntegrationTestBase {
                 .positionFee(BigDecimal.ZERO).realizedPnl(BigDecimal.ZERO)
                 .status("CLOSING").closingAt(Instant.now())
                 .sessionKind(kind).sessionId(sid).openedAt(Instant.now().minus(2, ChronoUnit.HOURS)).build());
+        // 확정 매수 원천(2026-11-19, 총괄 v1.196 §2-3) — 비용 기준 계약은 원가 미상 세션 매도를 판정 불가로 거절한다. 이 시험의 뜻은
+        // "원가가 확정된 손실의 한도 판정"이므로 같은 세션 종류/ID·포지션에 체결 수량 = 포지션 수량, 반영 대금 = 수량 × 평균가(19,992),
+        // 확정 매수 수수료 0(명시)을 둔다. 시험 준비 데이터이며 엔진 매수 왕복의 증거가 아니다.
+        BigDecimal buyFunds = QTY.multiply(AVG);
+        OrderEntity buy = OrderEntity.builder()
+                .coinPair(coin).side("BUY").orderType("MARKET").quantity(buyFunds).state("FILLED")
+                .sessionKind(kind).sessionId(sid).positionId(p.getId())
+                .exchangeOrderId("rl-buy-" + UUID.randomUUID()).clientOrderId("rl-buy-" + UUID.randomUUID())
+                .createdAt(p.getOpenedAt()).submittedAt(p.getOpenedAt()).build();
+        buy.setFilledQuantity(QTY);
+        buy.setFilledAt(p.getOpenedAt());
+        buy.setReportedExecutedFunds(buyFunds);
+        buy.setReportedPaidFee(BigDecimal.ZERO);
+        buy.setAppliedExecutedFunds(buyFunds);
+        buy.setAppliedPaidFee(BigDecimal.ZERO);
+        buy.setFeeSource(OrderExecutionEngine.FEE_SOURCE_REPORTED);
+        orderRepository.save(buy);
         OrderEntity o = orderRepository.save(OrderEntity.builder()
                 .coinPair(coin).side("SELL").orderType("MARKET").quantity(QTY).state("SUBMITTED")
                 .sessionKind(kind).sessionId(sid).positionId(p.getId())
@@ -183,6 +200,7 @@ class RealLossGlobalPgTest extends IntegrationTestBase {
                     "분자(원)=" + lossKrw(), "분모=" + denominator());
             assertThat(before.isApproved()).isTrue();
             assertThat(after.isApproved()).as("초안: DYNAMIC REAL 확정 손실 4,002 / (10만+10만) = 2.0% > 1.5% — 거절이어야 한다").isFalse();
+            assertThat(after.getReason()).as("원가 확정 손실의 한도 거절 — 판정 불가로 통과시키지 않는다").doesNotContain("판정 불가");
         } finally {
             restoreRisk(saved);
         }
@@ -204,6 +222,7 @@ class RealLossGlobalPgTest extends IntegrationTestBase {
             trace("②", "현재 승인=" + now.isApproved(), "사유=" + now.getReason(), "분자(원)=" + lossKrw(), "현재 분모=" + denominator(),
                     "초안 분모=200000 → " + new BigDecimal("2001").divide(new BigDecimal("2000"), 2, java.math.RoundingMode.HALF_UP) + "%");
             assertThat(now.isApproved()).as("현재: LIVE 분모만 — 거절(관측 고정)").isFalse();
+            assertThat(now.getReason()).as("원가 확정 손실의 한도 거절 — 판정 불가로 통과시키지 않는다").doesNotContain("판정 불가");
         } finally {
             restoreRisk(saved);
         }
