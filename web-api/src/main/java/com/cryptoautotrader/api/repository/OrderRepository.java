@@ -499,14 +499,17 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
     /**
      * 무거래 확정 청산 (v1.192 §2) — 포지션 {@code p} 의 BUY 가 하나 이상이고 모두 체결 0 이 확정된 매수
      * ({@code OrderExecutionEngine.isConfirmedUnfilledBuy}: FAILED, 또는 CANCELLED 이고 정산 추적 밖이거나 취소 확정)이며 확정 매도가 없다.
-     * 주문이 아예 없는 청산은 여기에 들지 않는다 — 주문이 없다는 사실만으로 손실 0 으로 보지 않는다.
+     * 주문이 아예 없는 청산은 여기에 들지 않는다 — 주문이 없다는 사실만으로 손실 0 으로 보지 않는다. 예외는 진입 예약 거절로 같은
+     * 트랜잭션에서 닫은 빈 슬롯({@code exit_reason = 'ENTRY_REJECTED'}, 수량 0, 주문 행 없음)뿐이다.
      */
-    String CONFIRMED_NO_TRADE = "(EXISTS (SELECT 1 FROM \"order\" nb WHERE nb.position_id = p.id AND nb.side = 'BUY')"
+    String CONFIRMED_NO_TRADE = "((COALESCE(p.exit_reason, '') = 'ENTRY_REJECTED' AND COALESCE(p.size, -1) = 0"
+            + "   AND NOT EXISTS (SELECT 1 FROM \"order\" nx WHERE nx.position_id = p.id)) OR"
+            + " (EXISTS (SELECT 1 FROM \"order\" nb WHERE nb.position_id = p.id AND nb.side = 'BUY')"
             + " AND NOT EXISTS (SELECT 1 FROM \"order\" nb WHERE nb.position_id = p.id AND nb.side = 'BUY'"
             + "   AND NOT (COALESCE(nb.filled_quantity, 0) = 0 AND (nb.state = 'FAILED'"
             + "     OR (nb.state = 'CANCELLED' AND (nb.fee_source IS NULL OR nb.cancel_confirmed_at IS NOT NULL)))))"
             + " AND NOT EXISTS (SELECT 1 FROM \"order\" ns WHERE ns.position_id = p.id AND ns.side = 'SELL'"
-            + "   AND ns.sell_applied_at IS NOT NULL))";
+            + "   AND ns.sell_applied_at IS NOT NULL)))";
 
     String BUY_COST_BY_POSITION = "(SELECT bo.position_id, SUM(bo.applied_executed_funds + bo.applied_paid_fee) AS cost,"
             + " SUM(bo.filled_quantity) AS qty FROM \"order\" bo"
