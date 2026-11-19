@@ -43,6 +43,12 @@ class DynamicCircuitBreakerTest extends IntegrationTestBase {
     private PositionRepository positionRepository;
 
     @Autowired
+    private com.cryptoautotrader.api.repository.OrderRepository orderRepository;
+
+    @Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbc;
+
+    @Autowired
     private DynamicSessionRepository dynamicSessionRepository;
 
     @Autowired
@@ -107,6 +113,8 @@ class DynamicCircuitBreakerTest extends IntegrationTestBase {
         pos.setRealizedPnl(new BigDecimal("-100"));
         pos.setClosedAt(closedAt);
         positionRepository.save(pos);
+        // v1.192 §2: 실자금(DYNAMIC) 청산은 주문 원천으로 판정 — 같은 손익(−100)의 확정 BUY/SELL(수수료 0)을 붙인다
+        CostSourceFixture.roundTrip(orderRepository, jdbc, pos, BigDecimal.ONE, new BigDecimal("8000"), new BigDecimal("-100"), closedAt);
     }
 
     @Test
