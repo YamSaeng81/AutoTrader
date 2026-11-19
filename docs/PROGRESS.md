@@ -6,8 +6,9 @@
 
 | 구분 | 기준 | 상태 |
 |---|---|---|
-| 최신 총괄 판단 | [v1.195](evidence/review-abc-regression-20261119/README.md) | 60df3437 실패1 보존·독립19대조 성공. A/C 원인 확인 뒤 확정 주문 원천 시험 커밋 포함 허용. N3/SQL·별도 BUY 요약 후보 계속, 최종 고정 전 전체 회귀 반복 없음 |
-| **최근 개발 제출(판정 전)** | 445차 [통합·회귀 원인](evidence/dec-integ-abc-20261119/README.md) · [N3 구판](evidence/dec-n3-oldbinary-20261119/README.md) · [SQL v3 대조](evidence/dec-predeploy-parity-20261119/README.md) · [매수 요약 후보](evidence/dec-real-buy-summary-20261119/README.md) | 60df3437 회귀 실패1 = C 계약·시험 준비 데이터 충돌(A 24/24·C 23/24) → 시험 보정 09fa2d1c 24/24. 구판 둘 다 새 값 1행에 실조회 실패·4판 STOP_INCOMPATIBLE. SQL v3 96/96. 매수 요약 69c81c3d 기점 18/23 실패→23/23. **추가 발견: LiveLossWindowPgTest가 C에서 1/7**(0e1d2a02 7/7) |
+| 최신 총괄 판단 | [v1.196](evidence/review-e97ca31b/README.md) | 445차 목록601/601·커밋 근거611/611 일치, 독립49대조 성공. 재진입09fa2d1c 누적 보완·매수 요약596ed4b0 최종 로컬 포함 수용. LiveLossWindow 시험 보정·C 영향 PG 선별 후 고정 SHA 전체 회귀1회, 운영/실제 생성 별도 |
+| **최근 개발 제출(판정 전)** | 446차 [최종 통합 d81c3f2f](evidence/dec-final-abc-20261119/README.md) | 이식7 patch-id 일치. LW 보정 7/7, RL은 ①②가 판정 불가로 통과하던 것 보정→한도 거절 3/3, RBS 23/23·DailySma20 24/24·Phantom/CR/N15 통과, 나머지 영향 PG는 블롭 동일 연결. 전체 회귀 rc0(1,773/0/94). LF jar JARM 33a06f0e, 0e1d2a02 대비 변경35·추가3(원천14파일 대응) |
+| 직전 개발 제출(v1.196 범위 수용) | 445차 e97ca31b [통합](evidence/dec-integ-abc-20261119/README.md) · [N3 구판](evidence/dec-n3-oldbinary-20261119/README.md) · [SQL v3](evidence/dec-predeploy-parity-20261119/README.md) · [매수 요약](evidence/dec-real-buy-summary-20261119/README.md) | 60df3437 회귀 실패1 보존, 재진입·매수 요약 최종 포함 |
 | **최근 개발 결과(일부 범위 수용)** | 443차 [비용 기준 후보](evidence/dec-costbasis-20261119/README.md) · [성적표 v3](evidence/dec-scorecard-v3-20261119/README.md) · [포함표](evidence/dec-inclusion-20261119/README.md) · [N03 22:00 회수](evidence/n03-1118-2200/README.md) | 후보 b861bdf9(로컬): 같은 PG 시험 기점 15/48 → 후보 48/48(XML1/1), 영향 H2 214/215→고정물 뒤 13/13, PG 4클래스 35/35. 성적표 v2 red 2/2 → v3 60/60·변형14/14. 시험 원문 두 가지 test-only 커밋·원격 보존 |
 | 최근 개발 결과(로컬 범위 수용) | 442차 **16595682** [손익 정의 영향](evidence/dec-pnl-definition-20261119/README.md) · [성적표 v2](evidence/dec-scorecard-v2-20261118/README.md) · [금액/BTC PG](evidence/dec-amtbtc-pg-20261119/README.md) · [최소 알림](evidence/dec-min-alert-20261119/README.md) · [운용안](evidence/dec-ops-plan-20261119/README.md) | 각 PG1/1·성적표52/52/변형10·알림 XML8개81성공. 조사/후보 수용, 성적표 실제 평가 사용은 잔여 보완·출처 연결 뒤 |
 | 최근 개발 결과(로컬 범위 수용) | 441차 f14ff757 [금액/BTC](evidence/dec-amtbtc-20261118/README.md) · [매도 PG](evidence/dec-pg-sell-20261118/README.md) · [성적표](evidence/dec-scorecard-20261118/README.md) | 금액/BTC·매도 PG 범위 수용, 성적표는 시제품 제출만 수용하고 판정 도구 사용은 보완 뒤 |
@@ -20,10 +21,10 @@
 | 이전 조사(로컬 범위 수용) | 436차 [원문 연결·P7 v2·쿨다운/알림/성적표](evidence/dec-reconcile-20261118/README.md) | c2a09f9c. XML48/8/53성공, P7 저장35입력 일치·추가 반례7개로 보완 전 |
 | 운영 반영(수용) | [427차 결과](evidence/v172run-20261116/README.md) | backend0e1d2a02/2c5d8427·V96·frontend9d7f123a. U2 rc1·U3 지연 편차 보존 |
 
-### 445차 결과 — 회귀 원인·N3 구판 실조회·SQL v3 대조·REAL 매수 요약 후보 (판정 전)
+### 445차 결과 — 회귀 원인·N3 구판 실조회·SQL v3 대조·REAL 매수 요약 후보 (v1.196 범위 수용)
 
 - **회귀 원인**: 60df3437 전체 회귀 실패1(`DailySma20 reentersAfterClose`)은 A 단독 24/24·C 단독 23/24로 C 계약(원천 없는 청산 = 판정 불가)과 준비 데이터의 충돌이다. 시험 전용 `fixture/dailysma20-reentry-60df3437` **09fa2d1c**(시험 1파일)는 확정 매수·매도 원천을 두고 기존 단언을 유지해 24/24. 60df3437 불변. [근거](evidence/dec-integ-abc-20261119/README.md)
-- **추가 발견**: 회귀에서 건너뛴 `LiveLossWindowPgTest`가 C 단독·통합에서 1/7(운영 기점 7/7). 원인은 매수 원천 없이 만든 포지션이며, v1.195 §2-3에 따라 고치지 않고 판단을 요청한다.
+- **추가 발견**: 회귀에서 건너뛴 `LiveLossWindowPgTest`가 C 단독·통합에서1/7(운영 기점7/7). 매수 원천 없는 준비 데이터가 원인이며 v1.196에서 해당 시험 보정·건너뜀 중 C 영향 PG 선별을 승인했다. 원가 불명 입력은 계속 신규 진입을 막는다.
 - **N3**: 0e1d2a02·b5cd1d0d 실제 바이너리가 ENTRY_REJECTED 1행에서 서킷 브레이커·손실 냉각·LIVE 화면·목록 조회에 실패한다(NULL 대조는 정상). 같은 DB에서 3판은 OK, 4판은 STOP_INCOMPATIBLE이며 원래 값은 불변. [근거](evidence/dec-n3-oldbinary-20261119/README.md)
 - **SQL v3 ↔ 제품**: 전역 30일 판정 불가/손실 합·세션 입력 범위·최신순·NULL/확정 0·해제·빈 청산·가동 전 범위가 **96/96** 일치한다. [근거](evidence/dec-predeploy-parity-20261119/README.md)
 - **REAL 매수 요약 후보** `candidate/real-buy-summary-60df3437` **69c81c3d**(+596ed4b0 교차 시험 도우미 1줄): 커밋된 체결 증가분만 기존 버퍼에 적재한다. 기점 18/23 실패 → 23/23. 영향 H2 93/93, PG AbcCross 19/19 등 통과. 60df3437에는 넣지 않았다. [근거](evidence/dec-real-buy-summary-20261119/README.md)

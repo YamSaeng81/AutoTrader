@@ -1,0 +1,19 @@
+# 최종 통합 가지 integ/final-abc-60df3437 (기점 60df3437) — 원 커밋 → 이식 커밋, patch-id(--stable) 앞 12자
+7e0143e1 -> 1b9110cb c478dee638a4 c478dee638a4 same test: DailySma20 reentersAfterClose — 정상 청산에 확정 주문 원천을 둔다(비용 기준 판정 불가 계약과 시험 입력 정합, 제품 무변경)
+09fa2d1c -> d4ce64a2 877a0c32a731 877a0c32a731 same test: DailySma20 reentersAfterClose — 공통 orders() 원복, 재진입 단언을 시험 안에서 원천 행 제외로 유지 + 새 매수 전 판정 가능 단언(v1.195 §2-2·3)
+9a297069 -> 871e4aa4 c7d74e7a0054 c7d74e7a0054 same test: RealBuySummaryPgTest — 공유 풀 REAL 매수 요약 적재 실패 시험 먼저(v1.194 §3)
+c8cb48a0 -> b497d651 44b0e4a7d4ff 44b0e4a7d4ff same test: RealBuySummaryPgTest R3 — 늦은 정정 재조회 백오프 경과 재현(시각만 당김)
+44b5bf4b -> 9552ca6a 35a0054f29ab 35a0054f29ab same test: RealBuySummaryPgTest alertEvents — null 인자(매수 손익) 허용
+69c81c3d -> fcfa0f6d bf76caa92000 bf76caa92000 same fix: 공유 풀 REAL 매수 요약 — 원자 정산 커밋 뒤 확정 체결 증가분만 기존 요약 버퍼에 적재(LIVE·DYNAMIC, 종류#ID)
+596ed4b0 -> 786978cd 63071c4161dd 63071c4161dd same test: AbcCrossPgTest alertEvents — null 인자 허용(매수 요약 적재 뒤 BUY 이벤트의 손익 null)
+(새) 0401d0e9 test: LiveLossWindowPgTest — LIVE 세션 포지션에 확정 매수 원천(수량×평균가·수수료 0 명시)을 둔다(비용 기준 판정 불가 계약과 시험 입력 정합, 제품 무변경, v1.196 §2-1)
+(새) d81c3f2f test: RealLossGlobalPgTest — 세션 손실 매도에 확정 매수 원천(수량×평균가·수수료 0 명시) + ①② 거절 사유가 판정 불가가 아님을 단언(제품 무변경, v1.196 §2-3)
+# 최종 블롭 = 원 가지 블롭
+same 596ed4b0 e88ad30249cf web-api/src/main/java/com/cryptoautotrader/api/service/OrderSettlementService.java
+same 596ed4b0 1509e1b35d45 web-api/src/test/java/com/cryptoautotrader/api/service/AbcCrossPgTest.java
+same 09fa2d1c c12c4c32afea web-api/src/test/java/com/cryptoautotrader/api/service/DailySma20LiveOrderPathTest.java
+new b31ed856755a web-api/src/test/java/com/cryptoautotrader/api/service/LiveLossWindowPgTest.java
+same 596ed4b0 27c0e0852652 web-api/src/test/java/com/cryptoautotrader/api/service/RealBuySummaryPgTest.java
+new 32896f700891 web-api/src/test/java/com/cryptoautotrader/api/service/RealLossGlobalPgTest.java
+# 60df3437..d81c3f2f 제품(src/main) 경로
+web-api/src/main/java/com/cryptoautotrader/api/service/OrderSettlementService.java

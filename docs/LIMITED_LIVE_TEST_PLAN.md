@@ -1,6 +1,6 @@
 # 12월 제한 실거래 시험 — 현재 계획
 
-정리 기준은 **2026-11-19, 총괄 v1.195 / 60df3437 전체 회귀 실패1·시험 보완 범위**다. [12월 목표](DECEMBER_SMALL_LIVE_PLAN.md)·434차 도구 수용/e0119f0a는 유지한다. 마지막 실제 읽기는 **11-19 10:13:09**(N03 10:00 보고·09:30 장부, [N03 10:00](evidence/n03-1119-1000/README.md)), DB는 보고 값이다. 이후 감시를 주장하지 않는다. [최신 지시](evidence/review-abc-regression-20261119/README.md)
+정리 기준은 **2026-11-19, 총괄 v1.196 / 445차 범위 수용·최종 통합 전 PG 보정**이다. [12월 목표](DECEMBER_SMALL_LIVE_PLAN.md)·434차 도구 수용/e0119f0a는 유지한다. 마지막 실제 읽기는 **11-19 10:13:09**(N03 10:00 보고·09:30 장부, [N03 10:00](evidence/n03-1119-1000/README.md)), DB는 보고 값이다. 이후 감시를 주장하지 않는다. [최신 지시](evidence/review-e97ca31b/README.md)
 
 **운영0e1d2a02·V96·frontend9d7f123a와 F1/N06 핀은 수용했다. 12월 소액 실전·다이나믹의 수익성 자료 수집을 준비한다. 총원금·월 손실 상한은 미확정이며 실제 생성/시작·토큰 준비·배치·설정/키 변경은 별도 승인 전이다.**
 
@@ -8,7 +8,7 @@
 |---|---|
 | 현재 상태·남은 작업·다음 일정 | 이 문서 |
 | F0~F6 시작·확인·정지·종료 명령 | [실행 절차](LIMITED_LIVE_TEST_RUNBOOK.md) — F 원문·현재 핀·F5-3v |
-| 현재 상세 판정과 허용 범위 | [v1.195 회귀 후속](evidence/review-abc-regression-20261119/README.md) · [12월 준비](DECEMBER_SMALL_LIVE_PLAN.md) · [434차 수용](evidence/review-e0119f0a/README.md) |
+| 현재 상세 판정과 허용 범위 | [v1.196 최종 통합 지시](evidence/review-e97ca31b/README.md) · [12월 준비](DECEMBER_SMALL_LIVE_PLAN.md) · [434차 수용](evidence/review-e0119f0a/README.md) |
 | 완료된 배포, 옛 후보·판정, 정정 전 서술, 종전 §1~§7·§5-9 1~126 | [2026-11-12 전체 원문 보존본](LIMITED_LIVE_TEST_PLAN_ARCHIVE_20261112.md) — 이력 조회용 |
 | 전체 관리 목록·일별 점검 | [LIVE_READINESS](LIVE_READINESS.md) · [11월 관리표](NOVEMBER_LIVE_UPGRADE.md) · [OPS](OPS_DAILY_CHECK.md) |
 | 실행 결과와 작업 인계 | [PROGRESS](PROGRESS.md) · [현재 인계](CURRENT_HANDOFF.md) · 각 결과의 evidence/README |
@@ -58,7 +58,7 @@ SSH 대량 인증 실패·MaxStartups 제한은 별도🔴 후속이다. 11-17 1
 | 수용 | **V172D4 절차 보완·고정 출처** | ce6df2fa의 [424차 제출](evidence/v172d4-20261116/README.md) 수용. R1~R3·두 번째 로그 보완, 대역 r2 100/0·실행 틀12/12. 근거42/42·압축9,212파일 일치 |
 | 1 | **SSH 관리자 제한 읽기** | v2 범위 수용. admin_read + admin_read_add 개별 종료값·UseDNS/Host/Include/서비스 인자, 운영자 답4개 확인. 실제 변경 전 |
 | 2 | **새 모의9세션 실행 판단** | 11-18·11-19 날짜 파일은 미승인 만료 이력. 도구 수용은 유지하고 다음 실제 일정의 날짜·창·T0·해시를 새로 제출, 토큰/배치/POST/생성은 별도 승인 |
-| 3 | **12월 병행 실전 준비** | [v1.195](evidence/review-abc-regression-20261119/README.md) 후속 445차 제출: 회귀 실패1은 C 계약·준비 데이터 충돌로 확인, 시험 보정 09fa2d1c 24/24([통합](evidence/dec-integ-abc-20261119/README.md)). N3 구판 실조회 실패·4판 차단, SQL v3 96/96, 매수 요약 후보 23/23. LiveLossWindow C 1/7 추가 발견(판단 요청). 최종 고정 전 전체 회귀 반복 없음 |
+| 3 | **12월 병행 실전 준비** | [v1.196](evidence/review-e97ca31b/README.md)에서445차 범위 수용(목록601/601·독립49대조). 09fa2d1c 누적 시험 보완·매수 요약596ed4b0 최종 로컬 포함, LiveLossWindow 확정 BUY 원천 보정과 관련 건너뜀 PG 선별 조사 승인. 고정 SHA 직접 영향 확인 → 전체 회귀1회 → LF jar/배포·복구안 초안. 운영/실제 생성 별도 |
 | 완료 | **문서 정리·F5-3v** | b12f19f8·729cdbe2 수용. 종전F15개 보존, 새 출처 추출 대역15/15. 장부 시험의 공통 자료 실패9건은 남음 |
 | 수용 | **대기 대상 정리·독립 시험 보완** | [409차](evidence/v164-wait20-20261113/README.md). 합집합21·실제18클래스87곳. 실패42는 대기 경합40과 G1 시험 읽기2로 구분. 후속3f9cc926에서 음성 단언3곳 보완·관련19클래스 성공230/건너뜀4, 실패0 |
 | 수용 | **N05 최종판·화면** | [N05](evidence/n05-final-0e1d2a02/README.md) K14~K23 39/39 대응, G4 운영0e1d2a02 확인 완료. G2·G3 미확정. [화면](evidence/screen-0e1d2a02/README.md) 7개 확인 수용, 대비 결함은 독립 frontend 후보로 보완 |
@@ -130,7 +130,7 @@ SSH 대량 인증 실패·MaxStartups 제한은 별도🔴 후속이다. 11-17 1
 | 시점 | 할 일 |
 |---|---|
 | 다음 N03 | 11-19 10:00·09:30은10:13:09 회수·범위 수용. [보충](evidence/review-f55f5af0/README.md). 다음11-19 22:00 보고는 생성·전송 뒤22:12 이후 기존 범위로 읽고 실제 실행 여부 기록 |
-| 다음 작업 | 445차 판정 뒤 최종 포함(09fa2d1c·매수 요약 후보·LiveLossWindow 보정 여부) 고정 → 전체 회귀1회/jar. 운영·실제 생성 별도 승인. 다음 N03 22:12 이후 |
+| 다음 작업 | 446차 제출: 최종 로컬 통합 **d81c3f2f**(60df3437+재진입 누적+매수 요약+LW·RL 시험 원천 보정) 전체 회귀 rc0·LF jar JARM 33a06f0e([근거](evidence/dec-final-abc-20261119/README.md)). 이어서 배포/복구안 초안(관문4판·SQL v3). 운영·실제 생성 별도 승인. 다음 N03 22:12 이후 |
 | 11-23~11-27 | N05 운영 SHA 재확인 후 이번 최종판 근거 연결, 변경 시 영향 범위 대조 |
 | 11-30 | N06: 최종 원본 S, 운영 핀·설치판·역할·실행 사본·복구 기준 고정. 최종 S에서 F3를 다시 추출 |
 | 12-01 08:30 KST | F1 실제 직전 확인·휴대폰 수신 확인 |

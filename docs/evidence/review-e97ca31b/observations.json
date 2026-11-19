@@ -1,0 +1,218 @@
+{
+  "minimal_runs": {
+    "sma20-A-aff357e2": {
+      "files": 1,
+      "totals": [
+        24,
+        0,
+        0,
+        0
+      ],
+      "failures": []
+    },
+    "sma20-C-b408a223": {
+      "files": 1,
+      "totals": [
+        24,
+        1,
+        0,
+        0
+      ],
+      "failures": [
+        {
+          "test": "이전 포지션이 청산된 세션은 다음 마감 봉의 BUY 로 다시 들어간다(재진입)",
+          "message": "java.lang.AssertionError: [BUY 주문 1건 — 회차 키 H1 2026-11-19T05:00:46Z · 신호 BUY / 접수 거절=null · 승인 [LIVE#3→연속 손실 판정 불가 — 최근 확정 손실 0회 다음 청산(posId=3)의 확정 비용을 구하지 못했다(한도: 5회). 신규 진입만 막고 정지·청산하지 않는다]] \r\nExpected size: 1 but was: 0 in:\r\n[]"
+        }
+      ]
+    },
+    "sma20-fx-09fa2d1c": {
+      "files": 1,
+      "totals": [
+        24,
+        0,
+        0,
+        0
+      ],
+      "failures": []
+    },
+    "lw-base-0e1d2a02": {
+      "files": 1,
+      "totals": [
+        7,
+        0,
+        0,
+        0
+      ],
+      "failures": []
+    },
+    "lw-C-b408a223": {
+      "files": 1,
+      "totals": [
+        7,
+        6,
+        0,
+        0
+      ],
+      "failures": [
+        {
+          "test": "① 실제 LIVE 손실 체결→확정 뒤 checkRisk — 일일 한도(1.5%)를 넘는 세션 손실(2.00%)이면 진입 승인이 거절된다",
+          "message": "java.lang.AssertionError: \r\nExpecting actual:\r\n  \"[기존 보호식] 판정 불가 — 30일 안 LIVE 세션 매도/청산 1건의 확정 비용(매수 대금+수수료 또는 매도 체결)을 구하지 못했다(손실 0·이익으로 보지 않는다)\"\r\nto start with:\r\n  \"일일 손실 한도 초과: 2.00%\"\r\n"
+        },
+        {
+          "test": "② 확정 전 0 · 확정 뒤 정확히 한 번(재확정·재시도에도) · 늦은 정정은 차분만 · FILL 행은 만들지 않는다",
+          "message": "org.opentest4j.AssertionFailedError: [확정 손실 2,001 — 일] \r\nexpected: 2001.00\r\n but was: 0"
+        },
+        {
+          "test": "③ 부분 매도 뒤 나머지 매도 — 두 매도의 손실이 각각 한 번씩(1,000.50 + 2,000.00)",
+          "message": "org.opentest4j.AssertionFailedError: \r\nexpected: 1000.50\r\n but was: 0"
+        },
+        {
+          "test": "④ 확정 롤백(세션 갱신 실패) — 합산 0, 실패 해소 뒤 재확정에서 한 번",
+          "message": "org.opentest4j.AssertionFailedError: \r\nexpected: 2001.00\r\n but was: 0"
+        },
+        {
+          "test": "⑤ 이익 매도와 손실 매도 — 손실만 합산(이익과 상쇄하지 않음)",
+          "message": "org.opentest4j.AssertionFailedError: \r\nexpected: 2001.00\r\n but was: 0"
+        },
+        {
+          "test": "⑦ 창 경계 — 반영 시각 T 에서 since=T 포함(≥), since=T+1µs 제외",
+          "message": "org.opentest4j.AssertionFailedError: [T 포함·T+1µs 제외 — 그 한 건 2,001] \r\nexpected: 2001.00\r\n but was: 0.0000"
+        }
+      ]
+    },
+    "lw-base-60df3437": {
+      "files": 1,
+      "totals": [
+        7,
+        6,
+        0,
+        0
+      ],
+      "failures": [
+        {
+          "test": "① 실제 LIVE 손실 체결→확정 뒤 checkRisk — 일일 한도(1.5%)를 넘는 세션 손실(2.00%)이면 진입 승인이 거절된다",
+          "message": "java.lang.AssertionError: \r\nExpecting actual:\r\n  \"[기존 보호식] 판정 불가 — 30일 안 LIVE 세션 매도/청산 1건의 확정 비용(매수 대금+수수료 또는 매도 체결)을 구하지 못했다(손실 0·이익으로 보지 않는다)\"\r\nto start with:\r\n  \"일일 손실 한도 초과: 2.00%\"\r\n"
+        },
+        {
+          "test": "② 확정 전 0 · 확정 뒤 정확히 한 번(재확정·재시도에도) · 늦은 정정은 차분만 · FILL 행은 만들지 않는다",
+          "message": "org.opentest4j.AssertionFailedError: [확정 손실 2,001 — 일] \r\nexpected: 2001.00\r\n but was: 0"
+        },
+        {
+          "test": "③ 부분 매도 뒤 나머지 매도 — 두 매도의 손실이 각각 한 번씩(1,000.50 + 2,000.00)",
+          "message": "org.opentest4j.AssertionFailedError: \r\nexpected: 1000.50\r\n but was: 0"
+        },
+        {
+          "test": "④ 확정 롤백(세션 갱신 실패) — 합산 0, 실패 해소 뒤 재확정에서 한 번",
+          "message": "org.opentest4j.AssertionFailedError: \r\nexpected: 2001.00\r\n but was: 0"
+        },
+        {
+          "test": "⑤ 이익 매도와 손실 매도 — 손실만 합산(이익과 상쇄하지 않음)",
+          "message": "org.opentest4j.AssertionFailedError: \r\nexpected: 2001.00\r\n but was: 0"
+        },
+        {
+          "test": "⑦ 창 경계 — 반영 시각 T 에서 since=T 포함(≥), since=T+1µs 제외",
+          "message": "org.opentest4j.AssertionFailedError: [T 포함·T+1µs 제외 — 그 한 건 2,001] \r\nexpected: 2001.00\r\n but was: 0.0000"
+        }
+      ]
+    }
+  },
+  "buy_impact": {
+    "rbs-impact-69c81c3d/h2-8/": {
+      "files": 9,
+      "totals": [
+        93,
+        0,
+        0,
+        0
+      ],
+      "failures": []
+    },
+    "rbs-impact2-596ed4b0/pg-AbcCrossPgTest/": {
+      "files": 1,
+      "totals": [
+        1,
+        0,
+        0,
+        0
+      ],
+      "failures": []
+    },
+    "rbs-impact2-596ed4b0/pg-ClosingIntentAtomicityPgTest/": {
+      "files": 1,
+      "totals": [
+        5,
+        0,
+        0,
+        0
+      ],
+      "failures": []
+    },
+    "rbs-impact2-596ed4b0/pg-PartialSellRealizedPnlPgTest/": {
+      "files": 1,
+      "totals": [
+        7,
+        0,
+        0,
+        0
+      ],
+      "failures": []
+    },
+    "rbs-impact2-596ed4b0/pg-RealLossThreeFormulaPgTest/": {
+      "files": 1,
+      "totals": [
+        8,
+        0,
+        0,
+        0
+      ],
+      "failures": []
+    },
+    "rbs-impact2-596ed4b0/pg-LiveLossWindowPgTest/": {
+      "files": 1,
+      "totals": [
+        7,
+        6,
+        0,
+        0
+      ],
+      "failures": [
+        {
+          "test": "① 실제 LIVE 손실 체결→확정 뒤 checkRisk — 일일 한도(1.5%)를 넘는 세션 손실(2.00%)이면 진입 승인이 거절된다",
+          "message": "java.lang.AssertionError: \r\nExpecting actual:\r\n  \"[기존 보호식] 판정 불가 — 30일 안 LIVE 세션 매도/청산 1건의 확정 비용(매수 대금+수수료 또는 매도 체결)을 구하지 못했다(손실 0·이익으로 보지 않는다)\"\r\nto start with:\r\n  \"일일 손실 한도 초과: 2.00%\"\r\n"
+        },
+        {
+          "test": "② 확정 전 0 · 확정 뒤 정확히 한 번(재확정·재시도에도) · 늦은 정정은 차분만 · FILL 행은 만들지 않는다",
+          "message": "org.opentest4j.AssertionFailedError: [확정 손실 2,001 — 일] \r\nexpected: 2001.00\r\n but was: 0"
+        },
+        {
+          "test": "③ 부분 매도 뒤 나머지 매도 — 두 매도의 손실이 각각 한 번씩(1,000.50 + 2,000.00)",
+          "message": "org.opentest4j.AssertionFailedError: \r\nexpected: 1000.50\r\n but was: 0"
+        },
+        {
+          "test": "④ 확정 롤백(세션 갱신 실패) — 합산 0, 실패 해소 뒤 재확정에서 한 번",
+          "message": "org.opentest4j.AssertionFailedError: \r\nexpected: 2001.00\r\n but was: 0"
+        },
+        {
+          "test": "⑤ 이익 매도와 손실 매도 — 손실만 합산(이익과 상쇄하지 않음)",
+          "message": "org.opentest4j.AssertionFailedError: \r\nexpected: 2001.00\r\n but was: 0"
+        },
+        {
+          "test": "⑦ 창 경계 — 반영 시각 T 에서 since=T 포함(≥), since=T+1µs 제외",
+          "message": "org.opentest4j.AssertionFailedError: [T 포함·T+1µs 제외 — 그 한 건 2,001] \r\nexpected: 2001.00\r\n but was: 0.0000"
+        }
+      ]
+    }
+  },
+  "submission": "e97ca31b23dec54db7c962395d2f8e60cc92afb0",
+  "changed_files": 614,
+  "evidence_files": 611,
+  "manifest_entries": 601,
+  "limits": [
+    "No product test, PostgreSQL, Docker, build, SSH or network command executed.",
+    "Saved XML and JSON are reviewed results, not newly rerun tests.",
+    "The 23/23 BUY result was run on 44b5bf4b with a dirty product patch; patch contents match 69c81c3d after newline normalization. A clean final-SHA run remains required.",
+    "LiveLossWindow fixture has not been fixed. Other skipped PG fixture coverage is not established.",
+    "Three current management documents are deliberately excluded from local byte equality because this review updates them; all submitted evidence blobs are checked.",
+    "Remote equality is developer-reported and local saved refs only; no remote query was made."
+  ]
+}

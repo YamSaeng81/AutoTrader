@@ -1,0 +1,6 @@
+direct-0401d0e9\h2-DailySma20LiveOrderPathTest\ DAILY_SMA20 LIVE 주문 경로 — 마감 봉 진입·EMA200 차단·시간 청산·SELL 차단·재진입·매수금 tests 24 fail 0 err 0 skip 0
+direct-0401d0e9\pg-ClosingIntentRollbackPgTest\ 158 결정 3 — CLOSING+의도 롤백 계약 (로컬 PostgreSQL) tests 2 fail 0 err 0 skip 0
+direct-0401d0e9\pg-N15PgLockWaitExpiryTest\ N15 실제 PostgreSQL 잠금 대기 중 E — LIVE 계좌 잠금·DYNAMIC 세션 행 잠금, 차감·의도·슬롯·거래소 0 · 대조군 정상 진입 tests 13 fail 0 err 0 skip 0
+direct-0401d0e9\pg-PhantomKeepsConfirmedPnlPgTest\ 157 §125-7 phantom 추정 청산 — 부분 매도 확정 손익 보존 (로컬 PostgreSQL) tests 4 fail 0 err 0 skip 0
+direct-0401d0e9\pg-RealBuySummaryPgTest\ 공유 풀 REAL 매수 요약 적재 (격리 PG) tests 1 fail 0 err 0 skip 0
+direct-0401d0e9\pg-RealLossGlobalPgTest\ 157 §125-6 전역 REAL 확정 손실 — DYNAMIC REAL 손실 실패 재현·판정 변화 (로컬 PostgreSQL) tests 3 fail 0 err 0 skip 0

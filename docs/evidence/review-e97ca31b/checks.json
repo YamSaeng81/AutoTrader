@@ -1,0 +1,352 @@
+{
+  "passed": 49,
+  "failed": 0,
+  "checks": [
+    {
+      "check": "submission changed files",
+      "pass": true,
+      "actual": 614
+    },
+    {
+      "check": "611 submitted evidence blobs equal local preserved files",
+      "pass": true,
+      "actual": []
+    },
+    {
+      "check": "permission settings not in submission",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "dec-costbasis-followup-20261119 committed manifest",
+      "pass": true,
+      "actual": {
+        "listed": 81,
+        "mismatches": []
+      }
+    },
+    {
+      "check": "dec-integ-abc-20261119 committed manifest",
+      "pass": true,
+      "actual": {
+        "listed": 349,
+        "mismatches": []
+      }
+    },
+    {
+      "check": "dec-n3-oldbinary-20261119 committed manifest",
+      "pass": true,
+      "actual": {
+        "listed": 48,
+        "mismatches": []
+      }
+    },
+    {
+      "check": "dec-predeploy-parity-20261119 committed manifest",
+      "pass": true,
+      "actual": {
+        "listed": 20,
+        "mismatches": []
+      }
+    },
+    {
+      "check": "dec-real-buy-summary-20261119 committed manifest",
+      "pass": true,
+      "actual": {
+        "listed": 87,
+        "mismatches": []
+      }
+    },
+    {
+      "check": "review-9687b751 committed manifest",
+      "pass": true,
+      "actual": {
+        "listed": 5,
+        "mismatches": []
+      }
+    },
+    {
+      "check": "review-abc-progress-20261119 committed manifest",
+      "pass": true,
+      "actual": {
+        "listed": 5,
+        "mismatches": []
+      }
+    },
+    {
+      "check": "review-abc-regression-20261119 committed manifest",
+      "pass": true,
+      "actual": {
+        "listed": 6,
+        "mismatches": []
+      }
+    },
+    {
+      "check": "manifest entries total",
+      "pass": true,
+      "actual": 601
+    },
+    {
+      "check": "sma20-A-aff357e2 XML",
+      "pass": true,
+      "actual": [
+        24,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "check": "sma20-C-b408a223 XML",
+      "pass": true,
+      "actual": [
+        24,
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "check": "sma20-fx-09fa2d1c XML",
+      "pass": true,
+      "actual": [
+        24,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "check": "lw-base-0e1d2a02 XML",
+      "pass": true,
+      "actual": [
+        7,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "check": "lw-C-b408a223 XML",
+      "pass": true,
+      "actual": [
+        7,
+        6,
+        0,
+        0
+      ]
+    },
+    {
+      "check": "lw-base-60df3437 XML",
+      "pass": true,
+      "actual": [
+        7,
+        6,
+        0,
+        0
+      ]
+    },
+    {
+      "check": "original failed full regression preserved",
+      "pass": true,
+      "actual": [
+        1866,
+        1,
+        0,
+        93
+      ]
+    },
+    {
+      "check": "LiveLossWindow was skipped in full run",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "SMA fixture only one test file",
+      "pass": true,
+      "actual": [
+        "web-api/src/test/java/com/cryptoautotrader/api/service/DailySma20LiveOrderPathTest.java"
+      ]
+    },
+    {
+      "check": "SMA fixture net diff",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "confirmed BUY and SELL source and readiness assertion",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "common orders helper preserved",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "LW fixture unchanged on prod, C and integration",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "LW position helper has no buy source and explicit zero position fee",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "0e1d2a02 six actual query paths reject enum",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "0e1d2a02 NULL controls succeed",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "0e1d2a02 gate v3 passes / v4 blocks",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "0e1d2a02 gate preserves rows",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "b5cd1d0d six actual query paths reject enum",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "b5cd1d0d NULL controls succeed",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "b5cd1d0d gate v3 passes / v4 blocks",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "b5cd1d0d gate preserves rows",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "SQL v3 parity 96 comparisons",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "TSV matches JSON parity rows",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "rbs-base-c8cb48a0 23 assertions",
+      "pass": true,
+      "actual": {
+        "checks": 23,
+        "failed": 18
+      }
+    },
+    {
+      "check": "rbs-fix2-44b5bf4b-dirty 23 assertions",
+      "pass": true,
+      "actual": {
+        "checks": 23,
+        "failed": 0
+      }
+    },
+    {
+      "check": "dirty successful product diff equals committed fix after CRLF normalization",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "BUY candidate changes one product and two test files",
+      "pass": true,
+      "actual": [
+        "web-api/src/main/java/com/cryptoautotrader/api/service/OrderSettlementService.java",
+        "web-api/src/test/java/com/cryptoautotrader/api/service/AbcCrossPgTest.java",
+        "web-api/src/test/java/com/cryptoautotrader/api/service/RealBuySummaryPgTest.java"
+      ]
+    },
+    {
+      "check": "BUY buffer follows REQUIRES_NEW execution and skips nonpositive delta",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "BUY buffer failure leaves committed accounting",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "rbs-impact-69c81c3d/h2-8/ XML",
+      "pass": true,
+      "actual": [
+        93,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "check": "rbs-impact2-596ed4b0/pg-AbcCrossPgTest/ XML",
+      "pass": true,
+      "actual": [
+        1,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "check": "rbs-impact2-596ed4b0/pg-ClosingIntentAtomicityPgTest/ XML",
+      "pass": true,
+      "actual": [
+        5,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "check": "rbs-impact2-596ed4b0/pg-PartialSellRealizedPnlPgTest/ XML",
+      "pass": true,
+      "actual": [
+        7,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "check": "rbs-impact2-596ed4b0/pg-RealLossThreeFormulaPgTest/ XML",
+      "pass": true,
+      "actual": [
+        8,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "check": "rbs-impact2-596ed4b0/pg-LiveLossWindowPgTest/ XML",
+      "pass": true,
+      "actual": [
+        7,
+        6,
+        0,
+        0
+      ]
+    },
+    {
+      "check": "AbcCross 19 assertions",
+      "pass": true,
+      "actual": null
+    }
+  ]
+}
