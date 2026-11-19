@@ -48,6 +48,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * N1 주문 원천 없는 REAL 청산(저장 손익 +1, BUY/SELL 행 없음) → 전역 관문·세션 연속 손실·진입이 판정 불가, 다시 조회해도 그대로(원천 없음)
  *    LIVE 는 제품 고아 정리(reconcileOrphanBuyPositions 의 주문 없는 경로)로 닫힌 청산도 같은 판정
  * N2 체결 없음이 확정된 매수 취소(실제 매수 경로 → 거래소 취소·체결 0 → 제품 고아 정리) → 판정 불가 아님
+ * N2b DYNAMIC 진입 예약 거절로 제품이 주문 없이 닫은 빈 슬롯 → 판정 불가 아님(무거래 확정 표시)
  * N3 매도 수수료 NULL(미보고) → 판정 불가 → 확정 0 이면 해제·손실 아님 → 확정 3.75 이면 해제·비용 뒤 −2.75 손실
  * N4 매수 원가 미상 → 복구 뒤 다음 조회에서 자동 해제(이미 기점 동작 — 해제 경로 확인)
  * N5 미세 손실: −0.5 한 건은 합에서 0 으로 버리지 않음(비율 0.00% — 기존 0.01% 해상도 유지), 두 건 합 −1.0 은 0.01% 로 거절
@@ -424,6 +425,27 @@ class CostBasisBoundaryPgTest extends IntegrationTestBase {
                 String e2 = entryBlock(kind, s2);
                 check("N2 " + kind + " 진입 차단 없음", e2 == null, e2);
                 ageAll();
+
+                if ("DYNAMIC".equals(kind)) {
+                    // ── N2b DYNAMIC 진입 예약 거절 → 제품이 주문 없이 닫은 빈 슬롯 → 판정 불가 아님 ──
+                    setRisk("0.001", 1);   // 사전 등록과 다른 한도 → 공유 풀 예약 RISK_CONFIG_MISMATCH 거절(제품 경로)
+                    Long s2b = newSession(kind);
+                    markPriceBook.record("KRW-RND", new BigDecimal("300"), Instant.now());
+                    String r2b = buyPath(kind, s2b);
+                    check("N2b DYNAMIC 매수 예약 거절", r2b != null && r2b.contains("예약 거절"), r2b);
+                    List<PositionEntity> ps = positionRepository.findBySessionKindAndSessionId(kind, s2b);
+                    check("N2b DYNAMIC 거절 슬롯 CLOSED·수량 0·주문 없음",
+                            ps.size() == 1 && "CLOSED".equals(ps.get(0).getStatus()) && ps.get(0).getSize().signum() == 0
+                                    && orders(kind, s2b, "BUY").isEmpty(),
+                            ps.isEmpty() ? "없음" : ps.get(0).getStatus() + "/" + ps.get(0).getSize() + "/" + ps.get(0).getExitReason());
+                    RiskCheckResult g2b = gate(kind);
+                    check("N2b DYNAMIC 예약 거절 빈 슬롯 → 관문 판정 불가 아님", g2b.isApproved(), verdict(g2b));
+                    Map<String, Object> b2b = breaker(kind, s2b);
+                    check("N2b DYNAMIC 예약 거절 빈 슬롯 → 연속 손실 판정 불가 아님", !undet(b2b.get("reason")), b2b);
+                    String e2b = entryBlock(kind, s2b);
+                    check("N2b DYNAMIC 예약 거절 빈 슬롯 → 진입 차단 없음", e2b == null, e2b);
+                    ageAll();
+                }
 
                 // ── N3 매도 수수료 NULL → 확정 0 → 확정 3.75 ──
                 setRisk("50", 5);
