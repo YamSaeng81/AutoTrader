@@ -1,0 +1,32 @@
+{
+  "checks" : [ {
+    "check" : "N1 LIVE 원천 없는 청산 → 전역 관문 판정 불가 거절",
+    "pass" : false,
+    "actual" : "{approved=true, reason=null}"
+  }, {
+    "check" : "N1 LIVE 세션 연속 손실 판정 불가(발동 아님, 저장 손익 +1 을 쓰지 않음)",
+    "pass" : false,
+    "actual" : "{session=LIVE#1, triggered=false, reason=null}"
+  }, {
+    "check" : "N1 LIVE 신규 진입 차단 사유",
+    "pass" : false,
+    "actual" : "null"
+  }, {
+    "check" : "N1 LIVE 원천이 끝내 없음 — 다음 조회도 판정 불가",
+    "pass" : false,
+    "actual" : "{approved=true, reason=null}"
+  }, {
+    "check" : "N1 LIVE 세션 RUNNING 그대로(정지 없음)",
+    "pass" : true,
+    "actual" : "RUNNING"
+  }, {
+    "check" : "N1 LIVE 제품 고아 정리(주문 없음) → CLOSED",
+    "pass" : true,
+    "actual" : "CLOSED"
+  }, {
+    "check" : "N1 LIVE 주문 없는 고아 청산 → checkRisk 판정 불가 거절",
+    "pass" : false,
+    "actual" : "{approved=true, reason=null}"
+  } ],
+  "failures" : [ "N1 LIVE 원천 없는 청산 → 전역 관문 판정 불가 거절 → {approved=true, reason=null}", "N1 LIVE 세션 연속 손실 판정 불가(발동 아님, 저장 손익 +1 을 쓰지 않음) → {session=LIVE#1, triggered=false, reason=null}", "N1 LIVE 신규 진입 차단 사유 → null", "N1 LIVE 원천이 끝내 없음 — 다음 조회도 판정 불가 → {approved=true, reason=null}", "N1 LIVE 주문 없는 고아 청산 → checkRisk 판정 불가 거절 → {approved=true, reason=null}" ]
+}

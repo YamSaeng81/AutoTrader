@@ -1,0 +1,56 @@
+> Task :strategy-lib:compileJava UP-TO-DATE
+> Task :strategy-lib:processResources NO-SOURCE
+> Task :strategy-lib:classes UP-TO-DATE
+> Task :strategy-lib:jar UP-TO-DATE
+> Task :core-engine:compileJava UP-TO-DATE
+> Task :core-engine:processResources NO-SOURCE
+> Task :core-engine:classes UP-TO-DATE
+> Task :core-engine:jar UP-TO-DATE
+> Task :exchange-adapter:compileJava UP-TO-DATE
+> Task :exchange-adapter:processResources NO-SOURCE
+> Task :exchange-adapter:classes UP-TO-DATE
+> Task :exchange-adapter:jar UP-TO-DATE
+> Task :web-api:compileJava UP-TO-DATE
+> Task :web-api:processResources UP-TO-DATE
+> Task :web-api:classes UP-TO-DATE
+> Task :web-api:compileTestJava UP-TO-DATE
+> Task :web-api:processTestResources UP-TO-DATE
+> Task :web-api:testClasses UP-TO-DATE
+WARNING: A terminally deprecated method in java.lang.System has been called
+WARNING: System::setSecurityManager has been called by com.cryptoautotrader.api.support.NetworkIsolationGuard (file:/D:/tmp/costbasis-0e1d2a02/web-api/build/classes/java/test/)
+WARNING: Please consider reporting this to the maintainers of com.cryptoautotrader.api.support.NetworkIsolationGuard
+WARNING: System::setSecurityManager will be removed in a future release
+Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+
+> Task :web-api:test
+
+v1.157 §125-7 phantom 추정 청산 ? 부분 매도 확정 손익 보존 (로컬 PostgreSQL) > ① 손실 첫 다리(?1,000.50) 뒤 남은 반이 phantom 확정 ? 최종 실현손익 = 확정분 + 추정분, 잔액·수수료·주문 원천 손실은 그대로 FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:180
+        Caused by: org.springframework.beans.factory.BeanCreationException at AbstractAutowireCapableBeanFactory.java:1786
+            Caused by: org.flywaydb.core.internal.exception.FlywaySqlException at JdbcUtils.java:60
+                Caused by: org.postgresql.util.PSQLException at QueryExecutorImpl.java:2713
+
+v1.157 §125-7 phantom 추정 청산 ? 부분 매도 확정 손익 보존 (로컬 PostgreSQL) > ③ 롤백 ? phantom 확정 트랜잭션이 롤백되면 포지션 OPEN·확정분만·잔액 그대로, 다음 확정에서 한 번만 반영 FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:145
+
+v1.157 §125-7 phantom 추정 청산 ? 부분 매도 확정 손익 보존 (로컬 PostgreSQL) > ② 반복·재기동 ? 확정 뒤 phantom 주기 3회 더·기동 복구 본체를 불러도 실현손익·잔액이 다시 더해지지 않는다 FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:145
+
+v1.157 §125-7 phantom 추정 청산 ? 부분 매도 확정 손익 보존 (로컬 PostgreSQL) > ④ 대조 ? 부분 매도 없이 전량 phantom: 실현손익 = 추정분(종전과 같다) FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:145
+
+4 tests completed, 4 failed
+
+> Task :web-api:test FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':web-api:test'.
+> There were failing tests. See the report at: file:///D:/tmp/costbasis-0e1d2a02/web-api/build/reports/tests/test/index.html
+
+* Try:
+> Run with --scan to get full insights.
+
+BUILD FAILED in 11s
+11 actionable tasks: 1 executed, 10 up-to-date

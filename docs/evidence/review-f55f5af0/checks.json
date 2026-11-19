@@ -1,0 +1,23 @@
+{
+  "source": "f55f5af0c460d634c1eb58dae8b44e3cec3b6a8b",
+  "scope": "Fixed Git/local files only; no network, production, SQL, Java tests or builds.",
+  "passed": 9,
+  "failed": 0,
+  "checks": {
+    "HEAD_and_saved_origin": true,
+    "manifest_23_hashes": true,
+    "fixed_24_blob_bytes": true,
+    "manifest_covers_all_fixed_files": true,
+    "four_server_download_hashes": true,
+    "read_rc_and_actual_time": true,
+    "fixed_read_script": true,
+    "v192_six_hashes": true,
+    "three_unclassified_excerpts_news_only": true
+  },
+  "unclassified_excerpt": [
+    "· 15:23:59.893 [scheduler-8] ERROR c.c.a.news.source.CryptoPanicSource - [CryptoPanicSource] 수집 실패: Connection reset",
+    "· 15:23:59.900 [scheduler-8] ERROR c.c.a.news.source.UpbitNoticeSource - [UpbitNoticeSource] 수집 실패: Connection reset",
+    "· 17:24:25.406 [scheduler-1] ERROR c.c.a.news.source.CryptoPanicSource - [CryptoPanicSource] 수집 실패: request timed out"
+  ],
+  "audit_note": "First inline attempt stopped before output: manifest path prefix normalization error; corrected here."
+}

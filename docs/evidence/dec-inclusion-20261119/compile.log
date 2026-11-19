@@ -1,0 +1,25 @@
+D:\tmp\integ-check\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationExtension.java:66: warning: [removal] getSecurityManager() in System has been deprecated and marked for removal
+                    + "\nrestored_security_manager=" + System.getSecurityManager()
+                                                             ^
+D:\tmp\integ-check\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationGuard.java:33: warning: [removal] SecurityManager in java.lang has been deprecated and marked for removal
+    private static volatile SecurityManager previous;
+                            ^
+D:\tmp\integ-check\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationGuard.java:74: warning: [removal] getSecurityManager() in System has been deprecated and marked for removal
+        previous = System.getSecurityManager();
+                         ^
+D:\tmp\integ-check\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationGuard.java:75: warning: [removal] setSecurityManager(SecurityManager) in System has been deprecated and marked for removal
+        System.setSecurityManager(new Guard());
+              ^
+D:\tmp\integ-check\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationGuard.java:136: warning: [removal] getSecurityManager() in System has been deprecated and marked for removal
+        if (System.getSecurityManager() instanceof Guard) {
+                  ^
+D:\tmp\integ-check\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationGuard.java:137: warning: [removal] setSecurityManager(SecurityManager) in System has been deprecated and marked for removal
+            System.setSecurityManager(previous);
+                  ^
+D:\tmp\integ-check\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationGuard.java:143: warning: [removal] getSecurityManager() in System has been deprecated and marked for removal
+        return installed && System.getSecurityManager() instanceof Guard;
+                                  ^
+D:\tmp\integ-check\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationGuard.java:236: warning: [removal] SecurityManager in java.lang has been deprecated and marked for removal
+    private static final class Guard extends SecurityManager {
+                                             ^
+8 warnings

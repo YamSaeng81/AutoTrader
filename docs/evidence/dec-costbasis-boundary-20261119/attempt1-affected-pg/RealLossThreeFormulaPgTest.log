@@ -1,0 +1,68 @@
+> Task :strategy-lib:compileJava UP-TO-DATE
+> Task :strategy-lib:processResources NO-SOURCE
+> Task :strategy-lib:classes UP-TO-DATE
+> Task :strategy-lib:jar UP-TO-DATE
+> Task :core-engine:compileJava UP-TO-DATE
+> Task :core-engine:processResources NO-SOURCE
+> Task :core-engine:classes UP-TO-DATE
+> Task :core-engine:jar UP-TO-DATE
+> Task :exchange-adapter:compileJava UP-TO-DATE
+> Task :exchange-adapter:processResources NO-SOURCE
+> Task :exchange-adapter:classes UP-TO-DATE
+> Task :exchange-adapter:jar UP-TO-DATE
+> Task :web-api:compileJava UP-TO-DATE
+> Task :web-api:processResources UP-TO-DATE
+> Task :web-api:classes UP-TO-DATE
+> Task :web-api:compileTestJava UP-TO-DATE
+> Task :web-api:processTestResources UP-TO-DATE
+> Task :web-api:testClasses UP-TO-DATE
+WARNING: A terminally deprecated method in java.lang.System has been called
+WARNING: System::setSecurityManager has been called by com.cryptoautotrader.api.support.NetworkIsolationGuard (file:/D:/tmp/costbasis-0e1d2a02/web-api/build/classes/java/test/)
+WARNING: Please consider reporting this to the maintainers of com.cryptoautotrader.api.support.NetworkIsolationGuard
+WARNING: System::setSecurityManager will be removed in a future release
+Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+
+> Task :web-api:test
+
+v1.158 결정 2 ? 실자금 손실 세 보호식 (로컬 PostgreSQL) > ① DYNAMIC REAL ?4,002 (LIVE 10만·DYN 10만): DYNAMIC 4.00%·전체 2.00% > 1.50% ? checkRisk·DYNAMIC 진입 모두 거절 FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:180
+        Caused by: org.springframework.beans.factory.BeanCreationException at AbstractAutowireCapableBeanFactory.java:1786
+            Caused by: org.flywaydb.core.internal.exception.FlywaySqlException at JdbcUtils.java:60
+                Caused by: org.postgresql.util.PSQLException at QueryExecutorImpl.java:2713
+
+v1.158 결정 2 ? 실자금 손실 세 보호식 (로컬 PostgreSQL) > ② LIVE ?2,001 (LIVE 10만·DYN 10만): 기존 2.00% 거절 유지 ? DYNAMIC 자본을 더한 전체 1.00% 로 완화되지 않음 FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:145
+
+v1.158 결정 2 ? 실자금 손실 세 보호식 (로컬 PostgreSQL) > ③ 판정 불가 ? DYNAMIC REAL 손실이 있는데 RUNNING DYNAMIC REAL 자본이 없으면 거절, 손실 0 이면 자본 없음만으로 막지 않음 FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:145
+
+v1.158 결정 2 ? 실자금 손실 세 보호식 (로컬 PostgreSQL) > ④ 동률 비교 ? 손실률 = 한도(2.00%) 승인, 한도 1.99% 거절 (기존·DYNAMIC 각각) FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:145
+
+v1.158 결정 2 ? 실자금 손실 세 보호식 (로컬 PostgreSQL) > ⑤ 창 경계 ? 2일 전 DYNAMIC 손실은 일일 밖·주간 안 FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:145
+
+v1.158 결정 2 ? 실자금 손실 세 보호식 (로컬 PostgreSQL) > ⑥ 반복 확정·늦은 정정·롤백 ? DYNAMIC 손실은 확정 한 번, 정정은 차분만, 롤백은 합산 0 FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:145
+
+v1.158 결정 2 ? 실자금 손실 세 보호식 (로컬 PostgreSQL) > ⑦ DYN_PAPER 손실 제외 ? 분자·분모 모두 REAL 만 FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:145
+
+v1.158 결정 2 ? 실자금 손실 세 보호식 (로컬 PostgreSQL) > ⑧ 자본 추가·정지 판정 표 (관측 + 단언) FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:145
+
+8 tests completed, 8 failed
+
+> Task :web-api:test FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':web-api:test'.
+> There were failing tests. See the report at: file:///D:/tmp/costbasis-0e1d2a02/web-api/build/reports/tests/test/index.html
+
+* Try:
+> Run with --scan to get full insights.
+
+BUILD FAILED in 11s
+11 actionable tasks: 1 executed, 10 up-to-date

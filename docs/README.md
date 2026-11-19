@@ -12,7 +12,7 @@
 | 시작 가능 여부 | [준비 목록](LIVE_READINESS.md) | 현재 체크 항목 |
 | F 명령 | [실행 절차](LIMITED_LIVE_TEST_RUNBOOK.md) | 필요한 F 변수/블록과 선행 조건 |
 | 점검 설치·전환·결과 해석 | [OPS](OPS_DAILY_CHECK.md) | 필요한 §번호 |
-| 새 코드 수용·허용 범위 | [최신 총괄 v1.191](evidence/review-16595682/README.md) | 442차 범위 수용, 비용 기준 위험 후보·성적표 잔여2건·후보 포함표 |
+| 새 코드 수용·허용 범위 | [최신 총괄 v1.192](evidence/review-0bc5d295/README.md) | 443차 일부 범위 수용·비용 후보 두 경계 보완·로컬 통합 검증 |
 | 엔진 공통 제약 | [ENGINE_PARITY](ENGINE_PARITY.md) | 변경하는 규칙/엔진의 항목 |
 
 ## 고정 계약·상세 설계 — 필요한 부분만

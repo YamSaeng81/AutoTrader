@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="포지션별 한도 — 진입 배정액 · 포지션 고점 · 차단 · 정지" tests="13" skipped="0" failures="1" errors="0" timestamp="2026-11-19T04:36:56" hostname="DESKTOP-SF1KUQ5" time="0.288">
+  <properties/>
+  <testcase name="일일 폐기 판정은 실자금 LIVE 세션에 세션 단위 CAPITAL_LOSS 를 걸지 않는다 — 같은 이름의 기준이 두 개가 되지 않게" classname="com.cryptoautotrader.api.service.PositionLimitTest" time="0.02"/>
+  <testcase name="반영값 없는 체결 주문이 있으면 평가하지 않고 고점도 올리지 않는다" classname="com.cryptoautotrader.api.service.PositionLimitTest" time="0.013"/>
+  <testcase name="부분 청산 — 판 몫의 순대금이 평가액에 남아 고점·낙폭이 그대로다. 고점 대비 −20% 경계" classname="com.cryptoautotrader.api.service.PositionLimitTest" time="0.013"/>
+  <testcase name="추가 정산 — 부분 체결·잔여 체결·수수료 정정이 원가를 바꿔도 배정액은 그대로, 고점은 체결분만큼 오른다" classname="com.cryptoautotrader.api.service.PositionLimitTest" time="0.03"/>
+  <testcase name="엔진이 먼저 읽어 둔 포지션을 저장해도 고점·배정액이 되돌아가지 않는다" classname="com.cryptoautotrader.api.service.PositionLimitTest" time="0.007"/>
+  <testcase name="재시작 — 메모리 없는 새 판정기가 DB 의 고점·도달 기록으로 판정, 실시간 시세 전에는 대체 시세로 도달을 남기지 않는다" classname="com.cryptoautotrader.api.service.PositionLimitTest" time="0.012"/>
+  <testcase name="도달한 세션은 LIVE·DYNAMIC 모두 공유 예약 지점에서 거절되고, 포지션이 닫힌 뒤에도 유지된다 — 다른 세션은 통과" classname="com.cryptoautotrader.api.service.PositionLimitTest" time="0.035"/>
+  <testcase name="CAPITAL_LOSS 의 분모는 진입 배정액 — 20,000 이면 −3,000 경계, 투입금·세션 초기자본이 아니다" classname="com.cryptoautotrader.api.service.PositionLimitTest" time="0.015"/>
+  <testcase name="판정 불가가 이어지면 정상으로 두지 않는다 — 180초 넘게 이어지면 경보 한 번, 판정이 돌아오면 해제" classname="com.cryptoautotrader.api.service.PositionLimitTest" time="0.017"/>
+  <testcase name="&#x1f534; 판정 불가(시세 없음·120초 초과·반영값 없는 체결)인 포지션이 있는 세션은 그 순간부터 신규 진입 거절 — 감시·경보를 기다리지 않는다. 다른 세션은 통과, 그 포지션의 청산은 나간다" classname="com.cryptoautotrader.api.service.PositionLimitTest" time="0.051">
+    <failure message="java.lang.AssertionError: &#13;&#10;Expecting actual:&#13;&#10;  &quot;연속 손실 판정 불가 — 최근 확정 손실 0회 다음 청산(posId=214)의 확정 비용을 구하지 못했다(한도: 5회). 신규 진입만 막고 정지·청산하지 않는다&quot;&#13;&#10;to contain:&#13;&#10;  &quot;(POSITION_LIMIT_UNJUDGED)&quot; " type="java.lang.AssertionError">java.lang.AssertionError: 
+Expecting actual:
+  &quot;연속 손실 판정 불가 — 최근 확정 손실 0회 다음 청산(posId=214)의 확정 비용을 구하지 못했다(한도: 5회). 신규 진입만 막고 정지·청산하지 않는다&quot;
+to contain:
+  &quot;(POSITION_LIMIT_UNJUDGED)&quot; 
+	at com.cryptoautotrader.api.service.PositionLimitTest.unjudgedBlocksEntryImmediately(PositionLimitTest.java:670)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="자동 정지 ON — LIVE·DYNAMIC 세션을 일반 정지로 멈추고(청산 매도 제출) 결과를 기록한다" classname="com.cryptoautotrader.api.service.PositionLimitTest" time="0.036"/>
+  <testcase name="자동 정지 OFF — 경보로 한 번 처리하고 세션은 그대로, 진입은 막힌다" classname="com.cryptoautotrader.api.service.PositionLimitTest" time="0.02"/>
+  <testcase name="오래된 실시간 시세 — 기준(120초)을 넘으면 판정하지 않는다: 고점·도달 기록 없음, 새 시세가 오면 판정" classname="com.cryptoautotrader.api.service.PositionLimitTest" time="0.013"/>
+  <system-out><![CDATA[13:36:56.901 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.PositionLimitTest
+13:36:56.905 [Test worker] INFO  o.a.c.c.C.[Tomcat-8].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+13:36:56.925 [Test worker] INFO  o.a.c.c.C.[Tomcat-8].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+13:36:56.930 [Test worker] WARN  c.c.api.service.PositionLimitGuard - [포지션 한도] 포지션 #189 KRW-PLIMF LIVE#136 ? 반영값 없는 체결 주문 1건(매수 원가 20010.00): 평가하지 않는다(고점 유지)
+13:36:56.939 [Test worker] INFO  o.a.c.c.C.[Tomcat-8].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+13:36:56.945 [Test worker] ERROR c.c.api.service.PositionLimitGuard - ? [포지션 한도] 도달 ? 이 세션의 실자금 신규 진입을 막는다: MAX_DRAWDOWN 고점 대비 -4997.50 ≤ -4997.50 (-20.0% × 고점 24987.50) ? 포지션 #190 KRW-PLIMB LIVE#137 평가액 19990.00(매도 순대금 12493.75 + 잔량 50 × 150(RECORDED@2026-11-19T04:36:56.945055300Z)) 매수 원가 20010.00 손익 -20.00 | 진입 배정액 20010.00 · 고점 24987.50
+13:36:56.952 [Test worker] INFO  o.a.c.c.C.[Tomcat-8].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+13:36:56.977 [Test worker] ERROR c.c.api.service.PositionLimitGuard - ? [포지션 한도] 도달 ? 이 세션의 실자금 신규 진입을 막는다: CAPITAL_LOSS 손익 -454.04 ≤ -450.00 (-15.0% × 진입 배정액 3000.00) ? 포지션 #191 KRW-PLIMC LIVE#138 평가액 2487.96(매도 순대금 0.00 + 잔량 9.8 × 254(RECORDED@2026-11-19T04:36:56.976991100Z)) 매수 원가 2942.00 손익 -454.04 | 진입 배정액 3000.00 · 고점 2938.53
+13:36:56.983 [Test worker] INFO  o.a.c.c.C.[Tomcat-8].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+13:36:56.991 [Test worker] INFO  o.a.c.c.C.[Tomcat-8].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+13:36:56.996 [Test worker] WARN  c.c.api.service.PositionLimitGuard - [포지션 한도] 포지션 #193 KRW-PLIME LIVE#140 ? 실시간 시세 없음, 대체 시세 200(평가루프) 로는 판정하지 않는다(고점 29985.00 유지, 평가액 참고 19990.00)
+13:36:56.996 [Test worker] ERROR c.c.api.service.PositionLimitGuard - ? [포지션 한도] 도달 ? 이 세션의 실자금 신규 진입을 막는다: MAX_DRAWDOWN 고점 대비 -6096.95 ≤ -5997.00 (-20.0% × 고점 29985.00) ? 포지션 #193 KRW-PLIME LIVE#140 평가액 23888.05(매도 순대금 0.00 + 잔량 100 × 239(RECORDED@2026-11-19T04:36:56.996193400Z)) 매수 원가 20010.00 손익 3878.05 | 진입 배정액 20010.00 · 고점 29985.00
+13:36:57.003 [Test worker] INFO  o.a.c.c.C.[Tomcat-8].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+13:36:57.005 [Test worker] ERROR c.c.api.service.PositionLimitGuard - ? [포지션 한도] 도달 ? 이 세션의 실자금 신규 진입을 막는다: CAPITAL_LOSS 손익 -5007.50 ≤ -3000.00 (-15.0% × 진입 배정액 20000.00) ? 포지션 #194 KRW-PLIMG LIVE#141 평가액 14992.50(매도 순대금 0.00 + 잔량 100 × 150(RECORDED@2026-11-19T04:36:57.004558200Z)) 매수 원가 20000.00 손익 -5007.50 | 진입 배정액 20000.00 · 고점 14992.50
+13:36:57.009 [Test worker] WARN  c.c.a.s.CapitalReservationService - [공유 풀] 승인하지 않는다 (sessionId=141, 사유=POSITION_LIMIT): 포지션별 한도 도달 기록이 있는 세션 ? 신규 진입을 승인하지 않는다(LIVE#141, 포지션 #194 CAPITAL_LOSS, 2026-11-19T13:36:57.004558+09:00, 기록 1건) ? ? 거래소 거절을 기다리지 않는다
+13:36:57.012 [Test worker] ERROR c.c.api.service.PositionLimitGuard - ? [포지션 한도] 도달 ? 이 세션의 실자금 신규 진입을 막는다: CAPITAL_LOSS 손익 -5007.50 ≤ -3000.00 (-15.0% × 진입 배정액 20000.00) ? 포지션 #196 KRW-PLIMH DYNAMIC#57 평가액 14992.50(매도 순대금 0.00 + 잔량 100 × 150(RECORDED@2026-11-19T04:36:57.012573400Z)) 매수 원가 20000.00 손익 -5007.50 | 진입 배정액 20000.00 · 고점 14992.50
+13:36:57.019 [Test worker] WARN  c.c.a.s.CapitalReservationService - [공유 풀] 승인하지 않는다 (sessionId=57, 사유=POSITION_LIMIT): 포지션별 한도 도달 기록이 있는 세션 ? 신규 진입을 승인하지 않는다(DYNAMIC#57, 포지션 #196 CAPITAL_LOSS, 2026-11-19T13:36:57.012573+09:00, 기록 1건) ? ? 거래소 거절을 기다리지 않는다
+13:36:57.019 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 매수 예약 거절 (id=57, KRW-PLIMJ, 사유=POSITION_LIMIT): 포지션별 한도 도달 기록이 있는 세션 ? 신규 진입을 승인하지 않는다(DYNAMIC#57, 포지션 #196 CAPITAL_LOSS, 2026-11-19T13:36:57.012573+09:00, 기록 1건)
+13:36:57.038 [Test worker] INFO  o.a.c.c.C.[Tomcat-8].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+13:36:57.043 [Test worker] ERROR c.c.api.service.PositionLimitGuard - ? [포지션 한도] 도달 ? 이 세션의 실자금 신규 진입을 막는다: CAPITAL_LOSS 손익 -3000.50 ≤ -3000.00 (-15.0% × 진입 배정액 20000.00) ? 포지션 #199 KRW-PLIMA LIVE#143 평가액 16999.50(매도 순대금 0.00 + 잔량 100 × 170.08(RECORDED@2026-11-19T04:36:57.043392200Z)) 매수 원가 20000.00 손익 -3000.50 | 진입 배정액 20000.00 · 고점 17000.50
+13:36:57.053 [Test worker] INFO  o.a.c.c.C.[Tomcat-8].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+13:36:57.058 [Test worker] WARN  c.c.api.service.PositionLimitGuard - [포지션 한도] 포지션 #201 KRW-PLIMU LIVE#145 ? 실시간 시세 없음, 대체 시세 200(평가루프) 로는 판정하지 않는다(고점 N/A 유지, 평가액 참고 19990.00)
+13:36:57.064 [Test worker] WARN  c.c.api.service.PositionLimitGuard - [포지션 한도] 포지션 #201 KRW-PLIMU LIVE#145 ? 시세 210(RECORDED@2026-11-19T04:36:57.057153500Z) 가 179초 전 값(기준 120초 초과): 판정하지 않는다(고점 N/A 유지, 평가액 참고 20989.50)
+13:36:57.065 [Test worker] WARN  c.c.api.service.PositionLimitGuard - [포지션 한도] 포지션 #201 KRW-PLIMU LIVE#145 ? 시세 210(RECORDED@2026-11-19T04:36:57.057153500Z) 가 181초 전 값(기준 120초 초과): 판정하지 않는다(고점 N/A 유지, 평가액 참고 20989.50)
+13:36:57.065 [Test worker] ERROR c.c.api.service.PositionLimitMonitor - ? [포지션 한도] 포지션별 한도 판정 불가 181초 ? LIVE#145 포지션 #201 KRW-PLIMU (MARK_STALE). 이 포지션은 한도 안으로 보지 않는다 ? 시세 경로를 확인하라. 이 세션의 신규 진입은 판정 불가가 확인된 순간부터 막혀 있다(정지는 걸려 있지 않다) | 포지션 #201 KRW-PLIMU LIVE#145 ? 시세 210(RECORDED@2026-11-19T04:36:57.057153500Z) 가 181초 전 값(기준 120초 초과): 판정하지 않는다(고점 N/A 유지, 평가액 참고 20989.50)
+13:36:57.066 [Test worker] WARN  c.c.api.service.PositionLimitMonitor - [포지션 한도] 포지션별 한도 판정 재개 ? LIVE#145 포지션 #201 KRW-PLIMU (판정 불가 190초, 사유 MARK_STALE)
+13:36:57.070 [Test worker] INFO  o.a.c.c.C.[Tomcat-8].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+13:36:57.075 [Test worker] WARN  c.c.api.service.PoolLossGuard - [공유 풀 손실 한도] 유효한 실시간 시세 없이 대체 가격으로만 평가되는 보유 1건 [KRW-PLIMQ=200(평가루프)[대체]] ? 대체 가격이 손실을 과소평가하지 않는다는 근거가 없어 손실 한도를 판정할 수 없다. 풀 전체 신규 진입을 승인하지 않는다(주문 추적·청산은 계속)
+13:36:57.076 [Test worker] WARN  c.c.a.s.CapitalReservationService - [공유 풀] 승인하지 않는다 (sessionId=146, 사유=POOL_VALUATION_UNKNOWN): 유효한 실시간 시세 없이 대체 가격으로만 평가되는 보유 1건 [KRW-PLIMQ=200(평가루프)[대체]] ? 대체 가격이 손실을 과소평가하지 않는다는 근거가 없어 손실 한도를 판정할 수 없다. 풀 전체 신규 진입을 승인하지 않는다(주문 추적·청산은 계속) ? ? 거래소 거절을 기다리지 않는다
+13:36:57.077 [Test worker] WARN  c.c.api.service.PoolLossGuard - [공유 풀 손실 한도] 유효한 실시간 시세 없이 대체 가격으로만 평가되는 보유 1건 [KRW-PLIMQ=200(평가루프)[대체]] ? 대체 가격이 손실을 과소평가하지 않는다는 근거가 없어 손실 한도를 판정할 수 없다. 풀 전체 신규 진입을 승인하지 않는다(주문 추적·청산은 계속)
+13:36:57.077 [Test worker] WARN  c.c.a.s.CapitalReservationService - [공유 풀] 승인하지 않는다 (sessionId=147, 사유=POOL_VALUATION_UNKNOWN): 유효한 실시간 시세 없이 대체 가격으로만 평가되는 보유 1건 [KRW-PLIMQ=200(평가루프)[대체]] ? 대체 가격이 손실을 과소평가하지 않는다는 근거가 없어 손실 한도를 판정할 수 없다. 풀 전체 신규 진입을 승인하지 않는다(주문 추적·청산은 계속) ? ? 거래소 거절을 기다리지 않는다
+13:36:57.079 [Test worker] WARN  c.c.api.service.PoolLossGuard - [공유 풀 손실 한도] 유효한 실시간 시세 없이 대체 가격으로만 평가되는 보유 1건 [KRW-PLIMQ=250(RECORDED@2026-11-19T04:34:56.077872500Z)[대체]] ? 대체 가격이 손실을 과소평가하지 않는다는 근거가 없어 손실 한도를 판정할 수 없다. 풀 전체 신규 진입을 승인하지 않는다(주문 추적·청산은 계속)
+13:36:57.079 [Test worker] WARN  c.c.a.s.CapitalReservationService - [공유 풀] 승인하지 않는다 (sessionId=147, 사유=POOL_VALUATION_UNKNOWN): 유효한 실시간 시세 없이 대체 가격으로만 평가되는 보유 1건 [KRW-PLIMQ=250(RECORDED@2026-11-19T04:34:56.077872500Z)[대체]] ? 대체 가격이 손실을 과소평가하지 않는다는 근거가 없어 손실 한도를 판정할 수 없다. 풀 전체 신규 진입을 승인하지 않는다(주문 추적·청산은 계속) ? ? 거래소 거절을 기다리지 않는다
+13:36:57.079 [Test worker] WARN  c.c.a.s.CapitalReservationService - [공유 풀] 승인하지 않는다 (sessionId=146, 사유=POSITION_LIMIT_UNJUDGED): 포지션별 한도를 판정할 수 없는 포지션이 있는 세션 ? 신규 진입을 승인하지 않는다(LIVE#146, 포지션 #202 KRW-PLIMQ, MARK_UNAVAILABLE: 실시간 시세 없음, 반영값 없는 체결 0건). 청산·주문 추적은 계속된다 ? ? 거래소 거절을 기다리지 않는다
+13:36:57.081 [Test worker] WARN  c.c.a.s.CapitalReservationService - [공유 풀] 승인하지 않는다 (sessionId=146, 사유=POSITION_LIMIT_UNJUDGED): 포지션별 한도를 판정할 수 없는 포지션이 있는 세션 ? 신규 진입을 승인하지 않는다(LIVE#146, 포지션 #202 KRW-PLIMQ, MARK_STALE: 121초 전 시세, 반영값 없는 체결 0건). 청산·주문 추적은 계속된다 ? ? 거래소 거절을 기다리지 않는다
+13:36:57.100 [Test worker] ERROR c.c.api.service.PoolLossGuard - ? 체결 수량이 있는데 반영값이 없는 실자금 주문 1건 ? 순자산을 계산하지 않는다
+13:36:57.100 [Test worker] WARN  c.c.a.s.CapitalReservationService - [공유 풀] 승인하지 않는다 (sessionId=148, 사유=POOL_VALUATION_UNKNOWN): 순자산을 계산할 수 없다(반영값 없는 체결 주문) ? 손실 한도를 확인할 수 없으므로 승인하지 않는다 ? ? 거래소 거절을 기다리지 않는다
+13:36:57.101 [Test worker] ERROR c.c.api.service.PoolLossGuard - ? 체결 수량이 있는데 반영값이 없는 실자금 주문 1건 ? 순자산을 계산하지 않는다
+13:36:57.102 [Test worker] WARN  c.c.a.s.CapitalReservationService - [공유 풀] 승인하지 않는다 (sessionId=147, 사유=POOL_VALUATION_UNKNOWN): 순자산을 계산할 수 없다(반영값 없는 체결 주문) ? 손실 한도를 확인할 수 없으므로 승인하지 않는다 ? ? 거래소 거절을 기다리지 않는다
+13:36:57.110 [Test worker] WARN  c.c.api.service.PoolLossGuard - [공유 풀 손실 한도] 유효한 실시간 시세 없이 대체 가격으로만 평가되는 보유 1건 [KRW-PLIMT=200(평가루프)[대체]] ? 대체 가격이 손실을 과소평가하지 않는다는 근거가 없어 손실 한도를 판정할 수 없다. 풀 전체 신규 진입을 승인하지 않는다(주문 추적·청산은 계속)
+13:36:57.110 [Test worker] WARN  c.c.a.s.CapitalReservationService - [공유 풀] 승인하지 않는다 (sessionId=58, 사유=POOL_VALUATION_UNKNOWN): 유효한 실시간 시세 없이 대체 가격으로만 평가되는 보유 1건 [KRW-PLIMT=200(평가루프)[대체]] ? 대체 가격이 손실을 과소평가하지 않는다는 근거가 없어 손실 한도를 판정할 수 없다. 풀 전체 신규 진입을 승인하지 않는다(주문 추적·청산은 계속) ? ? 거래소 거절을 기다리지 않는다
+13:36:57.111 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 매수 예약 거절 (id=58, KRW-PLIMT2, 사유=POOL_VALUATION_UNKNOWN): 유효한 실시간 시세 없이 대체 가격으로만 평가되는 보유 1건 [KRW-PLIMT=200(평가루프)[대체]] ? 대체 가격이 손실을 과소평가하지 않는다는 근거가 없어 손실 한도를 판정할 수 없다. 풀 전체 신규 진입을 승인하지 않는다(주문 추적·청산은 계속)
+13:36:57.113 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 매수 차단 (id=58, KRW-PLIMT2): 연속 손실 판정 불가 ? 최근 확정 손실 0회 다음 청산(posId=214)의 확정 비용을 구하지 못했다(한도: 5회). 신규 진입만 막고 정지·청산하지 않는다
+13:36:57.124 [Test worker] INFO  o.a.c.c.C.[Tomcat-8].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+13:36:57.128 [Test worker] ERROR c.c.api.service.PositionLimitGuard - ? [포지션 한도] 도달 ? 이 세션의 실자금 신규 진입을 막는다: CAPITAL_LOSS 손익 -5007.50 ≤ -3000.00 (-15.0% × 진입 배정액 20000.00) ? 포지션 #215 KRW-PLIMM LIVE#149 평가액 14992.50(매도 순대금 0.00 + 잔량 100 × 150(RECORDED@2026-11-19T04:36:57.125704300Z)) 매수 원가 20000.00 손익 -5007.50 | 진입 배정액 20000.00 · 고점 14992.50
+13:36:57.128 [Test worker] ERROR c.c.api.service.PositionLimitGuard - ? [포지션 한도] 도달 ? 이 세션의 실자금 신규 진입을 막는다: CAPITAL_LOSS 손익 -5007.50 ≤ -3000.00 (-15.0% × 진입 배정액 20000.00) ? 포지션 #216 KRW-PLIMN DYNAMIC#59 평가액 14992.50(매도 순대금 0.00 + 잔량 100 × 150(RECORDED@2026-11-19T04:36:57.127252100Z)) 매수 원가 20000.00 손익 -5007.50 | 진입 배정액 20000.00 · 고점 14992.50
+13:36:57.136 [Test worker] WARN  c.c.api.service.LiveTradingService - ? 정지했으나 **정리 미완료** ? 미해결 제출 1건이 남았다 (sessionId=149). 그 주문은 접수됐을 수 있으므로 자금·슬롯을 점유한 것으로 두고 추적을 계속한다. 종결은 근거를 확인한 사람이 한다.
+13:36:57.138 [Test worker] ERROR c.c.api.service.PositionLimitMonitor - ? [포지션 한도] CAPITAL_LOSS LIVE#149 포지션 #215 → AUTO_STOPPED: 일반 정지 호출 성공(세션 STOPPED) ? 청산 체결·정리 대기는 별도 추적 | CAPITAL_LOSS 손익 -5007.50 ≤ -3000.00 (-15.0% × 진입 배정액 20000.00) ? 포지션 #215 KRW-PLIMM LIVE#149 평가액 14992.50(매도 순대금 0.00 + 잔량 100 × 150(RECORDED@2026-11-19T04:36:57.125704300Z)) 매수 원가 20000.00 손익 -5007.50 | 진입 배정액 20000.00 · 고점 14992.50
+13:36:57.147 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] ? 정지했으나 **정리 미완료** ? 미해결 제출 1건이 남았다 (sessionId=59). 자금·슬롯을 점유한 것으로 두고 추적을 계속한다.
+13:36:57.147 [Test worker] ERROR c.c.api.service.PositionLimitMonitor - ? [포지션 한도] CAPITAL_LOSS DYNAMIC#59 포지션 #216 → AUTO_STOPPED: 일반 정지 호출 성공(세션 STOPPED) ? 청산 체결·정리 대기는 별도 추적 | CAPITAL_LOSS 손익 -5007.50 ≤ -3000.00 (-15.0% × 진입 배정액 20000.00) ? 포지션 #216 KRW-PLIMN DYNAMIC#59 평가액 14992.50(매도 순대금 0.00 + 잔량 100 × 150(RECORDED@2026-11-19T04:36:57.127252100Z)) 매수 원가 20000.00 손익 -5007.50 | 진입 배정액 20000.00 · 고점 14992.50
+13:36:57.160 [Test worker] INFO  o.a.c.c.C.[Tomcat-8].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+13:36:57.166 [Test worker] ERROR c.c.api.service.PositionLimitGuard - ? [포지션 한도] 도달 ? 이 세션의 실자금 신규 진입을 막는다: CAPITAL_LOSS 손익 -5007.50 ≤ -3000.00 (-15.0% × 진입 배정액 20000.00) ? 포지션 #217 KRW-PLIML LIVE#150 평가액 14992.50(매도 순대금 0.00 + 잔량 100 × 150(RECORDED@2026-11-19T04:36:57.165260700Z)) 매수 원가 20000.00 손익 -5007.50 | 진입 배정액 20000.00 · 고점 14992.50
+13:36:57.168 [Test worker] ERROR c.c.api.service.PositionLimitMonitor - ? [포지션 한도] CAPITAL_LOSS LIVE#150 포지션 #217 → ALERTED: 자동 정지 OFF ? 신규 진입은 차단됨, 정지·정리는 운영자 (세션 상태 RUNNING) | CAPITAL_LOSS 손익 -5007.50 ≤ -3000.00 (-15.0% × 진입 배정액 20000.00) ? 포지션 #217 KRW-PLIML LIVE#150 평가액 14992.50(매도 순대금 0.00 + 잔량 100 × 150(RECORDED@2026-11-19T04:36:57.165260700Z)) 매수 원가 20000.00 손익 -5007.50 | 진입 배정액 20000.00 · 고점 14992.50
+13:36:57.181 [Test worker] INFO  o.a.c.c.C.[Tomcat-8].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+13:36:57.184 [Test worker] WARN  c.c.api.service.PositionLimitGuard - [포지션 한도] 포지션 #218 KRW-PLIMS LIVE#151 ? 시세 400(RECORDED@2026-11-19T04:34:56.183709100Z) 가 121초 전 값(기준 120초 초과): 판정하지 않는다(고점 N/A 유지, 평가액 참고 39980.00)
+13:36:57.184 [Test worker] WARN  c.c.api.service.PositionLimitGuard - [포지션 한도] 포지션 #218 KRW-PLIMS LIVE#151 ? 시세 100(RECORDED@2026-11-19T04:34:56.183709100Z) 가 121초 전 값(기준 120초 초과): 판정하지 않는다(고점 N/A 유지, 평가액 참고 9995.00)
+13:36:57.186 [Test worker] ERROR c.c.api.service.PositionLimitGuard - ? [포지션 한도] 도달 ? 이 세션의 실자금 신규 진입을 막는다: CAPITAL_LOSS 손익 -10015.00 ≤ -3001.50 (-15.0% × 진입 배정액 20010.00) ? 포지션 #218 KRW-PLIMS LIVE#151 평가액 9995.00(매도 순대금 0.00 + 잔량 100 × 100(RECORDED@2026-11-19T04:36:57.183709100Z)) 매수 원가 20010.00 손익 -10015.00 | 진입 배정액 20010.00 · 고점 24987.50
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

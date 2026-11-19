@@ -1,0 +1,182 @@
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/entity/ExitReason.java b/web-api/src/main/java/com/cryptoautotrader/api/entity/ExitReason.java
+index 64203de5..f3b8fed4 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/entity/ExitReason.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/entity/ExitReason.java
+@@ -36,6 +36,12 @@ public enum ExitReason {
+     /** 세션 정지·비상정지·삭제 등 운영자 개입. 전략 성과로 집계하면 안 된다. */
+     FORCED_STOP,
+ 
++    /**
++     * 진입 예약이 거절돼 주문 없이 닫은 슬롯 (v1.192 §2) — 체결이 없었음이 같은 트랜잭션에서 확정된 빈 청산. 거래가 아니므로 전략 성과·
++     * 손실로 보지 않는다. 비용 기준 판정은 이 값이 있고 수량 0·주문 행 없음일 때만 무거래 확정으로 본다(주문이 없다는 이유만으로는 아님).
++     */
++    ENTRY_REJECTED,
++
+     /**
+      * 분류되지 않은 청산. <b>이 값이 늘어나면 어딘가 사유를 안 넘기고 있다는 뜻</b>이므로
+      * 0에 가깝게 유지되어야 한다.
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/repository/OrderRepository.java b/web-api/src/main/java/com/cryptoautotrader/api/repository/OrderRepository.java
+index e8d01c64..2523b8e0 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/repository/OrderRepository.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/repository/OrderRepository.java
+@@ -477,10 +477,10 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
+      * 비세션 체결(FILL 기록)과는 {@code session_id IS NOT NULL} 로 겹치지 않는다. DYNAMIC REAL·DYN_PAPER 는 범위 밖이다(판단 대기).</p>
+      */
+     @Query(value = "SELECT COALESCE(SUM(pnl), 0) FROM ("
+-            + " SELECT o.applied_executed_funds - COALESCE(o.applied_paid_fee, 0) - (o.filled_quantity * b.cost) / b.qty AS pnl"
++            + " SELECT o.applied_executed_funds - o.applied_paid_fee - (o.filled_quantity * b.cost) / b.qty AS pnl"
+             + " FROM \"order\" o JOIN " + BUY_COST_BY_POSITION + " b ON b.position_id = o.position_id"
+             + " WHERE o.side = 'SELL' AND o.session_id IS NOT NULL AND o.session_kind = 'LIVE'"
+-            + " AND o.sell_applied_at IS NOT NULL AND o.sell_applied_at >= :since AND o.applied_executed_funds IS NOT NULL"
++            + " AND o.sell_applied_at IS NOT NULL AND o.sell_applied_at >= :since AND " + SELL_FIELDS_KNOWN
+             + ") t WHERE pnl < 0", nativeQuery = true)
+     java.math.BigDecimal sumLiveSessionRealizedLossSince(@Param("since") Instant since);
+ 
+@@ -492,6 +492,25 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
+      * NULL(모름)이면 그 포지션은 이 표에 없다(HAVING) — 0 으로 채우지 않고 {@link #countRealSessionCostUndeterminedSince} 가 센다.
+      * 늦은 정정은 반영값이 바뀌어 다음 조회부터 새 단가가 되고, 같은 응답 반복은 반영값이 그대로라 변화가 없으며, 롤백된 반영은 읽히지 않는다.</p>
+      */
++    /** 확정 매도의 필수값이 모두 보고됐다 (v1.192 §2) — 대금·수수료(확정 0 은 값, NULL 은 미보고)·체결 수량. 별칭 {@code o}. */
++    String SELL_FIELDS_KNOWN = "o.applied_executed_funds IS NOT NULL AND o.applied_paid_fee IS NOT NULL"
++            + " AND o.filled_quantity IS NOT NULL AND o.filled_quantity > 0";
++
++    /**
++     * 무거래 확정 청산 (v1.192 §2) — 포지션 {@code p} 의 BUY 가 하나 이상이고 모두 체결 0 이 확정된 매수
++     * ({@code OrderExecutionEngine.isConfirmedUnfilledBuy}: FAILED, 또는 CANCELLED 이고 정산 추적 밖이거나 취소 확정)이며 확정 매도가 없다.
++     * 주문이 아예 없는 청산은 여기에 들지 않는다 — 주문이 없다는 사실만으로 손실 0 으로 보지 않는다. 예외는 진입 예약 거절로 같은
++     * 트랜잭션에서 닫은 빈 슬롯({@code exit_reason = 'ENTRY_REJECTED'}, 수량 0, 주문 행 없음)뿐이다.
++     */
++    String CONFIRMED_NO_TRADE = "((COALESCE(p.exit_reason, '') = 'ENTRY_REJECTED' AND COALESCE(p.size, -1) = 0"
++            + "   AND NOT EXISTS (SELECT 1 FROM \"order\" nx WHERE nx.position_id = p.id)) OR"
++            + " (EXISTS (SELECT 1 FROM \"order\" nb WHERE nb.position_id = p.id AND nb.side = 'BUY')"
++            + " AND NOT EXISTS (SELECT 1 FROM \"order\" nb WHERE nb.position_id = p.id AND nb.side = 'BUY'"
++            + "   AND NOT (COALESCE(nb.filled_quantity, 0) = 0 AND (nb.state = 'FAILED'"
++            + "     OR (nb.state = 'CANCELLED' AND (nb.fee_source IS NULL OR nb.cancel_confirmed_at IS NOT NULL)))))"
++            + " AND NOT EXISTS (SELECT 1 FROM \"order\" ns WHERE ns.position_id = p.id AND ns.side = 'SELL'"
++            + "   AND ns.sell_applied_at IS NOT NULL)))";
++
+     String BUY_COST_BY_POSITION = "(SELECT bo.position_id, SUM(bo.applied_executed_funds + bo.applied_paid_fee) AS cost,"
+             + " SUM(bo.filled_quantity) AS qty FROM \"order\" bo"
+             + " WHERE bo.side = 'BUY' AND bo.position_id IS NOT NULL AND bo.filled_quantity > 0"
+@@ -504,28 +523,36 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
+      * <pre>
+      * ① 확정 매도(sell_applied_at)인데 그 포지션의 확정 매수 원가가 없다 — 체결 BUY 가 없거나 반영 대금/수수료가 NULL
+      * ② 청산(CLOSED)됐는데 확정 매도 수량 합이 체결 매수 수량 합보다 작다 — 팬텀(추정 청산) 등 주문 행 없는 청산분
++     * ③ (v1.192 §2) 확정 매도의 대금·수수료·수량 중 하나라도 NULL(미보고) — 0 으로 채우지 않는다(확정 0 과 구분)
++     * ④ (v1.192 §2) 청산됐는데 체결 매수·확정 매도가 하나도 없고 무거래 확정({@link #CONFIRMED_NO_TRADE})도 아니다 — 주문 원천 없는 청산.
++     *    저장 손익(매수 수수료를 뺀 종전 값)으로 대신하지 않는다
+      * </pre>
++     * 확정 원천의 정산/정정으로 값이 갖춰지면 다음 조회에서 빠진다(자동 해제). 수동 면제·추정·0 대입은 없다.
+      * 0 이 아니면 손실 합을 확정할 수 없으므로 관문이 신규 진입을 거절한다. 이 계수만으로 보유를 청산하거나 세션을 정지하지 않는다.
+      */
+     @Query(value = "SELECT (SELECT COUNT(*) FROM \"order\" o"
+             + "   WHERE o.side = 'SELL' AND o.session_id IS NOT NULL AND o.session_kind = :kind"
+-            + "   AND o.sell_applied_at IS NOT NULL AND o.sell_applied_at >= :since AND o.applied_executed_funds IS NOT NULL"
+-            + "   AND NOT EXISTS (SELECT 1 FROM " + BUY_COST_BY_POSITION + " b WHERE b.position_id = o.position_id))"
++            + "   AND o.sell_applied_at IS NOT NULL AND o.sell_applied_at >= :since"
++            + "   AND (NOT (" + SELL_FIELDS_KNOWN + ")"
++            + "        OR NOT EXISTS (SELECT 1 FROM " + BUY_COST_BY_POSITION + " b WHERE b.position_id = o.position_id)))"
+             + " + (SELECT COUNT(*) FROM position p"
+             + "   WHERE p.session_kind = :kind AND p.session_id IS NOT NULL AND p.status = 'CLOSED'"
+             + "   AND p.closed_at IS NOT NULL AND p.closed_at >= :since"
+-            + "   AND (SELECT COALESCE(SUM(bq.filled_quantity), 0) FROM \"order\" bq"
++            + "   AND ((SELECT COALESCE(SUM(bq.filled_quantity), 0) FROM \"order\" bq"
+             + "        WHERE bq.position_id = p.id AND bq.side = 'BUY' AND bq.filled_quantity > 0)"
+             + "     > (SELECT COALESCE(SUM(sq.filled_quantity), 0) FROM \"order\" sq"
+             + "        WHERE sq.position_id = p.id AND sq.side = 'SELL' AND sq.sell_applied_at IS NOT NULL"
+-            + "        AND sq.applied_executed_funds IS NOT NULL))",
++            + "        AND sq.applied_executed_funds IS NOT NULL)"
++            + "     OR (NOT EXISTS (SELECT 1 FROM \"order\" x WHERE x.position_id = p.id"
++            + "           AND ((x.side = 'BUY' AND x.filled_quantity > 0) OR (x.side = 'SELL' AND x.sell_applied_at IS NOT NULL)))"
++            + "         AND NOT (" + CONFIRMED_NO_TRADE + "))))",
+             nativeQuery = true)
+     long countRealSessionCostUndeterminedSince(@Param("kind") String kind, @Param("since") Instant since);
+ 
+     /**
+      * 포지션별 비용 기준 손익 재료 (총괄 v1.191 §2, 세션 연속 손실) — [id, 체결 BUY 수, 원가 미상 BUY 수, 매수 원가 합, 매수 수량 합,
+      * 확정 SELL 수, 매도 순대금 합, 매도 수량 합]. 확정 SELL 은 {@code sell_applied_at} 이 있는 매도(주문 원천), 순대금은 반영 대금 − 반영 수수료
+-     * (반영 수수료 NULL 은 종전 손실 합 식과 같이 0).
++     * [8] 필수값(대금·수수료·수량) 미상 확정 SELL 수, [9] 무거래 확정(1/0). v1.192 §2 — 매도 수수료 NULL 을 0 으로 채우지 않는다.
+      */
+     @Query(value = "SELECT p.id,"
+             + " (SELECT COUNT(*) FROM \"order\" b WHERE b.position_id = p.id AND b.side = 'BUY' AND b.filled_quantity > 0),"
+@@ -536,10 +563,13 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
+             + " (SELECT SUM(b.filled_quantity) FROM \"order\" b WHERE b.position_id = p.id AND b.side = 'BUY' AND b.filled_quantity > 0),"
+             + " (SELECT COUNT(*) FROM \"order\" s WHERE s.position_id = p.id AND s.side = 'SELL' AND s.sell_applied_at IS NOT NULL"
+             + "    AND s.applied_executed_funds IS NOT NULL),"
+-            + " (SELECT SUM(s.applied_executed_funds - COALESCE(s.applied_paid_fee, 0)) FROM \"order\" s"
++            + " (SELECT SUM(s.applied_executed_funds - s.applied_paid_fee) FROM \"order\" s"
+             + "    WHERE s.position_id = p.id AND s.side = 'SELL' AND s.sell_applied_at IS NOT NULL AND s.applied_executed_funds IS NOT NULL),"
+             + " (SELECT SUM(s.filled_quantity) FROM \"order\" s"
+-            + "    WHERE s.position_id = p.id AND s.side = 'SELL' AND s.sell_applied_at IS NOT NULL AND s.applied_executed_funds IS NOT NULL)"
++            + "    WHERE s.position_id = p.id AND s.side = 'SELL' AND s.sell_applied_at IS NOT NULL AND s.applied_executed_funds IS NOT NULL),"
++            + " (SELECT COUNT(*) FROM \"order\" o WHERE o.position_id = p.id AND o.side = 'SELL' AND o.sell_applied_at IS NOT NULL"
++            + "    AND NOT (" + SELL_FIELDS_KNOWN + ")),"
++            + " CASE WHEN " + CONFIRMED_NO_TRADE + " THEN 1 ELSE 0 END"
+             + " FROM position p WHERE p.id IN (:ids)", nativeQuery = true)
+     List<Object[]> costBasisPartsByPosition(@Param("ids") java.util.Collection<Long> ids);
+ 
+@@ -550,10 +580,10 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
+      * 없고 세션 종류도 달라 빠진다. 매도 한 건 = 한 행(재확정에도 한 번), 늦은 정정은 반영값 차분, 롤백은 표시가 함께 되돌아가 빠진다.</p>
+      */
+     @Query(value = "SELECT COALESCE(SUM(pnl), 0) FROM ("
+-            + " SELECT o.applied_executed_funds - COALESCE(o.applied_paid_fee, 0) - (o.filled_quantity * b.cost) / b.qty AS pnl"
++            + " SELECT o.applied_executed_funds - o.applied_paid_fee - (o.filled_quantity * b.cost) / b.qty AS pnl"
+             + " FROM \"order\" o JOIN " + BUY_COST_BY_POSITION + " b ON b.position_id = o.position_id"
+             + " WHERE o.side = 'SELL' AND o.session_id IS NOT NULL AND o.session_kind = 'DYNAMIC'"
+-            + " AND o.sell_applied_at IS NOT NULL AND o.sell_applied_at >= :since AND o.applied_executed_funds IS NOT NULL"
++            + " AND o.sell_applied_at IS NOT NULL AND o.sell_applied_at >= :since AND " + SELL_FIELDS_KNOWN
+             + ") t WHERE pnl < 0", nativeQuery = true)
+     java.math.BigDecimal sumDynamicRealSessionRealizedLossSince(@Param("since") Instant since);
+ 
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
+index 2a1c43aa..393983d6 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
+@@ -1773,6 +1773,7 @@ public class DynamicTradingService {
+             //    틱 트랜잭션은 롤백하지 않는다(신호 기록을 남긴다).
+             pos.setStatus("CLOSED");
+             pos.setClosedAt(Instant.now());
++            pos.setExitReason(com.cryptoautotrader.api.entity.ExitReason.ENTRY_REJECTED);   // v1.192 §2 무거래 확정 표시
+             positionRepository.save(pos);
+             log.warn("[Dynamic] 매수 예약 거절 (id={}, {}, 사유={}): {}",
+                     sid, coinPair, rejected.getCode(), rejected.getMessage());
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/RiskManagementService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/RiskManagementService.java
+index 2906de7f..a127e0bd 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/RiskManagementService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/RiskManagementService.java
+@@ -402,8 +402,10 @@ public class RiskManagementService {
+      * 완료 포지션의 비용 기준 손익 = 확정 매도 순대금 합 − 확정 매도 수량 × (확정 매수 대금+수수료 합 ÷ 체결 매수 수량) (v1.191 §2).
+      *
+      * <pre>
+-     * 주문 원천 없음(체결 BUY 0·확정 SELL 0 — 주문 행이 연결되지 않은 과거/수동 행) → 저장 손익(종전)
+-     * 체결 BUY 의 반영 대금/수수료 미상, 또는 확정 매도 수량 &lt; 체결 매수 수량(팬텀 등 추정 청산분) → 판정 불가
++     * 무거래 확정(BUY 모두 체결 0 확정·확정 SELL 없음) → 0 (손실 아님, 종전과 같이 줄 끊김)
++     * 주문 원천 없음(체결 BUY 0·확정 SELL 0, 무거래 확정 아님) → 판정 불가 (v1.192 §2 — 저장 손익으로 대신하지 않는다)
++     * 체결 BUY 의 반영 대금/수수료 미상, 확정 SELL 의 대금/수수료/수량 미상(NULL — 확정 0 과 구분),
++     *   또는 확정 매도 수량 &lt; 체결 매수 수량(팬텀 등 추정 청산분) → 판정 불가
+      * </pre>
+      */
+     private List<ClosedPnl> costBasisClosedPnl(List<PositionEntity> newestFirst) {
+@@ -418,8 +420,10 @@ public class RiskManagementService {
+             Object[] r = parts.get(pos.getId());
+             long buyN = r == null ? 0 : ((Number) r[1]).longValue();
+             long sellN = r == null ? 0 : ((Number) r[5]).longValue();
+-            if (buyN == 0 && sellN == 0) {
+-                out.add(ClosedPnl.known(pos.getRealizedPnl()));
++            long sellMissing = r == null ? 0 : ((Number) r[8]).longValue();
++            boolean noTrade = r != null && ((Number) r[9]).intValue() == 1;
++            if (buyN == 0 && sellN == 0 && sellMissing == 0) {
++                out.add(noTrade ? ClosedPnl.known(BigDecimal.ZERO) : new ClosedPnl(null, true, pos.getId()));
+                 continue;
+             }
+             long buyUnknown = ((Number) r[2]).longValue();
+@@ -427,7 +431,7 @@ public class RiskManagementService {
+             BigDecimal buyQty = dec(r[4]);
+             BigDecimal sellNet = dec(r[6]);
+             BigDecimal sellQty = dec(r[7]);
+-            if (buyN == 0 || buyUnknown > 0 || buyCost == null || buyQty == null || buyQty.signum() <= 0
++            if (buyN == 0 || buyUnknown > 0 || sellMissing > 0 || sellNet == null || buyCost == null || buyQty == null || buyQty.signum() <= 0
+                     || sellQty == null || sellQty.compareTo(buyQty) < 0) {
+                 out.add(new ClosedPnl(null, true, pos.getId()));
+                 continue;

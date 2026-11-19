@@ -1,0 +1,240 @@
+{
+  "checks" : [ {
+    "check" : "N1 LIVE 원천 없는 청산 → 전역 관문 판정 불가 거절",
+    "pass" : false,
+    "actual" : "{approved=true, reason=null}"
+  }, {
+    "check" : "N1 LIVE 세션 연속 손실 판정 불가(발동 아님, 저장 손익 +1 을 쓰지 않음)",
+    "pass" : true,
+    "actual" : "{session=LIVE#1, triggered=false, reason=연속 손실 판정 불가 — 최근 확정 손실 0회 다음 청산(posId=1)의 확정 비용을 구하지 못했다(한도: 1회). 신규 진입만 막고 정지·청산하지 않는다}"
+  }, {
+    "check" : "N1 LIVE 신규 진입 차단 사유",
+    "pass" : true,
+    "actual" : "연속 손실 판정 불가 — 최근 확정 손실 0회 다음 청산(posId=1)의 확정 비용을 구하지 못했다(한도: 1회). 신규 진입만 막고 정지·청산하지 않는다"
+  }, {
+    "check" : "N1 LIVE 원천이 끝내 없음 — 다음 조회도 판정 불가",
+    "pass" : false,
+    "actual" : "{approved=true, reason=null}"
+  }, {
+    "check" : "N1 LIVE 세션 RUNNING 그대로(정지 없음)",
+    "pass" : true,
+    "actual" : "RUNNING"
+  }, {
+    "check" : "N1 LIVE 제품 고아 정리(주문 없음) → CLOSED",
+    "pass" : true,
+    "actual" : "CLOSED"
+  }, {
+    "check" : "N1 LIVE 주문 없는 고아 청산 → checkRisk 판정 불가 거절",
+    "pass" : false,
+    "actual" : "{approved=true, reason=null}"
+  }, {
+    "check" : "N2 LIVE 체결 0 취소 매수 → 고아 정리 CLOSED (state=CANCELLED)",
+    "pass" : true,
+    "actual" : "CLOSED"
+  }, {
+    "check" : "N2 LIVE 확정된 무거래 청산 → 관문 승인(손실·판정 불가 아님)",
+    "pass" : true,
+    "actual" : "{approved=true, reason=null}"
+  }, {
+    "check" : "N2 LIVE 연속 손실 판정 불가 아님",
+    "pass" : true,
+    "actual" : "{session=LIVE#3, triggered=false, reason=null}"
+  }, {
+    "check" : "N2 LIVE 진입 차단 없음",
+    "pass" : true,
+    "actual" : "null"
+  }, {
+    "check" : "N3 LIVE 수수료 NULL 매도는 손실 합에 0 으로 넣지 않음(합 0)",
+    "pass" : true,
+    "actual" : "0"
+  }, {
+    "check" : "N3 LIVE 매도 수수료 NULL → 관문 판정 불가 거절",
+    "pass" : true,
+    "actual" : "{approved=false, reason=[기존 보호식] 판정 불가 — 30일 안 LIVE 세션 매도/청산 1건의 확정 비용(매수 대금+수수료 또는 매도 체결)을 구하지 못했다(손실 0·이익으로 보지 않는다)}"
+  }, {
+    "check" : "N3 LIVE 매도 수수료 NULL → 연속 손실 판정 불가(발동 아님)",
+    "pass" : true,
+    "actual" : "{session=LIVE#4, triggered=false, reason=연속 손실 판정 불가 — 최근 확정 손실 0회 다음 청산(posId=4)의 확정 비용을 구하지 못했다(한도: 1회). 신규 진입만 막고 정지·청산하지 않는다}"
+  }, {
+    "check" : "N3 LIVE 매도 수수료 NULL → 진입 차단",
+    "pass" : true,
+    "actual" : "연속 손실 판정 불가 — 최근 확정 손실 0회 다음 청산(posId=4)의 확정 비용을 구하지 못했다(한도: 1회). 신규 진입만 막고 정지·청산하지 않는다"
+  }, {
+    "check" : "N3 LIVE 확정 0 → 다음 조회 자동 해제·손익 +1 이라 승인",
+    "pass" : true,
+    "actual" : "{approved=true, reason=null}"
+  }, {
+    "check" : "N3 LIVE 확정 0 → 연속 손실 미발동·판정 불가 아님",
+    "pass" : true,
+    "actual" : "{session=LIVE#4, triggered=false, reason=null}"
+  }, {
+    "check" : "N3 LIVE 확정 0 → 진입 차단 없음",
+    "pass" : true,
+    "actual" : "null"
+  }, {
+    "check" : "N3 LIVE 확정 3.75 → 손실 합 −2.75",
+    "pass" : true,
+    "actual" : "-2.7500000000000000"
+  }, {
+    "check" : "N3 LIVE 확정 3.75 → 손실로 거절(판정 불가 아님)",
+    "pass" : true,
+    "actual" : "{approved=false, reason=일일 손실 한도 초과: 0.02% > 0.00%}"
+  }, {
+    "check" : "N3 LIVE 확정 3.75 → 연속 손실 한도1 발동",
+    "pass" : true,
+    "actual" : "{session=LIVE#4, triggered=true, reason=연속 손실 1회 초과 (한도: 1회)}"
+  }, {
+    "check" : "N4 LIVE 매수 원가 미상 → 판정 불가",
+    "pass" : true,
+    "actual" : "{approved=false, reason=[기존 보호식] 판정 불가 — 30일 안 LIVE 세션 매도/청산 1건의 확정 비용(매수 대금+수수료 또는 매도 체결)을 구하지 못했다(손실 0·이익으로 보지 않는다)}"
+  }, {
+    "check" : "N4 LIVE 복구 → 다음 조회 해제·비용 뒤 손실 거절",
+    "pass" : true,
+    "actual" : "{approved=false, reason=일일 손실 한도 초과: 0.02% > 0.00%}"
+  }, {
+    "check" : "N4 LIVE 복구 → 진입 차단(판정 불가) 없음",
+    "pass" : true,
+    "actual" : "null"
+  }, {
+    "check" : "N5 LIVE 미세 손실 한 건 합 = −0.50(0 으로 버리지 않음)",
+    "pass" : true,
+    "actual" : "-0.5000000000000000"
+  }, {
+    "check" : "N5 LIVE 미세 손실 한 건 — 비율 0.00%(기존 0.01% 해상도)라 승인",
+    "pass" : true,
+    "actual" : "{approved=true, reason=null}"
+  }, {
+    "check" : "N5 LIVE 미세 손실 두 건 합 = −1.00",
+    "pass" : true,
+    "actual" : "-1.0000000000000000"
+  }, {
+    "check" : "N5 LIVE 합 −1.00 → 0.01% 로 거절(손실, 판정 불가 아님)",
+    "pass" : true,
+    "actual" : "{approved=false, reason=일일 손실 한도 초과: 0.01% > 0.00%}"
+  }, {
+    "check" : "N1 DYNAMIC 원천 없는 청산 → 전역 관문 판정 불가 거절",
+    "pass" : false,
+    "actual" : "{approved=true, reason=null}"
+  }, {
+    "check" : "N1 DYNAMIC 세션 연속 손실 판정 불가(발동 아님, 저장 손익 +1 을 쓰지 않음)",
+    "pass" : true,
+    "actual" : "{session=DYNAMIC#1, triggered=false, reason=연속 손실 판정 불가 — 최근 확정 손실 0회 다음 청산(posId=8)의 확정 비용을 구하지 못했다(한도: 1회). 신규 진입만 막고 정지·청산하지 않는다}"
+  }, {
+    "check" : "N1 DYNAMIC 신규 진입 차단 사유",
+    "pass" : true,
+    "actual" : "연속 손실 판정 불가 — 최근 확정 손실 0회 다음 청산(posId=8)의 확정 비용을 구하지 못했다(한도: 1회). 신규 진입만 막고 정지·청산하지 않는다"
+  }, {
+    "check" : "N1 DYNAMIC 원천이 끝내 없음 — 다음 조회도 판정 불가",
+    "pass" : false,
+    "actual" : "{approved=true, reason=null}"
+  }, {
+    "check" : "N1 DYNAMIC 세션 RUNNING 그대로(정지 없음)",
+    "pass" : true,
+    "actual" : "RUNNING"
+  }, {
+    "check" : "N2 DYNAMIC 체결 0 취소 매수 → 고아 정리 CLOSED (state=CANCELLED)",
+    "pass" : true,
+    "actual" : "CLOSED"
+  }, {
+    "check" : "N2 DYNAMIC 확정된 무거래 청산 → 관문 승인(손실·판정 불가 아님)",
+    "pass" : true,
+    "actual" : "{approved=true, reason=null}"
+  }, {
+    "check" : "N2 DYNAMIC 연속 손실 판정 불가 아님",
+    "pass" : true,
+    "actual" : "{session=DYNAMIC#2, triggered=false, reason=null}"
+  }, {
+    "check" : "N2 DYNAMIC 진입 차단 없음",
+    "pass" : true,
+    "actual" : "null"
+  }, {
+    "check" : "N2b DYNAMIC 매수 예약 거절",
+    "pass" : true,
+    "actual" : "공유 풀 예약 거절(RISK_CONFIG_MISMATCH): 위험 한도 설정이 사전 등록과 맞지 않는다 — 실자금 진입을 승인하지 않는다: max_daily_loss_pct=0.00 max_portfolio_drawdown_pct=15.00 — 한도 값이 없다"
+  }, {
+    "check" : "N2b DYNAMIC 거절 슬롯 CLOSED·수량 0·주문 없음",
+    "pass" : true,
+    "actual" : "CLOSED/0E-8/ENTRY_REJECTED"
+  }, {
+    "check" : "N2b DYNAMIC 예약 거절 빈 슬롯 → 관문 판정 불가 아님",
+    "pass" : true,
+    "actual" : "{approved=true, reason=null}"
+  }, {
+    "check" : "N2b DYNAMIC 예약 거절 빈 슬롯 → 연속 손실 판정 불가 아님",
+    "pass" : true,
+    "actual" : "{session=DYNAMIC#3, triggered=false, reason=null}"
+  }, {
+    "check" : "N2b DYNAMIC 예약 거절 빈 슬롯 → 진입 차단 없음",
+    "pass" : true,
+    "actual" : "null"
+  }, {
+    "check" : "N3 DYNAMIC 수수료 NULL 매도는 손실 합에 0 으로 넣지 않음(합 0)",
+    "pass" : true,
+    "actual" : "0"
+  }, {
+    "check" : "N3 DYNAMIC 매도 수수료 NULL → 관문 판정 불가 거절",
+    "pass" : true,
+    "actual" : "{approved=false, reason=[DYNAMIC REAL 보호식] 판정 불가 — 30일 안 DYNAMIC 세션 매도/청산 1건의 확정 비용(매수 대금+수수료 또는 매도 체결)을 구하지 못했다(손실 0·이익으로 보지 않는다)}"
+  }, {
+    "check" : "N3 DYNAMIC 매도 수수료 NULL → 연속 손실 판정 불가(발동 아님)",
+    "pass" : true,
+    "actual" : "{session=DYNAMIC#4, triggered=false, reason=연속 손실 판정 불가 — 최근 확정 손실 0회 다음 청산(posId=11)의 확정 비용을 구하지 못했다(한도: 1회). 신규 진입만 막고 정지·청산하지 않는다}"
+  }, {
+    "check" : "N3 DYNAMIC 매도 수수료 NULL → 진입 차단",
+    "pass" : true,
+    "actual" : "연속 손실 판정 불가 — 최근 확정 손실 0회 다음 청산(posId=11)의 확정 비용을 구하지 못했다(한도: 1회). 신규 진입만 막고 정지·청산하지 않는다"
+  }, {
+    "check" : "N3 DYNAMIC 확정 0 → 다음 조회 자동 해제·손익 +1 이라 승인",
+    "pass" : true,
+    "actual" : "{approved=true, reason=null}"
+  }, {
+    "check" : "N3 DYNAMIC 확정 0 → 연속 손실 미발동·판정 불가 아님",
+    "pass" : true,
+    "actual" : "{session=DYNAMIC#4, triggered=false, reason=null}"
+  }, {
+    "check" : "N3 DYNAMIC 확정 0 → 진입 차단 없음",
+    "pass" : true,
+    "actual" : "null"
+  }, {
+    "check" : "N3 DYNAMIC 확정 3.75 → 손실 합 −2.75",
+    "pass" : true,
+    "actual" : "-2.7500000000000000"
+  }, {
+    "check" : "N3 DYNAMIC 확정 3.75 → 손실로 거절(판정 불가 아님)",
+    "pass" : true,
+    "actual" : "{approved=false, reason=[DYNAMIC REAL 보호식] 일일 손실 한도 초과: 0.03% > 0.00%}"
+  }, {
+    "check" : "N3 DYNAMIC 확정 3.75 → 연속 손실 한도1 발동",
+    "pass" : true,
+    "actual" : "{session=DYNAMIC#4, triggered=true, reason=연속 손실 1회 초과 (한도: 1회)}"
+  }, {
+    "check" : "N4 DYNAMIC 매수 원가 미상 → 판정 불가",
+    "pass" : true,
+    "actual" : "{approved=false, reason=[DYNAMIC REAL 보호식] 판정 불가 — 30일 안 DYNAMIC 세션 매도/청산 1건의 확정 비용(매수 대금+수수료 또는 매도 체결)을 구하지 못했다(손실 0·이익으로 보지 않는다)}"
+  }, {
+    "check" : "N4 DYNAMIC 복구 → 다음 조회 해제·비용 뒤 손실 거절",
+    "pass" : true,
+    "actual" : "{approved=false, reason=[DYNAMIC REAL 보호식] 일일 손실 한도 초과: 0.03% > 0.00%}"
+  }, {
+    "check" : "N4 DYNAMIC 복구 → 진입 차단(판정 불가) 없음",
+    "pass" : true,
+    "actual" : "null"
+  }, {
+    "check" : "N5 DYNAMIC 미세 손실 한 건 합 = −0.50(0 으로 버리지 않음)",
+    "pass" : true,
+    "actual" : "-0.5000000000000000"
+  }, {
+    "check" : "N5 DYNAMIC 미세 손실 한 건 — 비율 0.00%(기존 0.01% 해상도)라 승인",
+    "pass" : true,
+    "actual" : "{approved=true, reason=null}"
+  }, {
+    "check" : "N5 DYNAMIC 미세 손실 두 건 합 = −1.00",
+    "pass" : true,
+    "actual" : "-1.0000000000000000"
+  }, {
+    "check" : "N5 DYNAMIC 합 −1.00 → 0.01% 로 거절(손실, 판정 불가 아님)",
+    "pass" : true,
+    "actual" : "{approved=false, reason=[DYNAMIC REAL 보호식] 일일 손실 한도 초과: 0.01% > 0.00%}"
+  } ],
+  "failures" : [ "N1 LIVE 원천 없는 청산 → 전역 관문 판정 불가 거절 → {approved=true, reason=null}", "N1 LIVE 원천이 끝내 없음 — 다음 조회도 판정 불가 → {approved=true, reason=null}", "N1 LIVE 주문 없는 고아 청산 → checkRisk 판정 불가 거절 → {approved=true, reason=null}", "N1 DYNAMIC 원천 없는 청산 → 전역 관문 판정 불가 거절 → {approved=true, reason=null}", "N1 DYNAMIC 원천이 끝내 없음 — 다음 조회도 판정 불가 → {approved=true, reason=null}" ]
+}
