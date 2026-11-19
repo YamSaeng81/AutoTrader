@@ -474,6 +474,8 @@ class RealBuySummaryPgTest extends IntegrationTestBase {
                 Mockito.clearInvocations(telegram);
                 settlement.observeAndApplyBuyFill(b, withUuid(b, resp("bid", "wait", "10", "3000", "1.5")));
                 check(kind + " 부분 체결 10 → 증가분 10 적재", events("BUY").size() == 1 && eq((BigDecimal) events("BUY").get(0).get(4), "10"), events("BUY"));
+                // 정산 미확정 재조회 백오프가 지난 시점(제품 checkOrderStatus 의 needSettlement 조건) — 시각만 당긴다
+                jdbc.update("UPDATE \"order\" SET settlement_next_check_at = now() - interval '1 second' WHERE id = ?", b);
                 poll(b, resp("bid", "cancel", "19.99", "5997", "2.9985"));
                 List<List<Object>> ev = events("BUY");
                 check(kind + " 취소 확정 19.99 → 둘째 증가분 9.99만(앞 10 다시 더하지 않음)",
