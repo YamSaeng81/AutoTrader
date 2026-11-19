@@ -366,7 +366,7 @@ class RealBuySummaryPgTest extends IntegrationTestBase {
     private List<List<Object>> alertEvents() {
         List<List<Object>> out2 = new ArrayList<>();
         for (var inv : Mockito.mockingDetails(telegram).getInvocations()) {
-            if ("bufferTradeEvent".equals(inv.getMethod().getName())) out2.add(List.of(inv.getArguments()));
+            if ("bufferTradeEvent".equals(inv.getMethod().getName())) out2.add(java.util.Arrays.asList(inv.getArguments()));   // 매수 이벤트는 손익 인자 null — List.of 는 null 을 거부한다
         }
         return out2;
     }
