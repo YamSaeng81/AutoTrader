@@ -1773,6 +1773,7 @@ public class DynamicTradingService {
             //    틱 트랜잭션은 롤백하지 않는다(신호 기록을 남긴다).
             pos.setStatus("CLOSED");
             pos.setClosedAt(Instant.now());
+            pos.setExitReason(com.cryptoautotrader.api.entity.ExitReason.ENTRY_REJECTED);   // v1.192 §2 무거래 확정 표시
             positionRepository.save(pos);
             log.warn("[Dynamic] 매수 예약 거절 (id={}, {}, 사유={}): {}",
                     sid, coinPair, rejected.getCode(), rejected.getMessage());
