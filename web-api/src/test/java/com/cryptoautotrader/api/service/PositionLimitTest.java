@@ -184,6 +184,16 @@ class PositionLimitTest extends IntegrationTestBase {
                 .build());
     }
 
+    /**
+     * 시험이 직접 닫은 포지션에 <b>확정 매도</b>(체결 100, 순대금 20,000 = 원가 19,990+10 → 비용 기준 손익 0)를 남긴다 (총괄 v1.191 §2 맞춤).
+     * 실제 청산은 확정 매도를 남기므로, 매도 없는 CLOSED 는 비용 기준 후보에서 "확정 매도 수량 부족 = 판정 불가"가 되어 이 시험이 보려는
+     * 포지션 한도 사유보다 먼저 진입을 막는다. 손익 0 이라 손실 관문에도 걸리지 않는다.
+     */
+    private void closedBySell(PositionEntity p) {
+        filledOrder(p, "SELL", "100", "20010", "10");
+        jdbc.update("UPDATE \"order\" SET sell_applied_at = now() WHERE position_id = ? AND side = 'SELL'", p.getId());
+    }
+
     private PositionLimitGuard.Evaluation evaluate(Long positionId, String coin, String price) {
         if (price != null) marks.record(coin, new BigDecimal(price), Instant.now());
         return guard.evaluateAll(Instant.now()).stream()
@@ -547,6 +557,7 @@ class PositionLimitTest extends IntegrationTestBase {
         filledOrder(lp, "BUY", "100", "19990", "10");
         assertThat(evaluate(lp.getId(), "KRW-PLIMG", "150").code()).isEqualTo(PositionLimitGuard.CAPITAL_LOSS);
         jdbc.update("UPDATE position SET size = 0, status = 'CLOSED' WHERE id = ?", lp.getId());
+        closedBySell(lp);
         BigDecimal liveKrwBefore = liveRepo.findById(live).orElseThrow().getAvailableKrw();
         long ordersBefore = orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc("LIVE", live).size();
 
@@ -560,6 +571,7 @@ class PositionLimitTest extends IntegrationTestBase {
         filledOrder(dp, "BUY", "100", "19990", "10");
         assertThat(evaluate(dp.getId(), "KRW-PLIMH", "150").code()).isEqualTo(PositionLimitGuard.CAPITAL_LOSS);
         jdbc.update("UPDATE position SET size = 0, status = 'CLOSED' WHERE id = ?", dp.getId());
+        closedBySell(dp);
         BigDecimal dynKrwBefore = dynamicRepo.findById(dyn).orElseThrow().getAvailableKrw();
         String reason = dynamicBuy(dyn, "KRW-PLIMJ");
         assertThat(reason).contains("(" + PositionLimitGuard.POSITION_LIMIT + ")").contains("포지션별 한도 도달 기록");
