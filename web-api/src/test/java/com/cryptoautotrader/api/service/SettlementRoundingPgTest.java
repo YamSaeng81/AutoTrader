@@ -135,6 +135,16 @@ class SettlementRoundingPgTest extends IntegrationTestBase {
                 .size(new BigDecimal("0.0016")).investedKrw(new BigDecimal("19989.99")).entryAllocationKrw(new BigDecimal("20000"))
                 .positionFee(new BigDecimal("9.99")).realizedPnl(BigDecimal.ZERO)
                 .status("CLOSING").closingAt(Instant.now()).sessionKind(kind).sessionId(sid).openedAt(Instant.now()).build());
+        // 비용 기준 후보(총괄 v1.191 §2) 맞춤 — 직접 만든 포지션의 확정 매수 행(투입 19,989.99 = 대금 19,980.00 + 수수료 9.99). 매수 행이 없으면
+        // 후보는 이 매도를 원가 미상(판정 불가)으로 보고, 같은 DB 의 뒤 시험(⑧ 실제 매수 경로)이 30일 판정 불가로 막힌다. 잔액·정산 기대는 그대로.
+        orderRepository.save(OrderEntity.builder()
+                .coinPair("KRW-RND").side("BUY").orderType("MARKET").quantity(new BigDecimal("20000")).state("FILLED")
+                .filledQuantity(new BigDecimal("0.0016")).executedFunds(new BigDecimal("19980.00"))
+                .appliedExecutedFunds(new BigDecimal("19980.00")).appliedPaidFee(new BigDecimal("9.99"))
+                .reportedExecutedFunds(new BigDecimal("19980.00")).reportedPaidFee(new BigDecimal("9.99"))
+                .feeSource("REPORTED").settlementFinal(Boolean.TRUE)
+                .sessionKind(kind).sessionId(sid).positionId(p.getId())
+                .clientOrderId("rnd-buy-" + UUID.randomUUID()).createdAt(Instant.now()).filledAt(Instant.now()).build());
         OrderEntity o = orderRepository.save(OrderEntity.builder()
                 .coinPair("KRW-RND").side("SELL").orderType("MARKET")
                 .quantity(new BigDecimal("0.0016")).state("FILLED").filledQuantity(new BigDecimal("0.0016"))
@@ -466,6 +476,9 @@ class SettlementRoundingPgTest extends IntegrationTestBase {
         for (int i = 0; i < 2; i++) poll(g, buyResponse("done", "9.8", "2940", "1.47"));
         assertThat(position(g).getPositionFee()).as("같은 응답 다시 — 변화 없음").isEqualByComparingTo("2.27");
         assertThat(available(g)).isEqualByComparingTo("7058.53");
+        // 비용 기준 후보(총괄 v1.191 §2) 맞춤 — 시험이 직접 만든 "체결 매수 9.8 · 확정 매도 0 인 CLOSED" 는 후보에서 확정 매도 수량 부족(판정 불가)이라
+        // 같은 DB 의 뒤 시험(⑧ 실제 매수 경로)을 30일 판정 불가로 막는다. 이 사례의 단언을 마친 뒤 청산 시각만 30일 창 밖으로 옮긴다(엔진에서 생기지 않는 순서).
+        jdbc.update("UPDATE position SET closed_at = now() - interval '40 days' WHERE id = ?", g.positionId());
     }
 
     @Autowired private CapitalPoolLimits limits;
