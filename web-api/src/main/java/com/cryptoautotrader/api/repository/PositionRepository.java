@@ -259,6 +259,7 @@ public interface PositionRepository extends JpaRepository<PositionEntity, Long> 
             "WHERE p.status = 'CLOSED' " +
             "  AND p.closed_at >= :since " +
             "  AND p.invested_krw > 0 " +
+            "  AND COALESCE(p.exit_reason, '') <> 'ENTRY_REJECTED' " +
             "  AND p.market_regime IS NOT NULL " +
             "  AND s.session_type = 'REAL' " +
             "GROUP BY s.strategy_type, p.market_regime",
@@ -281,6 +282,7 @@ public interface PositionRepository extends JpaRepository<PositionEntity, Long> 
             "WHERE p.status = 'CLOSED' " +
             "  AND p.closed_at >= :since " +
             "  AND p.invested_krw > 0 " +
+            "  AND COALESCE(p.exit_reason, '') <> 'ENTRY_REJECTED' " +
             "  AND p.market_regime IS NOT NULL " +
             "  AND s.session_type = 'REAL'",
             nativeQuery = true)
@@ -297,6 +299,7 @@ public interface PositionRepository extends JpaRepository<PositionEntity, Long> 
             "WHERE p.status = 'CLOSED' " +
             "  AND p.closed_at >= :since " +
             "  AND p.invested_krw > 0 " +
+            "  AND COALESCE(p.exit_reason, '') <> 'ENTRY_REJECTED' " +
             "  AND p.market_regime IS NOT NULL " +
             "  AND s.session_type = 'REAL'",
             nativeQuery = true)
@@ -318,6 +321,7 @@ public interface PositionRepository extends JpaRepository<PositionEntity, Long> 
             "WHERE p.status = 'CLOSED' " +
             "  AND p.closed_at >= :since " +
             "  AND p.invested_krw > 0 " +
+            "  AND COALESCE(p.exit_reason, '') <> 'ENTRY_REJECTED' " +
             "  AND p.market_regime IS NOT NULL " +
             "  AND s.session_type = 'REAL' " +
             "GROUP BY s.strategy_type, p.market_regime, p.coin_pair",
@@ -349,6 +353,7 @@ public interface PositionRepository extends JpaRepository<PositionEntity, Long> 
            "       p.rulesetHash " +
            "FROM PositionEntity p " +
            "WHERE p.status = 'CLOSED' AND p.investedKrw > 0 AND p.sessionId IS NOT NULL " +
+           "  AND (p.exitReason IS NULL OR p.exitReason <> com.cryptoautotrader.api.entity.ExitReason.ENTRY_REJECTED) " +
            "GROUP BY p.sessionKind, p.sessionId, p.rulesetHash")
     List<Object[]> aggregateClosedTradesPerSession();
 }

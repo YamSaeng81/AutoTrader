@@ -501,12 +501,14 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
      * ({@code OrderExecutionEngine.isConfirmedUnfilledBuy}: FAILED, 또는 CANCELLED 이고 정산 추적 밖이거나 취소 확정)이며 확정 매도가 없다.
      * 주문이 아예 없는 청산은 여기에 들지 않는다 — 주문이 없다는 사실만으로 손실 0 으로 보지 않는다. 예외는 진입 예약 거절로 같은
      * 트랜잭션에서 닫은 빈 슬롯({@code exit_reason = 'ENTRY_REJECTED'}, 수량 0, 주문 행 없음)뿐이다.
+     * 🔴 v1.193 §2 — BUY 체결 수량은 <b>확정 0 값</b>이어야 한다. NULL(미보고)을 0 으로 채우지 않는다: 정상 경로는 저장 직전 0 을 넣으므로
+     * (엔티티 prePersist·열 기본값) NULL 은 미보고/수동 행뿐이고, 그 포지션은 무거래 확정이 아니라 판정 불가(④)로 남는다. 상태 판정만으로 대신하지 않는다.
      */
     String CONFIRMED_NO_TRADE = "((COALESCE(p.exit_reason, '') = 'ENTRY_REJECTED' AND COALESCE(p.size, -1) = 0"
             + "   AND NOT EXISTS (SELECT 1 FROM \"order\" nx WHERE nx.position_id = p.id)) OR"
             + " (EXISTS (SELECT 1 FROM \"order\" nb WHERE nb.position_id = p.id AND nb.side = 'BUY')"
             + " AND NOT EXISTS (SELECT 1 FROM \"order\" nb WHERE nb.position_id = p.id AND nb.side = 'BUY'"
-            + "   AND NOT (COALESCE(nb.filled_quantity, 0) = 0 AND (nb.state = 'FAILED'"
+            + "   AND NOT (nb.filled_quantity IS NOT NULL AND nb.filled_quantity = 0 AND (nb.state = 'FAILED'"
             + "     OR (nb.state = 'CANCELLED' AND (nb.fee_source IS NULL OR nb.cancel_confirmed_at IS NOT NULL)))))"
             + " AND NOT EXISTS (SELECT 1 FROM \"order\" ns WHERE ns.position_id = p.id AND ns.side = 'SELL'"
             + "   AND ns.sell_applied_at IS NOT NULL)))";

@@ -96,10 +96,10 @@ class ExitReasonRecordingTest extends IntegrationTestBase {
     }
 
     @Test
-    @DisplayName("정상 청산은 전부 성과 집계 대상이고, UNKNOWN·FORCED_STOP 만 빠진다")
+    @DisplayName("정상 청산은 전부 성과 집계 대상이고, UNKNOWN·FORCED_STOP·ENTRY_REJECTED(거래 아님, v1.193 §2) 만 빠진다")
     void onlyUnattributableExitsAreExcluded() {
         for (ExitReason r : ExitReason.values()) {
-            boolean expected = r != ExitReason.FORCED_STOP && r != ExitReason.UNKNOWN;
+            boolean expected = r != ExitReason.FORCED_STOP && r != ExitReason.UNKNOWN && r != ExitReason.ENTRY_REJECTED;
             assertThat(r.countsTowardStrategyPerformance())
                     .as("%s 의 성과 집계 포함 여부", r)
                     .isEqualTo(expected);
