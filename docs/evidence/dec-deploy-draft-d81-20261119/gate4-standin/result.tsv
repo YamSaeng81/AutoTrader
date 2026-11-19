@@ -1,0 +1,11 @@
+PASS	S01_entry_rejected_present	want=STOP_INCOMPATIBLE/3	got=STOP_INCOMPATIBLE/3	ledger=none
+PASS	S02_present_plus_open_orders	want=STOP_INCOMPATIBLE/3	got=STOP_INCOMPATIBLE/3	ledger=none
+PASS	S03_present_plus_cleanup_settle	want=STOP_INCOMPATIBLE/3	got=STOP_INCOMPATIBLE/3	ledger=none
+PASS	S04_present_ledger_path_exists	want=STOP_INCOMPATIBLE/3	got=STOP_INCOMPATIBLE/3	ledger=partial
+PASS	S05_absent_clean	want=ROLLBACK_GATE_OK/0	got=ROLLBACK_GATE_OK/0	ledger=complete
+PASS	S06_absent_open_order	want=HOLD_PENDING/2	got=HOLD_PENDING/2	ledger=none
+PASS	S07_absent_acct_cleanup	want=HOLD_PENDING/2	got=HOLD_PENDING/2	ledger=none
+PASS	S08_query_failure	want=STOP_UNKNOWN/3	got=STOP_UNKNOWN/3	ledger=none
+PASS	S09_v3_line_no_new_key	want=STOP_UNKNOWN/3	got=STOP_UNKNOWN/3	ledger=none
+PASS	S10_ledger_write_failure	want=LEDGER_REFUSED/4	got=LEDGER_REFUSED/4	ledger=partial
+PASS	S11_absent_ledger_path_exists	want=LEDGER_REFUSED/4	got=LEDGER_REFUSED/4	ledger=partial

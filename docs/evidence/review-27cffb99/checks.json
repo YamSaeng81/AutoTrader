@@ -1,0 +1,1655 @@
+{
+  "passed": 150,
+  "failed": 3,
+  "checks": [
+    {
+      "check": "submitted paths and evidence byte equality",
+      "pass": false,
+      "actual": {
+        "changed": 354,
+        "evidence": 351,
+        "mismatch": [
+          "docs/evidence/dec-final-abc-20261119/direct-0401d0e9/h2-DailySma20LiveOrderPathTest/xml/TEST-com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest.xml",
+          "docs/evidence/dec-final-abc-20261119/direct-0401d0e9/pg-ClosingIntentRollbackPgTest/xml/TEST-com.cryptoautotrader.api.service.ClosingIntentRollbackPgTest.xml",
+          "docs/evidence/dec-final-abc-20261119/direct-0401d0e9/pg-N15PgLockWaitExpiryTest/xml/TEST-com.cryptoautotrader.api.service.N15PgLockWaitExpiryTest.xml",
+          "docs/evidence/dec-final-abc-20261119/direct-0401d0e9/pg-PhantomKeepsConfirmedPnlPgTest/xml/TEST-com.cryptoautotrader.api.service.PhantomKeepsConfirmedPnlPgTest.xml",
+          "docs/evidence/dec-final-abc-20261119/direct-0401d0e9/pg-RealBuySummaryPgTest/xml/TEST-com.cryptoautotrader.api.service.RealBuySummaryPgTest.xml",
+          "docs/evidence/dec-final-abc-20261119/direct-0401d0e9/pg-RealLossGlobalPgTest/xml/TEST-com.cryptoautotrader.api.service.RealLossGlobalPgTest.xml",
+          "docs/evidence/dec-final-abc-20261119/direct-0401d0e9/summary.txt",
+          "docs/evidence/dec-final-abc-20261119/direct2-d81c3f2f/pg-RealBuySummaryPgTest/real_buy_summary_checks.json",
+          "docs/evidence/dec-final-abc-20261119/direct2-d81c3f2f/pg-RealBuySummaryPgTest/xml/TEST-com.cryptoautotrader.api.service.RealBuySummaryPgTest.xml",
+          "docs/evidence/dec-final-abc-20261119/direct2-d81c3f2f/pg-RealLossGlobalPgTest/xml/TEST-com.cryptoautotrader.api.service.RealLossGlobalPgTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/summary.txt",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml-copy-check.txt",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.MinimumCandleContractTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.StrategyBehaviourFingerprintTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.backtest.BacktestEngineTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.backtest.BacktestEvalContextTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.backtest.BacktestExitRuleParityTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.backtest.BtcGuardLookAheadTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.backtest.FillSimulatorTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.backtest.HeikinAshiStochBacktestRunner.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.backtest.SignalExitGateAbBacktestRunner.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.backtest.StrategyReviewAbBacktestRunner.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.backtest.SupertrendFilterGateRunner.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.backtest.SupertrendFilterQ2Runner.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.backtest.SupertrendValidationRunner.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.backtest.UnrealizedPnlInMetricsTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.backtest.WalkForwardHoldOutGateTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.backtest.WalkForwardTestRunnerTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.backtest.WalkForwardVerdictSampleFloorTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.backtest.WeakThresholdAbBacktestRunner.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.metrics.MetricsCalculatorTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.portfolio.PortfolioManagerTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.regime.MarketRegimeDetectorTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.regime.MarketRegimeFilterTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.risk.ExitRuleCheckerTest$CalculateInvestAmount.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.risk.ExitRuleCheckerTest$CalculateStopLevels.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.risk.ExitRuleCheckerTest$CheckCandleExit.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.risk.ExitRuleCheckerTest$CheckCandleExitWithPath.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.risk.ExitRuleCheckerTest$CheckPriceExit.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.risk.ExitRuleCheckerTest$UpdateTrailingStops.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.risk.RiskEngineTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.selector.BlackSwanGuardTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.selector.BtcMarketGuardTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.selector.CandleDownsamplerBoundaryTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.selector.CandleDownsamplerClosedOnlyTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.selector.CompositePresetParityTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.selector.CompositePullbackMtfStrategyTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.selector.CompositeStrategyEmaDeadbandTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.selector.CompositeStrategyTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.selector.Ema200RegimeGateTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.selector.MtfConfirmedStrategyTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.selector.MultiTimeframeFilterTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.selector.RangeRegimeGateArmParityTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.selector.SignalQualityDampenGateFingerprintTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.selector.SignalQualityDampenGateTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.selector.StrategySelectorTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.selector.SupertrendStrictHtfNoOpTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.selector.WatchlistQualityGateTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.selector.WeightOverrideTimeframeTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/exchange-adapter/TEST-com.cryptoautotrader.exchange.TestHooksTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/exchange-adapter/TEST-com.cryptoautotrader.exchange.upbit.UpbitRequestLimiterTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/strategy-lib/TEST-com.cryptoautotrader.strategy.ConflictingSignalTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/strategy-lib/TEST-com.cryptoautotrader.strategy.PercentUnitConsistencyTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/strategy-lib/TEST-com.cryptoautotrader.strategy.RsiSingleSourceTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/strategy-lib/TEST-com.cryptoautotrader.strategy.ZeroMovementBoundaryTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/strategy-lib/TEST-com.cryptoautotrader.strategy.atrbreakout.AtrBreakoutStrategyTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/strategy-lib/TEST-com.cryptoautotrader.strategy.bollinger.BollingerStrategyTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/strategy-lib/TEST-com.cryptoautotrader.strategy.dailysma.DailySmaTrendStrategyTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/strategy-lib/TEST-com.cryptoautotrader.strategy.ema.EmaCrossStrategyTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/strategy-lib/TEST-com.cryptoautotrader.strategy.grid.GridStrategyLevelReleaseTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/strategy-lib/TEST-com.cryptoautotrader.strategy.heikinashi.HeikinAshiStochStrategyTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/strategy-lib/TEST-com.cryptoautotrader.strategy.macd.MacdStrategyTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/strategy-lib/TEST-com.cryptoautotrader.strategy.macdstochbb.MacdStochBbStrategyCooldownTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/strategy-lib/TEST-com.cryptoautotrader.strategy.orderbook.OrderbookImbalanceStrategyTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/strategy-lib/TEST-com.cryptoautotrader.strategy.rsi.RsiStrategyTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/strategy-lib/TEST-com.cryptoautotrader.strategy.supertrend.SupertrendStrategyTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/strategy-lib/TEST-com.cryptoautotrader.strategy.volumedelta.VolumeDeltaStrategyTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/strategy-lib/TEST-com.cryptoautotrader.strategy.vwap.VwapStrategyTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.backtest.P1ChangesBacktestVerification.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.backtest.PullbackMtfBacktestRunner.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.config.CompositeMeanRevPresetTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.controller.BacktestControllerIntegrationTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.controller.DataControllerIntegrationTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.controller.DynamicSessionPaperVisibilityTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.controller.StrategyControllerIntegrationTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.controller.SystemControllerIntegrationTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.llm.provider.ClaudeProviderHttpTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.llm.provider.ClaudeResponseParsingTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.n13.HoldBaselineLoopPgTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.n13.HoldBaselineSqlEquivalencePgTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.news.NewsFetchGapReproTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.news.NewsFetchResultContractTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.news.NewsHttpErrorLogTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.news.NewsResponseShapeTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.report.BlockedReasonNormalizerTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.report.FilterTagClassifierTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.report.MarketTrendScannerTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.AbChainPgTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.AbChainV4PgTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.AbcCrossPgTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.AiPipelineTest$LlmTaskRouterTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.AiPipelineTest$NewsAggregatorServiceTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.AiPipelineTest$ReportComposerTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.AlignedRestartContextTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.AlignedRoundBoundaryProbeTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.AlignedV147FixesTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.AlignedV148FixesTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.AlignedV150FixesTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.AlignedV96PgBehaviorTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.AtomicPathBypassTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.B01RealNextSellBarTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.BalanceAmountsTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.BalanceListSnapshotPgTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.BenchmarkAlphaServiceTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.BtcGateSupplyEndToEndTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.BtcGateUnknownEntryTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.BuySettlementEdgeTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.CancelConfirmAndLateFillCleanupTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.CancelOutcomeUnknownTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.CandleDataFreshnessSchedulerTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.CandleFreshnessGuardTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.CandleGapBackfillTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.CandleGapExitTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.CandleMaintenanceGapTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.CandleRefreshReportRetryTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.CapitalPoolLimitTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.CapitalPoolRegistrationTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.ClaimAndUnknownTrackingTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.ClosingIntentAtomicityPgTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.ClosingIntentRollbackPgTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.ConcurrentEntryCapTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.ConcurrentFillSettlementTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.CostBasisBoundaryPgTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.CostBasisFollowupPgTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.CostBasisRiskPgTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.CrossSessionExposureTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DailySma20PaperForwardPathTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DbResetPasswordTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DoubleSellGuardTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicBalanceLeakTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicBlackSwanCooldownCrossKindTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicBlackSwanCooldownRestoreTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicBlackSwanPriceGuardTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicBuyCompletesConsistentlyTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicBuyExternalSubmissionBoundaryTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicBuyOuterWriteOrderingTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicCircuitBreakerTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicDuplicatePositionTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicEntryLimitsTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicFillAccountingTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicGhostPositionTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicJudgeClockTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicMinimumCandleGuardTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicPaperBuySameTickWatchlistTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicPaperLiveRuleParityTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicPaperTradingTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicPoolReservationTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicScanSelectionTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicScanTransitionGuardTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicSessionRowLockContentionTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicSlWatchdogNoiseTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicStopLossWidthTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicStopOptimisticLockTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicStopRaceTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicTakeProfitCapTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicTradingModeInputTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicTradingSlWatchdogRecoveryTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicUnlockedCapitalTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.EngineConstantParityTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.EngineParityTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.EntryPriorityEndToEndTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.EntryPriorityRoundsTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.EntryRoundsCrossRoundPaperDelayTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.ExchangeHealthRecoveryEventTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.ExchangeRecoveryRestartTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.ExecutionDriftTrackerTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.ExitAbArmContractTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.ExitReasonRecordingTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.ExitRuleCalculatorTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.ExitRuleOverridesTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.FillProcessingFailureTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.G1SubmitBoundaryDiagTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.IntentPrecommitAndOnceOnlyTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.KillCriteriaPaperVisibilityTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.KillCriteriaStrategyDisableTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.KillCriteriaTimeframeDisableTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.KrwRestoreRollbackRetryTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.LateFillCorrectionTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.LateOrderSubmissionAfterStopTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.LegacySellPolicyTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.LimitedTestExchangeRecoveryTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.LiveEmergencyStopUnderConcurrentWriteTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.LiveLossWindowPgTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.LiveSellIdempotencyTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.LiveStopUnderConcurrentWriteTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.LiveTradingMaxHoldHoursTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.LiveTradingReliabilityTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.LiveTradingSlWatchdogRecoveryTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.MarketBuyUnusedFundsTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.MarketDataCacheCoverageTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.MarketDataFetchFallbackTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.MarketDataUpsertIsolationTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.N15EntryExpiryTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.N15FinalApprovalBoundaryTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.N15PgLockWaitExpiryTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.N16InvalidPriceReproTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.N17RestInvalidPriceTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.O1O3LogContractTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.OperationalHealthCheckServiceTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.OrderExecutionEngineSellPriceTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.OrderExecutionEngineTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.OrderExecutorDrainPredicateGapTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.OrderSubmitAfterCommitTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.PaperLiveAlignmentTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.PaperSessionStrategyParamsTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.PaperStopUnderConcurrentWriteTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.PartialSellRealizedPnlPgTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.PerformanceSnapshotS5PgTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.PhantomKeepsConfirmedPnlPgTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.PoolLossLimitTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.PositionLimitTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.PositionLostUpdateTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.PositionStateTransitionNoAmbientTxTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.PreStartLimitedTestCandleSupplyTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.R5RealCashflowRiskTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.RateLimiterEmergencyStopTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.RealBuySummaryPgTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.RealLossGlobalPgTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.RealLossThreeFormulaPgTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.RealNextBarClockTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.RealtimeProtectLinesTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.RealtimeProtectionFairnessTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.RequestedFundsFallbackImpactTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.RiskCircuitBreakerOrderTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.RiskConfigMissingTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.RiskManagementServiceTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.RulesetFingerprintTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.RulesetRegistryCompositionTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.SchedulerProfileCleanupTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.SellQuarantineReleaseTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.SessionBalanceUpdaterTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.SessionCapitalGuardTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.SessionKindIsolationTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.SessionLlmTelegramDeliveryTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.SettlementAtomicityTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.SettlementIdempotencyTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.SettlementRoundingPgTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.SharedLoopRoundsActiveTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.SharedMarketDataExecutorSaturationTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.SharedPaperLoopIsolationTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.SharedUniverseServiceTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.SignalQualityDelistedMarketTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.SignalQualityHoldBaselineTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.SlWatchdogFreshnessTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.Sma20LiveAlignedGapsTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.Sma20LiveAlignedPaperSameInputTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.Sma20LivePaperSameInputTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.SnapshotBoundaryRaceTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.StaleRealtimeExitTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.StartedAtPrecisionPgTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.StrategyEnablementGateTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest$CapitalProtection.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest$EdgeSafetyNet.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.StrategyLiveStatusRegistryTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.StrategyLogTimeframeTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.StrategyWeightOptimizerTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.SubmitOrderBoundaryProbeTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.SubmitPollRacePgTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.SubmitPollRaceTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.SubmitRejectionClassificationTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.SubmitResponseUnknownTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.TelegramCriticalRetryTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.TelegramMarkdownFallbackTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.TelegramMinimalAlertTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.TelegramQueueRejectTxIntegrationTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.TelegramQueueSaturationTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.TelegramRiskLimitRetryHttpTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.TelegramTestIsolationTest$SchedulerProfile.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.TelegramTestIsolationTest$TestProfile.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.TimestampConventionTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.UnknownOrderAdjustmentTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.V96MigrationPgTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.WalkForwardGateDisabledSessionCreationTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.WalkForwardGateEnabledSessionCreationTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.WalkForwardGateTimeframeTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.WalkForwardValidationGateTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.WatchlistSpreadFilterTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.WsFallbackTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.WsSubscriptionUnionTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.support.ExecutorBarrierPremiseProbeTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.support.ExecutorBarrierTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.support.sqltrace.SqlTraceSelfTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.util.OrderAmountsTest.xml",
+          "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.util.TickCandleCacheTest.xml",
+          "docs/evidence/dec-final-abc-20261119/lw-0401d0e9/xml/TEST-com.cryptoautotrader.api.service.LiveLossWindowPgTest.xml"
+        ]
+      }
+    },
+    {
+      "check": "302 differing committed files are CRLF-to-LF conversion only",
+      "pass": true,
+      "actual": {
+        "differing": 302,
+        "newline_only": 302
+      }
+    },
+    {
+      "check": "permission settings not submitted",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "docs/evidence/dec-final-abc-20261119/ available committed checksums",
+      "pass": false,
+      "actual": {
+        "listed": 355,
+        "committed": 344,
+        "mismatch": [
+          "./direct-0401d0e9/h2-DailySma20LiveOrderPathTest/xml/TEST-com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest.xml",
+          "./direct-0401d0e9/pg-ClosingIntentRollbackPgTest/xml/TEST-com.cryptoautotrader.api.service.ClosingIntentRollbackPgTest.xml",
+          "./direct-0401d0e9/pg-N15PgLockWaitExpiryTest/xml/TEST-com.cryptoautotrader.api.service.N15PgLockWaitExpiryTest.xml",
+          "./direct-0401d0e9/pg-PhantomKeepsConfirmedPnlPgTest/xml/TEST-com.cryptoautotrader.api.service.PhantomKeepsConfirmedPnlPgTest.xml",
+          "./direct-0401d0e9/pg-RealBuySummaryPgTest/xml/TEST-com.cryptoautotrader.api.service.RealBuySummaryPgTest.xml",
+          "./direct-0401d0e9/pg-RealLossGlobalPgTest/xml/TEST-com.cryptoautotrader.api.service.RealLossGlobalPgTest.xml",
+          "./direct-0401d0e9/summary.txt",
+          "./direct2-d81c3f2f/pg-RealBuySummaryPgTest/real_buy_summary_checks.json",
+          "./direct2-d81c3f2f/pg-RealBuySummaryPgTest/xml/TEST-com.cryptoautotrader.api.service.RealBuySummaryPgTest.xml",
+          "./direct2-d81c3f2f/pg-RealLossGlobalPgTest/xml/TEST-com.cryptoautotrader.api.service.RealLossGlobalPgTest.xml",
+          "./full-d81c3f2f/summary.txt",
+          "./full-d81c3f2f/xml-copy-check.txt",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.MinimumCandleContractTest.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.StrategyBehaviourFingerprintTest.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.backtest.BacktestEngineTest.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.backtest.BacktestEvalContextTest.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.backtest.BacktestExitRuleParityTest.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.backtest.BtcGuardLookAheadTest.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.backtest.FillSimulatorTest.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.backtest.HeikinAshiStochBacktestRunner.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.backtest.SignalExitGateAbBacktestRunner.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.backtest.StrategyReviewAbBacktestRunner.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.backtest.SupertrendFilterGateRunner.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.backtest.SupertrendFilterQ2Runner.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.backtest.SupertrendValidationRunner.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.backtest.UnrealizedPnlInMetricsTest.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.backtest.WalkForwardHoldOutGateTest.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.backtest.WalkForwardTestRunnerTest.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.backtest.WalkForwardVerdictSampleFloorTest.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.backtest.WeakThresholdAbBacktestRunner.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.metrics.MetricsCalculatorTest.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.portfolio.PortfolioManagerTest.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.regime.MarketRegimeDetectorTest.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.regime.MarketRegimeFilterTest.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.risk.ExitRuleCheckerTest$CalculateInvestAmount.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.risk.ExitRuleCheckerTest$CalculateStopLevels.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.risk.ExitRuleCheckerTest$CheckCandleExit.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.risk.ExitRuleCheckerTest$CheckCandleExitWithPath.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.risk.ExitRuleCheckerTest$CheckPriceExit.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.risk.ExitRuleCheckerTest$UpdateTrailingStops.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.risk.RiskEngineTest.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.selector.BlackSwanGuardTest.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.selector.BtcMarketGuardTest.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.selector.CandleDownsamplerBoundaryTest.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.selector.CandleDownsamplerClosedOnlyTest.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.selector.CompositePresetParityTest.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.selector.CompositePullbackMtfStrategyTest.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.selector.CompositeStrategyEmaDeadbandTest.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.selector.CompositeStrategyTest.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.selector.Ema200RegimeGateTest.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.selector.MtfConfirmedStrategyTest.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.selector.MultiTimeframeFilterTest.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.selector.RangeRegimeGateArmParityTest.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.selector.SignalQualityDampenGateFingerprintTest.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.selector.SignalQualityDampenGateTest.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.selector.StrategySelectorTest.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.selector.SupertrendStrictHtfNoOpTest.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.selector.WatchlistQualityGateTest.xml",
+          "./full-d81c3f2f/xml/core-engine/TEST-com.cryptoautotrader.core.selector.WeightOverrideTimeframeTest.xml",
+          "./full-d81c3f2f/xml/exchange-adapter/TEST-com.cryptoautotrader.exchange.TestHooksTest.xml",
+          "./full-d81c3f2f/xml/exchange-adapter/TEST-com.cryptoautotrader.exchange.upbit.UpbitRequestLimiterTest.xml",
+          "./full-d81c3f2f/xml/strategy-lib/TEST-com.cryptoautotrader.strategy.ConflictingSignalTest.xml",
+          "./full-d81c3f2f/xml/strategy-lib/TEST-com.cryptoautotrader.strategy.PercentUnitConsistencyTest.xml",
+          "./full-d81c3f2f/xml/strategy-lib/TEST-com.cryptoautotrader.strategy.RsiSingleSourceTest.xml",
+          "./full-d81c3f2f/xml/strategy-lib/TEST-com.cryptoautotrader.strategy.ZeroMovementBoundaryTest.xml",
+          "./full-d81c3f2f/xml/strategy-lib/TEST-com.cryptoautotrader.strategy.atrbreakout.AtrBreakoutStrategyTest.xml",
+          "./full-d81c3f2f/xml/strategy-lib/TEST-com.cryptoautotrader.strategy.bollinger.BollingerStrategyTest.xml",
+          "./full-d81c3f2f/xml/strategy-lib/TEST-com.cryptoautotrader.strategy.dailysma.DailySmaTrendStrategyTest.xml",
+          "./full-d81c3f2f/xml/strategy-lib/TEST-com.cryptoautotrader.strategy.ema.EmaCrossStrategyTest.xml",
+          "./full-d81c3f2f/xml/strategy-lib/TEST-com.cryptoautotrader.strategy.grid.GridStrategyLevelReleaseTest.xml",
+          "./full-d81c3f2f/xml/strategy-lib/TEST-com.cryptoautotrader.strategy.heikinashi.HeikinAshiStochStrategyTest.xml",
+          "./full-d81c3f2f/xml/strategy-lib/TEST-com.cryptoautotrader.strategy.macd.MacdStrategyTest.xml",
+          "./full-d81c3f2f/xml/strategy-lib/TEST-com.cryptoautotrader.strategy.macdstochbb.MacdStochBbStrategyCooldownTest.xml",
+          "./full-d81c3f2f/xml/strategy-lib/TEST-com.cryptoautotrader.strategy.orderbook.OrderbookImbalanceStrategyTest.xml",
+          "./full-d81c3f2f/xml/strategy-lib/TEST-com.cryptoautotrader.strategy.rsi.RsiStrategyTest.xml",
+          "./full-d81c3f2f/xml/strategy-lib/TEST-com.cryptoautotrader.strategy.supertrend.SupertrendStrategyTest.xml",
+          "./full-d81c3f2f/xml/strategy-lib/TEST-com.cryptoautotrader.strategy.volumedelta.VolumeDeltaStrategyTest.xml",
+          "./full-d81c3f2f/xml/strategy-lib/TEST-com.cryptoautotrader.strategy.vwap.VwapStrategyTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.backtest.P1ChangesBacktestVerification.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.backtest.PullbackMtfBacktestRunner.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.config.CompositeMeanRevPresetTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.controller.BacktestControllerIntegrationTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.controller.DataControllerIntegrationTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.controller.DynamicSessionPaperVisibilityTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.controller.StrategyControllerIntegrationTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.controller.SystemControllerIntegrationTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.llm.provider.ClaudeProviderHttpTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.llm.provider.ClaudeResponseParsingTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.n13.HoldBaselineLoopPgTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.n13.HoldBaselineSqlEquivalencePgTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.news.NewsFetchGapReproTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.news.NewsFetchResultContractTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.news.NewsHttpErrorLogTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.news.NewsResponseShapeTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.report.BlockedReasonNormalizerTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.report.FilterTagClassifierTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.report.MarketTrendScannerTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.AbChainPgTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.AbChainV4PgTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.AbcCrossPgTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.AiPipelineTest$LlmTaskRouterTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.AiPipelineTest$NewsAggregatorServiceTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.AiPipelineTest$ReportComposerTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.AlignedRestartContextTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.AlignedRoundBoundaryProbeTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.AlignedV147FixesTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.AlignedV148FixesTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.AlignedV150FixesTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.AlignedV96PgBehaviorTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.AtomicPathBypassTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.B01RealNextSellBarTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.BalanceAmountsTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.BalanceListSnapshotPgTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.BenchmarkAlphaServiceTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.BtcGateSupplyEndToEndTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.BtcGateUnknownEntryTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.BuySettlementEdgeTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.CancelConfirmAndLateFillCleanupTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.CancelOutcomeUnknownTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.CandleDataFreshnessSchedulerTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.CandleFreshnessGuardTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.CandleGapBackfillTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.CandleGapExitTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.CandleMaintenanceGapTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.CandleRefreshReportRetryTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.CapitalPoolLimitTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.CapitalPoolRegistrationTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.ClaimAndUnknownTrackingTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.ClosingIntentAtomicityPgTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.ClosingIntentRollbackPgTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.ConcurrentEntryCapTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.ConcurrentFillSettlementTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.CostBasisBoundaryPgTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.CostBasisFollowupPgTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.CostBasisRiskPgTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.CrossSessionExposureTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DailySma20PaperForwardPathTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DbResetPasswordTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DoubleSellGuardTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicBalanceLeakTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicBlackSwanCooldownCrossKindTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicBlackSwanCooldownRestoreTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicBlackSwanPriceGuardTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicBuyCompletesConsistentlyTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicBuyExternalSubmissionBoundaryTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicBuyOuterWriteOrderingTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicCircuitBreakerTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicDuplicatePositionTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicEntryLimitsTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicFillAccountingTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicGhostPositionTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicJudgeClockTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicMinimumCandleGuardTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicPaperBuySameTickWatchlistTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicPaperLiveRuleParityTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicPaperTradingTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicPoolReservationTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicScanSelectionTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicScanTransitionGuardTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicSessionRowLockContentionTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicSlWatchdogNoiseTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicStopLossWidthTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicStopOptimisticLockTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicStopRaceTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicTakeProfitCapTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicTradingModeInputTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicTradingSlWatchdogRecoveryTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicUnlockedCapitalTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.EngineConstantParityTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.EngineParityTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.EntryPriorityEndToEndTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.EntryPriorityRoundsTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.EntryRoundsCrossRoundPaperDelayTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.ExchangeHealthRecoveryEventTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.ExchangeRecoveryRestartTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.ExecutionDriftTrackerTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.ExitAbArmContractTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.ExitReasonRecordingTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.ExitRuleCalculatorTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.ExitRuleOverridesTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.FillProcessingFailureTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.G1SubmitBoundaryDiagTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.IntentPrecommitAndOnceOnlyTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.KillCriteriaPaperVisibilityTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.KillCriteriaStrategyDisableTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.KillCriteriaTimeframeDisableTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.KrwRestoreRollbackRetryTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.LateFillCorrectionTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.LateOrderSubmissionAfterStopTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.LegacySellPolicyTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.LimitedTestExchangeRecoveryTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.LiveEmergencyStopUnderConcurrentWriteTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.LiveLossWindowPgTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.LiveSellIdempotencyTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.LiveStopUnderConcurrentWriteTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.LiveTradingMaxHoldHoursTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.LiveTradingReliabilityTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.LiveTradingSlWatchdogRecoveryTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.MarketBuyUnusedFundsTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.MarketDataCacheCoverageTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.MarketDataFetchFallbackTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.MarketDataUpsertIsolationTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.N15EntryExpiryTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.N15FinalApprovalBoundaryTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.N15PgLockWaitExpiryTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.N16InvalidPriceReproTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.N17RestInvalidPriceTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.O1O3LogContractTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.OperationalHealthCheckServiceTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.OrderExecutionEngineSellPriceTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.OrderExecutionEngineTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.OrderExecutorDrainPredicateGapTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.OrderSubmitAfterCommitTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.PaperLiveAlignmentTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.PaperSessionStrategyParamsTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.PaperStopUnderConcurrentWriteTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.PartialSellRealizedPnlPgTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.PerformanceSnapshotS5PgTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.PhantomKeepsConfirmedPnlPgTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.PoolLossLimitTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.PositionLimitTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.PositionLostUpdateTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.PositionStateTransitionNoAmbientTxTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.PreStartLimitedTestCandleSupplyTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.R5RealCashflowRiskTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.RateLimiterEmergencyStopTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.RealBuySummaryPgTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.RealLossGlobalPgTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.RealLossThreeFormulaPgTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.RealNextBarClockTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.RealtimeProtectLinesTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.RealtimeProtectionFairnessTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.RequestedFundsFallbackImpactTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.RiskCircuitBreakerOrderTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.RiskConfigMissingTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.RiskManagementServiceTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.RulesetFingerprintTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.RulesetRegistryCompositionTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.SchedulerProfileCleanupTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.SellQuarantineReleaseTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.SessionBalanceUpdaterTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.SessionCapitalGuardTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.SessionKindIsolationTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.SessionLlmTelegramDeliveryTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.SettlementAtomicityTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.SettlementIdempotencyTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.SettlementRoundingPgTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.SharedLoopRoundsActiveTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.SharedMarketDataExecutorSaturationTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.SharedPaperLoopIsolationTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.SharedUniverseServiceTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.SignalQualityDelistedMarketTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.SignalQualityHoldBaselineTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.SlWatchdogFreshnessTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.Sma20LiveAlignedGapsTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.Sma20LiveAlignedPaperSameInputTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.Sma20LivePaperSameInputTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.SnapshotBoundaryRaceTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.StaleRealtimeExitTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.StartedAtPrecisionPgTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.StrategyEnablementGateTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest$CapitalProtection.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest$EdgeSafetyNet.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.StrategyLiveStatusRegistryTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.StrategyLogTimeframeTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.StrategyWeightOptimizerTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.SubmitOrderBoundaryProbeTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.SubmitPollRacePgTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.SubmitPollRaceTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.SubmitRejectionClassificationTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.SubmitResponseUnknownTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.TelegramCriticalRetryTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.TelegramMarkdownFallbackTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.TelegramMinimalAlertTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.TelegramQueueRejectTxIntegrationTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.TelegramQueueSaturationTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.TelegramRiskLimitRetryHttpTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.TelegramTestIsolationTest$SchedulerProfile.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.TelegramTestIsolationTest$TestProfile.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.TimestampConventionTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.UnknownOrderAdjustmentTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.V96MigrationPgTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.WalkForwardGateDisabledSessionCreationTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.WalkForwardGateEnabledSessionCreationTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.WalkForwardGateTimeframeTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.WalkForwardValidationGateTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.WatchlistSpreadFilterTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.WsFallbackTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.service.WsSubscriptionUnionTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.support.ExecutorBarrierPremiseProbeTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.support.ExecutorBarrierTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.support.sqltrace.SqlTraceSelfTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.util.OrderAmountsTest.xml",
+          "./full-d81c3f2f/xml/web-api/TEST-com.cryptoautotrader.api.util.TickCandleCacheTest.xml",
+          "./lw-0401d0e9/xml/TEST-com.cryptoautotrader.api.service.LiveLossWindowPgTest.xml"
+        ]
+      }
+    },
+    {
+      "check": "355 original local files still match submitted manifest",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "docs/evidence/review-e97ca31b/ available committed checksums",
+      "pass": true,
+      "actual": {
+        "listed": 5,
+        "committed": 5,
+        "mismatch": []
+      }
+    },
+    {
+      "check": "all manifest-listed evidence committed",
+      "pass": false,
+      "actual": [
+        {
+          "path": "docs/evidence/dec-final-abc-20261119/direct-0401d0e9/h2-DailySma20LiveOrderPathTest/gradle.log",
+          "local_exists": true,
+          "local_hash_matches": true
+        },
+        {
+          "path": "docs/evidence/dec-final-abc-20261119/direct-0401d0e9/pg-ClosingIntentRollbackPgTest/gradle.log",
+          "local_exists": true,
+          "local_hash_matches": true
+        },
+        {
+          "path": "docs/evidence/dec-final-abc-20261119/direct-0401d0e9/pg-N15PgLockWaitExpiryTest/gradle.log",
+          "local_exists": true,
+          "local_hash_matches": true
+        },
+        {
+          "path": "docs/evidence/dec-final-abc-20261119/direct-0401d0e9/pg-PhantomKeepsConfirmedPnlPgTest/gradle.log",
+          "local_exists": true,
+          "local_hash_matches": true
+        },
+        {
+          "path": "docs/evidence/dec-final-abc-20261119/direct-0401d0e9/pg-RealBuySummaryPgTest/gradle.log",
+          "local_exists": true,
+          "local_hash_matches": true
+        },
+        {
+          "path": "docs/evidence/dec-final-abc-20261119/direct-0401d0e9/pg-RealLossGlobalPgTest/gradle.log",
+          "local_exists": true,
+          "local_hash_matches": true
+        },
+        {
+          "path": "docs/evidence/dec-final-abc-20261119/direct2-d81c3f2f/pg-RealBuySummaryPgTest/gradle.log",
+          "local_exists": true,
+          "local_hash_matches": true
+        },
+        {
+          "path": "docs/evidence/dec-final-abc-20261119/direct2-d81c3f2f/pg-RealLossGlobalPgTest/gradle.log",
+          "local_exists": true,
+          "local_hash_matches": true
+        },
+        {
+          "path": "docs/evidence/dec-final-abc-20261119/full-d81c3f2f/gradle.log",
+          "local_exists": true,
+          "local_hash_matches": true
+        },
+        {
+          "path": "docs/evidence/dec-final-abc-20261119/jar-d81c3f2f/bootjar.log",
+          "local_exists": true,
+          "local_hash_matches": true
+        },
+        {
+          "path": "docs/evidence/dec-final-abc-20261119/lw-0401d0e9/gradle.log",
+          "local_exists": true,
+          "local_hash_matches": true
+        }
+      ]
+    },
+    {
+      "check": "11 missing logs remain locally with original bytes",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "seven imported patches equal original patches",
+      "pass": true,
+      "actual": [
+        {
+          "old": "7e0143e1",
+          "new": "1b9110cb",
+          "equal": true
+        },
+        {
+          "old": "09fa2d1c",
+          "new": "d4ce64a2",
+          "equal": true
+        },
+        {
+          "old": "9a297069",
+          "new": "871e4aa4",
+          "equal": true
+        },
+        {
+          "old": "c8cb48a0",
+          "new": "b497d651",
+          "equal": true
+        },
+        {
+          "old": "44b5bf4b",
+          "new": "9552ca6a",
+          "equal": true
+        },
+        {
+          "old": "69c81c3d",
+          "new": "fcfa0f6d",
+          "equal": true
+        },
+        {
+          "old": "596ed4b0",
+          "new": "786978cd",
+          "equal": true
+        }
+      ]
+    },
+    {
+      "check": "ABC to final product scope",
+      "pass": true,
+      "actual": [
+        "web-api/src/main/java/com/cryptoautotrader/api/service/OrderSettlementService.java"
+      ]
+    },
+    {
+      "check": "BUY candidate to final only three test files",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "DailySma20LiveOrderPathTest final blob equals accepted source",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "AbcCrossPgTest final blob equals accepted source",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "RealBuySummaryPgTest final blob equals accepted source",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "OrderSettlementService final blob equals accepted source",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "0401 to final only RealLossGlobal test",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "no frontend change",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "saved fixture diff equals fixed source diff",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "fixture edits remove no assertions",
+      "pass": true,
+      "actual": [
+        "-            PositionEntity p = closingPosition(\"LIVE\", sid, QTY, \"CLOSING\");",
+        "-        PositionEntity p = closingPosition(\"LIVE\", sid, QTY, \"CLOSING\");",
+        "-        PositionEntity p = closingPosition(\"LIVE\", sid, QTY, \"CLOSING\");",
+        "-        PositionEntity p = closingPosition(\"LIVE\", sid, QTY, \"CLOSING\");",
+        "-        PositionEntity win = closingPosition(\"LIVE\", s1, QTY, \"CLOSING\");",
+        "-        PositionEntity loss = closingPosition(\"LIVE\", s2, QTY, \"CLOSING\");",
+        "-        PositionEntity p = closingPosition(\"LIVE\", sid, QTY, \"CLOSING\");"
+      ]
+    },
+    {
+      "check": "LiveLossWindowPgTest confirmed BUY identity and explicit fee zero",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "RealLossGlobalPgTest confirmed BUY identity and explicit fee zero",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "LW manual/non-LIVE control unchanged",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "RL both refusal reasons exclude unknown cost",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "lw-0401d0e9/ saved XML and exit",
+      "pass": true,
+      "actual": {
+        "files": 1,
+        "totals": [
+          7,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "check": "direct-0401d0e9/h2-DailySma20LiveOrderPathTest/ saved XML and exit",
+      "pass": true,
+      "actual": {
+        "files": 1,
+        "totals": [
+          24,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "check": "direct-0401d0e9/pg-PhantomKeepsConfirmedPnlPgTest/ saved XML and exit",
+      "pass": true,
+      "actual": {
+        "files": 1,
+        "totals": [
+          4,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "check": "direct-0401d0e9/pg-ClosingIntentRollbackPgTest/ saved XML and exit",
+      "pass": true,
+      "actual": {
+        "files": 1,
+        "totals": [
+          2,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "check": "direct-0401d0e9/pg-N15PgLockWaitExpiryTest/ saved XML and exit",
+      "pass": true,
+      "actual": {
+        "files": 1,
+        "totals": [
+          13,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "check": "direct-0401d0e9/pg-RealLossGlobalPgTest/ saved XML and exit",
+      "pass": true,
+      "actual": {
+        "files": 1,
+        "totals": [
+          3,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "check": "direct2-d81c3f2f/pg-RealLossGlobalPgTest/ saved XML and exit",
+      "pass": true,
+      "actual": {
+        "files": 1,
+        "totals": [
+          3,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "check": "direct2-d81c3f2f/pg-RealBuySummaryPgTest/ saved XML and exit",
+      "pass": true,
+      "actual": {
+        "files": 1,
+        "totals": [
+          1,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "check": "clean final BUY summary 23 assertions",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "direct final HEAD is clean",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "RL previous passing tests used unknown-cost refusals",
+      "pass": true,
+      "actual": [
+        "[RL157] ① | 전 승인=true | 후 승인=false | 사유=[DYNAMIC REAL 보호식] 판정 불가 ? 30일 안 DYNAMIC 세션 매도/청산 2건의 확정 비용(매수 대금+수수료 또는 매도 체결)을 구하지 못했다(손실 0·이익으로 보지 않는다) | 분자(원)=0 | 분모=100000.00",
+        "[RL157] ② | 현재 승인=false | 사유=[기존 보호식] 판정 불가 ? 30일 안 LIVE 세션 매도/청산 1건의 확정 비용(매수 대금+수수료 또는 매도 체결)을 구하지 못했다(손실 0·이익으로 보지 않는다) | 분자(원)=0 | 현재 분모=100000.00 | 초안 분모=200000 → 1.00%",
+        "[RL157] ③ | DYN_PAPER 손실 행=-5000 | 분자 0→0 | 승인=true"
+      ]
+    },
+    {
+      "check": "RL fixed tests observe 4% and 2% loss limits",
+      "pass": true,
+      "actual": [
+        "[RL157] ① | 전 승인=true | 후 승인=false | 사유=[DYNAMIC REAL 보호식] 일일 손실 한도 초과: 4.00% > 1.50% | 분자(원)=0 | 분모=100000.00",
+        "[RL157] ② | 현재 승인=false | 사유=일일 손실 한도 초과: 2.00% > 1.50% | 분자(원)=2001.0000 | 현재 분모=100000.00 | 초안 분모=200000 → 1.00%",
+        "[RL157] ③ | DYN_PAPER 손실 행=-5000 | 분자 0→0 | 승인=true"
+      ]
+    },
+    {
+      "check": "reused PG test blobs equal final source",
+      "pass": true,
+      "actual": [
+        "RealLossThreeFormulaPgTest",
+        "PartialSellRealizedPnlPgTest",
+        "ClosingIntentAtomicityPgTest",
+        "SettlementRoundingPgTest",
+        "CostBasisRiskPgTest",
+        "CostBasisBoundaryPgTest",
+        "CostBasisFollowupPgTest",
+        "AbcCrossPgTest"
+      ]
+    },
+    {
+      "check": "reused application/build/config inputs equal BUY candidate",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "CostBasisRiskPgTest negative cost cases unchanged",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "CostBasisBoundaryPgTest negative cost cases unchanged",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "CostBasisFollowupPgTest negative cost cases unchanged",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "core-engine full XML counts",
+      "pass": true,
+      "actual": {
+        "files": 47,
+        "totals": [
+          298,
+          0,
+          0,
+          7
+        ]
+      }
+    },
+    {
+      "check": "exchange-adapter full XML counts",
+      "pass": true,
+      "actual": {
+        "files": 2,
+        "totals": [
+          11,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "check": "strategy-lib full XML counts",
+      "pass": true,
+      "actual": {
+        "files": 17,
+        "totals": [
+          113,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "check": "web-api full XML counts",
+      "pass": true,
+      "actual": {
+        "files": 223,
+        "totals": [
+          1445,
+          0,
+          0,
+          87
+        ]
+      }
+    },
+    {
+      "check": "full regression fixed clean HEAD and successful exit",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "full log reports successful build",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "copy record lists 289 XML without mismatch",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "web-api guard installed and zero blocked attempts",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "898 entry content manifest and JARM",
+      "pass": true,
+      "actual": "33a06f0edf1767356d206f8d36b5f71b1ffd707102d43936e602ec7a6162d509"
+    },
+    {
+      "check": "preserved production LF baseline content hash",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "independent jar manifest comparison 35 changed 3 added",
+      "pass": true,
+      "actual": {
+        "changed": [
+          "BOOT-INF/classes/com/cryptoautotrader/api/dto/DynamicSessionRequest.class",
+          "BOOT-INF/classes/com/cryptoautotrader/api/entity/ExitReason$1.class",
+          "BOOT-INF/classes/com/cryptoautotrader/api/entity/ExitReason.class",
+          "BOOT-INF/classes/com/cryptoautotrader/api/report/LogAnalyzerService$NoTradeFunnel.class",
+          "BOOT-INF/classes/com/cryptoautotrader/api/report/LogAnalyzerService$PositionStats.class",
+          "BOOT-INF/classes/com/cryptoautotrader/api/report/LogAnalyzerService$RegimeStats.class",
+          "BOOT-INF/classes/com/cryptoautotrader/api/report/LogAnalyzerService$SignalStats.class",
+          "BOOT-INF/classes/com/cryptoautotrader/api/report/LogAnalyzerService.class",
+          "BOOT-INF/classes/com/cryptoautotrader/api/repository/OrderRepository.class",
+          "BOOT-INF/classes/com/cryptoautotrader/api/repository/PositionRepository.class",
+          "BOOT-INF/classes/com/cryptoautotrader/api/service/CircuitBreakerResult.class",
+          "BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$1.class",
+          "BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$2.class",
+          "BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$3.class",
+          "BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$BlackSwanGateDecision.class",
+          "BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$BuyCandidate.class",
+          "BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$EmptyPositionOutcome.class",
+          "BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService.class",
+          "BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService$1.class",
+          "BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService$EmptyPositionOutcome.class",
+          "BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService$PriceSnapshot.class",
+          "BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService.class",
+          "BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine.class",
+          "BOOT-INF/classes/com/cryptoautotrader/api/service/OrderSettlementService$Outcome.class",
+          "BOOT-INF/classes/com/cryptoautotrader/api/service/OrderSettlementService$SellAmounts.class",
+          "BOOT-INF/classes/com/cryptoautotrader/api/service/OrderSettlementService.class",
+          "BOOT-INF/classes/com/cryptoautotrader/api/service/PaperTradingService$AlignedEntryExpired.class",
+          "BOOT-INF/classes/com/cryptoautotrader/api/service/PaperTradingService.class",
+          "BOOT-INF/classes/com/cryptoautotrader/api/service/RiskManagementService.class",
+          "BOOT-INF/classes/com/cryptoautotrader/api/service/TelegramNotificationService$Attempt.class",
+          "BOOT-INF/classes/com/cryptoautotrader/api/service/TelegramNotificationService$Outcome.class",
+          "BOOT-INF/classes/com/cryptoautotrader/api/service/TelegramNotificationService$Reply.class",
+          "BOOT-INF/classes/com/cryptoautotrader/api/service/TelegramNotificationService$SendMessageRequest.class",
+          "BOOT-INF/classes/com/cryptoautotrader/api/service/TelegramNotificationService$TradeEvent.class",
+          "BOOT-INF/classes/com/cryptoautotrader/api/service/TelegramNotificationService.class"
+        ],
+        "added": [
+          "BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicEntryLimits.class",
+          "BOOT-INF/classes/com/cryptoautotrader/api/service/OrderSettlementService$BuyIncrement.class",
+          "BOOT-INF/classes/com/cryptoautotrader/api/service/RiskManagementService$ClosedPnl.class"
+        ],
+        "deleted": []
+      }
+    },
+    {
+      "check": "all changed jar entries are application classes",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "38 class changes map to 14 product Java files",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "manifest calculation reuses fixed U1 code",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "saved local jar file hash",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/application.yml",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V10__paper_trading_multi_session.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V11__add_manual_override_to_strategy_config.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V12__create_live_trading_session.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V13__create_market_data_cache.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V14__create_strategy_type_enabled.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V15__add_telegram_to_paper_trading.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V16__create_telegram_notification_log.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V17__add_session_type_to_strategy_log.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V18__add_pnl_fee_to_virtual_balance.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V19__add_invest_ratio_to_live_trading_session.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V1__create_candle_data.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V20__add_position_fee_to_paper_position.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V21__add_version_to_virtual_balance.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V22__add_position_fee_to_position.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V23__add_closing_at_to_position.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V24__add_circuit_breaker.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V25__fix_market_regime_varchar_length.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V26__add_sl_tp_to_positions.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V27__add_response_json_to_order.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V28__add_executed_funds_to_order.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V29__add_invested_krw_to_position.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V2__create_backtest_tables.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V30__add_backtest_job.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V31__add_signal_quality_to_strategy_log.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V32__add_market_regime_to_position.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V33__create_regime_change_log.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V34__create_llm_config.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V35__create_news_source_config.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V36__create_notion_report.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V37__create_discord_config.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V38__add_wf_result_json.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V39__add_exit_rule_to_risk_config.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V3__create_strategy_config.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V40__create_llm_call_log.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V41__create_nightly_scheduler_config.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V42__fix_scheduler_config_column_types.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V43__add_version_to_live_trading_session.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V44__create_execution_drift_log.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V45__add_capital_utilization_to_risk_config.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V46__add_session_type_to_live_trading_session.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V47__add_confidence_score_to_strategy_log.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V48__add_portfolio_drawdown_to_risk_config.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V49__create_weight_optimizer_snapshot.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V4__create_position_order.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V50__create_dynamic_session.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V51__add_session_kind_to_position.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V52__add_session_kind_to_order.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V53__add_profit_factor_expectancy_to_backtest_metrics.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V54__add_signal_price_to_order.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V55__add_circuit_breaker_to_dynamic_session.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V56__add_dynamic_scan_tuning_to_risk_config.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V57__add_watchlist_quality_to_risk_config.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V58__switch_llm_to_claude.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V59__set_llm_model_sonnet.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V5__create_risk_config.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V60__expand_news_sources.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V61__drop_polymorphic_session_id_fk.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V62__add_max_hold_hours.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V63__default_max_hold_hours_off.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V64__add_max_hold_hours_to_live_trading_session.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V65__create_daily_health_snapshot.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V66__align_paper_trading_with_live.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V67__add_trading_mode_to_dynamic_session.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V68__default_max_hold_hours_on.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V69__add_circuit_breaker_trip_count.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V6__create_log_tables.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V70__create_kill_criteria_judgment.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V71__add_ruleset_fingerprint.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V72__create_dynamic_sell_settlement.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V73__add_exit_reason_and_analysis_columns.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V74__add_session_strategy_params.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V75__hold_baseline_index.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V76__add_timeframe_to_strategy_log.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V77__timestamptz_for_naive_tables.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V78__add_exit_rules_version_to_backtest_run.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V79__add_timeframe_to_weight_optimizer_snapshot.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V7__create_strategy_signal.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V80__create_strategy_timeframe_enabled.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V81__order_reported_vs_applied_settlement.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V82__order_settlement_tracking_and_discrepancy.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V83__order_fill_observation_and_pending.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V84__order_intent_claim_and_unknown.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V85__account_capital_lock_and_reservation.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V86__failure_code_and_intent_owner.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V87__cancel_confirmation_and_stop_cleanup.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V88__seed_default_risk_config.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V89__pool_loss_limit_baseline_and_snapshot.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V8__create_paper_trading_schema.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V90__position_limit_allocation_peak_breach.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V91__order_manual_adjustment.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V92__order_fill_price_source.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V93__exchange_maintenance_window.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V94__sell_quarantine_release.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V96__paper_aligned_runtime_state.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/db/migration/V9__enhance_paper_trading.sql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "jar LF resource equals Git blob: web-api/src/main/resources/logback-spring.xml",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "actual jar entries equal committed content manifest",
+      "pass": true,
+      "actual": {
+        "entries": 898,
+        "duplicate_names": [],
+        "LF_resources": 97
+      }
+    }
+  ]
+}

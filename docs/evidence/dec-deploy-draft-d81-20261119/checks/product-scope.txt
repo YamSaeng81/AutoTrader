@@ -1,0 +1,20 @@
+# 0e1d2a02..d81c3f2f 제품 경로(src/main, 문서·시험 제외)
+ .../api/dto/DynamicSessionRequest.java             |   3 +-
+ .../cryptoautotrader/api/entity/ExitReason.java    |  16 ++-
+ .../api/report/LogAnalyzerService.java             |   3 +
+ .../api/repository/OrderRepository.java            | 109 ++++++++++++++--
+ .../api/repository/PositionRepository.java         |   5 +
+ .../api/service/CircuitBreakerResult.java          |  20 ++-
+ .../api/service/DynamicEntryLimits.java            | 144 +++++++++++++++++++++
+ .../api/service/DynamicTradingService.java         | 143 ++++++++++++++++----
+ .../api/service/LiveTradingService.java            |  11 +-
+ .../api/service/OrderExecutionEngine.java          |   2 +-
+ .../api/service/OrderSettlementService.java        |  53 ++++++--
+ .../api/service/PaperTradingService.java           |  17 ++-
+ .../api/service/RiskManagementService.java         | 125 +++++++++++++++++-
+ .../api/service/TelegramNotificationService.java   | 100 +++++++++++---
+ 14 files changed, 665 insertions(+), 86 deletions(-)
+# resources·migration·frontend 변경 수
+0
+# 60df3437..d81c3f2f 제품 경로
+web-api/src/main/java/com/cryptoautotrader/api/service/OrderSettlementService.java

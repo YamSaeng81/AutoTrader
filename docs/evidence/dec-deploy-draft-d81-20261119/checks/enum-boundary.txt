@@ -1,0 +1,18 @@
+# EnumType.STRING 저장 필드(d81c3f2f)
+d81c3f2f:web-api/src/main/java/com/cryptoautotrader/api/entity/PositionEntity.java:142:    @Enumerated(EnumType.STRING)
+d81c3f2f:web-api/src/main/java/com/cryptoautotrader/api/entity/PositionEntity.java-143-    @Column(name = "exit_reason", length = 20)
+d81c3f2f:web-api/src/main/java/com/cryptoautotrader/api/entity/PositionEntity.java-144-    private ExitReason exitReason;
+--
+d81c3f2f:web-api/src/main/java/com/cryptoautotrader/api/entity/paper/PaperPositionEntity.java:98:    @Enumerated(EnumType.STRING)
+d81c3f2f:web-api/src/main/java/com/cryptoautotrader/api/entity/paper/PaperPositionEntity.java-99-    @Column(name = "exit_reason", length = 20)
+d81c3f2f:web-api/src/main/java/com/cryptoautotrader/api/entity/paper/PaperPositionEntity.java-100-    private com.cryptoautotrader.api.entity.ExitReason exitReason;
+# 엔티티 매핑 0e1d2a02->d81c3f2f
+(빈 줄 = 변경 없음)
+# ExitReason 0e1d2a02 -> d81c3f2f 상수 차이
+7a8
+> ENTRY_REJECTED
+# b5cd1d0d
+7a8
+> ENTRY_REJECTED
+# 신규 저장 리터럴 설정(setExitReason 등)
++            pos.setExitReason(com.cryptoautotrader.api.entity.ExitReason.ENTRY_REJECTED);   // v1.192 §2 무거래 확정 표시
