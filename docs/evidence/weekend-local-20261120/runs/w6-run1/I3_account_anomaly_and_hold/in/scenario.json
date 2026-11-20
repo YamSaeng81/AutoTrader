@@ -1,0 +1,29 @@
+{
+ "scenario_version": "offline-scenario-1",
+ "name": "I3_account_anomaly_and_hold",
+ "synthetic": true,
+ "w1": {
+  "registry": "registry.json",
+  "registry_sha256": "c6a9fb2c9d672546a7cbc8f34164bcba8fdfbeedc3255695b093e332d9716314",
+  "observed": "f1_observed.json"
+ },
+ "w2": {
+  "registry": "registry.json",
+  "registry_sha256": "c6a9fb2c9d672546a7cbc8f34164bcba8fdfbeedc3255695b093e332d9716314",
+  "state": "n03_state.json",
+  "p7_from_w3": true
+ },
+ "w3": {
+  "registry": "registry.json",
+  "base": "base.json",
+  "now": "now.json"
+ },
+ "w4": {
+  "manifest": "w4in\\manifest.json"
+ },
+ "w5": {
+  "plan": "dynamic_plan.json",
+  "dto_java": "..\\..\\..\\..\\fixtures\\w5\\DynamicSessionRequest.d81c3f2f.java.txt",
+  "limits_java": "..\\..\\..\\..\\fixtures\\w5\\DynamicEntryLimits.d81c3f2f.java.txt"
+ }
+}

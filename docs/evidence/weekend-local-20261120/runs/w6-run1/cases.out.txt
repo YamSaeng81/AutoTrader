@@ -1,0 +1,5 @@
+PASS I1_normal_parallel rc=5 전체 NEEDS_APPROVAL {'w1': 'LOCAL_VERIFIED', 'w2': 'LOCAL_VERIFIED', 'w3': 'LOCAL_VERIFIED', 'w4': 'LOCAL_VERIFIED', 'w5': 'NEEDS_APPROVAL'}
+PASS I2_unregistered_real rc=20 전체 FAILED {'w1': 'FAILED', 'w2': 'FAILED', 'w3': 'FAILED', 'w4': 'LOCAL_VERIFIED', 'w5': 'NEEDS_APPROVAL'}
+PASS I3_account_anomaly_and_hold rc=20 전체 FAILED {'w1': 'LOCAL_VERIFIED', 'w2': 'FAILED', 'w3': 'FAILED', 'w4': 'LOCAL_VERIFIED', 'w5': 'NEEDS_APPROVAL'}
+PASS I4_time_cost_unconfirmed rc=10 전체 NEEDS_DATA {'w1': 'LOCAL_VERIFIED', 'w2': 'LOCAL_VERIFIED', 'w3': 'LOCAL_VERIFIED', 'w4': 'NEEDS_DATA', 'w5': 'NEEDS_APPROVAL'}
+4/4 기대대로 (통합 4사례, 합성 입력, 운영 준비 표시 0)

@@ -1,0 +1,125 @@
+{
+ "synthetic": true,
+ "cases": [
+  {
+   "case": "I1_normal_parallel",
+   "ok": true,
+   "rc": 5,
+   "overall": "NEEDS_APPROVAL",
+   "modules": {
+    "w1": "LOCAL_VERIFIED",
+    "w2": "LOCAL_VERIFIED",
+    "w3": "LOCAL_VERIFIED",
+    "w4": "LOCAL_VERIFIED",
+    "w5": "NEEDS_APPROVAL"
+   },
+   "checks": {
+    "overall": true,
+    "modules": true,
+    "local_success": true,
+    "operational_ready_false": true,
+    "exit": true,
+    "stderr_empty": true,
+    "one_approval_per_step": true,
+    "w2_quote_consistent": true
+   },
+   "w2_account_quote": {
+    "status": "QUOTED",
+    "sha256": "6521d2905a3de26b794048fd6e46119232906f3f37c8e9d0094e9cf303ad204d",
+    "p7_overall": "OK",
+    "account_sum_status": "일치",
+    "note": "P7 v8 결과 인용 — 이 도구는 계좌 식을 계산하지 않음. account_sum 일치는 F3 통과가 아님"
+   }
+  },
+  {
+   "case": "I2_unregistered_real",
+   "ok": true,
+   "rc": 20,
+   "overall": "FAILED",
+   "modules": {
+    "w1": "FAILED",
+    "w2": "FAILED",
+    "w3": "FAILED",
+    "w4": "LOCAL_VERIFIED",
+    "w5": "NEEDS_APPROVAL"
+   },
+   "checks": {
+    "overall": true,
+    "modules": true,
+    "local_success": true,
+    "operational_ready_false": true,
+    "exit": true,
+    "stderr_empty": true,
+    "one_approval_per_step": true,
+    "w2_quote_consistent": true
+   },
+   "w2_account_quote": {
+    "status": "QUOTED",
+    "sha256": "7cbb3b158faff391faf4f6d4abbb9d2677c2da96b42e8442ec9a759b35714520",
+    "p7_overall": "ANOMALY",
+    "account_sum_status": "불일치",
+    "note": "P7 v8 결과 인용 — 이 도구는 계좌 식을 계산하지 않음. account_sum 일치는 F3 통과가 아님"
+   }
+  },
+  {
+   "case": "I3_account_anomaly_and_hold",
+   "ok": true,
+   "rc": 20,
+   "overall": "FAILED",
+   "modules": {
+    "w1": "LOCAL_VERIFIED",
+    "w2": "FAILED",
+    "w3": "FAILED",
+    "w4": "LOCAL_VERIFIED",
+    "w5": "NEEDS_APPROVAL"
+   },
+   "checks": {
+    "overall": true,
+    "modules": true,
+    "local_success": true,
+    "operational_ready_false": true,
+    "exit": true,
+    "stderr_empty": true,
+    "one_approval_per_step": true,
+    "w2_quote_consistent": true
+   },
+   "w2_account_quote": {
+    "status": "QUOTED",
+    "sha256": "c27e3870c6d7efcf0f9c1e5b744313f14f8d65c59b2a2fbe61a9ac385da6f270",
+    "p7_overall": "ANOMALY",
+    "account_sum_status": "불일치",
+    "note": "P7 v8 결과 인용 — 이 도구는 계좌 식을 계산하지 않음. account_sum 일치는 F3 통과가 아님"
+   }
+  },
+  {
+   "case": "I4_time_cost_unconfirmed",
+   "ok": true,
+   "rc": 10,
+   "overall": "NEEDS_DATA",
+   "modules": {
+    "w1": "LOCAL_VERIFIED",
+    "w2": "LOCAL_VERIFIED",
+    "w3": "LOCAL_VERIFIED",
+    "w4": "NEEDS_DATA",
+    "w5": "NEEDS_APPROVAL"
+   },
+   "checks": {
+    "overall": true,
+    "modules": true,
+    "local_success": true,
+    "operational_ready_false": true,
+    "exit": true,
+    "stderr_empty": true,
+    "one_approval_per_step": true,
+    "w2_quote_consistent": true
+   },
+   "w2_account_quote": {
+    "status": "QUOTED",
+    "sha256": "6521d2905a3de26b794048fd6e46119232906f3f37c8e9d0094e9cf303ad204d",
+    "p7_overall": "OK",
+    "account_sum_status": "일치",
+    "note": "P7 v8 결과 인용 — 이 도구는 계좌 식을 계산하지 않음. account_sum 일치는 F3 통과가 아님"
+   }
+  }
+ ]
+}

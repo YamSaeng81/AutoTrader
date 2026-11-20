@@ -1,0 +1,27 @@
+{
+ "observation_version": "f1-obs-1",
+ "synthetic": true,
+ "source_note": "합성(W6 I4_time_cost_unconfirmed) — P0 현재 관측에서 금액 제거",
+ "sessions": [
+  {
+   "kind": "DYNAMIC",
+   "id": 900,
+   "mode": "REAL",
+   "status": "RUNNING",
+   "strategy_type": "COMPOSITE_BREAKOUT",
+   "timeframe": "H1",
+   "coin_pair": null,
+   "created_at": "2026-11-18T01:56:05.591018+00:00"
+  },
+  {
+   "kind": "LIVE",
+   "id": 203,
+   "mode": "REAL",
+   "status": "RUNNING",
+   "strategy_type": "DAILY_SMA20",
+   "timeframe": "H1",
+   "coin_pair": "KRW-BTC",
+   "created_at": "2026-11-06T10:07:36.87044+00:00"
+  }
+ ]
+}
