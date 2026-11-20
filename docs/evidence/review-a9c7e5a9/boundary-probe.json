@@ -1,0 +1,126 @@
+{
+  "source": "cd8bd76fdd4d46bac893a98f4eab36cceb990c99",
+  "limits": "Synthetic text and fake SSH only. No remote command executed.",
+  "parser": [
+    {
+      "case": "normal",
+      "rc": 0,
+      "expected": 0,
+      "pass": true
+    },
+    {
+      "case": "bad-cost",
+      "rc": 3,
+      "expected": 3,
+      "pass": true
+    },
+    {
+      "case": "infinite-qty",
+      "rc": 3,
+      "expected": 3,
+      "pass": true
+    },
+    {
+      "case": "bad-flag",
+      "rc": 3,
+      "expected": 3,
+      "pass": true
+    },
+    {
+      "case": "missing-net",
+      "rc": 1,
+      "expected": 1,
+      "pass": true
+    }
+  ],
+  "runner": [
+    {
+      "case": "normal",
+      "rc": 0,
+      "expected": 0,
+      "fake_ssh_calls": 1,
+      "expected_calls": 1,
+      "incomplete": false,
+      "pass": true
+    },
+    {
+      "case": "marker-write",
+      "rc": 4,
+      "expected": 4,
+      "fake_ssh_calls": 0,
+      "expected_calls": 0,
+      "incomplete": false,
+      "pass": true
+    },
+    {
+      "case": "start-write",
+      "rc": 4,
+      "expected": 4,
+      "fake_ssh_calls": 0,
+      "expected_calls": 0,
+      "incomplete": false,
+      "pass": true
+    },
+    {
+      "case": "remote-write",
+      "rc": 4,
+      "expected": 4,
+      "fake_ssh_calls": 1,
+      "expected_calls": 1,
+      "incomplete": true,
+      "pass": true
+    },
+    {
+      "case": "remote-write-next-U2",
+      "rc": 2,
+      "expected": 2,
+      "new_fake_ssh_calls": 0,
+      "pass": true
+    },
+    {
+      "case": "end-write",
+      "rc": 4,
+      "expected": 4,
+      "fake_ssh_calls": 1,
+      "expected_calls": 1,
+      "incomplete": true,
+      "pass": true
+    },
+    {
+      "case": "exit-directory",
+      "rc": 4,
+      "expected": 4,
+      "fake_ssh_calls": 1,
+      "expected_calls": 1,
+      "incomplete": true,
+      "pass": true
+    },
+    {
+      "case": "exit-directory-next-U2",
+      "rc": 2,
+      "expected": 2,
+      "new_fake_ssh_calls": 0,
+      "pass": true
+    },
+    {
+      "case": "remote7-end-write",
+      "rc": 7,
+      "expected": 7,
+      "fake_ssh_calls": 1,
+      "expected_calls": 1,
+      "incomplete": true,
+      "pass": true
+    },
+    {
+      "case": "remote255-write",
+      "rc": 255,
+      "expected": 255,
+      "fake_ssh_calls": 1,
+      "expected_calls": 1,
+      "incomplete": true,
+      "pass": true
+    }
+  ],
+  "pass": 15,
+  "fail": 0
+}

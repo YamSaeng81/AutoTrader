@@ -1,0 +1,16 @@
+수집 미완료 결과·종류:
+     23 sourceId=cryptopanic 결과=FAILED 종류=HTTP_403
+      1 sourceId=cryptopanic 결과=FAILED 종류=IOException
+      1 sourceId=tokenpost_rss 결과=FAILED 종류=HttpTimeoutException
+      1 sourceId=upbit_notice 결과=FAILED 종류=IOException
+Connection reset 줄 6
+ERROR 줄 로거별:
+      1  ERROR c.c.a.news.source.CryptoPanicSource
+      1  ERROR c.c.a.news.source.UpbitNoticeSource
+      1  ERROR c.c.api.llm.provider.ClaudeProvider
+      1  ERROR c.c.api.news.source.RssNewsSource
+      4  ERROR c.c.a.service.DataCollectionService
+      3  ERROR c.c.a.service.MarketDataSyncService
+      1  ERROR c.c.a.s.TelegramNotificationService
+      7  ERROR c.c.e.upbit.UpbitCandleCollector
+      4  ERROR c.c.exchange.upbit.UpbitRestClient

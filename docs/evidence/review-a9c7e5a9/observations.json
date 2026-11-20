@@ -1,0 +1,91 @@
+{
+  "u0_changed_line": [
+    [
+      "[ \"$PV\" = 0 ] || stop \"🔴 배포 전 읽기 v3 가 진행 가능이 아님(pf3ok 종료 $PV — 1 판정 불가·진입 거절 예상 / 3 형식 이상) — 배포 전 중단·보고. 한도·자본·세션·과거 행을 바꾸지 않는다(원문 predeploy-read.txt 보존)\"",
+      "[ \"$PV\" = 0 ] || stop \"🔴 배포 전 읽기 v3 가 진행 가능이 아님(pf3ok 종료 $PV — 1 보수적 사전 기준 미충족 / 3 형식 이상·읽기 실패) — 배포 전 중단·보고. 한도·자본·세션·과거 행을 바꾸지 않는다(원문 predeploy-read.txt 보존)\""
+    ]
+  ],
+  "archives": {
+    "standin/runs-r4.tar.gz": {
+      "bytes": 2369476,
+      "files": 1331,
+      "duplicates": 0,
+      "unsafe_names": []
+    },
+    "runner/selftest-r1r2.tar.gz": {
+      "bytes": 1559881,
+      "files": 474,
+      "duplicates": 0,
+      "unsafe_names": []
+    },
+    "tests/pf3-work-r1.tar.gz": {
+      "bytes": 3035,
+      "files": 26,
+      "duplicates": 0,
+      "unsafe_names": []
+    }
+  },
+  "raw_U0_cases": [
+    {
+      "case": "v01",
+      "mutations": 0,
+      "ok_U0": true,
+      "forbidden_nonempty": false
+    },
+    {
+      "case": "v02",
+      "mutations": 0,
+      "ok_U0": false,
+      "forbidden_nonempty": false
+    },
+    {
+      "case": "v03",
+      "mutations": 0,
+      "ok_U0": false,
+      "forbidden_nonempty": false
+    },
+    {
+      "case": "v04",
+      "mutations": 0,
+      "ok_U0": false,
+      "forbidden_nonempty": false
+    },
+    {
+      "case": "v05",
+      "mutations": 0,
+      "ok_U0": false,
+      "forbidden_nonempty": false
+    },
+    {
+      "case": "v06",
+      "mutations": 0,
+      "ok_U0": false,
+      "forbidden_nonempty": false
+    },
+    {
+      "case": "v07",
+      "mutations": 0,
+      "ok_U0": false,
+      "forbidden_nonempty": false
+    },
+    {
+      "case": "v08",
+      "mutations": 0,
+      "ok_U0": false,
+      "forbidden_nonempty": false
+    },
+    {
+      "case": "v09",
+      "mutations": 0,
+      "ok_U0": false,
+      "forbidden_nonempty": false
+    },
+    {
+      "case": "v10",
+      "mutations": 0,
+      "ok_U0": false,
+      "forbidden_nonempty": false
+    }
+  ],
+  "scope": "Git blobs and local preserved files only; no production access, PG, Docker, application tests or build."
+}

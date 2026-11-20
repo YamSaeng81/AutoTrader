@@ -1,0 +1,261 @@
+{
+  "source": "a9c7e5a9499781d838df2db81b248dbfb0c3327c",
+  "fixed_source": "cd8bd76fdd4d46bac893a98f4eab36cceb990c99",
+  "pass": 31,
+  "fail": 0,
+  "checks": [
+    {
+      "check": "HEAD and saved origin/main",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "submitted evidence bytes equal working copies",
+      "pass": true,
+      "actual": 68
+    },
+    {
+      "check": "manifest docs/evidence/d81d4r-20261120/",
+      "pass": true,
+      "actual": {
+        "listed": 42,
+        "bad": []
+      }
+    },
+    {
+      "check": "manifest docs/evidence/review-474d1033/",
+      "pass": true,
+      "actual": {
+        "listed": 24,
+        "bad": []
+      }
+    },
+    {
+      "check": "previous D81 evidence unchanged",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "submission changes documentation only",
+      "pass": true,
+      "actual": 71
+    },
+    {
+      "check": "settings excluded from submission",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "fixed source and evidence source blocks identical",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "exactly U variables and U0 changed",
+      "pass": true,
+      "actual": [
+        "U0.sh",
+        "U변수.sh"
+      ]
+    },
+    {
+      "check": "U variables outside classifier unchanged",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "U0 one classifier failure message only",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "extractor and runner pin identical eleven blocks",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "preserved extraction source",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "eleven extracted files match pinned hashes",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "nine generated blocks match pins",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "F and G remain previous pins",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "generator embeds exact classifier body",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "preserved parser result",
+      "pass": true,
+      "actual": {
+        "PASS": 26,
+        "FAIL": 0
+      }
+    },
+    {
+      "check": "preserved runner result",
+      "pass": true,
+      "actual": {
+        "PASS": 21,
+        "FAIL": 0
+      }
+    },
+    {
+      "check": "preserved U0 connection result",
+      "pass": true,
+      "actual": {
+        "PASS": 21,
+        "FAIL": 0
+      }
+    },
+    {
+      "check": "parser JSON results",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "first runner attempt kept separate",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "fixed-source smoke uses fake SSH",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "preserved archives readable without extracting",
+      "pass": true,
+      "actual": {
+        "standin/runs-r4.tar.gz": {
+          "bytes": 2369476,
+          "files": 1331,
+          "duplicates": 0,
+          "unsafe_names": []
+        },
+        "runner/selftest-r1r2.tar.gz": {
+          "bytes": 1559881,
+          "files": 474,
+          "duplicates": 0,
+          "unsafe_names": []
+        },
+        "tests/pf3-work-r1.tar.gz": {
+          "bytes": 3035,
+          "files": 26,
+          "duplicates": 0,
+          "unsafe_names": []
+        }
+      }
+    },
+    {
+      "check": "raw U0 ten cases have no checkout/build/tag/restart",
+      "pass": true,
+      "actual": [
+        {
+          "case": "v01",
+          "mutations": 0,
+          "ok_U0": true,
+          "forbidden_nonempty": false
+        },
+        {
+          "case": "v02",
+          "mutations": 0,
+          "ok_U0": false,
+          "forbidden_nonempty": false
+        },
+        {
+          "case": "v03",
+          "mutations": 0,
+          "ok_U0": false,
+          "forbidden_nonempty": false
+        },
+        {
+          "case": "v04",
+          "mutations": 0,
+          "ok_U0": false,
+          "forbidden_nonempty": false
+        },
+        {
+          "case": "v05",
+          "mutations": 0,
+          "ok_U0": false,
+          "forbidden_nonempty": false
+        },
+        {
+          "case": "v06",
+          "mutations": 0,
+          "ok_U0": false,
+          "forbidden_nonempty": false
+        },
+        {
+          "case": "v07",
+          "mutations": 0,
+          "ok_U0": false,
+          "forbidden_nonempty": false
+        },
+        {
+          "case": "v08",
+          "mutations": 0,
+          "ok_U0": false,
+          "forbidden_nonempty": false
+        },
+        {
+          "case": "v09",
+          "mutations": 0,
+          "ok_U0": false,
+          "forbidden_nonempty": false
+        },
+        {
+          "case": "v10",
+          "mutations": 0,
+          "ok_U0": false,
+          "forbidden_nonempty": false
+        }
+      ]
+    },
+    {
+      "check": "raw U0 completion only normal case",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "raw U0 forbidden logs empty",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "classifier validation precedes no-trade exemption",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "recording post-SSH failure keeps remote error code",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "remaining incomplete marker checked before SSH",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "independent local boundary checks",
+      "pass": true,
+      "actual": null
+    }
+  ]
+}
