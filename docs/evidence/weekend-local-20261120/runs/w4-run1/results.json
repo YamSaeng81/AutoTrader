@@ -1,0 +1,128 @@
+{
+ "synthetic": true,
+ "cases": [
+  {
+   "case": "N1_normal_round_trip",
+   "ok": true,
+   "rc": 0,
+   "verdict": "BUILT",
+   "checks": {
+    "verdict": true,
+    "exit": true,
+    "stderr_empty": true,
+    "LIVE#203.month_pnl": true,
+    "LIVE#203.realized_in_period": true,
+    "LIVE#203.fees_paid": true,
+    "LIVE#203.round_trips_closed": true,
+    "LIVE#203.wins": true,
+    "LIVE#203.losses": true,
+    "LIVE#203.identity_check": true,
+    "source_map_has_files": true,
+    "source_map_unconfirmed_has_reason": true
+   },
+   "note": ""
+  },
+  {
+   "case": "C2_buy_cost_unconfirmed",
+   "ok": false,
+   "rc": 0,
+   "verdict": "BUILT",
+   "checks": {
+    "verdict": false,
+    "exit": true,
+    "stderr_empty": true,
+    "LIVE#203.month_pnl": true,
+    "LIVE#203.realized_in_period": true,
+    "LIVE#203.realized_known_part": true,
+    "LIVE#203.fees_paid": true,
+    "LIVE#203.fees_known_part": true,
+    "LIVE#203.round_trips_closed": true,
+    "LIVE#203.round_trips_closed_known_part": true,
+    "DYNAMIC#900.month_pnl": true,
+    "DYNAMIC#900.trade_state": true,
+    "source_map_has_files": true,
+    "source_map_unconfirmed_has_reason": true
+   },
+   "note": "다른 세션 DYNAMIC 900(기간 중 생성, 거래0) 확정 유지"
+  },
+  {
+   "case": "C3_sell_month_unconfirmed",
+   "ok": false,
+   "rc": 0,
+   "verdict": "BUILT",
+   "checks": {
+    "verdict": false,
+    "exit": true,
+    "stderr_empty": true,
+    "LIVE#203.month_pnl": true,
+    "LIVE#203.realized_in_period": true,
+    "LIVE#203.fees_paid": true,
+    "LIVE#203.fees_known_part": true,
+    "LIVE#203.round_trips_closed": true,
+    "source_map_has_files": true,
+    "source_map_unconfirmed_has_reason": true
+   },
+   "note": ""
+  },
+  {
+   "case": "C4_no_clock_relation",
+   "ok": true,
+   "rc": 10,
+   "verdict": "BUILT_WITH_UNCONFIRMED",
+   "checks": {
+    "verdict": true,
+    "exit": true,
+    "stderr_empty": true,
+    "LIVE#203.month_pnl": true,
+    "LIVE#203.start_equity": true,
+    "LIVE#203.realized_in_period": true,
+    "source_map_has_files": true,
+    "source_map_unconfirmed_has_reason": true
+   },
+   "note": ""
+  },
+  {
+   "case": "C5_no_month_end_capture",
+   "ok": true,
+   "rc": 10,
+   "verdict": "BUILT_WITH_UNCONFIRMED",
+   "checks": {
+    "verdict": true,
+    "exit": true,
+    "stderr_empty": true,
+    "LIVE#203.month_pnl": true,
+    "LIVE#203.end_equity": true,
+    "LIVE#203.realized_in_period": true,
+    "LIVE#203.fees_paid": true,
+    "source_map_has_files": true,
+    "source_map_unconfirmed_has_reason": true,
+    "bundle_not_used_as_capture": true
+   },
+   "note": ""
+  },
+  {
+   "case": "C6_zero_trade_loss_new_session",
+   "ok": true,
+   "rc": 0,
+   "verdict": "BUILT",
+   "checks": {
+    "verdict": true,
+    "exit": true,
+    "stderr_empty": true,
+    "LIVE#203.month_pnl": true,
+    "LIVE#203.trade_state": true,
+    "DYNAMIC#900.month_pnl": true,
+    "DYNAMIC#900.realized_in_period": true,
+    "DYNAMIC#900.fees_paid": true,
+    "DYNAMIC#900.losses": true,
+    "DYNAMIC#900.net_flows": true,
+    "DYNAMIC#900.start_equity": true,
+    "agg_real": true,
+    "included": true,
+    "source_map_has_files": true,
+    "source_map_unconfirmed_has_reason": true
+   },
+   "note": ""
+  }
+ ]
+}

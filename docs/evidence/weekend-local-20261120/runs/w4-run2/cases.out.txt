@@ -1,0 +1,7 @@
+PASS N1_normal_round_trip rc=0 BUILT_CORE_CONFIRMED
+PASS C2_buy_cost_unconfirmed rc=10 BUILT_WITH_UNCONFIRMED
+PASS C3_sell_month_unconfirmed rc=10 BUILT_WITH_UNCONFIRMED
+PASS C4_no_clock_relation rc=10 BUILT_WITH_UNCONFIRMED
+PASS C5_no_month_end_capture rc=10 BUILT_WITH_UNCONFIRMED
+PASS C6_zero_trade_loss_new_session rc=0 BUILT_CORE_CONFIRMED
+6/6 기대대로 (기대 금액은 손 계산, 합성 입력)

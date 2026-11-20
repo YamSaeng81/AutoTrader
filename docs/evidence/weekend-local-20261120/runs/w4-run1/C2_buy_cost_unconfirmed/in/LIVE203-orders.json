@@ -1,0 +1,80 @@
+{
+ "orders": [
+  {
+   "id": 1,
+   "side": "BUY",
+   "trade_ref": "t1",
+   "captures": [
+    {
+     "ref": "c1",
+     "captured_at": "2027-01-02T10:00:00+09:00",
+     "axis": "db",
+     "qty": "0.001",
+     "funds": "10000",
+     "fee": "5",
+     "reported_observed_at": null,
+     "settlement_final": true,
+     "fill_accounting_pending": false
+    }
+   ],
+   "filled_at": "2026-12-10T10:00:00+09:00"
+  },
+  {
+   "id": 2,
+   "side": "SELL",
+   "trade_ref": "t1",
+   "captures": [
+    {
+     "ref": "c2",
+     "captured_at": "2027-01-01T00:00:00+09:00",
+     "axis": "db",
+     "qty": "0.001",
+     "funds": "11000",
+     "fee": "5.5",
+     "reported_observed_at": null,
+     "settlement_final": true,
+     "fill_accounting_pending": false
+    }
+   ],
+   "sell_applied_at": "2026-12-20T10:00:00+09:00"
+  },
+  {
+   "id": 3,
+   "side": "BUY",
+   "trade_ref": "t2",
+   "captures": [
+    {
+     "ref": "c3",
+     "captured_at": "2027-01-01T00:00:00+09:00",
+     "axis": "db",
+     "qty": "0.0005",
+     "funds": "5000",
+     "fee": "2.5",
+     "reported_observed_at": null,
+     "settlement_final": true,
+     "fill_accounting_pending": false
+    }
+   ],
+   "filled_at": "2026-12-11T10:00:00+09:00"
+  },
+  {
+   "id": 4,
+   "side": "SELL",
+   "trade_ref": "t2",
+   "captures": [
+    {
+     "ref": "c4",
+     "captured_at": "2027-01-01T00:00:00+09:00",
+     "axis": "db",
+     "qty": "0.0005",
+     "funds": "5500",
+     "fee": "2.75",
+     "reported_observed_at": null,
+     "settlement_final": true,
+     "fill_accounting_pending": false
+    }
+   ],
+   "sell_applied_at": "2026-12-21T10:00:00+09:00"
+  }
+ ]
+}

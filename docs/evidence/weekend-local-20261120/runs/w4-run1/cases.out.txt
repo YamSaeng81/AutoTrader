@@ -1,0 +1,7 @@
+PASS N1_normal_round_trip rc=0 BUILT
+FAIL C2_buy_cost_unconfirmed rc=0 BUILT {'verdict': False, 'exit': True, 'stderr_empty': True, 'LIVE#203.month_pnl': True, 'LIVE#203.realized_in_period': True, 'LIVE#203.realized_known_part': True, 'LIVE#203.fees_paid': True, 'LIVE#203.fees_known_part': True, 'LIVE#203.round_trips_closed': True, 'LIVE#203.round_trips_closed_known_part': True, 'DYNAMIC#900.month_pnl': True, 'DYNAMIC#900.trade_state': True, 'source_map_has_files': True, 'source_map_unconfirmed_has_reason': True} 
+FAIL C3_sell_month_unconfirmed rc=0 BUILT {'verdict': False, 'exit': True, 'stderr_empty': True, 'LIVE#203.month_pnl': True, 'LIVE#203.realized_in_period': True, 'LIVE#203.fees_paid': True, 'LIVE#203.fees_known_part': True, 'LIVE#203.round_trips_closed': True, 'source_map_has_files': True, 'source_map_unconfirmed_has_reason': True} 
+PASS C4_no_clock_relation rc=10 BUILT_WITH_UNCONFIRMED
+PASS C5_no_month_end_capture rc=10 BUILT_WITH_UNCONFIRMED
+PASS C6_zero_trade_loss_new_session rc=0 BUILT
+4/6 기대대로 (기대 금액은 손 계산, 합성 입력)

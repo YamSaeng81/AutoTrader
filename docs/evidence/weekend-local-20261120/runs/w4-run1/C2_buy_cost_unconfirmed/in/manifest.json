@@ -1,0 +1,51 @@
+{
+ "version": "monthly-manifest-1",
+ "synthetic": true,
+ "period": {
+  "from": "2026-12-01T00:00:00+09:00",
+  "to": "2027-01-01T00:00:00+09:00",
+  "axis": "db"
+ },
+ "deadline_M": "2027-01-01T10:30:00+09:00",
+ "month_bounds": [],
+ "registry": {
+  "file": "..\\..\\..\\..\\fixtures\\w1\\registry.json"
+ },
+ "clock": {
+  "file": "clock.json"
+ },
+ "benchmarks": null,
+ "account": null,
+ "sessions": [
+  {
+   "kind": "LIVE",
+   "id": 203,
+   "meta": {
+    "file": "LIVE203-meta.json"
+   },
+   "boundary_start": {
+    "file": "LIVE203-start.json"
+   },
+   "boundary_end": {
+    "file": "LIVE203-end.json"
+   },
+   "orders": {
+    "file": "LIVE203-orders.json"
+   }
+  },
+  {
+   "kind": "DYNAMIC",
+   "id": 900,
+   "meta": {
+    "file": "DYNAMIC900-meta.json"
+   },
+   "boundary_start": null,
+   "boundary_end": {
+    "file": "DYNAMIC900-end.json"
+   },
+   "orders": {
+    "file": "DYNAMIC900-orders.json"
+   }
+  }
+ ]
+}
