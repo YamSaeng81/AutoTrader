@@ -1,0 +1,84 @@
+{
+ "pass": 7,
+ "total": 7,
+ "cases": {
+  "normal": {
+   "rc": 0,
+   "expected_rc": 0,
+   "raw_preserved": true,
+   "sums_ok": true,
+   "flags_false": true,
+   "downstream": "db_part_only",
+   "status": "db_extract_partial",
+   "clock_status": "confirmed_interval",
+   "p7_sample_shape_problems": [],
+   "sample_step": "db_extract",
+   "pass": true
+  },
+  "stop": {
+   "rc": 10,
+   "expected_rc": 10,
+   "raw_preserved": true,
+   "sums_ok": true,
+   "flags_false": true,
+   "downstream": "blocked",
+   "status": "gate_stop",
+   "clock_status": "confirmed_interval",
+   "amount_keys_absent": true,
+   "pass": true
+  },
+  "psql_fail_partial": {
+   "rc": 20,
+   "expected_rc": 20,
+   "raw_preserved": true,
+   "sums_ok": true,
+   "flags_false": true,
+   "downstream": "blocked",
+   "status": "psql_failed",
+   "clock_status": "confirmed_interval",
+   "amount_keys_absent": true,
+   "pass": true
+  },
+  "parse_format_fail": {
+   "rc": 30,
+   "expected_rc": 30,
+   "raw_preserved": true,
+   "sums_ok": true,
+   "flags_false": true,
+   "downstream": "blocked",
+   "status": "parse_failed",
+   "clock_status": "confirmed_interval",
+   "amount_keys_absent": true,
+   "pass": true
+  },
+  "clock_shift": {
+   "rc": 13,
+   "expected_rc": 13,
+   "raw_preserved": true,
+   "sums_ok": true,
+   "flags_false": true,
+   "downstream": "blocked",
+   "status": "parsed_clock_unconfirmed",
+   "clock_status": "unconfirmed",
+   "no_sample": true,
+   "pass": true
+  },
+  "clock_absent": {
+   "rc": 41,
+   "expected_rc": 41,
+   "raw_preserved": true,
+   "sums_ok": true,
+   "flags_false": true,
+   "downstream": "blocked",
+   "status": "clock_record_absent",
+   "clock_status": "absent",
+   "pass": true
+  },
+  "existing_out": {
+   "rc": 40,
+   "expected_rc": 40,
+   "unchanged": true,
+   "pass": true
+  }
+ }
+}

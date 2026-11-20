@@ -1,0 +1,49 @@
+{
+ "kind": "db-extract-partial-1",
+ "is_p7_observation": false,
+ "is_f3_input": false,
+ "account_or_month_end_confirmed": false,
+ "not_in_bundle": [
+  "db_fp_pre",
+  "exchange_before",
+  "exchange_after",
+  "db_fp_post",
+  "app_code_sha",
+  "exchange_account_orders",
+  "registered_capital_cash_base",
+  "ruleset.confirmed"
+ ],
+ "downstream": "blocked",
+ "inputs": {
+  "registry.json": "aa42b1af57c3a0d11ac8b22edc7c1aa34452aa5491be7a500e733b4475e151c0",
+  "stdout.tsv": "4ba6110a5a58ae3a541b25fb27d75af93a2e80e0d714300eebc342803300cefa",
+  "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "psql_rc.txt": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354",
+  "clock.json": "cf4f744b0809bba85fd32288c4aa59080e25505678a546ef3b95b83c0ae3cf76"
+ },
+ "fixed_sources": {
+  "sql": {
+   "sha256": "9818db5452f66f058c97322ac9aaf73097036997777d10a0af9f6dde05bdae03",
+   "expected": "9818db5452f66f058c97322ac9aaf73097036997777d10a0af9f6dde05bdae03",
+   "match": true
+  },
+  "parser": {
+   "sha256": "0f6fe827c9da513445ce9c52300b8688f8f4f162a99026b90d05943c10341908",
+   "expected": "0f6fe827c9da513445ce9c52300b8688f8f4f162a99026b90d05943c10341908",
+   "match": true
+  }
+ },
+ "problems": [],
+ "psql_rc": 0,
+ "parse_rc": 0,
+ "clock": {
+  "mono_tol_us": 500,
+  "problems": [
+   "c0→c1 벽시계 경과와 단조 경과 차이 0:00:00.002000 > 0:00:00.000500(시계 이동)"
+  ],
+  "status": "unconfirmed",
+  "note": "그 회차의 db↔collector 축 관계 미확정. 값은 보존, 표본·구간은 내보내지 않음"
+ },
+ "status": "parsed_clock_unconfirmed",
+ "rc": 13
+}

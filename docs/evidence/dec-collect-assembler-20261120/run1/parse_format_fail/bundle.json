@@ -1,0 +1,52 @@
+{
+ "kind": "db-extract-partial-1",
+ "is_p7_observation": false,
+ "is_f3_input": false,
+ "account_or_month_end_confirmed": false,
+ "not_in_bundle": [
+  "db_fp_pre",
+  "exchange_before",
+  "exchange_after",
+  "db_fp_post",
+  "app_code_sha",
+  "exchange_account_orders",
+  "registered_capital_cash_base",
+  "ruleset.confirmed"
+ ],
+ "downstream": "blocked",
+ "inputs": {
+  "registry.json": "aa42b1af57c3a0d11ac8b22edc7c1aa34452aa5491be7a500e733b4475e151c0",
+  "stdout.tsv": "0d81bb168bf13af4c6ef63dc3fc14ed17e47eaff601ea0e17663b1e08f604c4d",
+  "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "psql_rc.txt": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354",
+  "clock.json": "a7704fa3b04fc5270f7049bbf172282616724942198617448df3535c928dd39f"
+ },
+ "fixed_sources": {
+  "sql": {
+   "sha256": "9818db5452f66f058c97322ac9aaf73097036997777d10a0af9f6dde05bdae03",
+   "expected": "9818db5452f66f058c97322ac9aaf73097036997777d10a0af9f6dde05bdae03",
+   "match": true
+  },
+  "parser": {
+   "sha256": "0f6fe827c9da513445ce9c52300b8688f8f4f162a99026b90d05943c10341908",
+   "expected": "0f6fe827c9da513445ce9c52300b8688f8f4f162a99026b90d05943c10341908",
+   "match": true
+  }
+ },
+ "problems": [],
+ "psql_rc": 0,
+ "parse_rc": 30,
+ "clock": {
+  "mono_tol_us": 500,
+  "problems": [],
+  "status": "confirmed_interval",
+  "db_extract_step": {
+   "step": "db_extract",
+   "start": "2026-11-20T04:27:34.440000+00:00",
+   "end": "2026-11-20T04:27:34.480000+00:00"
+  },
+  "note": "스냅숏은 psql 호출 [c0,c1] 사이(단조 일치 전제). 정확한 스냅숏·월말 T 시각이 아니다. DB [now(),END] 는 벽시계 무이동 근거 없이 보장 경계로 쓰지 않는다"
+ },
+ "status": "parse_failed",
+ "rc": 30
+}

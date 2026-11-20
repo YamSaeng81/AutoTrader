@@ -1,0 +1,101 @@
+{
+  "f3_guards": [
+    {
+      "field": "code",
+      "before": "AttributeError",
+      "after": [
+        false,
+        [
+          "code 누락 또는 타입 불일치(dict 필요)"
+        ]
+      ]
+    },
+    {
+      "field": "exchange_coverage",
+      "before": "AttributeError",
+      "after": [
+        false,
+        [
+          "exchange_coverage 누락 또는 타입 불일치(dict 필요)"
+        ]
+      ]
+    },
+    {
+      "field": "account",
+      "before": "AttributeError",
+      "after": [
+        false,
+        [
+          "account 누락 또는 타입 불일치(dict 필요)"
+        ]
+      ]
+    },
+    {
+      "field": "account_sum",
+      "before": "AttributeError",
+      "after": [
+        false,
+        [
+          "account_sum 누락 또는 타입 불일치(dict 필요)"
+        ]
+      ]
+    },
+    {
+      "field": "exchange_coverage.window",
+      "before": "AttributeError",
+      "after": [
+        false,
+        [
+          "exchange_coverage.window 누락 또는 타입 불일치(dict 필요)"
+        ]
+      ]
+    }
+  ],
+  "orchestration_steps_as_p7": {
+    "problems": [
+      "meta.steps: 순서 ['db_fp_pre', 'exchange_before', 'db_extract', 'exchange_after', 'db_fp_post'] 아님"
+    ],
+    "required_steps": [
+      "db_fp_pre",
+      "exchange_before",
+      "db_extract",
+      "exchange_after",
+      "db_fp_post"
+    ]
+  },
+  "sample_without_step": [
+    "clock.samples[0]: 키 ['c0', 'c1', 'd', 'mono_rtt_ms', 'pair', 'step']"
+  ],
+  "single_sample_coverage": {
+    "db_point_before_sample": null,
+    "sample_point_interval": [
+      "2026-11-20T00:00:00+00:00",
+      "2026-11-20T00:00:02+00:00"
+    ],
+    "report": {
+      "meta": "present",
+      "steps_timing": "interval",
+      "samples": {
+        "db": {
+          "used": 1,
+          "stale": 0,
+          "shift": 0
+        }
+      },
+      "relations": {
+        "db-collector": {
+          "status": "measured",
+          "samples": 1,
+          "offset_ms_each": [
+            [
+              "-1000",
+              "1000"
+            ]
+          ],
+          "note": "시각을 앞뒤로 감싸는 표본들의 범위만 사용(표본 사이 단조 변화 가정, 표본 밖 외삽 없음)"
+        }
+      },
+      "same_source": []
+    }
+  }
+}

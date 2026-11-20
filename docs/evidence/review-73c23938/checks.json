@@ -1,0 +1,99 @@
+{
+  "sha": "73c23938f94a862af58f7b24afa50c764ca3bb67",
+  "passed": 15,
+  "failed": 0,
+  "manifest_entries": 17,
+  "f3_v9_sha256": "f825ca5e80ef1542abf98962d1aeb91f5fe279555ae6acfc1b1421df73e55f15",
+  "checks": [
+    {
+      "name": "HEAD and saved origin/main",
+      "ok": true,
+      "detail": "Saved refs; no remote query"
+    },
+    {
+      "name": "Submission only evidence and three management docs",
+      "ok": true,
+      "detail": {
+        "changed_paths": 23,
+        "settings_included": false
+      }
+    },
+    {
+      "name": "Manifest dec-f3-v9-20261120",
+      "ok": true,
+      "detail": {
+        "folder": "dec-f3-v9-20261120",
+        "entries": 5,
+        "mismatches": []
+      }
+    },
+    {
+      "name": "Manifest dec-collect-contract-20261120",
+      "ok": true,
+      "detail": {
+        "folder": "dec-collect-contract-20261120",
+        "entries": 2,
+        "mismatches": []
+      }
+    },
+    {
+      "name": "Manifest review-170395d3",
+      "ok": true,
+      "detail": {
+        "folder": "review-170395d3",
+        "entries": 10,
+        "mismatches": []
+      }
+    },
+    {
+      "name": "Executable F3 changes limited to two guards",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Preserved CLI results 13/13",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Normal F3 unchanged",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Five formerly exceptional types return nonpass with reasons",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Unchanged accepted read.sql",
+      "ok": true,
+      "detail": "9818db5452f66f058c97322ac9aaf73097036997777d10a0af9f6dde05bdae03"
+    },
+    {
+      "name": "Unchanged accepted parse.py",
+      "ok": true,
+      "detail": "0f6fe827c9da513445ce9c52300b8688f8f4f162a99026b90d05943c10341908"
+    },
+    {
+      "name": "Literal C0..C6 is rejected as P7 steps",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Contract sample needs mandatory step",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Named db_extract sample has valid shape",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "Single sample does not extrapolate to earlier DB point",
+      "ok": true,
+      "detail": null
+    }
+  ]
+}
