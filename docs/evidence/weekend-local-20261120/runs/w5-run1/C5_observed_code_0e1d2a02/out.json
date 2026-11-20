@@ -1,0 +1,49 @@
+{
+ "tool": "check_dynamic_plan",
+ "version": "w5-1",
+ "sent_request": false,
+ "server_contract": {
+  "dto_fields": [
+   "strategyType",
+   "timeframe",
+   "initialCapital",
+   "stopLossPct",
+   "investRatio",
+   "maxCandidateSize",
+   "targetWatchSize",
+   "minAtrPct",
+   "maxSpreadPct",
+   "watchlistRefreshMin",
+   "maxHoldHours",
+   "strategyParams",
+   "tradingMode"
+  ],
+  "limit_keys": [
+   "maxOrderKrw",
+   "excludeCoins"
+  ],
+  "min_order_krw": "5000",
+  "source_revision": "d81c3f2f91c0239aacb0e1176dde9b898f4d7466"
+ },
+ "synthetic_input": true,
+ "derived": {
+  "effective_invest_ratio": "0.8",
+  "maxOrderKrw": "10000",
+  "per_position_cap_krw": "20000"
+ },
+ "reject": [],
+ "not_ready": [
+  {
+   "code": "DEPLOY_DOES_NOT_SUPPORT",
+   "observed": "0e1d2a02",
+   "detail": "0e1d2a02 에는 DynamicEntryLimits 가 없고 tradingMode 를 \"PAPER\" 아니면 REAL 로 저장(:481)"
+  }
+ ],
+ "notes": [
+  "포지션당 상한은 기술 상한이다 — 승인 금액의 대용이 아니다",
+  "승인 참조가 합성 표지 — 운영 승인 근거로 쓰지 않음"
+ ],
+ "verdict": "NOT_READY",
+ "summary_line": "NOT_READY — DEPLOY_DOES_NOT_SUPPORT",
+ "exit": 10
+}

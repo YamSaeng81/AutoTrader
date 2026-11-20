@@ -1,0 +1,37 @@
+{
+ "plan_version": "dynamic-plan-1",
+ "synthetic": true,
+ "request": {
+  "strategyType": "COMPOSITE_BREAKOUT",
+  "timeframe": "H1",
+  "initialCapital": "20000",
+  "investRatio": 80,
+  "stopLossPct": "5.0",
+  "tradingMode": "REAL",
+  "strategyParams": {
+   "maxOrderKrw": 10000,
+   "excludeCoins": [
+    "KRW-BTC"
+   ]
+  }
+ },
+ "approval": {
+  "capital_ref": "SYN-APPROVAL-CAPITAL(합성)",
+  "loss_limit_ref": "SYN-APPROVAL-LOSS(합성)",
+  "strategy_ref": "SYN-APPROVAL-STRATEGY(합성)",
+  "synthetic": true
+ },
+ "deploy": {
+  "observed_code_sha": "0e1d2a02",
+  "source": "합성 관측"
+ },
+ "server_limits": {
+  "per_position_cap_krw": "20000",
+  "source": "합성 — RUNBOOK STAGE_1 포지션당 20000 표기를 시험값으로만 사용"
+ },
+ "live_link": {
+  "kind": "LIVE",
+  "id": 203,
+  "create": false
+ }
+}

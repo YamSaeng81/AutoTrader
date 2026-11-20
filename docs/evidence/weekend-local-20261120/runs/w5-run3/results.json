@@ -1,0 +1,154 @@
+{
+ "synthetic": true,
+ "cases": [
+  {
+   "case": "N1_format_ok_synthetic_approval",
+   "ok": true,
+   "rc": 0,
+   "verdict": "FORMAT_OK_NOT_APPROVED",
+   "reject": [],
+   "not_ready": [],
+   "checks": {
+    "exit": true,
+    "stderr_empty": true,
+    "not_sent": true,
+    "verdict": true,
+    "reject_codes": true,
+    "not_ready_codes": true,
+    "wording": true,
+    "ratio_80_is_0_80": true,
+    "contract_from_java": true
+   }
+  },
+  {
+   "case": "C2_approval_value_undecided",
+   "ok": true,
+   "rc": 10,
+   "verdict": "NOT_READY",
+   "reject": [],
+   "not_ready": [
+    "APPROVAL_VALUE_UNDECIDED"
+   ],
+   "checks": {
+    "exit": true,
+    "stderr_empty": true,
+    "not_sent": true,
+    "verdict": true,
+    "reject_codes": true,
+    "not_ready_codes": true
+   }
+  },
+  {
+   "case": "C3a_mode_missing",
+   "ok": true,
+   "rc": 20,
+   "verdict": "REJECT",
+   "reject": [
+    "TRADING_MODE_INVALID"
+   ],
+   "not_ready": [],
+   "checks": {
+    "exit": true,
+    "stderr_empty": true,
+    "not_sent": true,
+    "verdict": true,
+    "reject_codes": true,
+    "not_ready_codes": true
+   }
+  },
+  {
+   "case": "C3b_mode_lowercase",
+   "ok": true,
+   "rc": 20,
+   "verdict": "REJECT",
+   "reject": [
+    "TRADING_MODE_INVALID"
+   ],
+   "not_ready": [],
+   "checks": {
+    "exit": true,
+    "stderr_empty": true,
+    "not_sent": true,
+    "verdict": true,
+    "reject_codes": true,
+    "not_ready_codes": true
+   }
+  },
+  {
+   "case": "C4a_limits_pair_incomplete",
+   "ok": true,
+   "rc": 20,
+   "verdict": "REJECT",
+   "reject": [
+    "ENTRY_LIMITS_PAIR_INCOMPLETE"
+   ],
+   "not_ready": [],
+   "checks": {
+    "exit": true,
+    "stderr_empty": true,
+    "not_sent": true,
+    "verdict": true,
+    "reject_codes": true,
+    "not_ready_codes": true
+   }
+  },
+  {
+   "case": "C4b_max_order_above_cap",
+   "ok": true,
+   "rc": 20,
+   "verdict": "REJECT",
+   "reject": [
+    "MAX_ORDER_ABOVE_SERVER_CAP"
+   ],
+   "not_ready": [],
+   "checks": {
+    "exit": true,
+    "stderr_empty": true,
+    "not_sent": true,
+    "verdict": true,
+    "reject_codes": true,
+    "not_ready_codes": true
+   }
+  },
+  {
+   "case": "C5_observed_code_0e1d2a02",
+   "ok": true,
+   "rc": 10,
+   "verdict": "NOT_READY",
+   "reject": [],
+   "not_ready": [
+    "DEPLOY_DOES_NOT_SUPPORT"
+   ],
+   "checks": {
+    "exit": true,
+    "stderr_empty": true,
+    "not_sent": true,
+    "verdict": true,
+    "reject_codes": true,
+    "not_ready_codes": true
+   }
+  },
+  {
+   "case": "R0_actual_plan_skeleton",
+   "ok": true,
+   "rc": 10,
+   "verdict": "NOT_READY",
+   "reject": [],
+   "not_ready": [
+    "APPROVAL_VALUE_UNDECIDED",
+    "DEPLOY_UNOBSERVED",
+    "INVEST_RATIO_DEFAULT",
+    "SERVER_CAP_UNKNOWN",
+    "VALUE_UNDECIDED"
+   ],
+   "checks": {
+    "exit": true,
+    "stderr_empty": true,
+    "not_sent": true,
+    "verdict": true,
+    "reject_codes": true,
+    "not_ready_codes": true
+   }
+  }
+ ]
+}

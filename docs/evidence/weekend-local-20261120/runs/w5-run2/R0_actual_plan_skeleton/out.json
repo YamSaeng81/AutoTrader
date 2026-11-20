@@ -1,0 +1,66 @@
+{
+ "tool": "check_dynamic_plan",
+ "version": "w5-2",
+ "sent_request": false,
+ "server_contract": {
+  "dto_fields": [
+   "strategyType",
+   "timeframe",
+   "initialCapital",
+   "stopLossPct",
+   "investRatio",
+   "maxCandidateSize",
+   "targetWatchSize",
+   "minAtrPct",
+   "maxSpreadPct",
+   "watchlistRefreshMin",
+   "maxHoldHours",
+   "strategyParams",
+   "tradingMode"
+  ],
+  "limit_keys": [
+   "maxOrderKrw",
+   "excludeCoins"
+  ],
+  "min_order_krw": "5000",
+  "source_revision": "d81c3f2f91c0239aacb0e1176dde9b898f4d7466"
+ },
+ "synthetic_input": false,
+ "derived": {
+  "effective_invest_ratio": null
+ },
+ "reject": [],
+ "not_ready": [
+  {
+   "code": "VALUE_UNDECIDED",
+   "fields": [
+    "strategyType",
+    "timeframe",
+    "initialCapital",
+    "strategyParams.maxOrderKrw"
+   ],
+   "detail": "값 미정(null) — 결정 뒤 다시 검사"
+  },
+  {
+   "code": "INVEST_RATIO_DEFAULT",
+   "detail": "미지정이면 서버 기본 0.80 — 명시 값으로 승인받아야 함"
+  },
+  {
+   "code": "APPROVAL_VALUE_UNDECIDED",
+   "fields": [
+    "capital_ref",
+    "loss_limit_ref",
+    "strategy_ref"
+   ],
+   "detail": "총원금·월 손실 상한·최종 전략은 사용자 결정 전"
+  },
+  {
+   "code": "DEPLOY_UNOBSERVED",
+   "detail": "운영 코드 SHA 관측 없음"
+  }
+ ],
+ "notes": [],
+ "verdict": "NOT_READY",
+ "summary_line": "NOT_READY — VALUE_UNDECIDED, INVEST_RATIO_DEFAULT, APPROVAL_VALUE_UNDECIDED, DEPLOY_UNOBSERVED",
+ "exit": 10
+}

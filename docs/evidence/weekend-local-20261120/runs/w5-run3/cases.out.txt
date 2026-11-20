@@ -1,0 +1,9 @@
+PASS N1_format_ok_synthetic_approval rc=0 로컬 형식 점검 완료·실제 실행 승인 전(요청 전송 안 함)
+PASS C2_approval_value_undecided rc=10 NOT_READY — APPROVAL_VALUE_UNDECIDED
+PASS C3a_mode_missing rc=20 REJECT — TRADING_MODE_INVALID
+PASS C3b_mode_lowercase rc=20 REJECT — TRADING_MODE_INVALID
+PASS C4a_limits_pair_incomplete rc=20 REJECT — ENTRY_LIMITS_PAIR_INCOMPLETE
+PASS C4b_max_order_above_cap rc=20 REJECT — MAX_ORDER_ABOVE_SERVER_CAP
+PASS C5_observed_code_0e1d2a02 rc=10 NOT_READY — DEPLOY_DOES_NOT_SUPPORT
+PASS R0_actual_plan_skeleton rc=10 NOT_READY — VALUE_UNDECIDED, INVEST_RATIO_DEFAULT, SERVER_CAP_UNKNOWN, APPROVAL_VALUE_UNDECIDED, DEPLOY_UNOBSERVED
+8/8 기대대로 (직접 영향 5사례 7변형 + 실제 운용안 골격 1, 요청 전송 0)

@@ -1,0 +1,52 @@
+{
+ "tool": "check_dynamic_plan",
+ "version": "w5-2",
+ "sent_request": false,
+ "server_contract": {
+  "dto_fields": [
+   "strategyType",
+   "timeframe",
+   "initialCapital",
+   "stopLossPct",
+   "investRatio",
+   "maxCandidateSize",
+   "targetWatchSize",
+   "minAtrPct",
+   "maxSpreadPct",
+   "watchlistRefreshMin",
+   "maxHoldHours",
+   "strategyParams",
+   "tradingMode"
+  ],
+  "limit_keys": [
+   "maxOrderKrw",
+   "excludeCoins"
+  ],
+  "min_order_krw": "5000",
+  "source_revision": "d81c3f2f91c0239aacb0e1176dde9b898f4d7466"
+ },
+ "synthetic_input": true,
+ "derived": {
+  "effective_invest_ratio": "0.8",
+  "maxOrderKrw": "10000",
+  "per_position_cap_krw": "20000"
+ },
+ "reject": [],
+ "not_ready": [
+  {
+   "code": "APPROVAL_VALUE_UNDECIDED",
+   "fields": [
+    "capital_ref",
+    "loss_limit_ref"
+   ],
+   "detail": "총원금·월 손실 상한·최종 전략은 사용자 결정 전"
+  }
+ ],
+ "notes": [
+  "포지션당 상한은 기술 상한이다 — 승인 금액의 대용이 아니다",
+  "승인 참조가 합성 표지 — 운영 승인 근거로 쓰지 않음"
+ ],
+ "verdict": "NOT_READY",
+ "summary_line": "NOT_READY — APPROVAL_VALUE_UNDECIDED",
+ "exit": 10
+}

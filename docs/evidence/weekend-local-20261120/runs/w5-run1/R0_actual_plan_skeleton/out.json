@@ -1,0 +1,73 @@
+{
+ "tool": "check_dynamic_plan",
+ "version": "w5-1",
+ "sent_request": false,
+ "server_contract": {
+  "dto_fields": [
+   "strategyType",
+   "timeframe",
+   "initialCapital",
+   "stopLossPct",
+   "investRatio",
+   "maxCandidateSize",
+   "targetWatchSize",
+   "minAtrPct",
+   "maxSpreadPct",
+   "watchlistRefreshMin",
+   "maxHoldHours",
+   "strategyParams",
+   "tradingMode"
+  ],
+  "limit_keys": [
+   "maxOrderKrw",
+   "excludeCoins"
+  ],
+  "min_order_krw": "5000",
+  "source_revision": "d81c3f2f91c0239aacb0e1176dde9b898f4d7466"
+ },
+ "synthetic_input": false,
+ "derived": {
+  "effective_invest_ratio": null
+ },
+ "reject": [
+  {
+   "code": "REQUIRED_BLANK",
+   "field": "strategyType"
+  },
+  {
+   "code": "REQUIRED_BLANK",
+   "field": "timeframe"
+  },
+  {
+   "code": "INITIAL_CAPITAL_MISSING",
+   "detail": "initialCapital 숫자(문자열/정수) 필수 — 실수형 거절"
+  },
+  {
+   "code": "MAX_ORDER_FORMAT",
+   "detail": "maxOrderKrw 는 정수 원(JSON 정수)"
+  }
+ ],
+ "not_ready": [
+  {
+   "code": "INVEST_RATIO_DEFAULT",
+   "detail": "미지정이면 서버 기본 0.80 — 명시 값으로 승인받아야 함"
+  },
+  {
+   "code": "APPROVAL_VALUE_UNDECIDED",
+   "fields": [
+    "capital_ref",
+    "loss_limit_ref",
+    "strategy_ref"
+   ],
+   "detail": "총원금·월 손실 상한·최종 전략은 사용자 결정 전"
+  },
+  {
+   "code": "DEPLOY_UNOBSERVED",
+   "detail": "운영 코드 SHA 관측 없음"
+  }
+ ],
+ "notes": [],
+ "verdict": "REJECT",
+ "summary_line": "REJECT — REQUIRED_BLANK, REQUIRED_BLANK, INITIAL_CAPITAL_MISSING, MAX_ORDER_FORMAT",
+ "exit": 20
+}
