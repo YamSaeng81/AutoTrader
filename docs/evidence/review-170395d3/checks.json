@@ -1,0 +1,176 @@
+{
+  "commit": "170395d3ffefe253294bc8a10a6911d068fc669b",
+  "scope": "Local committed blobs, saved output, in-memory file functions only",
+  "pass": 25,
+  "fail": 0,
+  "pins": {
+    "dec-scorecard-source-v4-20261120/convert.py": "f63a857fcdb623176c3c8635e6ed41149808c9a5554648ce45bc06a38c40fa32",
+    "dec-scorecard-source-v4-20261120/scorecard/scorecard.py": "b95acebdd9719e6b25ee6b62bfc03a4791992f5f8ed5e3c62d10d3635529a143",
+    "dec-registry-p7v8-20261120/p7v8/reconcile.py": "156c38289dba5836db3a61a3b005e9d3b873e8142b3d0146f693080f51f9effa",
+    "dec-registry-p7v8-20261120/p7v8/f3.py": "0b1a55b6e86a2b7fcf2a93ffacc330d575723df315ed9f91b4e72d933dbe011e"
+  },
+  "checks": [
+    {
+      "name": "HEAD and saved origin/main",
+      "ok": true,
+      "detail": "Saved references only; no remote query"
+    },
+    {
+      "name": "Submission paths only management docs and evidence",
+      "ok": true,
+      "detail": {
+        "paths": 202,
+        "settings_included": false
+      }
+    },
+    {
+      "name": "Manifest dec-read-gate-v3-20261120",
+      "ok": true,
+      "detail": {
+        "entries": 44,
+        "bad": []
+      }
+    },
+    {
+      "name": "Manifest dec-read-gate-v2-20261120",
+      "ok": true,
+      "detail": {
+        "entries": 106,
+        "bad": []
+      }
+    },
+    {
+      "name": "Manifest review-43d729db",
+      "ok": true,
+      "detail": {
+        "entries": 7,
+        "bad": []
+      }
+    },
+    {
+      "name": "Manifest review-read-gate-v2-20261120",
+      "ok": true,
+      "detail": {
+        "entries": 8,
+        "bad": []
+      }
+    },
+    {
+      "name": "Manifest review-read-gate-v3-20261120",
+      "ok": true,
+      "detail": {
+        "entries": 8,
+        "bad": []
+      }
+    },
+    {
+      "name": "Manifest dec-scorecard-source-v4-20261120",
+      "ok": true,
+      "detail": {
+        "entries": 6,
+        "bad": []
+      }
+    },
+    {
+      "name": "Manifest dec-registry-p7v8-20261120",
+      "ok": true,
+      "detail": {
+        "entries": 6,
+        "bad": []
+      }
+    },
+    {
+      "name": "Manifest dec-read-source-20261120",
+      "ok": true,
+      "detail": {
+        "entries": 3,
+        "bad": []
+      }
+    },
+    {
+      "name": "Manifest dec-scorecard-source-v3-20261120",
+      "ok": true,
+      "detail": {
+        "entries": 11,
+        "bad": []
+      }
+    },
+    {
+      "name": "Manifest dec-registry-p7v7-20261120",
+      "ok": true,
+      "detail": {
+        "entries": 6,
+        "bad": []
+      }
+    },
+    {
+      "name": "Accepted pin dec-read-gate-v3-20261120/read.sql",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Accepted pin dec-read-gate-v3-20261120/parse.py",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "R3 raw preservation attribute",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Preserved direct cases dec-scorecard-source-v4-20261120",
+      "ok": true,
+      "detail": {
+        "last_line": "합계 8 통과 8 실패 0"
+      }
+    },
+    {
+      "name": "Preserved direct cases dec-registry-p7v8-20261120",
+      "ok": true,
+      "detail": {
+        "last_line": "합계 15 통과 15 실패 0"
+      }
+    },
+    {
+      "name": "S1 old zero opening vs new unknown",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "S1 second session preserved independently",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "S2 unknown month with confirmed loss partial preserved",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "P7 confirmed negative coexists with reservation hold",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "P7 unallocated boundary unknown is not confirmed negative",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "P7 normal output unchanged and F3 accepts",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Malformed F3 never returns acceptance",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "F3 rejects contradictory OK and nonempty anomaly list",
+      "ok": true,
+      "detail": null
+    }
+  ]
+}

@@ -1,0 +1,278 @@
+{
+  "probes": [
+    {
+      "name": "S1",
+      "old": {
+        "id": null,
+        "start_equity": "0",
+        "end_equity": "20200",
+        "realized_in_period": "0",
+        "realized_known_part": "0",
+        "round_trips_closed": 0,
+        "round_trips_closed_known_part": 0,
+        "wins": 0,
+        "losses": 0,
+        "wins_known_part": 0,
+        "losses_known_part": 0
+      },
+      "new": {
+        "id": null,
+        "start_equity": null,
+        "end_equity": "20200",
+        "realized_in_period": "0",
+        "realized_known_part": "0",
+        "round_trips_closed": 0,
+        "round_trips_closed_known_part": 0,
+        "wins": 0,
+        "losses": 0,
+        "wins_known_part": 0,
+        "losses_known_part": 0
+      },
+      "creation": {
+        "status": "미확정",
+        "created_at": "2026-12-01T00:00:00+09:00",
+        "axis": "app",
+        "why": "생성 시각 축 app 과 기간 축 db 의 관계 근거 없음 — 새 세션·기초0 확정 안 함, 기초 포착도 쓰지 않음"
+      }
+    },
+    {
+      "name": "S1 second-session isolation",
+      "two_cards": [
+        {
+          "id": null,
+          "start_equity": null,
+          "end_equity": "20200",
+          "realized_in_period": "0",
+          "realized_known_part": "0",
+          "round_trips_closed": 0,
+          "round_trips_closed_known_part": 0,
+          "wins": 0,
+          "losses": 0,
+          "wins_known_part": 0,
+          "losses_known_part": 0
+        },
+        {
+          "id": null,
+          "start_equity": null,
+          "end_equity": "20200",
+          "realized_in_period": null,
+          "realized_known_part": "0",
+          "round_trips_closed": null,
+          "round_trips_closed_known_part": 0,
+          "wins": null,
+          "losses": null,
+          "wins_known_part": 0,
+          "losses_known_part": 0
+        }
+      ],
+      "same_as_alone": true
+    },
+    {
+      "name": "S2 mixed confirmed and unknown month",
+      "old": {
+        "realized_in_period": null,
+        "realized_known_part": "-10",
+        "fees_paid": null,
+        "fees_known_part": "0",
+        "fees_why": [
+          "거래1 매도0 수수료 월 귀속 모름(매도 정산 시각 없음)"
+        ],
+        "buy_funds": "200",
+        "buy_funds_known_part": "200",
+        "buys_why": [],
+        "missing_time": [
+          "거래1 매도0 정산 시각 없음 — 이 달 실현 미확정"
+        ],
+        "value_unconfirmed": [],
+        "round_trips_closed": 1,
+        "round_trips_closed_known_part": 1,
+        "round_trips_unconfirmed": [],
+        "wins": 0,
+        "losses": 1,
+        "wins_known_part": 0,
+        "losses_known_part": 1,
+        "holding_hours_median": 24.0,
+        "round_trips": [
+          {
+            "trade": 0,
+            "lifetime_pnl": "-10",
+            "this_month_part": "-10",
+            "carry_in": false
+          }
+        ],
+        "stored_realized_mismatch": []
+      },
+      "new": {
+        "realized_in_period": null,
+        "realized_known_part": "-10",
+        "fees_paid": null,
+        "fees_known_part": "0",
+        "fees_why": [
+          "거래1 매도0 수수료 월 귀속 모름(매도 정산 시각 없음)"
+        ],
+        "buy_funds": "200",
+        "buy_funds_known_part": "200",
+        "buys_why": [],
+        "missing_time": [
+          "거래1 매도0 정산 시각 없음 — 이 달 실현 미확정"
+        ],
+        "value_unconfirmed": [],
+        "round_trips_closed": null,
+        "round_trips_closed_known_part": 1,
+        "round_trips_unconfirmed": [
+          {
+            "trade": 1,
+            "why": "매도 정산 월 소속 미상 — 이 달 왕복 종료 여부·승패를 확정하지 않음"
+          }
+        ],
+        "wins": null,
+        "losses": null,
+        "wins_known_part": 0,
+        "losses_known_part": 1,
+        "holding_hours_median": 24.0,
+        "round_trips": [
+          {
+            "trade": 0,
+            "lifetime_pnl": "-10",
+            "this_month_part": "-10",
+            "carry_in": false
+          }
+        ],
+        "stored_realized_mismatch": []
+      }
+    },
+    {
+      "name": "P7 scoped holds",
+      "old_anomalies": [],
+      "new_anomalies": [
+        "ACCOUNT_SUM_NEGATIVE_UNALLOCATED"
+      ],
+      "new_holds": [
+        "ACCOUNT_SUM_PARTIAL_RESERVATION",
+        "ORDER_EFFECT_PENDING",
+        "ORDER_IN_FLIGHT"
+      ],
+      "boundary_unknown_holds": [
+        "ACCOUNT_SUM_BASE_BOUNDARY"
+      ]
+    },
+    {
+      "name": "F3 malformed required-field diagnostics",
+      "cases": [
+        {
+          "field": "code",
+          "value": [
+            "x"
+          ],
+          "result": {
+            "kind": "exception",
+            "accepted": false,
+            "error": "AttributeError",
+            "message": "'list' object has no attribute 'get'"
+          }
+        },
+        {
+          "field": "exchange_coverage",
+          "value": [
+            "x"
+          ],
+          "result": {
+            "kind": "exception",
+            "accepted": false,
+            "error": "AttributeError",
+            "message": "'list' object has no attribute 'get'"
+          }
+        },
+        {
+          "field": "account",
+          "value": [
+            "x"
+          ],
+          "result": {
+            "kind": "exception",
+            "accepted": false,
+            "error": "AttributeError",
+            "message": "'list' object has no attribute 'get'"
+          }
+        },
+        {
+          "field": "account_sum",
+          "value": [
+            "x"
+          ],
+          "result": {
+            "kind": "exception",
+            "accepted": false,
+            "error": "AttributeError",
+            "message": "'list' object has no attribute 'get'"
+          }
+        },
+        {
+          "field": "anomalies",
+          "value": [
+            "x"
+          ],
+          "result": {
+            "kind": "returned",
+            "accepted": false,
+            "reasons": [
+              "anomalies 비어 있지 않음 ['x']",
+              "overall OK 이 목록과 모순(목록상 ANOMALY)"
+            ]
+          }
+        },
+        {
+          "field": "holds",
+          "value": [
+            "x"
+          ],
+          "result": {
+            "kind": "returned",
+            "accepted": false,
+            "reasons": [
+              "holds 비어 있지 않음 ['x']",
+              "overall OK 이 목록과 모순(목록상 HOLD)"
+            ]
+          }
+        },
+        {
+          "field": "observation",
+          "value": [],
+          "result": {
+            "kind": "returned",
+            "accepted": false,
+            "reasons": [
+              "observation 누락 또는 타입 불일치(dict 필요)",
+              "관측 []"
+            ]
+          }
+        },
+        {
+          "field": "observation_stable",
+          "value": "true",
+          "result": {
+            "kind": "returned",
+            "accepted": false,
+            "reasons": [
+              "observation_stable 누락 또는 타입 불일치(bool 필요)",
+              "관측 안정 미확인(지문·거래소 전후·수집 순서)"
+            ]
+          }
+        },
+        {
+          "field": "exchange_coverage.window",
+          "value": [
+            "x"
+          ],
+          "result": {
+            "kind": "exception",
+            "accepted": false,
+            "error": "AttributeError",
+            "message": "'list' object has no attribute 'get'"
+          }
+        }
+      ],
+      "note": "Exception is fail-closed, but is not a structured input verdict."
+    }
+  ]
+}

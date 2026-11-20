@@ -1,0 +1,158 @@
+{
+ "all_ok": true,
+ "passed": 13,
+ "total": 13,
+ "normal_v8_v9_same": true,
+ "cases": [
+  {
+   "case": "정상",
+   "rc": 0,
+   "want_rc": 0,
+   "result": {
+    "f3": "통과",
+    "reasons": []
+   },
+   "ok": true
+  },
+  {
+   "case": "code",
+   "rc": 1,
+   "want_rc": 1,
+   "result": {
+    "f3": "불통과",
+    "reasons": [
+     "code 누락 또는 타입 불일치(dict 필요)"
+    ]
+   },
+   "ok": true
+  },
+  {
+   "case": "exchange_coverage",
+   "rc": 1,
+   "want_rc": 1,
+   "result": {
+    "f3": "불통과",
+    "reasons": [
+     "exchange_coverage 누락 또는 타입 불일치(dict 필요)"
+    ]
+   },
+   "ok": true
+  },
+  {
+   "case": "account",
+   "rc": 1,
+   "want_rc": 1,
+   "result": {
+    "f3": "불통과",
+    "reasons": [
+     "account 누락 또는 타입 불일치(dict 필요)"
+    ]
+   },
+   "ok": true
+  },
+  {
+   "case": "account_sum",
+   "rc": 1,
+   "want_rc": 1,
+   "result": {
+    "f3": "불통과",
+    "reasons": [
+     "account_sum 누락 또는 타입 불일치(dict 필요)"
+    ]
+   },
+   "ok": true
+  },
+  {
+   "case": "anomalies",
+   "rc": 1,
+   "want_rc": 1,
+   "result": {
+    "f3": "불통과",
+    "reasons": [
+     "anomalies 비어 있지 않음 ['x']",
+     "overall OK 이 목록과 모순(목록상 ANOMALY)"
+    ]
+   },
+   "ok": true
+  },
+  {
+   "case": "holds",
+   "rc": 1,
+   "want_rc": 1,
+   "result": {
+    "f3": "불통과",
+    "reasons": [
+     "holds 비어 있지 않음 ['x']",
+     "overall OK 이 목록과 모순(목록상 HOLD)"
+    ]
+   },
+   "ok": true
+  },
+  {
+   "case": "observation",
+   "rc": 1,
+   "want_rc": 1,
+   "result": {
+    "f3": "불통과",
+    "reasons": [
+     "observation 누락 또는 타입 불일치(dict 필요)"
+    ]
+   },
+   "ok": true
+  },
+  {
+   "case": "observation_stable",
+   "rc": 1,
+   "want_rc": 1,
+   "result": {
+    "f3": "불통과",
+    "reasons": [
+     "observation_stable 누락 또는 타입 불일치(bool 필요)"
+    ]
+   },
+   "ok": true
+  },
+  {
+   "case": "exchange_coverage.window",
+   "rc": 1,
+   "want_rc": 1,
+   "result": {
+    "f3": "불통과",
+    "reasons": [
+     "exchange_coverage.window 누락 또는 타입 불일치(dict 필요)"
+    ]
+   },
+   "ok": true
+  },
+  {
+   "case": "JSON 아님",
+   "rc": 2,
+   "want_rc": 2,
+   "result": {
+    "f3": "읽기 실패",
+    "error": "JSONDecodeError"
+   },
+   "ok": true
+  },
+  {
+   "case": "UTF-8 아님",
+   "rc": 2,
+   "want_rc": 2,
+   "result": {
+    "f3": "읽기 실패",
+    "error": "UnicodeDecodeError"
+   },
+   "ok": true
+  },
+  {
+   "case": "파일 없음",
+   "rc": 2,
+   "want_rc": 2,
+   "result": {
+    "f3": "읽기 실패",
+    "error": "FileNotFoundError"
+   },
+   "ok": true
+  }
+ ]
+}
