@@ -1,0 +1,130 @@
+{
+  "sha": "2ff6982c634f4ad639d25b174bb990d3a4250b81",
+  "passed": 16,
+  "failed": 0,
+  "assembler_sha256": "ff8549346014095c5cd33ba297f187966fee39f449a6b953755b8ae905447472",
+  "manifest_entries": 54,
+  "checks": [
+    {
+      "name": "HEAD and saved origin/main",
+      "ok": true,
+      "detail": "Saved refs only; no new remote query"
+    },
+    {
+      "name": "Evidence and three management docs only",
+      "ok": true,
+      "detail": {
+        "paths": 59,
+        "settings_included": false
+      }
+    },
+    {
+      "name": "Manifest dec-collect-assembler-commit-20261120",
+      "ok": true,
+      "detail": {
+        "entries": 36,
+        "bad": []
+      }
+    },
+    {
+      "name": "Manifest review-a926727c",
+      "ok": true,
+      "detail": {
+        "entries": 18,
+        "bad": []
+      }
+    },
+    {
+      "name": "Unchanged function sha",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Unchanged function wall",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Unchanged function load_clock",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Unchanged function clock_check",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Assembly main unchanged outside finish",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Preserved first-run 3/3 and source hash",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Read-only verifier normal",
+      "ok": true,
+      "detail": {
+        "ok": true,
+        "reason": null
+      }
+    },
+    {
+      "name": "Read-only verifier sums_write_fail",
+      "ok": true,
+      "detail": {
+        "ok": false,
+        "reason": "미확정 흔적 bundle.json.uncommitted 있음"
+      }
+    },
+    {
+      "name": "Read-only verifier final_rename_fail",
+      "ok": true,
+      "detail": {
+        "ok": false,
+        "reason": "미확정 흔적 bundle.json.uncommitted 있음"
+      }
+    },
+    {
+      "name": "Normal nine original/parsed files unchanged",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Both failure records remain uncommitted",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "SQL and parser accepted hashes unchanged",
+      "ok": true,
+      "detail": {
+        "read.sql": "9818db5452f66f058c97322ac9aaf73097036997777d10a0af9f6dde05bdae03",
+        "parse.py": "0f6fe827c9da513445ce9c52300b8688f8f4f162a99026b90d05943c10341908"
+      }
+    }
+  ],
+  "attribute_observation": [
+    "docs/evidence/dec-collect-assembler-commit-20261120/assemble.py: text: unspecified",
+    "docs/evidence/dec-collect-assembler-commit-20261120/assemble.py: eol: unspecified",
+    "docs/evidence/dec-collect-assembler-commit-20261120/run1/normal/psql_rc.txt: text: unspecified",
+    "docs/evidence/dec-collect-assembler-commit-20261120/run1/normal/psql_rc.txt: eol: unspecified"
+  ],
+  "verifier_results": {
+    "normal": {
+      "ok": true,
+      "reason": null
+    },
+    "sums_write_fail": {
+      "ok": false,
+      "reason": "미확정 흔적 bundle.json.uncommitted 있음"
+    },
+    "final_rename_fail": {
+      "ok": false,
+      "reason": "미확정 흔적 bundle.json.uncommitted 있음"
+    }
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "inspection_date_kst": "2026-11-20",
+  "installed_cli_version": "2.1.327",
+  "inspection": "Read-only: CLI version and selected non-secret configuration keys",
+  "selected_configuration": {
+    "user": {"autoContinueAtUsageLimit": "unset", "statusLine_configured": false},
+    "shared_project": {"autoContinueAtUsageLimit": "unset", "statusLine_configured": false},
+    "project_local": "not read",
+    "managed_and_active_ide": "not inspected"
+  },
+  "official_capabilities": {
+    "auto_continue": {
+      "minimum_cli": "2.1.234",
+      "setting": "autoContinueAtUsageLimit",
+      "documented_default": true,
+      "scope": "user, managed, or --settings; not a shared-project/local key",
+      "trigger": "Actual claude.ai usage limit stops the open session",
+      "not_a_proactive_80_percent_resume": true,
+      "source": "https://code.claude.com/docs/en/settings-reference#autocontinueatusagelimit"
+    },
+    "usage_observation": {
+      "fields": ["rate_limits.five_hour.used_percentage", "rate_limits.five_hour.resets_at", "rate_limits.seven_day.used_percentage", "rate_limits.seven_day.resets_at"],
+      "missing_is_not_zero": true,
+      "context_usage_is_different": true,
+      "source": "https://code.claude.com/docs/en/statusline"
+    },
+    "one_shot_wakeup": {
+      "tools": ["CronCreate", "CronList", "CronDelete"],
+      "availability_in_active_development_session": "not verified",
+      "source": "https://code.claude.com/docs/en/scheduled-tasks"
+    }
+  },
+  "reviewer_changes": {
+    "configuration_changed": false,
+    "scheduled_tasks_registered": false,
+    "usage_quota_read": false,
+    "credentials_read": false
+  },
+  "handoff_deadline_kst": "2026-11-23T08:30:00+09:00"
+}

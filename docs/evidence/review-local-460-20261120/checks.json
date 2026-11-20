@@ -1,0 +1,110 @@
+{
+  "review_basis": "Uncommitted local files at recorded hashes; not a commit acceptance",
+  "head": "2ff6982c634f4ad639d25b174bb990d3a4250b81",
+  "passed": 13,
+  "failed": 0,
+  "reviewed_local_hashes": {
+    "docs/evidence/dec-usage-resume-20261120/README.md": "fd9d04b69cb9ab6e508bdbb57620789b78076eebc30b65adbdefefc6ddb3b31c",
+    "docs/evidence/dec-read-approval-bundle-20261120/README.md": "8a192fb29641a6da99011b60295c69d9da1638d11b6d8ac5d5b7e41c4da1d762",
+    "docs/evidence/dec-parallel-start-acceptance-20261120/README.md": "65950066ee5f80ecc76753257ad5676fde0518a43b1ea0a4589c87a37b8877be",
+    "docs/evidence/review-2ff6982c/.gitattributes": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+    "docs/evidence/review-2ff6982c/audit-run.txt": "16277dfa175f86cb7867a3ca5144499698279b53bc2aebbd0dd68f79839210ee",
+    "docs/evidence/review-2ff6982c/checks.json": "d7cf66b7e5a1441a3eac1c6b13e48fa9ff73f86ea2abff96aa3477c670f67293",
+    "docs/evidence/review-2ff6982c/claude-usage-capabilities.json": "52f269ee16ac649ee03c2d64b13d67f18794d74cc7412ac69709b280535cb763",
+    "docs/evidence/review-2ff6982c/document-check.json": "1d1a2269a54fc717a23054ed222a752669baafe15cd67fe733c6de12bfa67c52",
+    "docs/evidence/review-2ff6982c/document_check.py": "0bace6b9ceab6c843a84c8d46f9831501a88924429783d42ce89a42188d40ed7",
+    "docs/evidence/review-2ff6982c/README.md": "2efbcd5e1b4d7f34cfa5b3789203af2a8d792a66193070db60555d7a908a20fd",
+    "docs/evidence/review-2ff6982c/review_checks.py": "9e6e13d2a91341fdb8d1f63963444155015d66b813a9d192ec1892758290a8a5"
+  },
+  "checks": [
+    {
+      "name": "Baseline HEAD and saved origin/main",
+      "ok": true,
+      "detail": "No new remote query or write"
+    },
+    {
+      "name": "Local manifest dec-usage-resume-20261120",
+      "ok": true,
+      "detail": {
+        "entries": 1,
+        "mismatches": [],
+        "committed": false
+      }
+    },
+    {
+      "name": "Local manifest dec-read-approval-bundle-20261120",
+      "ok": true,
+      "detail": {
+        "entries": 1,
+        "mismatches": [],
+        "committed": false
+      }
+    },
+    {
+      "name": "Local manifest dec-parallel-start-acceptance-20261120",
+      "ok": true,
+      "detail": {
+        "entries": 1,
+        "mismatches": [],
+        "committed": false
+      }
+    },
+    {
+      "name": "Local manifest review-2ff6982c",
+      "ok": true,
+      "detail": {
+        "entries": 8,
+        "mismatches": [],
+        "committed": false
+      }
+    },
+    {
+      "name": "459 original 36 blobs unchanged",
+      "ok": true,
+      "detail": {
+        "entries": 36,
+        "bad": []
+      }
+    },
+    {
+      "name": "459 preservation attribute added locally",
+      "ok": true,
+      "detail": {
+        "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+        "committed": false
+      }
+    },
+    {
+      "name": "P7 accepted pin and registry-3 source",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Stale registry fields identified in submitted draft",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Unapproved no-fix start alternative identified",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Wrong rollback pin identified against accepted d81 draft",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Existing fixed LIVE SID203 does not require recreation",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Usage observation explicitly remains unconfirmed",
+      "ok": true,
+      "detail": null
+    }
+  ],
+  "denial_evidence": "Developer report only; rejected command, classifier reason, and live approval UI not supplied",
+  "scheduler_evidence": "Developer reports d95c7a84 for 2026-11-20 22:14 KST; reviewer cannot query that live Claude session"
+}
