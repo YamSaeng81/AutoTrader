@@ -1,0 +1,5 @@
+PASS P1 정상: LIVE·DYNAMIC 둘 다 BTC 보유 → ['OK']
+PASS P2 BTC를 LIVE만으로 대조(DYNAMIC 보유 누락) → ['BTC 불일치 거래소 0.0003 ≠ 세션+비세션 0.0002']
+PASS P3 배정을 입금으로 셈 → ['KRW 불일치 거래소 30200 ≠ 세션+예약+미배정 90200']
+PASS P4 등록 밖 DYNAMIC#94 실자금 포지션 → ['UNREGISTERED_REAL DYNAMIC#94 XRP']
+4/4
