@@ -1,0 +1,46 @@
+{
+  "instruction": "v1.212",
+  "baseline": "9d8a012a9ad89bc69601e9080515ecf70baacdfc",
+  "sources": {
+    "p7_v8": {
+      "path": "docs/evidence/dec-registry-p7v8-20261120/p7v8/reconcile.py",
+      "sha256": "156c38289dba5836db3a61a3b005e9d3b873e8142b3d0146f693080f51f9effa",
+      "read_only": true
+    },
+    "f3_v9": {
+      "path": "docs/evidence/dec-f3-v9-20261120/f3v9/f3.py",
+      "sha256": "f825ca5e80ef1542abf98962d1aeb91f5fe279555ae6acfc1b1421df73e55f15",
+      "read_only": true
+    },
+    "assembler_committed": {
+      "path": "docs/evidence/dec-collect-assembler-commit-20261120/assemble.py",
+      "sha256": "ff8549346014095c5cd33ba297f187966fee39f449a6b953755b8ae905447472",
+      "read_only": true
+    },
+    "source_converter_v4": {
+      "path": "docs/evidence/dec-scorecard-source-v4-20261120/convert.py",
+      "sha256": "f63a857fcdb623176c3c8635e6ed41149808c9a5554648ce45bc06a38c40fa32",
+      "read_only": true
+    },
+    "scorecard_v5": {
+      "path": "docs/evidence/dec-scorecard-source-v4-20261120/scorecard/scorecard.py",
+      "sha256": "b95acebdd9719e6b25ee6b62bfc03a4791992f5f8ed5e3c62d10d3635529a143",
+      "read_only": true
+    },
+    "dynamic_request": {
+      "git_revision": "d81c3f2f91c0239aacb0e1176dde9b898f4d7466",
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/dto/DynamicSessionRequest.java",
+      "sha256": "b2a9311e513324a4a8fbe50dffb14e0c5efa40c52187826604f797e7c561a9b0",
+      "read_only": true
+    },
+    "dynamic_entry_limits": {
+      "git_revision": "d81c3f2f91c0239aacb0e1176dde9b898f4d7466",
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/DynamicEntryLimits.java",
+      "sha256": "94e54397d76968808f760f2817f208fea05ece089f23f14991b9db76e8b03d63",
+      "read_only": true
+    }
+  },
+  "implementation_started_by_reviewer": false,
+  "tests_run_by_reviewer": false,
+  "production_access": false
+}
