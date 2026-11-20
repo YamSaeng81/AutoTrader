@@ -1,0 +1,8 @@
+재현 | S1 이전 달 매도가 12월 확정 | {"status": "확정", "month": "2026-12", "funds": "10000", "fee": "5", "qty": "0.1"}
+재현 | S2 3월 관측 차이를 1월 정정 | {"status": "확정", "month": "2026-12", "funds": "10000", "fee": "5", "qty": "0.1", "next_month_correction": {"applied_paid_fee": "0.01"}, "why": "R5 포착 뒤 값 변경 — 12월은 그대로, 차분은 1월 정정"}
+재현 | S3 1월 회차 값을 12월말로 확정 | {"pnl_error": "-100"}
+재현 | S4 초안 규칙(start=initial_capital+ALLOCATE)이 v3 와 충돌 | "LIVE#203: 기간 안 새 세션에 기초 스냅숏을 함께 줌 — 기초는 0, 배정은 순입금"
+재현 안 됨 | S5 대조군 기초0+ALLOCATE (재현 아님이 정상) | {"start_equity": "0", "net_flows": "10000", "month_pnl": "0"}
+원문 dec-scorecard-asof-20261120/asof_examples.py sha256 cd67038b9ed2e604ae544d0dfbd915c6de3227340b29e3ec2d9a6d84c187575b
+원문 dec-scorecard-v3-20261119/scorecard/scorecard.py sha256 5ca20646b8c5dc4d8345b162ec5df8924ff7a9dc9c13c2c0fa84bb7412f9537f
+재현 4/5 (기대 4/5 — S5 는 대조군)

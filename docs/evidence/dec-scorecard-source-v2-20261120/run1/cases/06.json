@@ -1,0 +1,205 @@
+{
+ "name": "S3d 근거가 공백 일부만 덮으면 미확정",
+ "source": {
+  "version": "scorecard-source-2",
+  "period": {
+   "from": "2026-12-01T00:00:00+09:00",
+   "to": "2027-01-01T00:00:00+09:00"
+  },
+  "deadline_M": "2027-01-01T10:30:00+09:00",
+  "month_bounds": [
+   "2027-02-01T00:00:00+09:00",
+   "2027-03-01T00:00:00+09:00",
+   "2027-04-01T00:00:00+09:00"
+  ],
+  "registry_events": [],
+  "sessions": [
+   {
+    "kind": "LIVE",
+    "id": 203,
+    "mode": "REAL",
+    "strategy_type": "X",
+    "timeframe": "H1",
+    "created_at": "2026-11-01T00:00:00+09:00",
+    "initial_capital": "20200",
+    "boundary": {
+     "start": {
+      "captured_at": "2026-12-01T00:00:00+09:00",
+      "axis": "db",
+      "snapshot_id": "db-1",
+      "gap_evidence": null,
+      "data": {
+       "available_krw": "10000",
+       "pending_buys": [],
+       "positions": []
+      }
+     },
+     "end": {
+      "captured_at": "2027-01-01T10:00:00+09:00",
+      "axis": "db",
+      "snapshot_id": "db-1",
+      "gap_evidence": {
+       "kind": "no_change",
+       "ref": "app-log:no-order-no-transfer",
+       "axis": "db",
+       "from": "2027-01-01T00:00:00+09:00",
+       "to": "2027-01-01T09:00:00+09:00"
+      },
+      "data": {
+       "available_krw": "10000",
+       "pending_buys": [],
+       "positions": []
+      }
+     }
+    },
+    "orders": []
+   }
+  ]
+ },
+ "result": {
+  "rc": 0,
+  "input": {
+   "version": "scorecard-input-2",
+   "period": {
+    "from": "2026-12-01T00:00:00+09:00",
+    "to": "2027-01-01T00:00:00+09:00"
+   },
+   "sessions": [
+    {
+     "kind": "LIVE",
+     "id": 203,
+     "mode": "REAL",
+     "strategy_type": "X",
+     "timeframe": "H1",
+     "created_at": "2026-11-01T00:00:00+09:00",
+     "start": {
+      "available_krw": "10000",
+      "pending_buys": [],
+      "positions": []
+     },
+     "flows": [],
+     "trades": []
+    }
+   ]
+  },
+  "report": {
+   "version": "scorecard-source-report-2",
+   "T": "2027-01-01T00:00:00+09:00",
+   "M": "2027-01-01T10:30:00+09:00",
+   "sessions": [
+    {
+     "session": "LIVE#203",
+     "started_in_period": false,
+     "values": [
+      {
+       "value": "LIVE#203 기초",
+       "captured_at": "2026-12-01T00:00:00+09:00",
+       "axis": "db",
+       "snapshot_id": "db-1",
+       "boundary": "2026-12-01T00:00:00+09:00",
+       "gap_seconds": 0.0,
+       "status": "확정",
+       "why": "포착 시각 = 경계"
+      },
+      {
+       "value": "LIVE#203 기말",
+       "captured_at": "2027-01-01T10:00:00+09:00",
+       "axis": "db",
+       "snapshot_id": "db-1",
+       "boundary": "2027-01-01T00:00:00+09:00",
+       "gap_seconds": 36000.0,
+       "gap_evidence": {
+        "kind": "no_change",
+        "ref": "app-log:no-order-no-transfer",
+        "axis": "db"
+       },
+       "status": "미확정",
+       "why": "LIVE#203 기말 근거 구간이 경계~포착 공백 전체를 덮지 않음"
+      }
+     ],
+     "orders": [],
+     "corrections": [],
+     "carry_in_buys": [],
+     "flows": {
+      "status": "확정",
+      "refs": []
+     }
+    }
+   ],
+   "rules": [
+    "경계값은 포착+공백 근거로만(C1)",
+    "앱 관측/장부 반영 시각 [from,T) 귀속(C3)",
+    "정정은 관측 구간으로만 귀속, 걸치면 미확정(C5)",
+    "새 세션 기초0+ALLOCATE(C6)"
+   ],
+   "account": {
+    "status": "미확정",
+    "why": "계좌 포착 없음"
+   }
+  },
+  "card": {
+   "session": "LIVE#203",
+   "money": "실자금",
+   "kind": "LIVE",
+   "mode": "REAL",
+   "strategy": "X",
+   "timeframe": "H1",
+   "status_end": "미확인",
+   "trade_state": "거래0",
+   "start_equity": "10000",
+   "end_equity": null,
+   "net_flows": "0",
+   "month_pnl": null,
+   "month_pnl_status": "미확정",
+   "unconfirmed_reasons": [
+    "LIVE#203 기말 없음"
+   ],
+   "month_return_pct": null,
+   "realized_in_period": "0",
+   "realized_known_part": "0",
+   "unrealized_start": "0",
+   "unrealized_end": null,
+   "unrealized_change": null,
+   "unrealized_change_note": "월손익 − 기간 실현 = 기간 중 미실현 증감(기말 미실현 아님)",
+   "identity_check": "미확인",
+   "fees_paid": "0",
+   "fees_known_part": "0",
+   "fees_status": "확정",
+   "fees_unconfirmed_reasons": [],
+   "fee_note": "손익에 이미 반영(매도 수수료는 대금에서, 매수 수수료는 평균가에) — 다시 빼지 않음",
+   "buy_funds": "0",
+   "buy_funds_known_part": "0",
+   "buy_funds_unconfirmed_reasons": [],
+   "round_trips_closed": 0,
+   "wins": 0,
+   "losses": 0,
+   "win_loss_basis": "이 달 종료 왕복의 생애 손익",
+   "holding_hours_median": null,
+   "round_trips": [],
+   "stored_realized_mismatch": [],
+   "drawdown": {
+    "max_amount_krw": null,
+    "max_pct": null,
+    "label": "미확인(일별 평가 표본 없음 — 복원하지 않음)"
+   },
+   "provenance": {
+    "code_sha": "미확인",
+    "code_sha_source": "미확인",
+    "ruleset_hashes": [
+     "미확인"
+    ],
+    "registry_ref": "미확인"
+   },
+   "market_regime": "미확인",
+   "benchmark": {
+    "cash_pnl": "0",
+    "btc_hold_pnl": "미확인"
+   },
+   "flags": []
+  },
+  "account": {
+   "month_pnl": null,
+   "status": "미확인(계좌 기초/기말 없음)"
+  }
+ }
+}

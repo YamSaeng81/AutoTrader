@@ -1,0 +1,77 @@
+{
+ "name": "B7 계좌 조회를 DB 축으로 선언하면 거절",
+ "source": {
+  "version": "scorecard-source-2",
+  "period": {
+   "from": "2026-12-01T00:00:00+09:00",
+   "to": "2027-01-01T00:00:00+09:00"
+  },
+  "deadline_M": "2027-01-01T10:30:00+09:00",
+  "month_bounds": [
+   "2027-02-01T00:00:00+09:00",
+   "2027-03-01T00:00:00+09:00",
+   "2027-04-01T00:00:00+09:00"
+  ],
+  "registry_events": [],
+  "sessions": [
+   {
+    "kind": "LIVE",
+    "id": 203,
+    "mode": "REAL",
+    "strategy_type": "X",
+    "timeframe": "H1",
+    "created_at": "2026-11-01T00:00:00+09:00",
+    "initial_capital": "20200",
+    "boundary": {
+     "start": {
+      "captured_at": "2026-12-01T00:00:00+09:00",
+      "axis": "db",
+      "snapshot_id": "db-1",
+      "gap_evidence": null,
+      "data": {
+       "available_krw": "20200",
+       "pending_buys": [],
+       "positions": []
+      }
+     },
+     "end": {
+      "captured_at": "2027-01-01T00:00:00+09:00",
+      "axis": "db",
+      "snapshot_id": "db-1",
+      "gap_evidence": null,
+      "data": {
+       "available_krw": "20200",
+       "pending_buys": [],
+       "positions": []
+      }
+     }
+    },
+    "orders": []
+   }
+  ],
+  "account": {
+   "start": {
+    "captured_at": "2026-12-01T00:00:00+09:00",
+    "axis": "exchange",
+    "snapshot_id": "ex-1",
+    "gap_evidence": null,
+    "data": {
+     "krw": "50000"
+    }
+   },
+   "end": {
+    "captured_at": "2027-01-01T10:05:00+09:00",
+    "axis": "db",
+    "snapshot_id": "ex-2",
+    "gap_evidence": null,
+    "data": {
+     "krw": "50000"
+    }
+   }
+  }
+ },
+ "result": {
+  "rc": 2,
+  "error": "account.end.axis: 거래소 조회는 exchange 축(DB 포착과 동시라고 가정하지 않음)"
+ }
+}

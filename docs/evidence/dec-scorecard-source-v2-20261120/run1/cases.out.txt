@@ -1,0 +1,30 @@
+convert.py sha256=3b3b74c1d529dc9be1592c2eb56660faca41ef08359171a873b9f0e7d9a5fa5d
+scorecard v3 sha256=5ca20646b8c5dc4d8345b162ec5df8924ff7a9dc9c13c2c0fa84bb7412f9537f
+PASS | S1 11-30 매도는 12월 거래가 아님 | rc=0 | 월손익=0
+PASS | S2 3월에 처음 본 수수료 차이는 귀속 미확정(1월로 보내지 않음) | rc=0 | 월손익=0
+PASS | S2b 같은 달 안 두 포착 사이 차이는 그 달(1월) | rc=0 | 월손익=0
+PASS | S3 1월1일10:00 회차를 근거 없이 12월말로 쓰지 않음 | rc=0 | 월손익=None
+PASS | S3b 공백 전체를 덮는 같은 축 불변 근거가 있으면 확정 | rc=0 | 월손익=0
+PASS | S3c 근거 축이 다르면 미확정 | rc=0 | 월손익=None
+PASS | S3d 근거가 공백 일부만 덮으면 미확정 | rc=0 | 월손익=None
+PASS | S3e M 뒤 포착은 근거가 있어도 미확정 | rc=0 | 월손익=None
+PASS | S3f 월초 기초도 같은 규칙(11-30 23:00 포착, 근거 없음) | rc=0 | 월손익=None
+PASS | S4 기간 중 생성 세션에 기초 포착을 주면 거절 | rc=2 | LIVE#203: 기간 안 새 세션에 기초 포착을 줌 — 기초는 0, 배정은 순입금(S4)
+PASS | S5 기간 중 생성 세션 = 기초0 + ALLOCATE | rc=0 | 월손익=0
+PASS | S5b 배정 이벤트 없으면 initial_capital 로 만들지 않고 미확정 | rc=0 | 월손익=None
+PASS | S5c 최초 배정 ≠ initial_capital 이면 거절(대조 원천) | rc=2 | LIVE#203: 최초 배정 12000 ≠ initial_capital 10000 — 대조 실패
+PASS | S5d 등록표 이벤트 목록 자체가 없으면 순입금 미확정 | rc=0 | 월손익=None
+PASS | B1 부분 체결 월 경계(잔량 1월 관측) → 정산 시각 null·수수료 미확정 | rc=0 | 월손익=0
+PASS | B2 정산 미확정 포착 → 미확정 | rc=0 | 월손익=0
+PASS | B3 주문 포착이 [T,M] 밖 → 미확정(현재 행 복원 안 함) | rc=0 | 월손익=0
+PASS | B4 이월 매수(11월) + 12월 매도 → 이월 원가 별도·이월 왕복 | rc=0 | 월손익=0
+PASS | B5 T 이후 반영 매도는 이 달에서 제외 | rc=0 | 월손익=0
+PASS | B6 계좌 기말도 같은 규칙(DB 포착과 별개) → 미확인 손익 | rc=0 | 월손익=0
+PASS | B7 계좌 조회를 DB 축으로 선언하면 거절 | rc=2 | account.end.axis: 거래소 조회는 exchange 축(DB 포착과 동시라고 가정하지 않음)
+PASS | B8 같은 ref 이벤트 중복 → 거절 | rc=2 | registry_events[1].ref 'alloc-203-1': 중복 — 같은 이벤트를 두 번 적용하지 않음
+PASS | B9 음수 금액 → 거절 | rc=2 | registry_events[0].amount: 양수만
+PASS | B10 기록 시각 < 적용 시각 → 거절 | rc=2 | registry_events[0]: 기록 시각이 적용 시각보다 앞섬
+PASS | B11 계좌 입금에 세션 연결 → 거절 | rc=2 | registry_events[1].session: 계좌 입출금에는 세션 연결을 두지 않음
+PASS | B12 KRW 아닌 통화 → 거절 | rc=2 | registry_events[0].currency: KRW 만(성적표 순입금)
+PASS | F1 파일 변환 → v3 원문 호출 | rc=0 | {"ok": true, "sessions": {"sessions": 1, "real": 1, "paper": 0, "zero_trade": 1, "loss": 0, "stopped": 0, "unconfirmed": 0}}
+합계 27 통과 27 실패 0

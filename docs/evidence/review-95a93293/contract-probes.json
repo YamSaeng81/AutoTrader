@@ -1,0 +1,83 @@
+{
+  "method": "New synthetic file-input cases only; original 6/4 suites were not rerun",
+  "reproduced": 8,
+  "not_reproduced": 0,
+  "cases": [
+    {
+      "name": "S1_previous_month_sell_labeled_December",
+      "reproduced": true,
+      "observed": {
+        "status": "확정",
+        "month": "2026-12",
+        "funds": "10000",
+        "fee": "5",
+        "qty": "0.1"
+      }
+    },
+    {
+      "name": "S2_March_observation_assigned_January",
+      "reproduced": true,
+      "observed": {
+        "status": "확정",
+        "month": "2026-12",
+        "funds": "10000",
+        "fee": "5",
+        "qty": "0.1",
+        "next_month_correction": {
+          "applied_paid_fee": "0.01"
+        },
+        "why": "R5 포착 뒤 값 변경 — 12월은 그대로, 차분은 1월 정정"
+      }
+    },
+    {
+      "name": "S3_post_boundary_cash_cannot_be_T_cash",
+      "reproduced": true,
+      "observed": {
+        "true_T_cash": "10000",
+        "January_only_debit": "100",
+        "captured_after_debit": "9900",
+        "supplied_as_end_month_pnl": "-100",
+        "note": "Arithmetic consequence of proposed mapping, not a scorecard-v3 product defect"
+      }
+    },
+    {
+      "name": "S4_new_session_initial_capital_as_start_rejected",
+      "reproduced": true,
+      "observed": "LIVE#203: 기간 안 새 세션에 기초 스냅숏을 함께 줌 — 기초는 0, 배정은 순입금"
+    },
+    {
+      "name": "S5_new_session_zero_start_control",
+      "reproduced": true,
+      "observed": {
+        "start_equity": "0",
+        "net_flows": "10000",
+        "month_pnl": "0"
+      }
+    },
+    {
+      "name": "P1_unregistered_zero_position_session_ignored",
+      "reproduced": true,
+      "observed": [
+        "OK"
+      ]
+    },
+    {
+      "name": "P2_unregistered_order_without_position_ignored",
+      "reproduced": true,
+      "observed": [
+        "OK"
+      ]
+    },
+    {
+      "name": "P3_allocation_before_base_deducted_twice",
+      "reproduced": true,
+      "observed": {
+        "base_already_after_allocation": "20000",
+        "true_unallocated": "20000",
+        "observed": [
+          "KRW 불일치 거래소 30200 ≠ 세션+예약+미배정 200"
+        ]
+      }
+    }
+  ]
+}

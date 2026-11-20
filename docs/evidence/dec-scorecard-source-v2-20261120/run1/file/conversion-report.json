@@ -1,0 +1,42 @@
+{
+ "version": "scorecard-source-report-2",
+ "T": "2027-01-01T00:00:00+09:00",
+ "M": "2027-01-01T10:30:00+09:00",
+ "sessions": [
+  {
+   "session": "LIVE#203",
+   "started_in_period": true,
+   "values": [
+    {
+     "value": "LIVE#203 기말",
+     "captured_at": "2027-01-01T00:00:00+09:00",
+     "axis": "db",
+     "snapshot_id": "db-1",
+     "boundary": "2027-01-01T00:00:00+09:00",
+     "gap_seconds": 0.0,
+     "status": "확정",
+     "why": "포착 시각 = 경계"
+    }
+   ],
+   "orders": [],
+   "corrections": [],
+   "carry_in_buys": [],
+   "flows": {
+    "status": "확정",
+    "refs": [
+     "alloc-203-1"
+    ]
+   }
+  }
+ ],
+ "rules": [
+  "경계값은 포착+공백 근거로만(C1)",
+  "앱 관측/장부 반영 시각 [from,T) 귀속(C3)",
+  "정정은 관측 구간으로만 귀속, 걸치면 미확정(C5)",
+  "새 세션 기초0+ALLOCATE(C6)"
+ ],
+ "account": {
+  "status": "미확정",
+  "why": "계좌 포착 없음"
+ }
+}

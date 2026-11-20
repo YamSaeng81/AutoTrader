@@ -1,0 +1,416 @@
+{
+ "name": "R2 cash_base.base_at 없음 → REGISTRY_INVALID",
+ "expect": {
+  "overall": "ANOMALY",
+  "need": [
+   "REGISTRY_INVALID"
+  ],
+  "forbid": []
+ },
+ "registry": {
+  "registry_version": "registry-3",
+  "sessions": [
+   {
+    "kind": "LIVE",
+    "id": 203,
+    "mode": "REAL",
+    "strategy_type": "DAILY_SMA20",
+    "timeframe": "H1",
+    "initial_capital": "20200",
+    "coin_pair": "KRW-BTC",
+    "code_sha": "0e1d2a02",
+    "effective_from": "2026-11-01T00:00:00Z",
+    "effective_to": null,
+    "rules": {
+     "max_filled_buys_in_window": 1
+    },
+    "session_created_at": null,
+    "ruleset": {
+     "expected": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+     "confirmed": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+     "confirmed_source": "position.ruleset_hash(가상) + 등록 기대 설정"
+    }
+   },
+   {
+    "kind": "DYNAMIC",
+    "id": 900,
+    "mode": "REAL",
+    "strategy_type": "COMPOSITE_BREAKOUT",
+    "timeframe": "H1",
+    "initial_capital": "20000",
+    "coin_pair": "DYNAMIC",
+    "code_sha": "0e1d2a02",
+    "effective_from": "2026-11-18T00:00:00Z",
+    "effective_to": null,
+    "rules": {
+     "max_open_positions": 1,
+     "excluded_coins": [
+      "KRW-BTC"
+     ],
+     "max_buy_request_krw": "20000"
+    },
+    "session_created_at": null,
+    "ruleset": {
+     "expected": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+     "confirmed": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+     "confirmed_source": "position.ruleset_hash(가상) + 등록 기대 설정"
+    }
+   }
+  ],
+  "observation_source": {
+   "environment": "local-isolated",
+   "db": "cat-rt-pg/p7v2-scenario-copy",
+   "exchange_account": "fake-exchange-fixed-balances"
+  },
+  "effective_axis": "app",
+  "capital_events": [
+   {
+    "ref": "alloc-203",
+    "type": "ALLOCATE",
+    "amount": "20200",
+    "currency": "KRW",
+    "applied_at": "2026-11-06T10:07:36Z",
+    "recorded_at": "2026-11-06T10:07:36Z",
+    "axis": "app",
+    "session": [
+     "LIVE",
+     203
+    ]
+   },
+   {
+    "ref": "alloc-900",
+    "type": "ALLOCATE",
+    "amount": "20000",
+    "currency": "KRW",
+    "applied_at": "2026-11-18T01:56:05.591018Z",
+    "recorded_at": "2026-11-18T01:56:05.591018Z",
+    "axis": "app",
+    "session": [
+     "DYNAMIC",
+     900
+    ]
+   }
+  ],
+  "cash_base": {
+   "amount_krw": "79800",
+   "axis": "app",
+   "source": "가상 — 승인된 계좌 읽기 전",
+   "includes_event_refs": [
+    "alloc-203"
+   ]
+  },
+  "holdings_base": {
+   "coins": {},
+   "base_at": "2026-11-17T00:00:00Z",
+   "axis": "app",
+   "source": "가상",
+   "includes_event_refs": []
+  }
+ },
+ "result": {
+  "overall": "ANOMALY",
+  "registry_status": "invalid",
+  "observation": {
+   "base": "ok",
+   "now": "ok"
+  },
+  "observation_stable": true,
+  "anomalies": [
+   {
+    "code": "REGISTRY_INVALID",
+    "detail": "cash_base: ['amount_krw', 'axis', 'base_at', 'includes_event_refs', 'source'] 형식"
+   },
+   {
+    "code": "UNREGISTERED_REAL_SESSION_ACTIVE",
+    "session": [
+     "DYNAMIC",
+     900
+    ],
+    "status": "RUNNING",
+    "mode": "REAL"
+   },
+   {
+    "code": "UNREGISTERED_REAL_SESSION_ACTIVE",
+    "session": [
+     "LIVE",
+     203
+    ],
+    "status": "RUNNING",
+    "mode": "REAL"
+   },
+   {
+    "code": "UNREGISTERED_REAL_ORDER",
+    "order": 3,
+    "session": [
+     "LIVE",
+     203
+    ],
+    "state": "FILLED",
+    "coin": "KRW-BTC",
+    "side": "BUY",
+    "session_row": "RUNNING"
+   },
+   {
+    "code": "UNREGISTERED_REAL_ORDER",
+    "order": 4,
+    "session": [
+     "DYNAMIC",
+     900
+    ],
+    "state": "FILLED",
+    "coin": "KRW-ETH",
+    "side": "BUY",
+    "session_row": "RUNNING"
+   },
+   {
+    "code": "UNREGISTERED_REAL_POSITION",
+    "position": 8001,
+    "session": [
+     "LIVE",
+     203
+    ],
+    "coin": "KRW-BTC"
+   },
+   {
+    "code": "UNREGISTERED_REAL_POSITION",
+    "position": 9001,
+    "session": [
+     "DYNAMIC",
+     900
+    ],
+    "coin": "KRW-ETH"
+   },
+   {
+    "code": "ACCOUNT_KRW_MISMATCH",
+    "adjusted_residual": "-36000",
+    "raw_residual": "-36000"
+   },
+   {
+    "code": "ACCOUNT_COIN_MISMATCH",
+    "detail": {
+     "BTC": {
+      "exchange_delta_minus_external": "0.0002",
+      "net_filled": "0",
+      "open_position_delta": "0",
+      "match": false,
+      "status": "불일치"
+     },
+     "ETH": {
+      "exchange_delta_minus_external": "0.0032",
+      "net_filled": "0",
+      "open_position_delta": "0",
+      "match": false,
+      "status": "불일치"
+     }
+    }
+   }
+  ],
+  "holds": [],
+  "account": {
+   "krw": {
+    "exchange_delta": "-36000",
+    "external": "0",
+    "session_ledger_delta": "0",
+    "raw_residual": "-36000",
+    "explained_rounding": "0",
+    "adjusted_residual": "-36000",
+    "quantum": "0",
+    "status": "불일치"
+   },
+   "coins": {
+    "BTC": {
+     "exchange_delta_minus_external": "0.0002",
+     "net_filled": "0",
+     "open_position_delta": "0",
+     "match": false,
+     "status": "불일치"
+    },
+    "ETH": {
+     "exchange_delta_minus_external": "0.0032",
+     "net_filled": "0",
+     "open_position_delta": "0",
+     "match": false,
+     "status": "불일치"
+    }
+   },
+   "base_holdings": {
+    "BTC": {
+     "amount": "0",
+     "source": "base.exchange_after"
+    },
+    "ETH": {
+     "amount": "0",
+     "source": "base.exchange_after"
+    }
+   },
+   "internal_allocations": [],
+   "sessions": {},
+   "backing": {
+    "KRW": {
+     "exchange_total": "64000",
+     "registered_need": "0",
+     "status": "일치"
+    }
+   },
+   "verdict": "불일치"
+  },
+  "account_sum": {
+   "status": "불일치",
+   "reason": "등록표 무효 — 합산하지 않음"
+  },
+  "code": {
+   "base": "0e1d2a02",
+   "now": "0e1d2a02",
+   "base_ref": "로컬 가정: v2 시나리오의 등록 예시값. 운영 관측 출처 아님",
+   "now_ref": "로컬 가정: v2 시나리오의 등록 예시값. 운영 관측 출처 아님"
+  },
+  "exchange_coverage": {
+   "query": {
+    "from": "2026-10-01T00:00:00Z",
+    "to": "2026-11-18T01:56:06.335912Z",
+    "complete": true,
+    "pages": 1
+   },
+   "checked": [
+    3,
+    4
+   ],
+   "gaps": [],
+   "window": {
+    "from": "2026-11-18T01:56:05.830045Z",
+    "to": "2026-11-18T01:56:06.335912Z",
+    "status": "일치",
+    "reason": null
+   }
+  },
+  "clock": {
+   "effective_axis": null,
+   "base": {
+    "meta": "present",
+    "steps_timing": "point",
+    "samples": {},
+    "relations": {},
+    "same_source": [
+     [
+      [
+       "app",
+       "collector"
+      ],
+      "합성 입력 가정: v4 cases.py 가 모든 시각을 한 시계로 생성(측정 아님)"
+     ],
+     [
+      [
+       "app",
+       "db"
+      ],
+      "합성 입력 가정: v4 cases.py 가 모든 시각을 한 시계로 생성(측정 아님)"
+     ],
+     [
+      [
+       "app",
+       "exchange"
+      ],
+      "합성 입력 가정: v4 cases.py 가 모든 시각을 한 시계로 생성(측정 아님)"
+     ],
+     [
+      [
+       "collector",
+       "db"
+      ],
+      "합성 입력 가정: v4 cases.py 가 모든 시각을 한 시계로 생성(측정 아님)"
+     ],
+     [
+      [
+       "collector",
+       "exchange"
+      ],
+      "합성 입력 가정: v4 cases.py 가 모든 시각을 한 시계로 생성(측정 아님)"
+     ],
+     [
+      [
+       "db",
+       "exchange"
+      ],
+      "합성 입력 가정: v4 cases.py 가 모든 시각을 한 시계로 생성(측정 아님)"
+     ]
+    ]
+   },
+   "now": {
+    "meta": "present",
+    "steps_timing": "point",
+    "samples": {},
+    "relations": {},
+    "same_source": [
+     [
+      [
+       "app",
+       "collector"
+      ],
+      "합성 입력 가정: v4 cases.py 가 모든 시각을 한 시계로 생성(측정 아님)"
+     ],
+     [
+      [
+       "app",
+       "db"
+      ],
+      "합성 입력 가정: v4 cases.py 가 모든 시각을 한 시계로 생성(측정 아님)"
+     ],
+     [
+      [
+       "app",
+       "exchange"
+      ],
+      "합성 입력 가정: v4 cases.py 가 모든 시각을 한 시계로 생성(측정 아님)"
+     ],
+     [
+      [
+       "collector",
+       "db"
+      ],
+      "합성 입력 가정: v4 cases.py 가 모든 시각을 한 시계로 생성(측정 아님)"
+     ],
+     [
+      [
+       "collector",
+       "exchange"
+      ],
+      "합성 입력 가정: v4 cases.py 가 모든 시각을 한 시계로 생성(측정 아님)"
+     ],
+     [
+      [
+       "db",
+       "exchange"
+      ],
+      "합성 입력 가정: v4 cases.py 가 모든 시각을 한 시계로 생성(측정 아님)"
+     ]
+    ]
+   },
+   "same_source_both": [
+    [
+     "app",
+     "collector"
+    ],
+    [
+     "app",
+     "db"
+    ],
+    [
+     "app",
+     "exchange"
+    ],
+    [
+     "collector",
+     "db"
+    ],
+    [
+     "collector",
+     "exchange"
+    ],
+    [
+     "db",
+     "exchange"
+    ]
+   ]
+  }
+ }
+}
