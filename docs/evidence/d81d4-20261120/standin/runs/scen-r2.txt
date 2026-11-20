@@ -1,0 +1,220 @@
+== n01 정상 backend 전용 순서 U0→U1→(운영자 확인)→U2→U3→U4→U뒤관측
+PASS n01 U0 — 종료 0 · '✅ U0 통과'
+PASS n01 U1 — 종료 0 · '✅ U1 통과'
+PASS n01 — U1 끝 문구에 운영자 확인 1회 위치(U2 직전)
+PASS n01 U0(2) — 종료 1 · 'U1 을 이미 시작했다'
+PASS n01 U1(2) — 종료 1 · 'U1 을 이미 통과했다'
+PASS n01 U2 — 종료 0 · '✅ U2 통과'
+PASS n01 U3 — 종료 0 · '✅ U3(deploy) 통과'
+PASS n01 U4 — 종료 0 · '✅ U4 통과'
+PASS n01 U뒤관측 — 종료 0 · '대역 끝] rc=0'
+PASS n01 — 변경 명령 순서 = 보존 태그 0e1d2a0 → checkout NEW → build backend → up backend
+PASS n01 — frontend 변경 명령 0·frontend 실행·기동 시각·이름 그대로
+PASS n01 — 옛 보존 태그 10개 불변·새 보존 태그 0e1d2a0 = 원판
+PASS n01 — V96 기적용 확인 기록 5개(U0·U2 전·U2 뒤·U3·U4) 모두 1|96:true:-424836241
+PASS n01 — frontend 단계·새 frontend 기록·UF2 표지 없음
+PASS n01 — U3 는 5분 창 안 — 늦은 실행 표시 없음
+PASS n01 — 배포 전 읽기 v3 판정 줄
+PASS n01 — 금지 명령 0
+== l01 U3 늦은 실행(기동 15분 뒤) — 기준 시각 그대로, 편차 표시만
+PASS l01 U0 — 종료 0 · '✅ U0 통과'
+PASS l01 U1 — 종료 0 · '✅ U1 통과'
+PASS l01 U2 — 종료 0 · '✅ U2 통과'
+PASS l01 U3 — 종료 0 · '⚪ 기동 5~10분 창을 지났다'
+PASS l01 — U3 통과 문구
+== f01~f05 frontend 무변경/변경/조회 불명 — 변경 없이 멈춤
+PASS f01 U0 — 종료 0 · '✅ U0 통과'
+FAIL f01 U1 — 종료 1(기대 1) · '실행 중 frontend 가 U0 대응과 다름 또는 조회 실패(아직 바꾼 것 없음'
+🔴 autotrader-frontend 대응이 기록(/d/tmp/d81d4s/sim/runs/r2-f01/home/maint-d81/image-fe-before-chain.txt)과 다름
+🔴 멈춤: frontend 이미지 이름이 U0 대응과 다름 또는 조회 실패(아직 바꾼 것 없음, U1-되돌림 하지 않는다) — 보고
+[대역 끝] rc=1 · 가짜 시각 13:35:00
+PASS f01 — 변경 명령 0·HEAD 그대로
+PASS f02 U0 — 종료 0 · '✅ U0 통과'
+PASS f02 U1 — 종료 0 · '✅ U1 통과'
+PASS f02 U2 — 종료 1 · 'frontend 이미지 이름이 U0 대응과 다름 또는 조회 불명(아직 바꾼 것 없음)'
+PASS f02 — 재기동 0·t-deploy 없음
+PASS f02 U1되돌림 — 종료 1 · 'frontend 이미지 이름이 U0 대응과 다름 — 이 판은 frontend 를 바꾸지 않았다'
+PASS f02 — 변경 명령 늘지 않음·HEAD 그대로·t-rollback 없음·frontend 그대로
+PASS f03 U0 — 종료 0 · '✅ U0 통과'
+PASS f03 U1 — 종료 0 · '✅ U1 통과'
+PASS f03 U1되돌림 — 종료 1 · 'frontend 이미지 이름 대응 조회 불명 — 같음으로 추정하지 않는다'
+PASS f03 — 변경 명령 늘지 않음·HEAD 그대로·t-rollback 없음·frontend 그대로
+PASS f03 U2 — 종료 1 · 'frontend 이미지 이름이 U0 대응과 다름 또는 조회 불명(아직 바꾼 것 없음)'
+PASS f03 — 재기동 0
+PASS f04 U0 — 종료 0 · '✅ U0 통과'
+PASS f04 U1 — 종료 0 · '✅ U1 통과'
+PASS f04 U2 — 종료 0 · '✅ U2 통과'
+PASS f04 U3 — 종료 0 · '✅ U3(deploy) 통과'
+PASS f04 U4 — 종료 1 · 'backend 밖 서비스(frontend·db·redis·db-backup)의 이미지·기동 시각이 시작 기록(svc-before)과 다름'
+PASS f04 — ok-U4 없음
+PASS f05 U0 — 종료 0 · '✅ U0 통과'
+PASS f05 U1 — 종료 0 · '✅ U1 통과'
+PASS f05 U2 — 종료 0 · '✅ U2 통과'
+PASS f05 U3 — 종료 1 · '실행 중 frontend 가 U0 대응이 아님 또는 조회 실패 — 바꾸지 않고 보고'
+PASS f05 — ok-U3-deploy 없음
+== v01~v06 U0 의 V96 기적용 확인 — 정상 밖은 ok-U0 전에 멈춤
+PASS v01 U0 — 종료 1 · 'V95 이후 이력이 1|96:true:-424836241 하나가 아님 또는 조회 실패(종료 1)'
+PASS v01 — ok-U0 없음·V96 원문 기록
+PASS v02 U0 — 종료 1 · 'V95 이후 이력이 1|96:true:-424836241 하나가 아님 또는 조회 실패(종료 1)'
+PASS v02 — ok-U0 없음·V96 원문 기록
+PASS v03 U0 — 종료 1 · 'V95 이후 이력이 1|96:true:-424836241 하나가 아님 또는 조회 실패(종료 1)'
+PASS v03 — ok-U0 없음·V96 원문 기록
+PASS v04 U0 — 종료 1 · 'V95 이후 이력이 1|96:true:-424836241 하나가 아님 또는 조회 실패(종료 1)'
+PASS v04 — ok-U0 없음·V96 원문 기록
+PASS v05 U0 — 종료 1 · 'V95 이후 이력이 1|96:true:-424836241 하나가 아님 또는 조회 실패(종료 2)'
+PASS v05 — ok-U0 없음·V96 원문 기록
+PASS v06 U0 — 종료 1 · 'Flyway 최고 버전이 96 이 아님'
+PASS v06 — ok-U0 없음·V96 원문 기록
+== v07~v09 U2 전·뒤·U3 의 V96/마이그레이션
+PASS v07 U0 — 종료 0 · '✅ U0 통과'
+PASS v07 U1 — 종료 0 · '✅ U1 통과'
+PASS v07 U2 — 종료 1 · '재기동 전 V95 이후 이력이 1|96:true:-424836241 하나가 아님 또는 조회 실패(종료 1) — 보고(아직 바꾼 것 없음)'
+PASS v07 — 재기동 0·t-deploy 없음·ok-U2 없음
+PASS v08 U0 — 종료 0 · '✅ U0 통과'
+PASS v08 U1 — 종료 0 · '✅ U1 통과'
+PASS v08 U2 — 종료 1 · '되돌림 필요: V95 이후 이력이 1|96:true:-424836241 하나가 아님 또는 조회 실패(종료 1)'
+PASS v08 — 재기동 1·ok-U2 없음·재기동 전 기록은 정상
+PASS v09 U0 — 종료 0 · '✅ U0 통과'
+PASS v09 U1 — 종료 0 · '✅ U1 통과'
+PASS v09 U2 — 종료 0 · '✅ U2 통과'
+PASS v09 U3 — 종료 1 · '기동 뒤 마이그레이션이 돌았다(D81D4 는 DDL 없음, deploy)'
+== g01~g08 U되돌림 관문 4판 — 거절·조회 실패·기록 실패면 다음 변경 명령 0
+PASS g01 U0 — 종료 0 · '✅ U0 통과'
+PASS g01 U1 — 종료 0 · '✅ U1 통과'
+PASS g01 U2 — 종료 0 · '✅ U2 통과'
+PASS g01 U3 — 종료 0 · '✅ U3(deploy) 통과'
+PASS g01 U되돌림 — 종료 0 · '✅ 0e1d2a02 (운영 2c5d8427 이미지) 로 복귀'
+PASS g01 — 되돌림 변경 = checkout OLD·latest 원판·backend up 3개
+PASS g01 — HEAD·latest·실행 backend = 원판, 새 보존 태그 그대로, 옛 태그 불변
+PASS g01 — frontend 변경 0·그대로·장부 완결
+PASS g01 U3(2) — 종료 0 · '✅ U3(rollback) 통과 — 0e1d2a02 복귀 확인'
+PASS g02 U0 — 종료 0 · '✅ U0 통과'
+PASS g02 U1 — 종료 0 · '✅ U1 통과'
+PASS g02 U2 — 종료 0 · '✅ U2 통과'
+PASS g02 U3 — 종료 0 · '✅ U3(deploy) 통과'
+PASS g02 U되돌림 — 종료 1 · '관문 4판 STOP_INCOMPATIBLE(종료 3) — 구판 0e1d2a02 가 읽지 못하는 청산 사유'
+PASS g02 — 변경 명령 늘지 않음·HEAD 그대로·t-rollback 없음·frontend 그대로
+PASS g02 — 실행 backend 새판 그대로·LEDGER_COMPLETE 없음
+PASS g03 U0 — 종료 0 · '✅ U0 통과'
+PASS g03 U1 — 종료 0 · '✅ U1 통과'
+PASS g03 U2 — 종료 0 · '✅ U2 통과'
+PASS g03 U3 — 종료 0 · '✅ U3(deploy) 통과'
+PASS g03 U되돌림 — 종료 1 · '관문이 ROLLBACK_GATE_OK 가 아님(종료 2)'
+PASS g03 — 변경 명령 늘지 않음·HEAD 그대로·t-rollback 없음·frontend 그대로
+PASS g03 — 실행 backend 새판 그대로·LEDGER_COMPLETE 없음
+PASS g04 U0 — 종료 0 · '✅ U0 통과'
+PASS g04 U1 — 종료 0 · '✅ U1 통과'
+PASS g04 U2 — 종료 0 · '✅ U2 통과'
+PASS g04 U3 — 종료 0 · '✅ U3(deploy) 통과'
+PASS g04 U되돌림 — 종료 1 · '관문이 ROLLBACK_GATE_OK 가 아님(종료 3)'
+PASS g04 — 변경 명령 늘지 않음·HEAD 그대로·t-rollback 없음·frontend 그대로
+PASS g04 — 실행 backend 새판 그대로·LEDGER_COMPLETE 없음
+PASS g05 U0 — 종료 0 · '✅ U0 통과'
+PASS g05 U1 — 종료 0 · '✅ U1 통과'
+PASS g05 U2 — 종료 0 · '✅ U2 통과'
+PASS g05 U3 — 종료 0 · '✅ U3(deploy) 통과'
+PASS g05 U되돌림 — 종료 1 · '관문이 ROLLBACK_GATE_OK 가 아님(종료 4)'
+PASS g05 — 변경 명령 늘지 않음·HEAD 그대로·t-rollback 없음·frontend 그대로
+PASS g05 — 실행 backend 새판 그대로·LEDGER_COMPLETE 없음
+PASS g06 U0 — 종료 0 · '✅ U0 통과'
+PASS g06 U1 — 종료 0 · '✅ U1 통과'
+PASS g06 U2 — 종료 0 · '✅ U2 통과'
+PASS g06 U3 — 종료 0 · '✅ U3(deploy) 통과'
+PASS g06 U되돌림 — 종료 1 · '관문이 ROLLBACK_GATE_OK 가 아님(종료 4)'
+PASS g06 — 변경 명령 늘지 않음·HEAD 그대로·t-rollback 없음·frontend 그대로
+PASS g06 — 실행 backend 새판 그대로·LEDGER_COMPLETE 없음
+PASS g07 U0 — 종료 0 · '✅ U0 통과'
+PASS g07 U1 — 종료 0 · '✅ U1 통과'
+PASS g07 U2 — 종료 0 · '✅ U2 통과'
+PASS g07 U3 — 종료 0 · '✅ U3(deploy) 통과'
+PASS g07 U되돌림 — 종료 1 · '관문 4판 STOP_INCOMPATIBLE(종료 3)'
+PASS g07 — 변경 명령 늘지 않음·HEAD 그대로·t-rollback 없음·frontend 그대로
+PASS g07 — 실행 backend 새판 그대로·LEDGER_COMPLETE 없음
+PASS g08 U0 — 종료 0 · '✅ U0 통과'
+PASS g08 U1 — 종료 0 · '✅ U1 통과'
+PASS g08 U2 — 종료 0 · '✅ U2 통과'
+PASS g08 U3 — 종료 0 · '✅ U3(deploy) 통과'
+PASS g08 U되돌림 — 종료 1 · '관문이 ROLLBACK_GATE_OK 가 아님(종료 3)'
+PASS g08 — 변경 명령 늘지 않음·HEAD 그대로·t-rollback 없음·frontend 그대로
+PASS g08 — 실행 backend 새판 그대로·LEDGER_COMPLETE 없음
+PASS g04 — 관문 출력 STOP_UNKNOWN(집계 실패)
+PASS g05 — 관문 출력 LEDGER_REFUSED·LEDGER_FAILED 남음
+PASS g06 — 미리 둔 장부 경로 — 덮어쓰기 거절
+PASS g07 — STOP_INCOMPATIBLE 이 HOLD_PENDING 보다 먼저
+PASS g08 — 새 키 없는 3판 형식 줄 → STOP_UNKNOWN
+== t01~t07 보존 태그 네 판정 + 옛 태그 불변
+PASS t01 U0 — 종료 0 · '보존 태그 autotrader-backend:0e1d2a0 있음 — 운영 backend 대응과 같음'
+PASS t01 U1 — 종료 0 · '✅ U1 통과'
+PASS t01 — 있음이면 다시 쓰지 않는다(tag 명령 0)
+FAIL t02 U0 — 종료 1(기대 1) · '보존 태그 autotrader-backend:0e1d2a0 이 이미 다른 이미지를 가리킨다'
+🔴 autotrader-backend:0e1d2a0 대응 조회 불명
+🔴 멈춤: 보존 태그 autotrader-backend:0e1d2a0 조회 불명(권한·daemon·API·형식) — 없음으로 보지 않는다. 보고
+[대역 끝] rc=1 · 가짜 시각 13:30:00
+PASS t03 U0 — 종료 1 · '조회 불명(권한·daemon·API·형식) — 없음으로 보지 않는다'
+PASS t04 U0 — 종료 0 · '⚪ 옛 보존 태그 autotrader-backend:b5cd1d0 없음(API 404) — 이번 복구 대상이 아니므로 만들지 않는다'
+PASS t04 U1 — 종료 0 · '✅ U1 통과'
+PASS t04 — U1 뒤에도 옛 태그 b5cd1d0 없음(만들지 않음)
+PASS t05 U0 — 종료 1 · '옛 보존 태그 autotrader-backend:b5cd1d0 이 #27 이미지가 아닌 대상을 가리킨다'
+PASS t06 U0 — 종료 1 · '옛 보존 태그 autotrader-frontend:b5cd1d0 조회 불명'
+PASS t07 U0 — 종료 0 · '⚪ 옛 보존 태그 autotrader-frontend:b5cd1d0 없음(API 404)'
+PASS t02 — 멈춘 U0 — ok-U0 없음·변경 0
+PASS t03 — 멈춘 U0 — ok-U0 없음·변경 0
+PASS t05 — 멈춘 U0 — ok-U0 없음·변경 0
+PASS t06 — 멈춘 U0 — ok-U0 없음·변경 0
+== r01~r03 U1되돌림(재기동 전)과 재기동 뒤 구분, jar 거절
+PASS r01 U0 — 종료 0 · '✅ U0 통과'
+PASS r01 U1 — 종료 0 · '✅ U1 통과'
+PASS r01 U1되돌림 — 종료 0 · '↩ U1-되돌림 끝 — HEAD 0e1d2a02·backend latest = 운영 2c5d8427·frontend 무변경(9d7f123a)'
+PASS r01 — HEAD·latest 원판·재기동 0·frontend 변경 0·새 보존 태그 남김·옛 태그 불변
+PASS r02 U0 — 종료 0 · '✅ U0 통과'
+PASS r02 U1 — 종료 0 · '✅ U1 통과'
+PASS r02 U2 — 종료 0 · '✅ U2 통과'
+PASS r02 U1되돌림 — 종료 1 · 'U2(재기동)를 시작했다 — U1-되돌림이 아니라 U되돌림'
+PASS r03 U0 — 종료 0 · '✅ U0 통과'
+PASS r03 U1 — 종료 1 · 'jar 차이가 기대 38줄(변경 35·추가 3·삭제 0)이 아님'
+PASS r03 — 재기동 0
+PASS r03 U1되돌림 — 종료 0 · '↩ U1-되돌림 끝'
+PASS r03 — HEAD 원판
+PASS j01 U0 — 종료 0 · '✅ U0 통과'
+PASS j01 U1 — 종료 1 · '새 jar 항목 내용이 후보 d81c3f2f LF 목록(JARM 33a06f0e…)과 다름'
+PASS j01 — 이름 목록·항목 수는 통과(JARM 에서만 거절)·재기동 0
+== p01~p04 P0 우선·빈 로그·로그 실패·두 번째 로그(기존 계약 유지 확인)
+PASS p01 U0 — 종료 0 · '✅ U0 통과'
+PASS p01 U1 — 종료 0 · '✅ U1 통과'
+PASS p01 U2 — 종료 0 · '✅ U2 통과'
+PASS p01 U3 — 종료 1 · '🔴 P0 — 연결 획득 시간 초과 줄이 있다'
+PASS p01 — P0 멈춤이 이미지 대응·뉴스 조회보다 앞
+PASS p02 U0 — 종료 0 · '✅ U0 통과'
+PASS p02 U1 — 종료 0 · '✅ U1 통과'
+PASS p02 U2 — 종료 0 · '✅ U2 통과'
+PASS p02 U3 — 종료 1 · '🔴 P0 검사 미완료 — 기동 구간 로그가 비었다'
+PASS p03 U0 — 종료 0 · '✅ U0 통과'
+PASS p03 U1 — 종료 0 · '✅ U1 통과'
+PASS p03 U2 — 종료 0 · '✅ U2 통과'
+PASS p03 U3 — 종료 0 · '✅ U3(deploy) 통과'
+PASS p03 U4 — 종료 0 · '✅ U4 통과'
+PASS p03 U뒤관측 — 종료 1 · '🔴 P0 검사 미완료 — 두 번째 로그를 확보하지 못함'
+PASS p04 U0 — 종료 0 · '✅ U0 통과'
+PASS p04 U1 — 종료 0 · '✅ U1 통과'
+PASS p04 U2 — 종료 0 · '✅ U2 통과'
+PASS p04 U3 — 종료 0 · '✅ U3(deploy) 통과'
+PASS p04 U4 — 종료 1 · '🔴 P0 검사 미완료 — 기동 구간 로그를 확보하지 못함'
+PASS p04 — ok-U4 없음
+== u01~u06 배포 전 읽기 v3(pf3ok) — 진행 가능 밖은 빌드·체크아웃 전 멈춤
+PASS u01 U0 — 종료 1 · '배포 전 읽기 v3 가 진행 가능이 아님(pf3ok 종료 1'
+PASS u01 — 변경 0·ok-U0 없음
+PASS u02 U0 — 종료 1 · '배포 전 읽기 v3 가 진행 가능이 아님(pf3ok 종료 1'
+PASS u02 — 변경 0·ok-U0 없음
+PASS u03 U0 — 종료 0 · 'R3 RUNNING REAL 세션 청산 행 2 · 판정 불가 0'
+PASS u03 — 변경 0·ok-U0 있음
+PASS u04 U0 — 종료 1 · '배포 전 읽기 v3 가 진행 가능이 아님(pf3ok 종료 3'
+PASS u04 — 변경 0·ok-U0 없음
+PASS u05 U0 — 종료 1 · 'R3 RUNNING REAL 세션 청산 행 1 · 판정 불가 1 (LIVE:203 1)'
+PASS u05 — 변경 0·ok-U0 없음
+PASS u06 U0 — 종료 1 · '배포 전 읽기 v3 가 진행 가능이 아님(pf3ok 종료 3'
+PASS u06 — 변경 0·ok-U0 없음
+PASS u07 U0 — 종료 1 · '🔴 배포 전 읽기 v3 조회 실패 — 배포 전 중단·보고'
+== 전체 금지 명령 기록
+PASS 전체 — 모든 사례 forbidden.log 합계 0
+== 대역 결과 PASS 199 · FAIL 2
+rc=0

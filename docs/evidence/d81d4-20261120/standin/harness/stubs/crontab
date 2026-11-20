@@ -1,0 +1,4 @@
+#!/bin/bash
+. "$(dirname "$0")/_lib.sh"; calllog crontab "$@"
+[ "$1" = -l ] || forbid crontab "$@"
+cat "$SIM/home/.standin-crontab"

@@ -1,0 +1,43 @@
+PASS U0 정상 rc0 — 종료 0 · ssh 호출 1
+PASS 원격 원문 = F+G+U변수+U0, 마지막 문자 ')'
+PASS 같은 출력 이름 다시 → 덮어쓰지 않음 — 종료 2 · ssh 호출 0
+PASS 원격 rc1 그대로(U0 시도 2) — 종료 1 · ssh 호출 1
+PASS ssh 실패 rc255 그대로(U1) — 종료 255 · ssh 호출 1
+PASS U2 deploy — 종료 0 · ssh 호출 1
+PASS U3 deploy — 종료 0 · ssh 호출 1
+PASS U4 deploy — 종료 0 · ssh 호출 1
+PASS U뒤관측 deploy — 종료 0 · ssh 호출 1
+PASS 원격 원문 = F+G+U변수+U뒤관측
+PASS U1되돌림 rollback — 종료 0 · ssh 호출 1
+PASS U되돌림 rollback — 종료 0 · ssh 호출 1
+PASS U3 rollback — 종료 0 · ssh 호출 1
+PASS U0 rollback 거절 — 종료 2 · ssh 호출 0
+PASS U1 rollback 거절 — 종료 2 · ssh 호출 0
+PASS U2 rollback 거절 — 종료 2 · ssh 호출 0
+PASS U4 rollback 거절 — 종료 2 · ssh 호출 0
+PASS U뒤관측 rollback 거절 — 종료 2 · ssh 호출 0
+PASS U1되돌림 deploy 거절 — 종료 2 · ssh 호출 0
+PASS U되돌림 deploy 거절 — 종료 2 · ssh 호출 0
+PASS UF2 deploy 거절 — 종료 2 · ssh 호출 0
+PASS U2확인 deploy 거절 — 종료 2 · ssh 호출 0
+PASS 모드 잘못 — 종료 2 · ssh 호출 0
+PASS U2 1바이트 변조 — 종료 2 · ssh 호출 0
+PASS U변수 1바이트 변조(다른 블록 실행도 거절) — 종료 2 · ssh 호출 0
+PASS F 1바이트 변조 — 종료 2 · ssh 호출 0
+PASS 옛 UF2 블록이 섞임 — 종료 2 · ssh 호출 0
+PASS F·G 출처 40자 아님 — 종료 2 · ssh 호출 0
+PASS U2 자리에 다른 원문 — 종료 2 · ssh 호출 0
+PASS 복구 뒤 정상 — 종료 0 · ssh 호출 1
+== 종료값 기록
+2026-11-20 08:59:25 U0 deploy rc=0 out-U0-deploy.txt
+2026-11-20 08:59:26 U0 deploy 2 rc=1 out-U0-deploy-2.txt
+2026-11-20 08:59:27 U1 deploy rc=255 out-U1-deploy.txt
+2026-11-20 08:59:27 U2 deploy rc=0 out-U2-deploy.txt
+2026-11-20 08:59:28 U3 deploy rc=0 out-U3-deploy.txt
+2026-11-20 08:59:28 U4 deploy rc=0 out-U4-deploy.txt
+2026-11-20 08:59:29 U뒤관측 deploy rc=0 out-U뒤관측-deploy.txt
+2026-11-20 08:59:30 U1되돌림 rollback rc=0 out-U1되돌림-rollback.txt
+2026-11-20 08:59:30 U되돌림 rollback rc=0 out-U되돌림-rollback.txt
+2026-11-20 08:59:31 U3 rollback rc=0 out-U3-rollback.txt
+2026-11-20 08:59:34 U3 deploy 8 rc=0 out-U3-deploy-8.txt
+== 결과: PASS 30 · FAIL 0

@@ -1,0 +1,107 @@
+{
+  "gate_standin": [
+    [
+      "PASS",
+      "S01_entry_rejected_present",
+      "want=STOP_INCOMPATIBLE/3",
+      "got=STOP_INCOMPATIBLE/3",
+      "ledger=none"
+    ],
+    [
+      "PASS",
+      "S02_present_plus_open_orders",
+      "want=STOP_INCOMPATIBLE/3",
+      "got=STOP_INCOMPATIBLE/3",
+      "ledger=none"
+    ],
+    [
+      "PASS",
+      "S03_present_plus_cleanup_settle",
+      "want=STOP_INCOMPATIBLE/3",
+      "got=STOP_INCOMPATIBLE/3",
+      "ledger=none"
+    ],
+    [
+      "PASS",
+      "S04_present_ledger_path_exists",
+      "want=STOP_INCOMPATIBLE/3",
+      "got=STOP_INCOMPATIBLE/3",
+      "ledger=partial"
+    ],
+    [
+      "PASS",
+      "S05_absent_clean",
+      "want=ROLLBACK_GATE_OK/0",
+      "got=ROLLBACK_GATE_OK/0",
+      "ledger=complete"
+    ],
+    [
+      "PASS",
+      "S06_absent_open_order",
+      "want=HOLD_PENDING/2",
+      "got=HOLD_PENDING/2",
+      "ledger=none"
+    ],
+    [
+      "PASS",
+      "S07_absent_acct_cleanup",
+      "want=HOLD_PENDING/2",
+      "got=HOLD_PENDING/2",
+      "ledger=none"
+    ],
+    [
+      "PASS",
+      "S08_query_failure",
+      "want=STOP_UNKNOWN/3",
+      "got=STOP_UNKNOWN/3",
+      "ledger=none"
+    ],
+    [
+      "PASS",
+      "S09_v3_line_no_new_key",
+      "want=STOP_UNKNOWN/3",
+      "got=STOP_UNKNOWN/3",
+      "ledger=none"
+    ],
+    [
+      "PASS",
+      "S10_ledger_write_failure",
+      "want=LEDGER_REFUSED/4",
+      "got=LEDGER_REFUSED/4",
+      "ledger=partial"
+    ],
+    [
+      "PASS",
+      "S11_absent_ledger_path_exists",
+      "want=LEDGER_REFUSED/4",
+      "got=LEDGER_REFUSED/4",
+      "ledger=partial"
+    ]
+  ],
+  "submission": "7c62a7db73e236e1664745e1fb0037ba45516182",
+  "correction": "20104a691366a9a9cf2170374caa1463a743ab96",
+  "candidate": "d81c3f2f91c0239aacb0e1176dde9b898f4d7466",
+  "historical_image_chain_source": "docs/evidence/v172run-20261116/server/maint-v172-nojar.tar.gz",
+  "backend": [
+    "sha256:2c5d84276cdbf01f718077e3d2d0475f6af5982d7afb95082750fcebe7f5979f",
+    "sha256:b3a42cd2dd9947e6dffc5ccec71de077b3d2fccfc810d21796378be73b05aa0c",
+    "sha256:4016cc389044ba95a88f9048f6b14de7118e276c75f9a524998e2b8baa50ac34"
+  ],
+  "frontend": [
+    "sha256:9d7f123ad6afd75b46d954b7c7031267df5afb3bf6e99660d5a53a3c5d43798e",
+    "sha256:13343943ed4ab0db003bf40e77cb38c9d41e67287a7d51fcb6da818ad6569d93",
+    "sha256:11d9a954a3054d3eff3c6d2d798fad55beefce3a166c9335259d8fa6367e4f89"
+  ],
+  "JARN": "(끝) 895 898",
+  "missing_at_runtime": [
+    "Current image/container and service identity must be revalidated before deployment.",
+    "Existence/identity of new preservation tags is unknown; runtime tagkeep must distinguish absent/different/unknown."
+  ],
+  "limits": [
+    "No app tests, PG, build, Docker, SSH, remote query or production command executed.",
+    "Gate standin verifies shell verdict/exit using fake aggregates, not SQL aggregation or Docker behavior.",
+    "Standin ledger status is recorded but is not part of its PASS expression; no complete ledger directory was submitted.",
+    "Image chain values are preserved observations from Nov 16, not a current server read.",
+    "The fixed original review of 27cffb99 keeps its three preservation failures; this review verifies the later correction."
+  ]
+}

@@ -1,0 +1,20 @@
+== n01 정상 backend 전용 순서 U0→U1→(운영자 확인)→U2→U3→U4→U뒤관측
+PASS n01 U0 — 종료 0 · '✅ U0 통과'
+PASS n01 U1 — 종료 0 · '✅ U1 통과'
+PASS n01 — U1 끝 문구에 운영자 확인 1회 위치(U2 직전)
+PASS n01 U0(2) — 종료 1 · 'U1 을 이미 시작했다'
+PASS n01 U1(2) — 종료 1 · 'U1 을 이미 통과했다'
+PASS n01 U2 — 종료 0 · '✅ U2 통과'
+PASS n01 U3 — 종료 0 · '✅ U3(deploy) 통과'
+PASS n01 U4 — 종료 0 · '✅ U4 통과'
+PASS n01 U뒤관측 — 종료 0 · '대역 끝] rc=0'
+PASS n01 — 변경 명령 순서 = 보존 태그 0e1d2a0 → checkout NEW → build backend → up backend
+PASS n01 — frontend 변경 명령 0·frontend 실행·기동 시각·이름 그대로
+PASS n01 — 옛 보존 태그 10개 불변·새 보존 태그 0e1d2a0 = 원판
+PASS n01 — V96 기적용 확인 기록 5개(U0·U2 전·U2 뒤·U3·U4) 모두 1|96:true:-424836241
+PASS n01 — frontend 단계·새 frontend 기록·UF2 표지 없음
+PASS n01 — U3 는 5분 창 안 — 늦은 실행 표시 없음
+PASS n01 — 배포 전 읽기 v3 판정 줄
+PASS n01 — 금지 명령 0
+== l01 U3 늦은 실행(기동 15분 뒤) — 기준 시각 그대로, 편차 표시만
+PASS l01 U0 — 종료 0 · '✅ U0 통과'

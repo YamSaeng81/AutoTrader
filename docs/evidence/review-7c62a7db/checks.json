@@ -1,0 +1,374 @@
+{
+  "passed": 50,
+  "failed": 0,
+  "checks": [
+    {
+      "check": "20104a69 docs/evidence/dec-final-abc-20261119/ checksums",
+      "pass": true,
+      "actual": {
+        "listed": 355,
+        "mismatch": []
+      }
+    },
+    {
+      "check": "7c62a7db docs/evidence/dec-final-abc-20261119/ checksums",
+      "pass": true,
+      "actual": {
+        "listed": 355,
+        "mismatch": []
+      }
+    },
+    {
+      "check": "all 355 original files remain identical after correction",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "original manifest unchanged since 27cffb99",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "20104a69 docs/evidence/review-e97ca31b/ checksums",
+      "pass": true,
+      "actual": {
+        "listed": 5,
+        "mismatch": []
+      }
+    },
+    {
+      "check": "7c62a7db docs/evidence/review-27cffb99/ checksums",
+      "pass": true,
+      "actual": {
+        "listed": 5,
+        "mismatch": []
+      }
+    },
+    {
+      "check": "7c62a7db docs/evidence/dec-deploy-draft-d81-20261119/ checksums",
+      "pass": true,
+      "actual": {
+        "listed": 20,
+        "mismatch": []
+      }
+    },
+    {
+      "check": "correction limited to 302 originals and 12 additions",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "302 changes restore CRLF bytes without other edits",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "11 formerly missing logs are the 11 added logs",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "correction disables text conversion locally",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "26 new review/draft evidence files equal working copies",
+      "pass": true,
+      "actual": 26
+    },
+    {
+      "check": "permission settings excluded from both submissions",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "final candidate unchanged",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "candidate changes only web-api Java main/test, no frontend/resources/build inputs",
+      "pass": true,
+      "actual": 43
+    },
+    {
+      "check": "SQL query source is identical across C / ABC / final",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "regenerated SQL differs only in source-SHA comment",
+      "pass": true,
+      "actual": [
+        [
+          2,
+          "-- 조회문은 후보 b408a223 의 OrderRepository 상수·@Query 원문을 기계적으로 풀어 만들었다(gen_predeploy.py). :since = now() - 30일.",
+          "-- 조회문은 후보 d81c3f2f 의 OrderRepository 상수·@Query 원문을 기계적으로 풀어 만들었다(gen_predeploy.py). :since = now() - 30일."
+        ]
+      ]
+    },
+    {
+      "check": "predeploy SQL fixed hash",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "gate.sql fixed gate source hash",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "rollback_gate.sh fixed gate source hash",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "gate incompatibility check precedes ledger writes and pending checks",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "0e1d2a02 enum difference is ENTRY_REJECTED only",
+      "pass": true,
+      "actual": {
+        "old": [
+          "BLACK_SWAN",
+          "FORCED_STOP",
+          "STOP_LOSS",
+          "STRATEGY_SIGNAL",
+          "TAKE_PROFIT",
+          "TIME_STOP",
+          "TRAILING_STOP",
+          "UNKNOWN"
+        ],
+        "new": [
+          "ENTRY_REJECTED"
+        ]
+      }
+    },
+    {
+      "check": "b5cd1d0d enum difference is ENTRY_REJECTED only",
+      "pass": true,
+      "actual": {
+        "old": [
+          "BLACK_SWAN",
+          "FORCED_STOP",
+          "STOP_LOSS",
+          "STRATEGY_SIGNAL",
+          "TAKE_PROFIT",
+          "TIME_STOP",
+          "TRAILING_STOP",
+          "UNKNOWN"
+        ],
+        "new": [
+          "ENTRY_REJECTED"
+        ]
+      }
+    },
+    {
+      "check": "PositionEntity.java entity mapping unchanged",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "paper/PaperPositionEntity.java entity mapping unchanged",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "two string-enum mappings in web-api entities",
+      "pass": true,
+      "actual": [
+        "d81c3f2f91c0239aacb0e1176dde9b898f4d7466:web-api/src/main/java/com/cryptoautotrader/api/entity/PositionEntity.java:142:    @Enumerated(EnumType.STRING)",
+        "d81c3f2f91c0239aacb0e1176dde9b898f4d7466:web-api/src/main/java/com/cryptoautotrader/api/entity/paper/PaperPositionEntity.java:98:    @Enumerated(EnumType.STRING)"
+      ]
+    },
+    {
+      "check": "gate checks both position tables against old enum list",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "S01_entry_rejected_present saved result and verdict",
+      "pass": true,
+      "actual": [
+        "PASS",
+        "S01_entry_rejected_present",
+        "want=STOP_INCOMPATIBLE/3",
+        "got=STOP_INCOMPATIBLE/3",
+        "ledger=none"
+      ]
+    },
+    {
+      "check": "S02_present_plus_open_orders saved result and verdict",
+      "pass": true,
+      "actual": [
+        "PASS",
+        "S02_present_plus_open_orders",
+        "want=STOP_INCOMPATIBLE/3",
+        "got=STOP_INCOMPATIBLE/3",
+        "ledger=none"
+      ]
+    },
+    {
+      "check": "S03_present_plus_cleanup_settle saved result and verdict",
+      "pass": true,
+      "actual": [
+        "PASS",
+        "S03_present_plus_cleanup_settle",
+        "want=STOP_INCOMPATIBLE/3",
+        "got=STOP_INCOMPATIBLE/3",
+        "ledger=none"
+      ]
+    },
+    {
+      "check": "S04_present_ledger_path_exists saved result and verdict",
+      "pass": true,
+      "actual": [
+        "PASS",
+        "S04_present_ledger_path_exists",
+        "want=STOP_INCOMPATIBLE/3",
+        "got=STOP_INCOMPATIBLE/3",
+        "ledger=partial"
+      ]
+    },
+    {
+      "check": "S05_absent_clean saved result and verdict",
+      "pass": true,
+      "actual": [
+        "PASS",
+        "S05_absent_clean",
+        "want=ROLLBACK_GATE_OK/0",
+        "got=ROLLBACK_GATE_OK/0",
+        "ledger=complete"
+      ]
+    },
+    {
+      "check": "S06_absent_open_order saved result and verdict",
+      "pass": true,
+      "actual": [
+        "PASS",
+        "S06_absent_open_order",
+        "want=HOLD_PENDING/2",
+        "got=HOLD_PENDING/2",
+        "ledger=none"
+      ]
+    },
+    {
+      "check": "S07_absent_acct_cleanup saved result and verdict",
+      "pass": true,
+      "actual": [
+        "PASS",
+        "S07_absent_acct_cleanup",
+        "want=HOLD_PENDING/2",
+        "got=HOLD_PENDING/2",
+        "ledger=none"
+      ]
+    },
+    {
+      "check": "S08_query_failure saved result and verdict",
+      "pass": true,
+      "actual": [
+        "PASS",
+        "S08_query_failure",
+        "want=STOP_UNKNOWN/3",
+        "got=STOP_UNKNOWN/3",
+        "ledger=none"
+      ]
+    },
+    {
+      "check": "S09_v3_line_no_new_key saved result and verdict",
+      "pass": true,
+      "actual": [
+        "PASS",
+        "S09_v3_line_no_new_key",
+        "want=STOP_UNKNOWN/3",
+        "got=STOP_UNKNOWN/3",
+        "ledger=none"
+      ]
+    },
+    {
+      "check": "S10_ledger_write_failure saved result and verdict",
+      "pass": true,
+      "actual": [
+        "PASS",
+        "S10_ledger_write_failure",
+        "want=LEDGER_REFUSED/4",
+        "got=LEDGER_REFUSED/4",
+        "ledger=partial"
+      ]
+    },
+    {
+      "check": "S11_absent_ledger_path_exists saved result and verdict",
+      "pass": true,
+      "actual": [
+        "PASS",
+        "S11_absent_ledger_path_exists",
+        "want=LEDGER_REFUSED/4",
+        "got=LEDGER_REFUSED/4",
+        "ledger=partial"
+      ]
+    },
+    {
+      "check": "all eleven gate cases retained",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "standin tests call original gate script via fake psql",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "standin PASS covers verdict and exit only; ledger is recorded",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "saved server record hash: image-new-chain.txt",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "saved server record hash: image-fe-new-chain.txt",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "saved server record hash: svc-fe.txt",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "saved backend chain identifies current deployed target",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "saved frontend chain identifies unchanged target",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "saved frontend container Image is target ID",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "JARN known from accepted manifests: 895 to 898",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "old U2 contains obsolete V94 requirement and boolean t expectation",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "old U4 requires removed frontend stage artifacts",
+      "pass": true,
+      "actual": null
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+#!/bin/bash
+# 가짜 시계 — -d 가 없으면 $SIM/state/clock 시각으로 답한다
+. "$(dirname "$0")/_lib.sh"
+for a in "$@"; do case "$a" in -d|-d*|--date*) exec /usr/bin/date "$@" ;; esac; done
+exec /usr/bin/date -d "@$(now)" "$@"
