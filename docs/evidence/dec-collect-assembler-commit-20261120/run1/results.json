@@ -1,0 +1,106 @@
+{
+ "assembler_sha256": "ff8549346014095c5cd33ba297f187966fee39f449a6b953755b8ae905447472",
+ "inputs": "dec-collect-assembler-20261120/run1/inputs/normal",
+ "cases": {
+  "normal": {
+   "rc": 0,
+   "stdout": "{\"rc\": 0, \"status\": \"db_extract_partial\", \"downstream\": \"db_part_only\"}",
+   "same_bytes": [
+    "clock.json",
+    "parse_rc.txt",
+    "parse_stderr.txt",
+    "parse_stdout.txt",
+    "parsed.json",
+    "psql_rc.txt",
+    "registry.json",
+    "stderr.txt",
+    "stdout.tsv"
+   ],
+   "diff_bytes": [],
+   "bundle_equal_except_commit": true,
+   "commit": "pending-sums-rename-1: bundle.json 은 SHA256SUMS 기록 뒤 마지막 os.replace 로만 생긴다. 소비 조건 = verify_committed 통과(미확정 흔적 없음·목록=폴더·해시 일치·rc 0·db_part_only)",
+   "files": [
+    "SHA256SUMS",
+    "bundle.json",
+    "clock.json",
+    "parse_rc.txt",
+    "parse_stderr.txt",
+    "parse_stdout.txt",
+    "parsed.json",
+    "psql_rc.txt",
+    "registry.json",
+    "stderr.txt",
+    "stdout.tsv"
+   ],
+   "verify": true,
+   "cli_verify": [
+    0,
+    "{\"consumable\": true, \"reason\": null}"
+   ],
+   "pass": true
+  },
+  "sums_write_fail": {
+   "rc": 42,
+   "faults": [
+    "SHA256SUMS write denied"
+   ],
+   "files": [
+    "bundle.json.uncommitted",
+    "clock.json",
+    "parse_rc.txt",
+    "parse_stderr.txt",
+    "parse_stdout.txt",
+    "parsed.json",
+    "psql_rc.txt",
+    "registry.json",
+    "stderr.txt",
+    "stdout.tsv"
+   ],
+   "verify": [
+    false,
+    "미확정 흔적 bundle.json.uncommitted 있음"
+   ],
+   "cli_verify": [
+    44,
+    "{\"consumable\": false, \"reason\": \"\\ubbf8\\ud655\\uc815 \\ud754\\uc801 bundle.json.uncommitted \\uc788\\uc74c\"}"
+   ],
+   "direct_bundle_json": "absent",
+   "pass": true,
+   "stdout": "{\"rc\": 42, \"error\": \"\\ubcf4\\uc874 \\uc4f0\\uae30 \\uc2e4\\ud328(\\ubbf8\\ud655\\uc815): synthetic SHA256SUMS write denial\"}"
+  },
+  "final_rename_fail": {
+   "rc": 42,
+   "faults": [
+    "final os.replace denied"
+   ],
+   "files": [
+    "SHA256SUMS",
+    "bundle.json.uncommitted",
+    "clock.json",
+    "parse_rc.txt",
+    "parse_stderr.txt",
+    "parse_stdout.txt",
+    "parsed.json",
+    "psql_rc.txt",
+    "registry.json",
+    "stderr.txt",
+    "stdout.tsv"
+   ],
+   "verify": [
+    false,
+    "미확정 흔적 bundle.json.uncommitted 있음"
+   ],
+   "cli_verify": [
+    44,
+    "{\"consumable\": false, \"reason\": \"\\ubbf8\\ud655\\uc815 \\ud754\\uc801 bundle.json.uncommitted \\uc788\\uc74c\"}"
+   ],
+   "direct_bundle_json": "absent",
+   "pass": true,
+   "sums_written_before_failure": true,
+   "stdout": "{\"rc\": 42, \"error\": \"\\ubcf4\\uc874 \\uc4f0\\uae30 \\uc2e4\\ud328(\\ubbf8\\ud655\\uc815): synthetic final rename denial\"}"
+  }
+ },
+ "total": 3,
+ "passed": 3,
+ "note": "시계 값은 합성(옛 run1 입력 그대로). 실패는 프로세스 안 주입이며 실제 디스크 고갈·운영 실행이 아니다"
+}

@@ -1,0 +1,24 @@
+{
+  "fault": [
+    "SHA256SUMS write denied"
+  ],
+  "actual_returncode": 42,
+  "stdout": "{\"rc\": 42, \"error\": \"\\ubcf4\\uc874 \\uc4f0\\uae30 \\uc2e4\\ud328: synthetic SHA256SUMS write denial\"}\n",
+  "bundle_rc": 0,
+  "bundle_downstream": "db_part_only",
+  "bundle_status": "db_extract_partial",
+  "sha256sums_exists": false,
+  "files": [
+    "bundle.json",
+    "clock.json",
+    "parse_rc.txt",
+    "parse_stderr.txt",
+    "parse_stdout.txt",
+    "parsed.json",
+    "psql_rc.txt",
+    "registry.json",
+    "stderr.txt",
+    "stdout.tsv"
+  ],
+  "kind": "File-only record finalization defect; no production action"
+}

@@ -1,0 +1,132 @@
+{
+  "sha": "a926727cbf0c7acc9007450a0dcbad315ae171d6",
+  "assembler_sha256": "7717c6671de76d8a93ac0697e1d490152f7cb0f9628746687fb08cfc3985b1bf",
+  "passed": 16,
+  "failed": 0,
+  "unique_manifest_files": 108,
+  "checks": [
+    {
+      "name": "HEAD and saved origin/main",
+      "ok": true,
+      "detail": "Saved refs; no remote query"
+    },
+    {
+      "name": "Submission only evidence and three management docs",
+      "ok": true,
+      "detail": {
+        "changed_paths": 120,
+        "settings_included": false
+      }
+    },
+    {
+      "name": "Manifest dec-collect-assembler-20261120",
+      "ok": true,
+      "detail": {
+        "entries": 99,
+        "mismatches": []
+      }
+    },
+    {
+      "name": "Manifest dec-collect-contract-supp-20261120",
+      "ok": true,
+      "detail": {
+        "entries": 1,
+        "mismatches": []
+      }
+    },
+    {
+      "name": "Manifest review-73c23938",
+      "ok": true,
+      "detail": {
+        "entries": 8,
+        "mismatches": []
+      }
+    },
+    {
+      "name": "Unique manifest files match reported 108",
+      "ok": true,
+      "detail": 108
+    },
+    {
+      "name": "No network imports and only fixed parser subprocess",
+      "ok": true,
+      "detail": {
+        "subprocess_calls": 1,
+        "command": "[sys.executable, '-I', a.parser, '--raw', os.path.join(a.out, 'stdout.tsv'), '--psql-rc', str(psql_rc), '--registry', os.path.join(a.out, 'registry.json'), '--out', pj]"
+      }
+    },
+    {
+      "name": "Unchanged accepted read.sql",
+      "ok": true,
+      "detail": "9818db5452f66f058c97322ac9aaf73097036997777d10a0af9f6dde05bdae03"
+    },
+    {
+      "name": "Unchanged accepted parse.py",
+      "ok": true,
+      "detail": "0f6fe827c9da513445ce9c52300b8688f8f4f162a99026b90d05943c10341908"
+    },
+    {
+      "name": "Preserved seven cases, no repeat",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Preserved bundles hashes and blocking flags",
+      "ok": true,
+      "detail": {
+        "hash": [],
+        "raw": [],
+        "flags": []
+      }
+    },
+    {
+      "name": "Normal raw source stdout",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Normal raw source stderr",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Normal raw source psql-rc",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Normal raw source registry",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Write failure reproduced: CLI fails but bundle still advertises success",
+      "ok": true,
+      "detail": {
+        "fault": [
+          "SHA256SUMS write denied"
+        ],
+        "actual_returncode": 42,
+        "stdout": "{\"rc\": 42, \"error\": \"\\ubcf4\\uc874 \\uc4f0\\uae30 \\uc2e4\\ud328: synthetic SHA256SUMS write denial\"}\n",
+        "bundle_rc": 0,
+        "bundle_downstream": "db_part_only",
+        "bundle_status": "db_extract_partial",
+        "sha256sums_exists": false,
+        "files": [
+          "bundle.json",
+          "clock.json",
+          "parse_rc.txt",
+          "parse_stderr.txt",
+          "parse_stdout.txt",
+          "parsed.json",
+          "psql_rc.txt",
+          "registry.json",
+          "stderr.txt",
+          "stdout.tsv"
+        ],
+        "kind": "File-only record finalization defect; no production action"
+      }
+    }
+  ],
+  "note": "Successful checks include reproduction of a defect, not acceptance of the defect"
+}
