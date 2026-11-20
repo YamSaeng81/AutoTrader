@@ -1,0 +1,189 @@
+{
+ "u_var": "U변수.sh",
+ "cases": [
+  {
+   "case": "정상-R3없음",
+   "want": 0,
+   "rc": 0,
+   "pass": true,
+   "out": "R1 판정 불가(30일) LIVE 0 · DYNAMIC 0\r\nR2 손실 합(30일, 기록만) LIVE 0 · DYNAMIC 0\r\nR3 RUNNING REAL 세션 청산 행 0 · 판정 불가 0\r\n판정 | 진행 가능(R1 두 종류 0 · R3 판정 불가 0)\r\n"
+  },
+  {
+   "case": "정상-확정",
+   "want": 0,
+   "rc": 0,
+   "pass": true,
+   "out": "R1 판정 불가(30일) LIVE 0 · DYNAMIC 0\r\nR2 손실 합(30일, 기록만) LIVE 0 · DYNAMIC 0\r\nR3 RUNNING REAL 세션 청산 행 1 · 판정 불가 0\r\n판정 | 진행 가능(R1 두 종류 0 · R3 판정 불가 0)\r\n"
+  },
+  {
+   "case": "정상-무거래",
+   "want": 0,
+   "rc": 0,
+   "pass": true,
+   "out": "R1 판정 불가(30일) LIVE 0 · DYNAMIC 0\r\nR2 손실 합(30일, 기록만) LIVE 0 · DYNAMIC 0\r\nR3 RUNNING REAL 세션 청산 행 1 · 판정 불가 0\r\n판정 | 진행 가능(R1 두 종류 0 · R3 판정 불가 0)\r\n"
+  },
+  {
+   "case": "정상-확정+무거래",
+   "want": 0,
+   "rc": 0,
+   "pass": true,
+   "out": "R1 판정 불가(30일) LIVE 0 · DYNAMIC 0\r\nR2 손실 합(30일, 기록만) LIVE 0 · DYNAMIC 0\r\nR3 RUNNING REAL 세션 청산 행 2 · 판정 불가 0\r\n판정 | 진행 가능(R1 두 종류 0 · R3 판정 불가 0)\r\n"
+  },
+  {
+   "case": "판정불가-매도수량<매수",
+   "want": 1,
+   "rc": 1,
+   "pass": true,
+   "out": "R1 판정 불가(30일) LIVE 0 · DYNAMIC 0\r\nR2 손실 합(30일, 기록만) LIVE 0 · DYNAMIC 0\r\nR3 RUNNING REAL 세션 청산 행 1 · 판정 불가 1 (LIVE:1 1)\r\n판정 | 🔴 보수적 사전 기준 미충족 — R1 판정 불가 또는 R3 판정 불가 행이 있다(비용 원천 사전 확인 기준. 제품 진입 결과라고 단정하지 않는다)\r\n"
+  },
+  {
+   "case": "판정불가-원가NULL",
+   "want": 1,
+   "rc": 1,
+   "pass": true,
+   "out": "R1 판정 불가(30일) LIVE 0 · DYNAMIC 0\r\nR2 손실 합(30일, 기록만) LIVE 0 · DYNAMIC 0\r\nR3 RUNNING REAL 세션 청산 행 1 · 판정 불가 1 (LIVE:1 1)\r\n판정 | 🔴 보수적 사전 기준 미충족 — R1 판정 불가 또는 R3 판정 불가 행이 있다(비용 원천 사전 확인 기준. 제품 진입 결과라고 단정하지 않는다)\r\n"
+  },
+  {
+   "case": "판정불가-매도순대금NULL(총괄반례4)",
+   "want": 1,
+   "rc": 1,
+   "pass": true,
+   "out": "R1 판정 불가(30일) LIVE 0 · DYNAMIC 0\r\nR2 손실 합(30일, 기록만) LIVE 0 · DYNAMIC 0\r\nR3 RUNNING REAL 세션 청산 행 1 · 판정 불가 1 (LIVE:1 1)\r\n판정 | 🔴 보수적 사전 기준 미충족 — R1 판정 불가 또는 R3 판정 불가 행이 있다(비용 원천 사전 확인 기준. 제품 진입 결과라고 단정하지 않는다)\r\n"
+  },
+  {
+   "case": "판정불가-R1",
+   "want": 1,
+   "rc": 1,
+   "pass": true,
+   "out": "R1 판정 불가(30일) LIVE 1 · DYNAMIC 0\r\nR2 손실 합(30일, 기록만) LIVE 0 · DYNAMIC 0\r\nR3 RUNNING REAL 세션 청산 행 0 · 판정 불가 0\r\n판정 | 🔴 보수적 사전 기준 미충족 — R1 판정 불가 또는 R3 판정 불가 행이 있다(비용 원천 사전 확인 기준. 제품 진입 결과라고 단정하지 않는다)\r\n"
+  },
+  {
+   "case": "판정불가-무거래0+체결0",
+   "want": 1,
+   "rc": 1,
+   "pass": true,
+   "out": "R1 판정 불가(30일) LIVE 0 · DYNAMIC 0\r\nR2 손실 합(30일, 기록만) LIVE 0 · DYNAMIC 0\r\nR3 RUNNING REAL 세션 청산 행 1 · 판정 불가 1 (DYNAMIC:93 1)\r\n판정 | 🔴 보수적 사전 기준 미충족 — R1 판정 불가 또는 R3 판정 불가 행이 있다(비용 원천 사전 확인 기준. 제품 진입 결과라고 단정하지 않는다)\r\n"
+  },
+  {
+   "case": "반례-원가not-a-number",
+   "want": 3,
+   "rc": 3,
+   "pass": true,
+   "out": "🔴 배포 전 읽기 v3 형식 이상: R3 5줄 4열 수치 형식\r\n"
+  },
+  {
+   "case": "반례-매도수량Infinity",
+   "want": 3,
+   "rc": 3,
+   "pass": true,
+   "out": "🔴 배포 전 읽기 v3 형식 이상: R3 5줄 8열 수치 형식\r\n"
+  },
+  {
+   "case": "반례-무거래플래그2",
+   "want": 3,
+   "rc": 3,
+   "pass": true,
+   "out": "🔴 배포 전 읽기 v3 형식 이상: R3 5줄 무거래 플래그가 0/1 아님\r\n"
+  },
+  {
+   "case": "원가NaN",
+   "want": 3,
+   "rc": 3,
+   "pass": true,
+   "out": "🔴 배포 전 읽기 v3 형식 이상: R3 5줄 4열 수치 형식\r\n"
+  },
+  {
+   "case": "매수수량음수",
+   "want": 3,
+   "rc": 3,
+   "pass": true,
+   "out": "🔴 배포 전 읽기 v3 형식 이상: R3 5줄 5열 수치 형식\r\n"
+  },
+  {
+   "case": "매도수량음수",
+   "want": 3,
+   "rc": 3,
+   "pass": true,
+   "out": "🔴 배포 전 읽기 v3 형식 이상: R3 5줄 8열 수치 형식\r\n"
+  },
+  {
+   "case": "지수표기",
+   "want": 3,
+   "rc": 3,
+   "pass": true,
+   "out": "🔴 배포 전 읽기 v3 형식 이상: R3 5줄 4열 수치 형식\r\n"
+  },
+  {
+   "case": "플래그빈칸",
+   "want": 3,
+   "rc": 3,
+   "pass": true,
+   "out": "🔴 배포 전 읽기 v3 형식 이상: R3 5줄 무거래 플래그가 0/1 아님\r\n"
+  },
+  {
+   "case": "플래그01",
+   "want": 3,
+   "rc": 3,
+   "pass": true,
+   "out": "🔴 배포 전 읽기 v3 형식 이상: R3 5줄 무거래 플래그가 0/1 아님\r\n"
+  },
+  {
+   "case": "플래그-1",
+   "want": 3,
+   "rc": 3,
+   "pass": true,
+   "out": "🔴 배포 전 읽기 v3 형식 이상: R3 5줄 무거래 플래그가 0/1 아님\r\n"
+  },
+  {
+   "case": "무거래1+원가형식이상",
+   "want": 3,
+   "rc": 3,
+   "pass": true,
+   "out": "🔴 배포 전 읽기 v3 형식 이상: R3 5줄 4열 수치 형식\r\n"
+  },
+  {
+   "case": "무거래1+개수0인데합계",
+   "want": 3,
+   "rc": 3,
+   "pass": true,
+   "out": "🔴 배포 전 읽기 v3 형식 이상: R3 5줄 개수와 합계가 맞지 않음\r\n"
+  },
+  {
+   "case": "원가미상수>체결수",
+   "want": 3,
+   "rc": 3,
+   "pass": true,
+   "out": "🔴 배포 전 읽기 v3 형식 이상: R3 5줄 개수와 합계가 맞지 않음\r\n"
+  },
+  {
+   "case": "R2-Infinity",
+   "want": 3,
+   "rc": 3,
+   "pass": true,
+   "out": "🔴 배포 전 읽기 v3 형식 이상: 3줄(R2)\r\n"
+  },
+  {
+   "case": "CRLF줄끝",
+   "want": 3,
+   "rc": 3,
+   "pass": true,
+   "out": "🔴 배포 전 읽기 v3 형식 이상: 1줄(R1)\r\n"
+  },
+  {
+   "case": "UTF-8아님",
+   "want": 3,
+   "rc": 3,
+   "pass": true,
+   "out": "🔴 배포 전 읽기 v3 형식 이상: 파일 읽기 실패(UnicodeDecodeError)\r\n"
+  },
+  {
+   "case": "파일없음",
+   "want": 3,
+   "rc": 3,
+   "pass": true,
+   "out": "🔴 배포 전 읽기 v3 형식 이상: 파일 읽기 실패(FileNotFoundError)\r\n"
+  }
+ ],
+ "pass": 26,
+ "fail": 0
+}
