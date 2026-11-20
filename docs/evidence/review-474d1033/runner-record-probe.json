@@ -1,0 +1,57 @@
+{
+  "source": "474d103343fb4ccc531136b79e9ece5b4d9cc912",
+  "runner_sha256": "d74a0ccbc21861766751ae34ace6e67b547c113b025c6348781bdd4b87d3897b",
+  "cases": [
+    {
+      "case": "first-log",
+      "tee_failure_call": 1,
+      "exit_record_is_directory": false,
+      "fake_remote_rc": 0,
+      "runner_rc": 127,
+      "fake_ssh_calls": 0,
+      "log_record_exists": true,
+      "exit_record_file_exists": true
+    },
+    {
+      "case": "remote-output",
+      "tee_failure_call": 2,
+      "exit_record_is_directory": false,
+      "fake_remote_rc": 0,
+      "runner_rc": 127,
+      "fake_ssh_calls": 0,
+      "log_record_exists": true,
+      "exit_record_file_exists": true
+    },
+    {
+      "case": "last-log",
+      "tee_failure_call": 3,
+      "exit_record_is_directory": false,
+      "fake_remote_rc": 0,
+      "runner_rc": 127,
+      "fake_ssh_calls": 0,
+      "log_record_exists": true,
+      "exit_record_file_exists": true
+    },
+    {
+      "case": "exit-record",
+      "tee_failure_call": 0,
+      "exit_record_is_directory": true,
+      "fake_remote_rc": 0,
+      "runner_rc": 127,
+      "fake_ssh_calls": 0,
+      "log_record_exists": true,
+      "exit_record_file_exists": false
+    },
+    {
+      "case": "remote-failure-and-log",
+      "tee_failure_call": 3,
+      "exit_record_is_directory": false,
+      "fake_remote_rc": 7,
+      "runner_rc": 127,
+      "fake_ssh_calls": 0,
+      "log_record_exists": true,
+      "exit_record_file_exists": true
+    }
+  ],
+  "limits": "All SSH commands were fake; no remote script or server operation was executed."
+}

@@ -1,0 +1,42 @@
+{
+  "source": "474d103343fb4ccc531136b79e9ece5b4d9cc912",
+  "cases": [
+    {
+      "case": "empty-r3",
+      "rc": 0,
+      "stdout": "R1 판정 불가(30일) LIVE 0 · DYNAMIC 0\r\nR2 손실 합(30일, 기록만) LIVE 0 · DYNAMIC 0\r\nR3 RUNNING REAL 세션 청산 행 0 · 판정 불가 0\r\n판정 | 진행 가능(R1 두 종류 0 · R3 판정 불가 0)\r\n",
+      "stderr": ""
+    },
+    {
+      "case": "valid",
+      "rc": 0,
+      "stdout": "R1 판정 불가(30일) LIVE 0 · DYNAMIC 0\r\nR2 손실 합(30일, 기록만) LIVE 0 · DYNAMIC 0\r\nR3 RUNNING REAL 세션 청산 행 1 · 판정 불가 0\r\n판정 | 진행 가능(R1 두 종류 0 · R3 판정 불가 0)\r\n",
+      "stderr": ""
+    },
+    {
+      "case": "invalid-cost",
+      "rc": 0,
+      "stdout": "R1 판정 불가(30일) LIVE 0 · DYNAMIC 0\r\nR2 손실 합(30일, 기록만) LIVE 0 · DYNAMIC 0\r\nR3 RUNNING REAL 세션 청산 행 1 · 판정 불가 0\r\n판정 | 진행 가능(R1 두 종류 0 · R3 판정 불가 0)\r\n",
+      "stderr": ""
+    },
+    {
+      "case": "infinite-sell-qty",
+      "rc": 0,
+      "stdout": "R1 판정 불가(30일) LIVE 0 · DYNAMIC 0\r\nR2 손실 합(30일, 기록만) LIVE 0 · DYNAMIC 0\r\nR3 RUNNING REAL 세션 청산 행 1 · 판정 불가 0\r\n판정 | 진행 가능(R1 두 종류 0 · R3 판정 불가 0)\r\n",
+      "stderr": ""
+    },
+    {
+      "case": "invalid-no-trade-flag",
+      "rc": 0,
+      "stdout": "R1 판정 불가(30일) LIVE 0 · DYNAMIC 0\r\nR2 손실 합(30일, 기록만) LIVE 0 · DYNAMIC 0\r\nR3 RUNNING REAL 세션 청산 행 1 · 판정 불가 0\r\n판정 | 진행 가능(R1 두 종류 0 · R3 판정 불가 0)\r\n",
+      "stderr": ""
+    },
+    {
+      "case": "missing-sell-net",
+      "rc": 0,
+      "stdout": "R1 판정 불가(30일) LIVE 0 · DYNAMIC 0\r\nR2 손실 합(30일, 기록만) LIVE 0 · DYNAMIC 0\r\nR3 RUNNING REAL 세션 청산 행 1 · 판정 불가 0\r\n판정 | 진행 가능(R1 두 종류 0 · R3 판정 불가 0)\r\n",
+      "stderr": ""
+    }
+  ],
+  "limits": "Synthetic text only; no database query, product evaluation, socket or server action."
+}

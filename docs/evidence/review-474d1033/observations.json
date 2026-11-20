@@ -1,0 +1,98 @@
+{
+  "submission": "474d103343fb4ccc531136b79e9ece5b4d9cc912",
+  "listed_evidence": 74,
+  "previous_review_checksums": 5,
+  "archived_files": 15107,
+  "runner_probe": [
+    {
+      "case": "first-log",
+      "tee_failure_call": 1,
+      "exit_record_is_directory": false,
+      "fake_remote_rc": 0,
+      "runner_rc": 0,
+      "fake_ssh_calls": 1,
+      "log_record_exists": true,
+      "exit_record_file_exists": true
+    },
+    {
+      "case": "remote-output",
+      "tee_failure_call": 2,
+      "exit_record_is_directory": false,
+      "fake_remote_rc": 0,
+      "runner_rc": 0,
+      "fake_ssh_calls": 1,
+      "log_record_exists": true,
+      "exit_record_file_exists": true
+    },
+    {
+      "case": "last-log",
+      "tee_failure_call": 3,
+      "exit_record_is_directory": false,
+      "fake_remote_rc": 0,
+      "runner_rc": 0,
+      "fake_ssh_calls": 1,
+      "log_record_exists": true,
+      "exit_record_file_exists": true
+    },
+    {
+      "case": "exit-record",
+      "tee_failure_call": 0,
+      "exit_record_is_directory": true,
+      "fake_remote_rc": 0,
+      "runner_rc": 0,
+      "fake_ssh_calls": 1,
+      "log_record_exists": true,
+      "exit_record_file_exists": false
+    },
+    {
+      "case": "remote-failure-and-log",
+      "tee_failure_call": 3,
+      "exit_record_is_directory": false,
+      "fake_remote_rc": 7,
+      "runner_rc": 7,
+      "fake_ssh_calls": 1,
+      "log_record_exists": true,
+      "exit_record_file_exists": true
+    }
+  ],
+  "pf3_probe": [
+    {
+      "case": "empty-r3",
+      "rc": 0
+    },
+    {
+      "case": "valid",
+      "rc": 0
+    },
+    {
+      "case": "invalid-cost",
+      "rc": 0
+    },
+    {
+      "case": "infinite-sell-qty",
+      "rc": 0
+    },
+    {
+      "case": "invalid-no-trade-flag",
+      "rc": 0
+    },
+    {
+      "case": "missing-sell-net",
+      "rc": 0
+    }
+  ],
+  "findings": [
+    "run.sh ignores local record-write failures; first-record failure still calls SSH and success may remain rc0.",
+    "pf3ok accepts malformed cost, infinite quantity, invalid no-trade flag and missing sell-net fields.",
+    "R1/R3 gate is a conservative cost-source check, not a full product risk-approval verdict. R2 loss sums are only recorded."
+  ],
+  "limits": [
+    "No product tests, PG, Docker, build, SSH or production operation executed.",
+    "Only reviewer-local fake-SSH recording probes and a pure file classifier ran.",
+    "First runner probe used a path with spaces in unquoted SSH and returned127 before any fake call; excluded.",
+    "First parser probe stopped on Windows output decoding; excluded. Second-round UTF-8 results are used.",
+    "Existing 201/0 scenarios and archive checks are preserved evidence, not rerun scenarios.",
+    "Synthetic input acceptance is a parser validation gap; it does not establish such corrupt values in production.",
+    "Image byte-chain rehearsal uses synthetic originals; actual production image matching remains a future U0 check."
+  ]
+}

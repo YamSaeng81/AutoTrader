@@ -1,0 +1,242 @@
+{
+  "passed": 30,
+  "failed": 0,
+  "checks": [
+    {
+      "check": "all 81 submitted evidence files equal local preserved bytes",
+      "pass": true,
+      "actual": 81
+    },
+    {
+      "check": "docs/evidence/d81d4-20261120/ committed manifest",
+      "pass": true,
+      "actual": {
+        "listed": 74,
+        "mismatch": []
+      }
+    },
+    {
+      "check": "docs/evidence/review-7c62a7db/ committed manifest",
+      "pass": true,
+      "actual": {
+        "listed": 5,
+        "mismatch": []
+      }
+    },
+    {
+      "check": "submission changes documents only and excludes settings",
+      "pass": true,
+      "actual": 84
+    },
+    {
+      "check": "candidate remains d81c3f2f",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "nine block names and immutable hashes",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "block bytes unchanged across d593/e21/current",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "runner and extractor pin identical eleven hashes",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "saved fixed extraction validates all eleven hashes",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "extractor correction only disables quoted non-ASCII filenames",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "saved runner selftest 30 passes zero failures",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "r2 saved scenario counts",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "r3 saved scenario counts",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "15107 archived raw files match committed hashes",
+      "pass": true,
+      "actual": {
+        "files": 15107,
+        "listed": 15107,
+        "mismatch": []
+      }
+    },
+    {
+      "check": "backend-only blocks contain no frontend mutation or UF2 dependency",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "U2 V96 validation precedes restart start record",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "U2 has no obsolete V94 or boolean t expectation",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "U4 compares all non-backend services to original baseline",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "rollback gate and incompatible refusal precede checkout/tag/up",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "pre-restart rollback refuses any recorded restart",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "known JARM and JARN pinned",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "v96h uses count and NULL-explicit checksum",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "actual jar comparison output matches 35 changes and 3 additions",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "preflight invoked before U0 success",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "independent generator reproduction equals all nine committed blocks",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "independent generated block manifest matches saved manifest",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "local recording-failure reproduction used exact fixed runner",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "four record failures falsely return success after fake SSH",
+      "pass": true,
+      "actual": [
+        {
+          "case": "first-log",
+          "tee_failure_call": 1,
+          "exit_record_is_directory": false,
+          "fake_remote_rc": 0,
+          "runner_rc": 0,
+          "fake_ssh_calls": 1,
+          "log_record_exists": true,
+          "exit_record_file_exists": true
+        },
+        {
+          "case": "remote-output",
+          "tee_failure_call": 2,
+          "exit_record_is_directory": false,
+          "fake_remote_rc": 0,
+          "runner_rc": 0,
+          "fake_ssh_calls": 1,
+          "log_record_exists": true,
+          "exit_record_file_exists": true
+        },
+        {
+          "case": "last-log",
+          "tee_failure_call": 3,
+          "exit_record_is_directory": false,
+          "fake_remote_rc": 0,
+          "runner_rc": 0,
+          "fake_ssh_calls": 1,
+          "log_record_exists": true,
+          "exit_record_file_exists": true
+        },
+        {
+          "case": "exit-record",
+          "tee_failure_call": 0,
+          "exit_record_is_directory": true,
+          "fake_remote_rc": 0,
+          "runner_rc": 0,
+          "fake_ssh_calls": 1,
+          "log_record_exists": true,
+          "exit_record_file_exists": false
+        },
+        {
+          "case": "remote-failure-and-log",
+          "tee_failure_call": 3,
+          "exit_record_is_directory": false,
+          "fake_remote_rc": 7,
+          "runner_rc": 7,
+          "fake_ssh_calls": 1,
+          "log_record_exists": true,
+          "exit_record_file_exists": true
+        }
+      ]
+    },
+    {
+      "check": "remote nonzero remains nonzero despite logging failure",
+      "pass": true,
+      "actual": null
+    },
+    {
+      "check": "four malformed R3 inputs are accepted by fixed parser",
+      "pass": true,
+      "actual": [
+        {
+          "case": "empty-r3",
+          "rc": 0
+        },
+        {
+          "case": "valid",
+          "rc": 0
+        },
+        {
+          "case": "invalid-cost",
+          "rc": 0
+        },
+        {
+          "case": "infinite-sell-qty",
+          "rc": 0
+        },
+        {
+          "case": "invalid-no-trade-flag",
+          "rc": 0
+        },
+        {
+          "case": "missing-sell-net",
+          "rc": 0
+        }
+      ]
+    }
+  ]
+}

@@ -39,7 +39,7 @@
 
 - 기존 실행 틀30건·대역 r3 201건·제품 회귀·PG·jar·프런트 빌드는 다시 하지 않았다. 바뀐 블록은 U변수(pf3ok 본문)·U0(문구 한 줄)뿐이라 U0 pf3ok 연결만 대역으로 보충했다. 그 밖의 U1~U뒤관측 해시는 r3 때와 같다.
 - 대역은 합성 이미지·가짜 DB 응답이다. 판정기 시험은 합성 텍스트만 쓰며, 운영에 이런 값이 있다는 근거가 아니다.
-- 고정 출처 추출(`runner/extract.py`)은 이 폴더를 커밋한 뒤 그 커밋에서 11/11을 확인한다(§5에 추가).
+- **고정 출처 cd8bd76f**: 그 커밋의 `extract.py`로 11/11 같음([원문](runner/extract-cd8bd76f.txt), [blocks.json](runner/extract-cd8bd76f/blocks.json)). 그 추출물과 그 커밋의 run.sh로 가짜 ssh U0 종료0·호출1·표지 없음([원문](runner/fixedsrc-run-cd8bd76f.txt)).
 
 ## 5. 원문
 
