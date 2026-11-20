@@ -1,0 +1,27 @@
+convert.py sha256=48c0421d0c0bc26f8100935a31614653066662a2d83af84cff52f12b5a28f484
+scorecard/scorecard.py sha256=433a76336e8163449b27cc141f2bfb17feae49cc0bab575a63683b0f5c1ed0e1
+PASS | RED-S1 원문: 미확정 매수 원가로 확정 실현 −10015 | "-10015"
+PASS | RED-S2 원문: 1월 정정 수수료가 12월 확정 수수료 11 | "11"
+PASS | RED-S3 원문: 관계 없는 축(db) 이벤트로 순입금 확정 | {"status": "확정", "refs": ["alloc-203-1"]}
+PASS | S1 매수 원가 미확정 → 실현·승패·왕복 미확정, 숫자 미전달 | {"buy": {"qty": null, "funds": null, "fee": null, "value_status": "미확정", "settled_at": "2026-12-20T10:00:00+09:00"}, "realized": null, "known": "0", "fees": null, "fees_known": "5"}
+PASS | S1b 원가 확인된 다른 거래의 부분 합 보존 | {"known": "991", "wins_known": 1, "fees_known": "14"}
+PASS | S1c 성적표 v4: 값 미확정인데 숫자를 주면 거절 | "LIVE#203.trades[0].buy: 값 미확정인데 qty/funds/fee 숫자를 줌 — 최신 포착 값을 확정 비용으로 넘기지 않는다"
+PASS | S1d 이월 매수(11월) 원가 미확정 + 12월 매도 → 이월 원가 null·이 달 실현 미확정 | {"carry": {"order": 1, "observed_at": "2026-11-20T10:00:00+09:00", "cost_krw": null, "status": "미확정"}, "realized": null, "fees": "5"}
+PASS | S1e 이월 매수 원가를 T 포착으로 확인 → 이월 원가 9004·이월 왕복 확정 | {"carry": {"order": 1, "observed_at": "2026-11-20T10:00:00+09:00", "cost_krw": "9004", "status": "확정"}, "realized": "991"}
+PASS | S2 경계 미확정 수수료 4 → 1월 6 확정: 12월 확정 수수료에 넣지 않음, 정정은 1월 | {"fees": null, "fees_known": "5", "correction": [{"order": 1, "prev_capture": "b-T", "cur_capture": "jan-fee", "known_delta": {"fee": "2"}, "observed_window": ["2027-01-01T00:00:00+09:00", "2027-01-01T10:20:00+09:00"], "attribution": "2027-01", "note": "한 달 안 관측 구간"}]}
+PASS | S2b 포착 시각 = T·정산 확정 → 확정 | {"fees": "9", "realized": "991"}
+PASS | S2c T 뒤 포착 + reported_observed_at < T 만 → 미확정(옛 C4 철회, 매도도 같음) | ["포착 b 은 T 뒤 — 값별 불변 근거 없음(마지막 관측 시각만으로 확정하지 않음)", "포착 s 은 T 뒤 — 값별 불변 근거 없음(마지막 관측 시각만으로 확정하지 않음)"]
+PASS | S2d T 뒤 포착 + 값별 불변 근거(전 값·[T,포착] 전체) → 확정 | "991"
+PASS | S2e 근거가 fee 를 덮지 않음 → 미확정 | "포착 b: 근거가 덮지 않는 값 ['fee']"
+PASS | S2f exact_restore → 보류(미확정) | "포착 b: 정확 복원(exact_restore)은 복원식·원천·경계 결과 검증 계약이 없어 보류"
+PASS | S2g 근거가 [T,포착] 일부만 덮음 → 미확정 | "포착 b: 근거 구간이 경계~포착 공백 전체를 덮지 않음"
+PASS | S2h 월 경계 부분 체결(T 포착 정산 대기) → 값 미확정, 시각은 유지 | {"qty": null, "funds": null, "fee": null, "value_status": "미확정", "settled_at": "2026-12-31T23:59:00+09:00"}
+PASS | S3 이벤트 축 app→db, 기간 db·생성 app 관계 선언 없음 → 순입금 미확정 | {"status": "미확정", "why": "이벤트 ['alloc-1'] 시각 축과 기간/생성 축의 관계 근거 없음 — 기간 안 여부를 확정하지 않음"}
+PASS | S3b 같은 입력 + app/db 같은 시계 선언 → 순입금 확정(새 세션 기초0 + ALLOCATE, 손익 0) | "0"
+PASS | S3c 관계 선언 없음: 앱 관측 시각(app)의 월 귀속도 미확정 → 시각 null | {"qty": "0.1", "funds": "9000", "fee": "4", "value_status": "확정", "settled_at": null}
+PASS | S3d 경계 포착 축 exchange ≠ 기간 축 db → 기말 미확정 | "LIVE#203 기말 포착 축 exchange 와 기간 축 db 의 관계 근거 없음 — 경계와 비교하지 않음"
+PASS | S3e 주문 포착 축 관계 없음 → 값 미확정 | "포착 b-T 축 exchange 와 기간 축 관계 근거 없음"
+PASS | S3f 정정 포착 축 관계 없음 → 귀속 미확정(같은 달 안이어도) | {"order": 1, "prev_capture": "b-T", "cur_capture": "b-jan", "known_delta": {"fee": "1"}, "observed_window": ["2027-01-01T00:00:00+09:00", "2027-01-05T00:00:00+09:00"], "attribution": "귀속 미확정", "note": "어느 달 확정 손익에도 자동으로 넣지 않음"}
+PASS | S3g 경계 불변 근거가 값별 범위를 밝히지 않음(price 누락) → 기말 미확정 | "LIVE#203 기말 근거가 덮지 않는 값 ['price']"
+PASS | V 옛 원천 version scorecard-source-2 → 거절 | "version scorecard-source-3 아님"
+합계 24 통과 24 실패 0

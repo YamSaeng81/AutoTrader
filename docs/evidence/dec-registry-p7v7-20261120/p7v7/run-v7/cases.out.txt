@@ -1,0 +1,15 @@
+reconcile.py sha256=e1f9f27bc9ae96f52d47a5a0aaa185d3c17867d25992e8d503889646e0cd7cf4
+f3.py sha256=08f01d7b8b0853680881d6f00b775ef7f528ffd91624003d3618bc530f2c8f34
+PASS | RED 초안 F3(합산 일치 단독)는 v6 출력의 P1·P2·P3·P4 를 통과시킴 | {"P1": true, "P2": true, "P3": true, "P4": true}
+PASS | P0 정상 대조군: v7 OK·합산 일치·F3 통과 | ["OK", [true, []]]
+PASS | P1 규칙 지문 미확인(HOLD): 합산 숫자는 일치로 남지만 F3 불통과 | {"overall": "HOLD", "f3": ["전체 판정 HOLD — 이상 [], 보류 ['RULESET_UNCONFIRMED']"]}
+PASS | P2 규칙 지문 불일치(ANOMALY): 합산 숫자는 일치로 남지만 F3 불통과 | {"overall": "ANOMALY", "f3": ["전체 판정 ANOMALY — 이상 ['RULESET_MISMATCH'], 보류 []"]}
+PASS | P4 거래소 완료 조회 미완료(HOLD): 합산 숫자는 일치로 남지만 F3 불통과 | {"overall": "HOLD", "f3": ["전체 판정 HOLD — 이상 [], 보류 ['EXCHANGE_COVERAGE_UNCONFIRMED', 'EXCHANGE_WINDOW_UNCONFIRMED']", "거래소 완료 조회 구간 보류: 조회 미완료(페이지 남음)"]}
+PASS | P3 두 기준 2030년(현재 관측 2026) → BASE_IN_FUTURE 이상·합산 불일치·F3 불통과 | {"anomalies": ["ACCOUNT_SUM_BASE_IN_FUTURE"], "sum": "불일치"}
+PASS | P3b 현금 기준만 미래 → KRW 만 불일치, 코인 합산은 일치 유지 | {"BTC": "일치", "ETH": "일치", "KRW": "불일치"}
+PASS | P3c 기준 시각과 현재 관측의 시계 관계 없음 → 그 통화 합산 보류(이상 아님) | {"holds": ["ACCOUNT_SUM_BASE_TIME_UNCONFIRMED", "ACCOUNT_SUM_EVENT_TIME_UNCONFIRMED", "CLOCK_AXIS_UNCONFIRMED"], "anomalies": []}
+PASS | P3d 현재 관측 뒤 이벤트를 기준 포함으로 선언 → INCLUDED_EVENT_AFTER_OBSERVATION 이상 | ["ACCOUNT_SUM_BASE_EVENT_CONTRADICTION", "ACCOUNT_SUM_INCLUDED_EVENT_AFTER_OBSERVATION"]
+PASS | P3e 미배정 현금 음수(기준 10000 − 배정 20000) → NEGATIVE_UNALLOCATED 이상 | ["ACCOUNT_SUM_NEGATIVE_UNALLOCATED"]
+PASS | R v6 통화별 보류 보존: CLOSING 포지션은 그 코인만 보류, KRW 는 일치 | {"BTC": "보류", "ETH": "일치", "KRW": "일치"}
+PASS | F 파일 판정기 CLI: P0 rc0 · P1 rc1 | {"P0": 0, "P1": 1}
+합계 12 통과 12 실패 0

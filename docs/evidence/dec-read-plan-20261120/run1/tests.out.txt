@@ -1,0 +1,10 @@
+parse.py sha256=04e09861130d28ca5ea99a4831039e493dbd5944d0687dc054707fee4c3b4d8f
+PASS | GO 정상 — 2단계 조각 | rc=0 null
+PASS | STOP — 소유 세션 없는 주문, 2단계 없음 | rc=10 null
+PASS | STOP — 등록 밖 실자금 세션 RUNNING | rc=10 null
+PASS | 형식 결함 — GO 인데 식별 목록에 등록 밖 포지션 | rc=30 "Bad: GATE GO 와 식별 목록 불일치(등록 밖 1)"
+PASS | 형식 결함 — STOP 인데 2단계 행 | rc=30 "Bad: STOP 인데 2단계 행이 있음"
+PASS | 형식 결함 — 열 수 | rc=30 "Bad: 7행: 레코드 'S' 열 수 13"
+PASS | 형식 결함 — END 없음(중간 끊김) | rc=30 "Bad: END 정확히 1개 아님"
+PASS | psql 실패 — 부분 출력을 값으로 안 씀 | rc=20 "psql 실패 — 원문·stderr 보존, 부분 출력을 값으로 쓰지 않음"
+합계 8 통과 8 실패 0
