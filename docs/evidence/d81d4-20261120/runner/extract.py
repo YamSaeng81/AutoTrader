@@ -40,7 +40,7 @@ pick = {'F': ('LIMITED_LIVE_TEST_RUNBOOK.md', 0, rb[0]), 'G': ('LIMITED_LIVE_TES
 sums = {}
 for l in show(SRC, D + 'blocks-d81.sha256').decode('utf-8').splitlines():
     h, n = l.split(None, 1); sums[n.lstrip('*').strip()] = h
-ls = subprocess.run(['git', '-C', REPO, 'ls-tree', '--name-only', SRC, D + 'blocks-d81/'], capture_output=True, check=True).stdout.decode('utf-8').split()
+ls = subprocess.run(['git', '-C', REPO, '-c', 'core.quotepath=false', 'ls-tree', '--name-only', SRC, D + 'blocks-d81/'], capture_output=True, check=True).stdout.decode('utf-8').split()
 if sorted(x.rsplit('/', 1)[1] for x in ls) != sorted(n + '.sh' for n in NAMES) or sorted(sums) != sorted(n + '.sh' for n in NAMES):
     print('출처의 블록 목록이 9블록(UF2·U2확인 없음)과 다름: %s' % ls); sys.exit(1)
 out.mkdir(parents=True, exist_ok=False)
