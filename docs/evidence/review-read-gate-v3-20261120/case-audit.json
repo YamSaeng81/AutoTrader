@@ -1,0 +1,72 @@
+{
+  "cases": [
+    {
+      "tag": "R3_V2",
+      "psql_rc": 0,
+      "parser_rc": 0,
+      "gate": "GO",
+      "gate_bad": 0,
+      "stage2_rows": 11,
+      "raw_sha256": "b293083dedcf680d13334d62c0ee9b8242f63930eddd07cd22b7b63116dcb1e1"
+    },
+    {
+      "tag": "R3_V3",
+      "psql_rc": 0,
+      "parser_rc": 10,
+      "gate": "STOP",
+      "gate_bad": 4,
+      "stage2_rows": 0,
+      "raw_sha256": "e31e374b566d1579cee021bebdfded53a928e2b9b9b544c103562fd11f7c3c0a"
+    },
+    {
+      "tag": "PAST_V3",
+      "psql_rc": 0,
+      "parser_rc": 10,
+      "gate": "STOP",
+      "gate_bad": 2,
+      "stage2_rows": 0,
+      "raw_sha256": "26d774c0225d7327fe51936e680d959d3def25d814e0dd201015560af5a74c3f"
+    },
+    {
+      "tag": "A_V3",
+      "psql_rc": 0,
+      "parser_rc": 0,
+      "gate": "GO",
+      "gate_bad": 0,
+      "stage2_rows": 11,
+      "raw_sha256": "4ba6110a5a58ae3a541b25fb27d75af93a2e80e0d714300eebc342803300cefa"
+    }
+  ],
+  "normal_differences": [
+    [
+      [
+        "D",
+        "1",
+        "11",
+        "FEE_DECREASE",
+        "2026-11-20 04:16:51.424354+00"
+      ],
+      [
+        "D",
+        "1",
+        "11",
+        "FEE_DECREASE",
+        "2026-11-20 04:27:34.353276+00"
+      ]
+    ]
+  ],
+  "file_probes": [
+    {
+      "record": "ID_O",
+      "mutation": "clear stop flag",
+      "rejected": true,
+      "basis": "direct pure-file parser function, not PostgreSQL"
+    },
+    {
+      "record": "ID_P",
+      "mutation": "clear stop flag",
+      "rejected": true,
+      "basis": "direct pure-file parser function, not PostgreSQL"
+    }
+  ]
+}

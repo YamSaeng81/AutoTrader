@@ -1,0 +1,19 @@
+read.sql sha256=f5ffdb063c88d9de99a48cbd3499f36ab325241d03f2a9dd2150d7cb6de47bf4
+parse.py sha256=2a114fa92c5706e863ee396029d6176e6df22c3d5c44c4222a25a9a90956b81f
+server=PostgreSQL 15.13 on x86_64-pc-linux-musl, compiled by gcc (Alpine 13.2.1_git20240309) 13.2.1 20240309, 64-bit
+base = ALLOW_CONNECTIONS false 템플릿(사례 DB 에서 마이그레이션 수를 읽음)
+base migrations(count|max)=95|96
+PASS | A 정상 GO — 과거 생성·창 안 정산 매도(13)와 과거 매수(12)·CLOSED 포지션(8) 포함, PAPER 950·등록 밖 STOPPED 100 금액 없음 | psql_rc=0 parse_rc=0 gate=GO gate_bad=0 2단계행=11 err=None
+PASS | B NULL 소유자 주문(LIVE·FILLED·과거) — SQL 게이트 STOP | psql_rc=0 parse_rc=10 gate=STOP gate_bad=1 2단계행=0 err=None
+PASS | C 소유 행 없음(DYNAMIC 999) — STOP | psql_rc=0 parse_rc=10 gate=STOP gate_bad=1 2단계행=0 err=None
+PASS | D 알 수 없는 kind(PAPER 문자열) — STOP | psql_rc=0 parse_rc=10 gate=STOP gate_bad=1 2단계행=0 err=None
+PASS | E 등록표에 없는 실제 ID(LIVE 204 미존재) — REG_MISSING STOP | psql_rc=0 parse_rc=10 gate=STOP gate_bad=1 2단계행=0 err=None
+PASS | F 등록된 DYNAMIC PAPER(950) — REG_MODE STOP, 950 금액 비열람 | psql_rc=0 parse_rc=10 gate=STOP gate_bad=1 2단계행=0 err=None
+PASS | G 등록 밖 RUNNING 실자금 세션(DYNAMIC 901 REAL) — STOP | psql_rc=0 parse_rc=10 gate=STOP gate_bad=1 2단계행=0 err=None
+PASS | H 등록 밖 STOPPED 세션의 진행 중 주문(과거 생성) — STOP | psql_rc=0 parse_rc=10 gate=STOP gate_bad=1 2단계행=0 err=None
+PASS | I 소유 없는 포지션(session_id NULL·CLOSED) — STOP | psql_rc=0 parse_rc=10 gate=STOP gate_bad=1 2단계행=0 err=None
+PASS | J 빈 등록표 — STOP | psql_rc=0 parse_rc=10 gate=STOP gate_bad=6 2단계행=0 err=None
+PASS | K psql 실패(live_ids=abc) — 부분 출력 미사용 | psql_rc=3 parse_rc=20 2단계행=0
+대조 | V1B v1 read.sql sha256=22e7656b95b49c1493099e0cfdb26d7e7e2c900e7f51776f0be1f108035addc2 | psql_rc=0 gate=GO 2단계행=6 PAPER950금액노출=False
+대조 | V1F v1 read.sql sha256=22e7656b95b49c1493099e0cfdb26d7e7e2c900e7f51776f0be1f108035addc2 | psql_rc=0 gate=GO 2단계행=9 PAPER950금액노출=True
+합계 11 통과 11 실패 0

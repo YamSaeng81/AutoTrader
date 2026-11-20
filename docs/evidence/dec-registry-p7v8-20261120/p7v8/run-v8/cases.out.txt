@@ -1,0 +1,17 @@
+통과 대조군 P0: v8 OK·F3 v8 통과
+통과 대조군 P0: v8 출력이 v7 출력과 같음
+통과 RED-P1 v7: 미배정 −10000 인데 예약 보류에 가려 음수 이상 없음
+통과 GREEN-P1 v8: 음수 이상과 예약 보류를 함께 남김(ANOMALY)
+통과 GREEN-P1 v8: 예약 없어도 음수 이상(v7 과 같음)
+통과 GREEN-P1 v8: 미배정 계산 자체가 불명(기준 경계 불명)이면 음수 이상 확정 안 함
+통과 F3 F1 OK인데 이상 추가: v7 판정 기록·v8 불통과
+통과 F3 F2 OK인데 보류 추가: v7 판정 기록·v8 불통과
+통과 F3 F3 code.now 만 다름: v7 판정 기록·v8 불통과
+통과 F3 F4 anomalies 누락: v7 판정 기록·v8 불통과
+통과 F3 F5 holds 가 문자열: v7 판정 기록·v8 불통과
+통과 F3 F6 observation_stable 문자열: v7 판정 기록·v8 불통과
+통과 F3 F7 code.now_ref 없음: v7 판정 기록·v8 불통과
+통과 F3 F8 code.base 형식 아님: v7 판정 기록·v8 불통과
+통과 RED-F1~F3 v7: 이상/보류 추가·code.now 변경 파일을 통과시킴
+v7 F3 의 형식 변형 판정(참고): {"F1 OK인데 이상 추가": true, "F2 OK인데 보류 추가": true, "F3 code.now 만 다름": true, "F4 anomalies 누락": true, "F5 holds 가 문자열": true, "F6 observation_stable 문자열": false, "F7 code.now_ref 없음": true, "F8 code.base 형식 아님": true}
+합계 15 통과 15 실패 0

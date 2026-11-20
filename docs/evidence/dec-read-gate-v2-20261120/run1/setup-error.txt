@@ -1,0 +1,5 @@
+run1 중단 원문(사례 실행 0건, psql read.sql 미실행):
+A: CREATE DATABASE c_a TEMPLATE base 실패 b'ERROR:  source database "base" is being accessed by other users
+DETAIL:  There is 1 other session using the database.
+'
+원인: timescaledb 백그라운드 작업자의 base 접속. 조치: base 를 ALLOW_CONNECTIONS false 로 두고 기존 연결 종료 후 run2.

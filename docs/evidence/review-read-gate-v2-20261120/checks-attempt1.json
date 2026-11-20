@@ -1,0 +1,248 @@
+{
+  "basis": "uncommitted working-file hashes; not a fixed execution commit",
+  "head": "43d729dbe6341ba306489b89762b56d71cb505ba",
+  "pins": {
+    "read.sql": "f5ffdb063c88d9de99a48cbd3499f36ab325241d03f2a9dd2150d7cb6de47bf4",
+    "parse.py": "2a114fa92c5706e863ee396029d6176e6df22c3d5c44c4222a25a9a90956b81f",
+    "tests_pg.py": "51d0de377df83597258a6217aded0c1512f46e9b66e69559448ccfd678a5d892"
+  },
+  "pass_count": 24,
+  "fail_count": 1,
+  "checks": [
+    {
+      "name": "HEAD_and_saved_origin_unchanged_no_network",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "dec-read-gate-v2-20261120_manifest",
+      "pass_": true,
+      "detail": {
+        "total": 106,
+        "bad": []
+      }
+    },
+    {
+      "name": "submitted_manifest_covers_files",
+      "pass_": false,
+      "detail": {
+        "listed": 106,
+        "actual": 107
+      }
+    },
+    {
+      "name": "review-43d729db_manifest",
+      "pass_": true,
+      "detail": {
+        "total": 7,
+        "bad": []
+      }
+    },
+    {
+      "name": "original_read.sql_unchanged",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "original_parse.py_unchanged",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "source_pins_in_runlog",
+      "pass_": true,
+      "detail": {
+        "read.sql": "f5ffdb063c88d9de99a48cbd3499f36ab325241d03f2a9dd2150d7cb6de47bf4",
+        "parse.py": "2a114fa92c5706e863ee396029d6176e6df22c3d5c44c4222a25a9a90956b81f",
+        "tests_pg.py": "51d0de377df83597258a6217aded0c1512f46e9b66e69559448ccfd678a5d892"
+      }
+    },
+    {
+      "name": "preserved_summary_11_of_11",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "preserved_PG_version_and_migration_count",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "preserved_case_A",
+      "pass_": true,
+      "detail": {
+        "case": "A",
+        "psql_rc": 0,
+        "parser_rc": 0,
+        "gate": [
+          "GO"
+        ],
+        "stage2_rows": 11,
+        "raw_sha256": "9e935a5f9e46428dbbe1a5fe5ef6afc2cae948a12d08464674ed7a50ece4e4dc"
+      }
+    },
+    {
+      "name": "preserved_case_B",
+      "pass_": true,
+      "detail": {
+        "case": "B",
+        "psql_rc": 0,
+        "parser_rc": 10,
+        "gate": [
+          "STOP"
+        ],
+        "stage2_rows": 0,
+        "raw_sha256": "e3036a4f13f81559af37d2cdff27cdd50ddd475c43e67493176482fcfc7d7b02"
+      }
+    },
+    {
+      "name": "preserved_case_C",
+      "pass_": true,
+      "detail": {
+        "case": "C",
+        "psql_rc": 0,
+        "parser_rc": 10,
+        "gate": [
+          "STOP"
+        ],
+        "stage2_rows": 0,
+        "raw_sha256": "6b4c23b01fb6d0c45cc8e7a4233aa2da8097576ff13f9e2c51c56ed01dbc0391"
+      }
+    },
+    {
+      "name": "preserved_case_D",
+      "pass_": true,
+      "detail": {
+        "case": "D",
+        "psql_rc": 0,
+        "parser_rc": 10,
+        "gate": [
+          "STOP"
+        ],
+        "stage2_rows": 0,
+        "raw_sha256": "27b4c20b7fb0232f500512ccc93ae9b2638d425b0494ceffcbddb7227705eef2"
+      }
+    },
+    {
+      "name": "preserved_case_E",
+      "pass_": true,
+      "detail": {
+        "case": "E",
+        "psql_rc": 0,
+        "parser_rc": 10,
+        "gate": [
+          "STOP"
+        ],
+        "stage2_rows": 0,
+        "raw_sha256": "b9a22a1e43f8bbf014e3b7716a56b09b10627932a8b0062212312a9a8b23456a"
+      }
+    },
+    {
+      "name": "preserved_case_F",
+      "pass_": true,
+      "detail": {
+        "case": "F",
+        "psql_rc": 0,
+        "parser_rc": 10,
+        "gate": [
+          "STOP"
+        ],
+        "stage2_rows": 0,
+        "raw_sha256": "de1e72d38bb07d109e865fa64eed59859cebc67642ec014d2e566016035cc4ad"
+      }
+    },
+    {
+      "name": "preserved_case_G",
+      "pass_": true,
+      "detail": {
+        "case": "G",
+        "psql_rc": 0,
+        "parser_rc": 10,
+        "gate": [
+          "STOP"
+        ],
+        "stage2_rows": 0,
+        "raw_sha256": "f6c9e1cccf2e975ee5416e69a6a6204c02775f8d9b69a40acbfa8ea05a85da7d"
+      }
+    },
+    {
+      "name": "preserved_case_H",
+      "pass_": true,
+      "detail": {
+        "case": "H",
+        "psql_rc": 0,
+        "parser_rc": 10,
+        "gate": [
+          "STOP"
+        ],
+        "stage2_rows": 0,
+        "raw_sha256": "bfe19b6fa5634ffa40a18bc0c8a10240b7ecc869408657b77e67c72f5235c4e9"
+      }
+    },
+    {
+      "name": "preserved_case_I",
+      "pass_": true,
+      "detail": {
+        "case": "I",
+        "psql_rc": 0,
+        "parser_rc": 10,
+        "gate": [
+          "STOP"
+        ],
+        "stage2_rows": 0,
+        "raw_sha256": "1fd144c5d331649b83d3dd91eb6d04406df185e261e80ec6a0dda92750a94d84"
+      }
+    },
+    {
+      "name": "preserved_case_J",
+      "pass_": true,
+      "detail": {
+        "case": "J",
+        "psql_rc": 0,
+        "parser_rc": 10,
+        "gate": [
+          "STOP"
+        ],
+        "stage2_rows": 0,
+        "raw_sha256": "110a0087938ea32cb6b35c826d24d135ccd98e7e041cb47caa3ab0e7edbd401f"
+      }
+    },
+    {
+      "name": "preserved_case_K",
+      "pass_": true,
+      "detail": {
+        "case": "K",
+        "psql_rc": 3,
+        "parser_rc": 20,
+        "gate": [],
+        "stage2_rows": 0,
+        "raw_sha256": "9e2dedd235dafab7993bc347aa2817f7a3a64df3c0dd68ee3ce2e7de975d3dee"
+      }
+    },
+    {
+      "name": "preserved_old_V1B",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "preserved_old_V1F",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "setup_failure_preserved_before_read",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "K_extra_normal_execution_and_overwrite_in_driver",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "read_only_and_no_time_filter",
+      "pass_": true,
+      "detail": null
+    }
+  ]
+}

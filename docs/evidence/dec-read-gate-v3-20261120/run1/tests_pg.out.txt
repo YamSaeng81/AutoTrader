@@ -1,0 +1,10 @@
+v3 read.sql sha256=9818db5452f66f058c97322ac9aaf73097036997777d10a0af9f6dde05bdae03
+v3 parse.py sha256=0f6fe827c9da513445ce9c52300b8688f8f4f162a99026b90d05943c10341908
+v2 read.sql sha256=f5ffdb063c88d9de99a48cbd3499f36ab325241d03f2a9dd2150d7cb6de47bf4
+v2 parse.py sha256=2a114fa92c5706e863ee396029d6176e6df22c3d5c44c4222a25a9a90956b81f
+v2 tests_pg.py(COMMON 출처) sha256=51d0de377df83597258a6217aded0c1512f46e9b66e69559448ccfd678a5d892
+PASS | R3_V2 반례 고정: v2 가 기준 뒤 완료된 미등록 주문22·포지션21 을 stop=false 로 두고 GO | psql_rc=0 parse_rc=0 gate=GO 2단계행=11
+PASS | R3_V3 같은 픽스처 v3: SQL STOP·금액 단계 0행 | psql_rc=0 parse_rc=10 gate_bad=4 2단계행=0 stop=[(('O', 21), True), (('O', 22), True), (('P', 20), True), (('P', 21), True), (('S', 100), False)]
+PASS | PAST_V3 과거 종결 주문21·포지션20(v2 A 는 GO) → v3 STOP(기대 변경) | psql_rc=0 parse_rc=10 2단계행=0 stop=[(('O', 21), True), (('P', 20), True), (('S', 100), False)]
+FAIL | A_V3 등록 정상 원천: GO·2단계 11행이 v2 run2/A 원문과 동일=False | psql_rc=0 parse_rc=0
+합계 4 통과 3 실패 1

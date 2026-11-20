@@ -1,0 +1,6 @@
+Reviewer file audit attempt 1 stopped before final result generation.
+FileNotFoundError: docs/evidence/dec-read-gate-v3-20261120/.gitattributes
+The reviewer assumed that the submitted v3 folder had its own attributes file, as v2 did. It does not.
+This was a reviewer script precondition error, not a failed developer SQL or PG case.
+The final audit records the actual Git attributes separately and verifies the submitted raw bytes without assuming that file exists.
+No SQL, PostgreSQL, Docker, application, build or regression was executed.

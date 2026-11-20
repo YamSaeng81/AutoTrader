@@ -1,0 +1,50 @@
+{
+ "raw_sha256": "de1e72d38bb07d109e865fa64eed59859cebc67642ec014d2e566016035cc4ad",
+ "raw_bytes": 431,
+ "psql_rc": 0,
+ "rc": 10,
+ "registry_sha256": "ac5a1b4cd2a4ff21a63b563e5e355b568e6167692a49d4b79408c8846436d1b3",
+ "observed_at": "2026-11-20 04:16:54.524278+00",
+ "clock_read_at": "2026-11-20 04:16:54.529472+00",
+ "snapshot": "1222:1222:",
+ "flyway_version": 96,
+ "end_clock": "2026-11-20 04:16:54.538941+00",
+ "registry_check": [
+  {
+   "kind": "DYNAMIC",
+   "id": 950,
+   "reg": "REG_MODE",
+   "mode": "PAPER",
+   "status": "RUNNING"
+  }
+ ],
+ "unregistered_ids": [
+  {
+   "rec": "S",
+   "kind": "LIVE",
+   "id": 100,
+   "status": "STOPPED",
+   "stop": false
+  },
+  {
+   "rec": "O",
+   "id": 21,
+   "kind": "LIVE",
+   "session_id": 100,
+   "state": "FILLED",
+   "owner": "UNREG",
+   "stop": false
+  },
+  {
+   "rec": "P",
+   "id": 20,
+   "kind": "LIVE",
+   "session_id": 100,
+   "state": "CLOSED",
+   "owner": "UNREG",
+   "stop": false
+  }
+ ],
+ "gate_bad": 1,
+ "gate": "STOP"
+}

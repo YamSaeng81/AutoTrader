@@ -1,0 +1,4 @@
+ERROR:  malformed array literal: "abc"
+LINE 9:   FROM (SELECT 'LIVE' kind, unnest('abc'::bigint[]) id UNION...
+                                           ^
+DETAIL:  Array value must start with "{" or dimension information.

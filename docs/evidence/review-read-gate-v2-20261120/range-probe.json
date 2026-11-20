@@ -1,0 +1,18 @@
+{
+  "basis": "static SQL predicate model, not an executed PG case",
+  "source_sha256": "f5ffdb063c88d9de99a48cbd3499f36ab325241d03f2a9dd2150d7cb6de47bf4",
+  "owner": "UNREG",
+  "session_status": "STOPPED",
+  "state": "FILLED",
+  "settlement_final": true,
+  "fill_accounting_pending": false,
+  "fee_source": "EXCHANGE",
+  "unresolved_discrepancy": false,
+  "linked_position_status": "CLOSED",
+  "old_timestamps": "before the observation base",
+  "new_timestamps": "after the observation base, completed before current capture",
+  "original_case": "run2/A order21, position20, LIVE100",
+  "sql_stop_old": false,
+  "sql_stop_new": false,
+  "reason": "UNREG gate uses only active/unsettled/open_disc/open_pos. Event timestamps and baseline identity/version evidence are not inputs. Metadata lists alone do not prove that a terminal order predates the observation interval."
+}

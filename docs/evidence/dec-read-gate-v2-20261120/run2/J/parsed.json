@@ -1,0 +1,119 @@
+{
+ "raw_sha256": "110a0087938ea32cb6b35c826d24d135ccd98e7e041cb47caa3ab0e7edbd401f",
+ "raw_bytes": 587,
+ "psql_rc": 0,
+ "rc": 10,
+ "registry_sha256": "c3186cd5533efd24ac912e683c86cc104c28f7af815c78afb68fde223a54f7d2",
+ "observed_at": "2026-11-20 04:16:56.767774+00",
+ "clock_read_at": "2026-11-20 04:16:56.772783+00",
+ "snapshot": "1249:1249:",
+ "flyway_version": 96,
+ "end_clock": "2026-11-20 04:16:56.782778+00",
+ "registry_check": [],
+ "unregistered_ids": [
+  {
+   "rec": "S",
+   "kind": "DYNAMIC",
+   "id": 900,
+   "status": "RUNNING",
+   "stop": true
+  },
+  {
+   "rec": "S",
+   "kind": "LIVE",
+   "id": 100,
+   "status": "STOPPED",
+   "stop": false
+  },
+  {
+   "rec": "S",
+   "kind": "LIVE",
+   "id": 203,
+   "status": "RUNNING",
+   "stop": true
+  },
+  {
+   "rec": "O",
+   "id": 11,
+   "kind": "LIVE",
+   "session_id": 203,
+   "state": "FILLED",
+   "owner": "UNREG",
+   "stop": true
+  },
+  {
+   "rec": "O",
+   "id": 12,
+   "kind": "LIVE",
+   "session_id": 203,
+   "state": "FILLED",
+   "owner": "UNREG",
+   "stop": false
+  },
+  {
+   "rec": "O",
+   "id": 13,
+   "kind": "LIVE",
+   "session_id": 203,
+   "state": "FILLED",
+   "owner": "UNREG",
+   "stop": false
+  },
+  {
+   "rec": "O",
+   "id": 14,
+   "kind": "LIVE",
+   "session_id": 203,
+   "state": "SUBMITTED",
+   "owner": "UNREG",
+   "stop": true
+  },
+  {
+   "rec": "O",
+   "id": 21,
+   "kind": "LIVE",
+   "session_id": 100,
+   "state": "FILLED",
+   "owner": "UNREG",
+   "stop": false
+  },
+  {
+   "rec": "O",
+   "id": 41,
+   "kind": "DYNAMIC",
+   "session_id": 900,
+   "state": "FILLED",
+   "owner": "UNREG",
+   "stop": false
+  },
+  {
+   "rec": "P",
+   "id": 7,
+   "kind": "LIVE",
+   "session_id": 203,
+   "state": "OPEN",
+   "owner": "UNREG",
+   "stop": true
+  },
+  {
+   "rec": "P",
+   "id": 8,
+   "kind": "LIVE",
+   "session_id": 203,
+   "state": "CLOSED",
+   "owner": "UNREG",
+   "stop": false
+  },
+  {
+   "rec": "P",
+   "id": 20,
+   "kind": "LIVE",
+   "session_id": 100,
+   "state": "CLOSED",
+   "owner": "UNREG",
+   "stop": false
+  }
+ ],
+ "gate_bad": 6,
+ "gate": "STOP"
+}

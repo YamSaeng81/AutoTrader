@@ -1,0 +1,221 @@
+{
+  "basis": "uncommitted hashes and preserved PG outputs; no production or PG execution",
+  "head": "43d729dbe6341ba306489b89762b56d71cb505ba",
+  "pins": {
+    "read.sql": "9818db5452f66f058c97322ac9aaf73097036997777d10a0af9f6dde05bdae03",
+    "parse.py": "0f6fe827c9da513445ce9c52300b8688f8f4f162a99026b90d05943c10341908",
+    "tests_pg.py": "04ff6a63ed538d6efcae6e7314153f8ddc7e0c69dc40c1199fdd8aafbe8b257e",
+    "setup_pg.py": "98b3eab0b28be0b9b389a4cc9ac64c03e2f22e87b6d8f23e2649ee6931d2208d"
+  },
+  "preservation": {
+    "folder_attributes_exists": false,
+    "effective_attributes": "docs/evidence/dec-read-gate-v3-20261120/read.sql: text: unspecified\ndocs/evidence/dec-read-gate-v3-20261120/read.sql: eol: unspecified\ndocs/evidence/dec-read-gate-v3-20261120/run1/A_V3/stdout.tsv: text: unspecified\ndocs/evidence/dec-read-gate-v3-20261120/run1/A_V3/stdout.tsv: eol: unspecified\n"
+  },
+  "checks": [
+    {
+      "name": "HEAD_and_saved_origin_no_network",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "dec-read-gate-v3-20261120_manifest",
+      "pass_": true,
+      "detail": {
+        "entries": 44,
+        "bad": []
+      }
+    },
+    {
+      "name": "manifest_coverage",
+      "pass_": true,
+      "detail": {
+        "listed": 44,
+        "actual": 44,
+        "extra": []
+      }
+    },
+    {
+      "name": "dec-read-gate-v2-20261120_manifest",
+      "pass_": true,
+      "detail": {
+        "entries": 106,
+        "bad": []
+      }
+    },
+    {
+      "name": "review-read-gate-v2-20261120_manifest",
+      "pass_": true,
+      "detail": {
+        "entries": 8,
+        "bad": []
+      }
+    },
+    {
+      "name": "review-43d729db_manifest",
+      "pass_": true,
+      "detail": {
+        "entries": 7,
+        "bad": []
+      }
+    },
+    {
+      "name": "source_pins_in_preserved_log",
+      "pass_": true,
+      "detail": {
+        "read.sql": "9818db5452f66f058c97322ac9aaf73097036997777d10a0af9f6dde05bdae03",
+        "parse.py": "0f6fe827c9da513445ce9c52300b8688f8f4f162a99026b90d05943c10341908",
+        "tests_pg.py": "04ff6a63ed538d6efcae6e7314153f8ddc7e0c69dc40c1199fdd8aafbe8b257e",
+        "setup_pg.py": "98b3eab0b28be0b9b389a4cc9ac64c03e2f22e87b6d8f23e2649ee6931d2208d"
+      }
+    },
+    {
+      "name": "original_failure_retained",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "PG15_network_tmpfs_migrations_recorded",
+      "pass_": true,
+      "detail": [
+        "image=timescale/timescaledb:latest-pg15",
+        "server=PostgreSQL 15.13 on x86_64-pc-linux-musl, compiled by gcc (Alpine 13.2.1_git20240309) 13.2.1 20240309, 64-bit",
+        "network/tmpfs=none {\"/var/lib/postgresql/data\":\"\"}",
+        "migrations source=d81c3f2f:web-api/src/main/resources/db/migration",
+        "migrations count=95 min=1 max=96",
+        "base ALLOW_CONNECTIONS false(\ud15c\ud50c\ub9bf \uc804\uc6a9)"
+      ]
+    },
+    {
+      "name": "registered_monetary_phase_unchanged",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "R1_R2_registration_and_session_gate_unchanged",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "unregistered_SQL_gate_unconditional",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "read_only_single_snapshot",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "driver_four_unique_calls_no_overwrite",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "preserved_R3_V2",
+      "pass_": true,
+      "detail": {
+        "tag": "R3_V2",
+        "psql_rc": 0,
+        "parser_rc": 0,
+        "gate": "GO",
+        "gate_bad": 0,
+        "stage2_rows": 11,
+        "raw_sha256": "b293083dedcf680d13334d62c0ee9b8242f63930eddd07cd22b7b63116dcb1e1"
+      }
+    },
+    {
+      "name": "preserved_R3_V3",
+      "pass_": true,
+      "detail": {
+        "tag": "R3_V3",
+        "psql_rc": 0,
+        "parser_rc": 10,
+        "gate": "STOP",
+        "gate_bad": 4,
+        "stage2_rows": 0,
+        "raw_sha256": "e31e374b566d1579cee021bebdfded53a928e2b9b9b544c103562fd11f7c3c0a"
+      }
+    },
+    {
+      "name": "preserved_PAST_V3",
+      "pass_": true,
+      "detail": {
+        "tag": "PAST_V3",
+        "psql_rc": 0,
+        "parser_rc": 10,
+        "gate": "STOP",
+        "gate_bad": 2,
+        "stage2_rows": 0,
+        "raw_sha256": "26d774c0225d7327fe51936e680d959d3def25d814e0dd201015560af5a74c3f"
+      }
+    },
+    {
+      "name": "preserved_A_V3",
+      "pass_": true,
+      "detail": {
+        "tag": "A_V3",
+        "psql_rc": 0,
+        "parser_rc": 0,
+        "gate": "GO",
+        "gate_bad": 0,
+        "stage2_rows": 11,
+        "raw_sha256": "4ba6110a5a58ae3a541b25fb27d75af93a2e80e0d714300eebc342803300cefa"
+      }
+    },
+    {
+      "name": "counterexample_identical_fixture",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "normal_control_only_D_detected_at_differs",
+      "pass_": true,
+      "detail": {
+        "rows": 11,
+        "differing": [
+          [
+            [
+              "D",
+              "1",
+              "11",
+              "FEE_DECREASE",
+              "2026-11-20 04:16:51.424354+00"
+            ],
+            [
+              "D",
+              "1",
+              "11",
+              "FEE_DECREASE",
+              "2026-11-20 04:27:34.353276+00"
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "name": "developer_comparison_matches_raw",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "default_insertion_timestamp_explains_difference",
+      "pass_": true,
+      "detail": {
+        "migration": "V82__order_settlement_tracking_and_discrepancy.sql",
+        "migration_sha256": "428abb56a44684ee8e22997a889c5d50c949c49157ee76c73992c5212a84dc41"
+      }
+    },
+    {
+      "name": "file_guard_ID_O_false_flag_rejected",
+      "pass_": true,
+      "detail": null
+    },
+    {
+      "name": "file_guard_ID_P_false_flag_rejected",
+      "pass_": true,
+      "detail": null
+    }
+  ],
+  "passed": 24,
+  "failed": 0
+}

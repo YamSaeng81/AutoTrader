@@ -1,0 +1,19 @@
+{
+ "basis": "보존 원문끼리 파일 대조(PG 재실행 없음)",
+ "v2_A_sha256": "9e935a5f9e46428dbbe1a5fe5ef6afc2cae948a12d08464674ed7a50ece4e4dc",
+ "v3_A_V3_sha256": "4ba6110a5a58ae3a541b25fb27d75af93a2e80e0d714300eebc342803300cefa",
+ "stage2_rows": [
+  11,
+  11
+ ],
+ "byte_identical_rows": 10,
+ "differing": [
+  [
+   "D\t1\t11\tFEE_DECREASE\t2026-11-20 04:16:51.424354+00",
+   "D\t1\t11\tFEE_DECREASE\t2026-11-20 04:27:34.353276+00"
+  ]
+ ],
+ "identical_excluding_D_detected_at": true,
+ "cause": "픽스처가 order_settlement_discrepancy.detected_at 를 넣지 않아 열 기본값(삽입 시각)이 들어감. 게이트·읽기 범위와 무관. 구동기 기대(바이트 동일)가 틀렸음",
+ "tests_pg_out_status": "원문 tests_pg.out.txt 의 A_V3 FAIL 은 그대로 보존(재실행·수정 안 함)"
+}
