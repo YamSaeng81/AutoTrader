@@ -1,0 +1,28 @@
+{
+ "observation_version": "f1-obs-1",
+ "synthetic": true,
+ "source_note": "합성(W1) — 운영 관측 아님",
+ "sessions": [
+  {
+   "kind": "LIVE",
+   "id": 203,
+   "mode": "REAL",
+   "status": "CREATED",
+   "strategy_type": "DAILY_SMA20",
+   "timeframe": "H1",
+   "coin_pair": "KRW-BTC",
+   "created_at": "2026-10-30T04:16:58.044684+00:00"
+  },
+  {
+   "kind": "DYNAMIC",
+   "id": 900,
+   "mode": "REAL",
+   "status": "RUNNING",
+   "strategy_type": "COMPOSITE_BREAKOUT",
+   "timeframe": "H1",
+   "coin_pair": null,
+   "created_at": "2026-12-01T00:05:00+00:00",
+   "available_krw": "987654.32"
+  }
+ ]
+}

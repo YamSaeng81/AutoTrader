@@ -1,0 +1,7 @@
+PASS N1_normal_parallel rc=0 NO_RISK_ITEMS [] 
+PASS C2_unregistered_real rc=20 RISK_PRESENT ['UNREGISTERED_REAL_ORDER', 'UNREGISTERED_REAL_SESSION_ACTIVE'] 
+PASS C3_registered_session_unknown rc=20 RISK_PRESENT ['ORDER_UNKNOWN'] 
+PASS C4_closing rc=20 RISK_PRESENT ['POSITION_CLOSING_PENDING'] 
+PASS C5_p0_and_news_error rc=20 RISK_PRESENT ['P0', 'UNCLASSIFIED_ERROR'] 
+PASS C6_forbidden_performance_field rc=30 INVALID [] 
+6/6 기대대로, 등록표 sha256 14599ba6734d11a541b6e8335f1e9aa0cf04c9f24ea4492e02dd50c3a15b0393, 합성 P7 결과 sha256 113e88aa50ef17162d932cd727cb59fa6a4a4f78c7f1bd1c7239ba8aead711e5

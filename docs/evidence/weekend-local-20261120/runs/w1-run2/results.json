@@ -1,0 +1,137 @@
+{
+ "synthetic": true,
+ "registry_sha256": "14599ba6734d11a541b6e8335f1e9aa0cf04c9f24ea4492e02dd50c3a15b0393",
+ "cases": [
+  {
+   "case": "N1_normal_live1_dynamic1",
+   "ok": true,
+   "rc": 0,
+   "verdict": "SET_MATCH",
+   "checks": {
+    "verdict": true,
+    "exit": true,
+    "f1_overall_not_pass": true,
+    "pass_mark_only_on_match": true,
+    "stderr_empty": true,
+    "missing": true,
+    "extra": true,
+    "fixed": true
+   },
+   "note": "고정1+동적1, 비활성 비상정지 DYNAMIC 92 는 기대 집합 밖"
+  },
+  {
+   "case": "C2_same_count_other_id",
+   "ok": true,
+   "rc": 20,
+   "verdict": "MISMATCH",
+   "checks": {
+    "verdict": true,
+    "exit": true,
+    "f1_overall_not_pass": true,
+    "pass_mark_only_on_match": true,
+    "stderr_empty": true,
+    "missing": true,
+    "extra": true,
+    "fixed": true
+   },
+   "note": "활성 REAL 개수 2=2 지만 ID 다름"
+  },
+  {
+   "case": "C3_unregistered_real_added",
+   "ok": true,
+   "rc": 20,
+   "verdict": "MISMATCH",
+   "checks": {
+    "verdict": true,
+    "exit": true,
+    "f1_overall_not_pass": true,
+    "pass_mark_only_on_match": true,
+    "stderr_empty": true,
+    "missing": true,
+    "extra": true,
+    "fixed": true
+   },
+   "note": ""
+  },
+  {
+   "case": "C4_registered_missing",
+   "ok": true,
+   "rc": 20,
+   "verdict": "MISMATCH",
+   "checks": {
+    "verdict": true,
+    "exit": true,
+    "f1_overall_not_pass": true,
+    "pass_mark_only_on_match": true,
+    "stderr_empty": true,
+    "missing": true,
+    "extra": true,
+    "fixed": true
+   },
+   "note": ""
+  },
+  {
+   "case": "C5_paper_mixed",
+   "ok": true,
+   "rc": 20,
+   "verdict": "MISMATCH",
+   "checks": {
+    "verdict": true,
+    "exit": true,
+    "f1_overall_not_pass": true,
+    "pass_mark_only_on_match": true,
+    "stderr_empty": true,
+    "missing": true,
+    "extra": true,
+    "fixed": true
+   },
+   "note": "등록 DYNAMIC 900 이 PAPER 로 관측 — 활성 개수는 같아도 REAL 이 아님"
+  },
+  {
+   "case": "C6_fixed_condition_mismatch",
+   "ok": true,
+   "rc": 20,
+   "verdict": "MISMATCH",
+   "checks": {
+    "verdict": true,
+    "exit": true,
+    "f1_overall_not_pass": true,
+    "pass_mark_only_on_match": true,
+    "stderr_empty": true,
+    "missing": true,
+    "extra": true,
+    "fixed": true
+   },
+   "note": "소문자 real(제품은 REAL 분기)·주기 M15"
+  },
+  {
+   "case": "G1_registry_hash_mismatch",
+   "ok": true,
+   "rc": 30,
+   "verdict": "INVALID",
+   "checks": {
+    "verdict": true,
+    "exit": true,
+    "f1_overall_not_pass": true,
+    "pass_mark_only_on_match": true,
+    "stderr_empty": true
+   },
+   "note": ""
+  },
+  {
+   "case": "G2_amount_field_rejected",
+   "ok": true,
+   "rc": 30,
+   "verdict": "INVALID",
+   "checks": {
+    "verdict": true,
+    "exit": true,
+    "f1_overall_not_pass": true,
+    "pass_mark_only_on_match": true,
+    "stderr_empty": true,
+    "amount_value_not_echoed": true
+   },
+   "note": "금액 필드 값은 결과에 나오면 안 됨"
+  }
+ ]
+}

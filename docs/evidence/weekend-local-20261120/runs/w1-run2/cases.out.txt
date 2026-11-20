@@ -1,0 +1,9 @@
+PASS N1_normal_live1_dynamic1 rc=0 F1 기대 {'LIVE': [203], 'DYNAMIC': [900]} / 관측 {'LIVE': [203], 'DYNAMIC': [900]} / 집합 일치(F1 전체 통과 아님 — 별도 확인 필요 항목 남음) (초과 -, 누락 -, 고정 조건 불일치 -, 알 수 없는 상태 -)
+PASS C2_same_count_other_id rc=20 F1 기대 {'LIVE': [203], 'DYNAMIC': [900]} / 관측 {'LIVE': [203], 'DYNAMIC': [901]} / 불일치 (초과 DYNAMIC#901, 누락 DYNAMIC#900, 고정 조건 불일치 -, 알 수 없는 상태 -)
+PASS C3_unregistered_real_added rc=20 F1 기대 {'LIVE': [203], 'DYNAMIC': [900]} / 관측 {'LIVE': [203], 'DYNAMIC': [94, 900]} / 불일치 (초과 DYNAMIC#94, 누락 -, 고정 조건 불일치 -, 알 수 없는 상태 -)
+PASS C4_registered_missing rc=20 F1 기대 {'LIVE': [203], 'DYNAMIC': [900]} / 관측 {'LIVE': [203], 'DYNAMIC': []} / 불일치 (초과 -, 누락 DYNAMIC#900, 고정 조건 불일치 -, 알 수 없는 상태 -)
+PASS C5_paper_mixed rc=20 F1 기대 {'LIVE': [203], 'DYNAMIC': [900]} / 관측 {'LIVE': [203], 'DYNAMIC': []} / 불일치 (초과 -, 누락 DYNAMIC#900, 고정 조건 불일치 -, 알 수 없는 상태 -)
+PASS C6_fixed_condition_mismatch rc=20 F1 기대 {'LIVE': [203], 'DYNAMIC': [900]} / 관측 {'LIVE': [203], 'DYNAMIC': [900]} / 불일치 (초과 -, 누락 -, 고정 조건 불일치 DYNAMIC#900, LIVE#203, 알 수 없는 상태 -)
+PASS G1_registry_hash_mismatch rc=30 F1-등록표 비교 입력 무효: REGISTRY_HASH_MISMATCH
+PASS G2_amount_field_rejected rc=30 F1-등록표 비교 입력 무효: OBSERVATION_INVALID
+8/8 기대대로 (직접 영향 6 + 입력 계약 보조 2), 등록표 sha256 14599ba6734d11a541b6e8335f1e9aa0cf04c9f24ea4492e02dd50c3a15b0393

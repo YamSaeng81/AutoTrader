@@ -1,0 +1,104 @@
+{
+ "synthetic": true,
+ "cases": [
+  {
+   "case": "N1_normal_parallel",
+   "ok": true,
+   "rc": 0,
+   "verdict": "NO_RISK_ITEMS",
+   "checks": {
+    "verdict": true,
+    "exit": true,
+    "stderr_empty": true,
+    "risk_codes": true,
+    "eth_buy_registered_dynamic": true,
+    "paper_excluded": true,
+    "p7_quoted_not_computed": true,
+    "no_green_on_risk": true
+   },
+   "note": "DYNAMIC 900 ETH 매수·보유가 등록 DYNAMIC REAL 로 분류(무단 실자금 아님)"
+  },
+  {
+   "case": "C2_unregistered_real",
+   "ok": true,
+   "rc": 20,
+   "verdict": "RISK_PRESENT",
+   "checks": {
+    "verdict": true,
+    "exit": true,
+    "stderr_empty": true,
+    "risk_codes": true,
+    "eth_buy_registered_dynamic": true,
+    "paper_excluded": true,
+    "p7_quoted_not_computed": true,
+    "no_green_on_risk": true
+   },
+   "note": ""
+  },
+  {
+   "case": "C3_registered_session_unknown",
+   "ok": true,
+   "rc": 20,
+   "verdict": "RISK_PRESENT",
+   "checks": {
+    "verdict": true,
+    "exit": true,
+    "stderr_empty": true,
+    "risk_codes": true,
+    "eth_buy_registered_dynamic": true,
+    "paper_excluded": true,
+    "p7_quoted_not_computed": true,
+    "no_green_on_risk": true
+   },
+   "note": "등록 세션이어도 UNKNOWN 은 위험으로 남음"
+  },
+  {
+   "case": "C4_closing",
+   "ok": true,
+   "rc": 20,
+   "verdict": "RISK_PRESENT",
+   "checks": {
+    "verdict": true,
+    "exit": true,
+    "stderr_empty": true,
+    "risk_codes": true,
+    "eth_buy_registered_dynamic": true,
+    "paper_excluded": true,
+    "p7_quoted_not_computed": true,
+    "no_green_on_risk": true
+   },
+   "note": ""
+  },
+  {
+   "case": "C5_p0_and_news_error",
+   "ok": true,
+   "rc": 20,
+   "verdict": "RISK_PRESENT",
+   "checks": {
+    "verdict": true,
+    "exit": true,
+    "stderr_empty": true,
+    "risk_codes": true,
+    "eth_buy_registered_dynamic": true,
+    "paper_excluded": true,
+    "p7_quoted_not_computed": true,
+    "no_green_on_risk": true
+   },
+   "note": "뉴스 오류는 원문 표지 그대로 미분류 ERROR"
+  },
+  {
+   "case": "C6_forbidden_performance_field",
+   "ok": true,
+   "rc": 30,
+   "verdict": "INVALID",
+   "checks": {
+    "verdict": true,
+    "exit": true,
+    "stderr_empty": true,
+    "value_not_echoed": true,
+    "field_named": true
+   },
+   "note": "성과 필드 거절, 값 미출력"
+  }
+ ]
+}

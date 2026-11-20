@@ -1,0 +1,62 @@
+{
+ "input_version": "parallel-in-1",
+ "synthetic": true,
+ "source_note": "합성(W2) — 운영 관측 아님",
+ "observed_label": "W2-합성",
+ "sessions": [
+  {
+   "kind": "LIVE",
+   "id": 203,
+   "mode": "REAL",
+   "status": "RUNNING"
+  },
+  {
+   "kind": "DYNAMIC",
+   "id": 900,
+   "mode": "REAL",
+   "status": "RUNNING"
+  },
+  {
+   "kind": "DYNAMIC",
+   "id": 522,
+   "mode": "PAPER",
+   "status": "RUNNING"
+  }
+ ],
+ "orders": [
+  {
+   "kind": "DYNAMIC",
+   "session_id": 900,
+   "order_id": 1,
+   "side": "BUY",
+   "coin_pair": "KRW-ETH",
+   "state": "FILLED"
+  },
+  {
+   "kind": "DYNAMIC",
+   "session_id": 522,
+   "order_id": 2,
+   "side": "BUY",
+   "coin_pair": "KRW-XRP",
+   "state": "FILLED"
+  }
+ ],
+ "positions": [
+  {
+   "kind": "DYNAMIC",
+   "session_id": 900,
+   "position_id": 11,
+   "coin_pair": "KRW-ETH",
+   "status": "OPEN"
+  }
+ ],
+ "settlement_unresolved": 0,
+ "p0_events": [],
+ "error_logs": [],
+ "paper_522_587": {
+  "total": 66,
+  "running": 63,
+  "not_running": 3,
+  "pnl_krw": "-123456.78"
+ }
+}
