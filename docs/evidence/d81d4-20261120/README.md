@@ -10,7 +10,7 @@
 | 생성기 | [d4/mkd81.py](d4/mkd81.py) — ce6df2fa 원문 9블록에서 지정한 곳만 바꾼다. 바꿀 곳마다 일치 횟수를 단언하고 하나라도 어긋나면 아무것도 쓰지 않는다. 보고 [gen-report.txt](d4/gen-report.txt) |
 | 실제 jar 대조 | [jarcmp-real/](jarcmp-real/) — U1 비교기 원문으로 운영 0e1d2a02 서버 jar 대 d81 LF jar: **38줄(변경35·추가3·삭제0)·`(끝) 895 898`**, JARM 옛 b6587953 / 새 33a06f0e |
 | 대역 | [standin/](standin/) 최종 r3 **201/0**·금지 명령 0([원문](standin/runs/scen-r3.txt)). r2 199/2(시나리오 쪽 2, §4) 보존 |
-| 실행 틀 | [runner/](runner/) 11해시 고정. 가짜 ssh 자체 시험 **30/30**([원문](runner/runner-selftest.txt)) |
+| 실행 틀 | [runner/](runner/) 11해시 고정. 가짜 ssh 자체 시험 **30/30**([원문](runner/runner-selftest.txt)). 고정 출처 **e21c777f**에서 `extract.py` 11/11 같음([blocks.json](runner/extract-e21c777f/blocks.json)), 그 추출물로 run.sh U0 가짜 ssh rc0. d593e1dd의 extract.py는 한글 블록 이름 ls-tree 따옴표 처리 누락으로 rc1 — e21c777f에서 그 한 줄만 보정(블록·해시 무변경) |
 
 ## 2. 고정 값과 출처
 
