@@ -1,0 +1,7 @@
+PASS N1_full_normal_pass rc=0 F3 통과(P7 v8 OK + F3 v9 조건 전부)
+PASS C2_sum_equal_fingerprint_unconfirmed rc=20 F3 불통과 — P7 HOLD, 사유 1건
+PASS C3_balance_anomaly_and_closing_hold rc=20 F3 불통과 — P7 ANOMALY, 사유 2건
+PASS C4_db_partial_bundle_only rc=10 추가 원천 필요 — 계좌·F3 판정하지 않음
+PASS C5a_bundle_uncommitted rc=30 DB 부분 묶음 거절 — 미확정 흔적 bundle.json.uncommitted 있음
+PASS C5b_bundle_hash_mismatch rc=30 DB 부분 묶음 거절 — stdout.tsv 해시 불일치
+6/6 기대대로 (5사례, 5번은 미확정·해시 불일치 두 변형), 원천 {'contract_probes_sha256': '01f06ce57dae01980e731698ec9176c740db2ed05efdd1e795bfdb23bc734fc0', 'bundle_sums_sha256': 'cc2bf903c15f8f0b9d4541d3ef1b468819a1023e640e870442c5b9aa69b1348c'}

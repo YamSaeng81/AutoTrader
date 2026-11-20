@@ -1,0 +1,92 @@
+{
+ "synthetic": true,
+ "sources": {
+  "contract_probes_sha256": "01f06ce57dae01980e731698ec9176c740db2ed05efdd1e795bfdb23bc734fc0",
+  "bundle_sums_sha256": "cc2bf903c15f8f0b9d4541d3ef1b468819a1023e640e870442c5b9aa69b1348c"
+ },
+ "cases": [
+  {
+   "case": "N1_full_normal_pass",
+   "ok": true,
+   "rc": 0,
+   "verdict": "F3_PASS",
+   "checks": {
+    "verdict": true,
+    "exit": true,
+    "stderr_empty": true,
+    "p7_and_f3_preserved": true,
+    "f3_reasons_iff_not_pass": true,
+    "p7_overall": true,
+    "account_sum": true
+   }
+  },
+  {
+   "case": "C2_sum_equal_fingerprint_unconfirmed",
+   "ok": true,
+   "rc": 20,
+   "verdict": "F3_NOT_PASS",
+   "checks": {
+    "verdict": true,
+    "exit": true,
+    "stderr_empty": true,
+    "p7_and_f3_preserved": true,
+    "f3_reasons_iff_not_pass": true,
+    "p7_overall": true,
+    "account_sum": true,
+    "hold_code": true
+   }
+  },
+  {
+   "case": "C3_balance_anomaly_and_closing_hold",
+   "ok": true,
+   "rc": 20,
+   "verdict": "F3_NOT_PASS",
+   "checks": {
+    "verdict": true,
+    "exit": true,
+    "stderr_empty": true,
+    "p7_and_f3_preserved": true,
+    "f3_reasons_iff_not_pass": true,
+    "p7_overall": true,
+    "hold_code": true,
+    "anomaly_code": true
+   }
+  },
+  {
+   "case": "C4_db_partial_bundle_only",
+   "ok": true,
+   "rc": 10,
+   "verdict": "NEEDS_MORE_SOURCES",
+   "checks": {
+    "verdict": true,
+    "exit": true,
+    "stderr_empty": true,
+    "bundle_verified_first": true,
+    "no_p7_or_f3": true,
+    "lists_missing": true
+   }
+  },
+  {
+   "case": "C5a_bundle_uncommitted",
+   "ok": true,
+   "rc": 30,
+   "verdict": "BUNDLE_REJECTED",
+   "checks": {
+    "verdict": true,
+    "exit": true,
+    "stderr_empty": true
+   }
+  },
+  {
+   "case": "C5b_bundle_hash_mismatch",
+   "ok": true,
+   "rc": 30,
+   "verdict": "BUNDLE_REJECTED",
+   "checks": {
+    "verdict": true,
+    "exit": true,
+    "stderr_empty": true
+   }
+  }
+ ]
+}

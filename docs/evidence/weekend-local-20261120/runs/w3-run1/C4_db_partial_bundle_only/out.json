@@ -1,0 +1,27 @@
+{
+ "tool": "check_parallel",
+ "version": "w3-1",
+ "pins": {
+  "p7_v8": "156c38289dba5836db3a61a3b005e9d3b873e8142b3d0146f693080f51f9effa",
+  "f3_v9": "f825ca5e80ef1542abf98962d1aeb91f5fe279555ae6acfc1b1421df73e55f15",
+  "assembler_committed": "ff8549346014095c5cd33ba297f187966fee39f449a6b953755b8ae905447472"
+ },
+ "mode": "db_bundle",
+ "bundle_verified": true,
+ "bundle_kind": "db-extract-partial-1",
+ "bundle_status": "db_extract_partial",
+ "needs_sources": [
+  "db_fp_pre",
+  "exchange_before",
+  "exchange_after",
+  "db_fp_post",
+  "app_code_sha",
+  "exchange_account_orders",
+  "registered_capital_cash_base",
+  "ruleset.confirmed"
+ ],
+ "verdict": "NEEDS_MORE_SOURCES",
+ "note": "DB 추출 부분 묶음만으로는 P7 전체 관측·F3 입력을 만들지 않는다. 빠진 원천을 기본값으로 채우지 않는다",
+ "exit": 10,
+ "summary_line": "추가 원천 필요 — 계좌·F3 판정하지 않음"
+}
