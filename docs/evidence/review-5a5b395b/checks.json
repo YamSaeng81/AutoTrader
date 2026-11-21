@@ -1,0 +1,191 @@
+{
+  "base": "5a5b395bef154674ff1ef1009f3c858239f1550e",
+  "checks": [
+    {
+      "name": "Committed manifests",
+      "ok": true,
+      "detail": {
+        "entries": 1351,
+        "by_folder": {
+          "weekend-local-fix-20261121": 721,
+          "weekend-local-20261120": 581,
+          "n03-1121-1000": 19,
+          "review-838029ab": 30
+        },
+        "mismatches": []
+      }
+    },
+    {
+      "name": "Working evidence unchanged",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "Saved r1-run1",
+      "ok": true,
+      "detail": {
+        "passed": 4,
+        "total": 5
+      }
+    },
+    {
+      "name": "Saved r1-run2",
+      "ok": true,
+      "detail": {
+        "passed": 5,
+        "total": 5
+      }
+    },
+    {
+      "name": "Saved r2-run1",
+      "ok": true,
+      "detail": {
+        "passed": 5,
+        "total": 6
+      }
+    },
+    {
+      "name": "Saved r2-run2",
+      "ok": true,
+      "detail": {
+        "passed": 6,
+        "total": 6
+      }
+    },
+    {
+      "name": "Missing orders retains equity PnL and unknown trade metrics",
+      "ok": false,
+      "detail": {
+        "month_pnl": "989.5",
+        "trade_state": "미확정(주문 원천 없음)",
+        "identity_check": "미확정(주문 원천 없음)"
+      }
+    },
+    {
+      "name": "B2a_orders_key_missing",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "B2b_orders_type_invalid",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Explicit empty orders and other normal session",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Isolation preserves valid subtotal",
+      "ok": true,
+      "detail": {
+        "group": "money",
+        "name": "실자금",
+        "sessions": [
+          "LIVE#203"
+        ],
+        "month_pnl": null,
+        "status": "미확정",
+        "known_part_sum": "989.5",
+        "unconfirmed_sessions": [
+          "DYNAMIC#900"
+        ],
+        "note": "거절/변환 실패 세션 제외 — 확정 부분 합은 전체 손익이 아님"
+      }
+    },
+    {
+      "name": "E1a_w1_success_json_rc42",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "E1b_w3_success_json_rc40",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "E2a_w1_rc0_failed_json",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "E2b_w1_rc0_json_missing",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Broken W3 not quoted",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Contract-valid exit 10 remains NEEDS_DATA",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "One saved normal integration",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "N03 four server hashes",
+      "ok": true,
+      "detail": {
+        "20261121-1000.txt": true,
+        "20261121-1000.txt.msg": true,
+        "20261121-1000.txt.raw": true,
+        "last_send": true
+      }
+    },
+    {
+      "name": "N03 fixed read source",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Settings inclusion metadata only",
+      "ok": true,
+      "detail": {
+        "commit": "e64591a2cfe1aedc9b83fc587be56d80f2a82cd4",
+        "path": ".claude/settings.local.json",
+        "content_read": false,
+        "changed_by_review": false,
+        "authorship_proven": false
+      }
+    },
+    {
+      "name": "Prior review present in main history",
+      "ok": true,
+      "detail": null
+    }
+  ],
+  "passed": 21,
+  "total": 22,
+  "saved_process_boundaries": [
+    {
+      "case": "E1a_w1_success_json_rc42",
+      "saved_actual_rc": 42,
+      "json_exit": 0
+    },
+    {
+      "case": "E1b_w3_success_json_rc40",
+      "saved_actual_rc": 40,
+      "json_exit": 0
+    },
+    {
+      "case": "E2a_w1_rc0_failed_json",
+      "saved_actual_rc": 0,
+      "json_exit": 20
+    },
+    {
+      "case": "E2b_w1_rc0_json_missing",
+      "saved_actual_rc": 0,
+      "json_exit": null
+    }
+  ],
+  "tests_rerun": false,
+  "production_access": false,
+  "settings_content_read": false
+}
