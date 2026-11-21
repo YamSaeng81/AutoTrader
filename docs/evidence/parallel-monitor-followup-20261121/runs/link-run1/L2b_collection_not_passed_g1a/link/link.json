@@ -1,0 +1,29 @@
+{
+ "tool": "link_r2",
+ "version": "pm-link-1",
+ "label": "L2b_collection_not_passed_g1a",
+ "operational_ready": false,
+ "r2_calls": 0,
+ "not_attached": [
+  "W3/P7",
+  "W4 월 성적표",
+  "W5",
+  "새 생성·실전 시작"
+ ],
+ "registry": {
+  "path_note": "합성 registry-3(fixtures/w1/registry.json) — 실제 승인 등록표 아님",
+  "sha256": "14599ba6734d11a541b6e8335f1e9aa0cf04c9f24ea4492e02dd50c3a15b0393"
+ },
+ "conv": {
+  "dir_result_sha256": "27e4b1a7b23c3e08e3fa17b6d7f85489c176e0d62f55b09579148b2e501fa900",
+  "verdict": "COLLECTION_NOT_PASSED",
+  "collection_failure_codes": [
+   "ORDER_OWNER_KIND_MODE_MISMATCH",
+   "POSITION_OWNER_KIND_MODE_MISMATCH"
+  ]
+ },
+ "status": "NOT_LINKED",
+ "reason": "CONV_NOT_CONSUMABLE:COLLECTION_NOT_PASSED",
+ "note": "변환 결과가 소비 가능하지 않아 R2 를 호출하지 않았다(빈 목록·정상으로 바꾸지 않음)",
+ "exit": 30
+}

@@ -1,0 +1,10 @@
+link_r2 sha256=327227d2116a508c7d3b03afeb6482aa82b7e6410d8d59009446f04fb366d67f
+convert_state_4 sha256=1416564e5df04cc7b59b5e4eaafce50a096c02a7ce333dd661ffb8d8be8edfcd
+run_offline_r2 sha256=e203ea6c1e6a4f28ecbe59e0783a370e936453abe251f7acb5a96de6a712bd4f
+registry sha256=14599ba6734d11a541b6e8335f1e9aa0cf04c9f24ea4492e02dd50c3a15b0393
+G1a conv result.json sha256=27e4b1a7b23c3e08e3fa17b6d7f85489c176e0d62f55b09579148b2e501fa900
+PASS L1_converted_normal 변환 CONVERTED · 연결 LINKED_W1_W2_VERIFIED(0) → R2 NEEDS_DATA(10) W1 SET_MATCH/LOCAL_VERIFIED W2 NO_RISK_ITEMS/LOCAL_VERIFIED []
+PASS L2a_p0_check_incomplete 변환 COLLECTION_NOT_PASSED · 연결 NOT_LINKED(30) → R2 호출 0회
+PASS L2b_collection_not_passed_g1a 변환 COLLECTION_NOT_PASSED · 연결 NOT_LINKED(30) → R2 호출 0회
+PASS L3_p0_present 변환 CONVERTED · 연결 LINKED_NOT_VERIFIED(20) → R2 FAILED(20) W1 SET_MATCH/LOCAL_VERIFIED W2 RISK_PRESENT/FAILED ['P0']
+4/4 기대대로 (합성 연결 — 실제 운영 관측·실제 등록표 대조 아님, operational_ready=false)

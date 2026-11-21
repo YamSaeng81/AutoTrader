@@ -1,0 +1,73 @@
+{
+ "tool": "convert_state",
+ "version": "pm-conv-4",
+ "sql_version": "pm-state-3",
+ "label": "pm-read-2 state",
+ "synthetic": false,
+ "consumable": false,
+ "not_evidence_of": [
+  "실제 SQL 실행",
+  "P7 통과",
+  "F3 통과",
+  "F1 전체 통과"
+ ],
+ "problems": [],
+ "collection_failures": [
+  {
+   "code": "AUX_P0_CHECK_INCOMPLETE",
+   "field": "p0",
+   "status": "P0_CHECK_INCOMPLETE",
+   "reasons": [
+    "LOG_COLLECTION_FAILED",
+    "LOG_EMPTY"
+   ],
+   "note": "P0 검사 미완료 — 빈 P0 목록·0·정상으로 바꾸지 않음"
+  }
+ ],
+ "fixed": {
+  "w1_registry_f1_sha256": "bcdcada6cec4fdeeea16f830c3a6019fcc597c6a397af0a609b99762c4552b78",
+  "w2_parallel_report_sha256": "37978bfca9fed422bdd9a19a35d0bee0427ddf5ee5ab43bd48b9b035bdd9f24c"
+ },
+ "input": {
+  "sql_sha256": "6d71df61a59d144afe9cfa1affc250c6e219c6195612aa97d2580fa8de1bec6b",
+  "tsv_sha256": "74f29e1b55380daf3f9eb896d9182e9a9bdb97ce37cbd14e1e6c20a18f87a859",
+  "rc": "0",
+  "stderr_bytes": 0,
+  "aux_sha256": "ffab7bf7612f3cef3ed321ef2b106c83f6ca1078ac5b40238cca9a8fe631cde4",
+  "aux_source_sha256": {
+   "n03": "fa342a12b3eac048854d6195b8cf887acdb6980c3525bf0e558ecd1cb0123f15",
+   "p0": "8b8b13259ac02009ed69106336684243a1e371b9eb813b8605d2325e8b7e9c2f"
+  }
+ },
+ "sources": {
+  "state": "pm-state-3 SQL 출력(db 축 구간)",
+  "n03": "N03 원천(미분류 ERROR·66)",
+  "p0": {
+   "status": "P0_CHECK_INCOMPLETE",
+   "range": {
+    "since": "2026-11-22T13:00:00Z",
+    "until": "2026-11-22T13:25:05Z",
+    "axis": "server_utc",
+    "basis": "pm-read-2 read: SINCE 인자(보고 명목 시각 UTC)·UNTIL 서버 date -u, docker compose logs --since/--until; backend StartedAt 2026-11-16T05:16:14.129686133Z ≤ SINCE"
+   },
+   "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "note": "backend 로그 원천 — db 구간·N03 과 같은 관측이라고 선언하지 않음"
+  }
+ },
+ "window": {
+  "axis": "db",
+  "from": "2026-11-21T13:34:58.723108+00:00",
+  "to": "2026-11-21T13:34:58.736641+00:00",
+  "flyway_max": 96,
+  "note": "db 축 구간 표시일 뿐 — 계좌·거래소 시계 관계를 선언하지 않음"
+ },
+ "rows": {
+  "sessions": 4,
+  "orders": 2,
+  "positions": 1,
+  "dyn_paper_orders_not_listed": 2,
+  "dyn_paper_positions_not_listed": 2
+ },
+ "verdict": "COLLECTION_NOT_PASSED",
+ "exit": 20
+}

@@ -1,0 +1,125 @@
+{
+ "cases": [
+  {
+   "case": "L1_converted_normal",
+   "ok": true,
+   "checks": {
+    "conv_verdict": true,
+    "link_status": true,
+    "link_stderr_empty": true,
+    "r2_calls": true,
+    "r2_dir": true,
+    "operational_ready_false": true,
+    "r2_rc": true,
+    "r2_overall": true,
+    "r2_operational_ready_false": true,
+    "w1": true,
+    "w2": true,
+    "w2_detail": true,
+    "others": true,
+    "r2_stderr_empty": true
+   },
+   "conv": "CONVERTED",
+   "link": "LINKED_W1_W2_VERIFIED",
+   "link_rc": 0,
+   "r2_calls": 1,
+   "r2_rc": 10,
+   "r2_overall": "NEEDS_DATA",
+   "w1": {
+    "status": "LOCAL_VERIFIED",
+    "verdict": "SET_MATCH",
+    "contract": "OK",
+    "detail": "F1 기대 {'LIVE': [203], 'DYNAMIC': [900]} / 관측 {'LIVE': [203], 'DYNAMIC': [900]} / 집합 일치(F1 전체 통과 아님 — 별도 확인 필요 항목 남음) (초과 -, 누락 -, 고정 조건 불일치 -, 알 수 없는 상태 -)"
+   },
+   "w2": {
+    "status": "LOCAL_VERIFIED",
+    "verdict": "NO_RISK_ITEMS",
+    "contract": "OK",
+    "detail": []
+   }
+  },
+  {
+   "case": "L2a_p0_check_incomplete",
+   "ok": true,
+   "checks": {
+    "conv_verdict": true,
+    "link_status": true,
+    "link_stderr_empty": true,
+    "r2_calls": true,
+    "r2_dir": true,
+    "operational_ready_false": true,
+    "conv_codes": true
+   },
+   "conv": "COLLECTION_NOT_PASSED",
+   "link": "NOT_LINKED",
+   "link_rc": 30,
+   "r2_calls": 0,
+   "r2_rc": null,
+   "r2_overall": null,
+   "w1": null,
+   "w2": null
+  },
+  {
+   "case": "L2b_collection_not_passed_g1a",
+   "ok": true,
+   "checks": {
+    "conv_verdict": true,
+    "link_status": true,
+    "link_stderr_empty": true,
+    "r2_calls": true,
+    "r2_dir": true,
+    "operational_ready_false": true,
+    "conv_codes": true
+   },
+   "conv": "COLLECTION_NOT_PASSED",
+   "link": "NOT_LINKED",
+   "link_rc": 30,
+   "r2_calls": 0,
+   "r2_rc": null,
+   "r2_overall": null,
+   "w1": null,
+   "w2": null
+  },
+  {
+   "case": "L3_p0_present",
+   "ok": true,
+   "checks": {
+    "conv_verdict": true,
+    "link_status": true,
+    "link_stderr_empty": true,
+    "r2_calls": true,
+    "r2_dir": true,
+    "operational_ready_false": true,
+    "r2_rc": true,
+    "r2_overall": true,
+    "r2_operational_ready_false": true,
+    "w1": true,
+    "w2": true,
+    "w2_detail": true,
+    "others": true,
+    "r2_stderr_empty": true,
+    "p0_carried": true
+   },
+   "conv": "CONVERTED",
+   "link": "LINKED_NOT_VERIFIED",
+   "link_rc": 20,
+   "r2_calls": 1,
+   "r2_rc": 20,
+   "r2_overall": "FAILED",
+   "w1": {
+    "status": "LOCAL_VERIFIED",
+    "verdict": "SET_MATCH",
+    "contract": "OK",
+    "detail": "F1 기대 {'LIVE': [203], 'DYNAMIC': [900]} / 관측 {'LIVE': [203], 'DYNAMIC': [900]} / 집합 일치(F1 전체 통과 아님 — 별도 확인 필요 항목 남음) (초과 -, 누락 -, 고정 조건 불일치 -, 알 수 없는 상태 -)"
+   },
+   "w2": {
+    "status": "FAILED",
+    "verdict": "RISK_PRESENT",
+    "contract": "OK",
+    "detail": [
+     "P0"
+    ]
+   }
+  }
+ ]
+}

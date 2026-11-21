@@ -1,0 +1,46 @@
+{
+ "tool": "link_r2",
+ "version": "pm-link-1",
+ "label": "L1_converted_normal",
+ "operational_ready": false,
+ "r2_calls": 1,
+ "not_attached": [
+  "W3/P7",
+  "W4 월 성적표",
+  "W5",
+  "새 생성·실전 시작"
+ ],
+ "registry": {
+  "path_note": "합성 registry-3(fixtures/w1/registry.json) — 실제 승인 등록표 아님",
+  "sha256": "14599ba6734d11a541b6e8335f1e9aa0cf04c9f24ea4492e02dd50c3a15b0393"
+ },
+ "conv": {
+  "dir_result_sha256": "4375096cca1667e59aaa28d40fec87f227aa339b3c4836e43db09bfd4878cffc",
+  "verdict": "CONVERTED",
+  "collection_failure_codes": []
+ },
+ "p0_events_in": [],
+ "r2_rc": 10,
+ "r2_overall": "NEEDS_DATA",
+ "r2_operational_ready": false,
+ "r2_summary_sha256": "27c14e7ec8f37ae54279c70c90733ec6a47d1f0bb9d43d419dd715c3d6d237b0",
+ "w1": {
+  "status": "LOCAL_VERIFIED",
+  "verdict": "SET_MATCH",
+  "contract": "OK",
+  "detail": "F1 기대 {'LIVE': [203], 'DYNAMIC': [900]} / 관측 {'LIVE': [203], 'DYNAMIC': [900]} / 집합 일치(F1 전체 통과 아님 — 별도 확인 필요 항목 남음) (초과 -, 누락 -, 고정 조건 불일치 -, 알 수 없는 상태 -)"
+ },
+ "w2": {
+  "status": "LOCAL_VERIFIED",
+  "verdict": "NO_RISK_ITEMS",
+  "contract": "OK",
+  "detail": []
+ },
+ "other_modules": {
+  "w3": "NEEDS_DATA",
+  "w4": "NEEDS_DATA",
+  "w5": "NEEDS_DATA"
+ },
+ "status": "LINKED_W1_W2_VERIFIED",
+ "exit": 0
+}

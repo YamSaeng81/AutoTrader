@@ -1,0 +1,10 @@
+ssh 경로 확인: /d/Claude Code/projects/crypto-auto-trader/docs/evidence/parallel-monitor-followup-20261121/runs/fake-ssh-run1/fake-bin/ssh (실제 ssh 보다 앞)
+FAIL V1_normal read=0 호출=[install,sql,until,logs] 상태=READ_OK 미완료표지=no post=0 불일치: local_only_sums
+FAIL V2_head_mismatch read=3 호출=[install] 상태=- 미완료표지=yes post=2 불일치: status=- incomplete=yes read_stderr
+FAIL V3_image_mismatch read=3 호출=[install] 상태=- 미완료표지=yes post=2 불일치: status=- incomplete=yes read_stderr
+FAIL V4_flyway_mismatch read=3 호출=[install,sql] 상태=- 미완료표지=yes post=2 불일치: status=- incomplete=yes read_stderr
+FAIL V5_sql_failed read=1 호출=[install,sql] 상태=- 미완료표지=yes post=2 불일치: status=- incomplete=yes read_stderr
+FAIL V6_ssh_failed read=255 호출=[install] 상태=- 미완료표지=yes post=2 불일치: status=- incomplete=yes read_stderr
+FAIL V7_log_failed read=6 호출=[install,sql,until,logs] 상태=READ_LOG_FAILED 미완료표지=no post=20 불일치: local_only_sums
+FAIL V8_last_write_failed read=4 호출=[install,sql,until,logs] 상태=- 미완료표지=yes post=2 불일치: read_stderr
+0/8 기대대로 (가짜 SSH 5경계 8변형 — 실제 서버·DB·로그 아님. post 의 synthetic=false 표지는 실행안이 실제 읽기용이기 때문이며 이 결과는 합성이다)

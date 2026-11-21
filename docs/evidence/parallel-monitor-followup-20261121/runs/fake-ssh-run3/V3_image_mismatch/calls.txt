@@ -1,0 +1,1 @@
+1	install	echo "server_utc $(date -u +%FT%TZ)"; cd ~/crypto_trader/AutoTrader && echo "HEAD $(git rev-parse HEAD)" && c=$(docker compose -f docker-compose.prod.yml ps -q backend) && docker inspect --format 'backend Image={{.Image}} Status={{.State.Status}} RestartCount={{.RestartCount}} StartedAt={{.State.StartedAt}}' $c

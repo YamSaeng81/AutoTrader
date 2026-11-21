@@ -6,6 +6,7 @@
 
 | 구분 | 기준 | 상태 |
 |---|---|---|
+| **최근 개발 결과(제출, 판정 전)** | [G1 SQL·읽기 실행안·R2 합성 연결](evidence/parallel-monitor-followup-20261121/README.md) · v1.216 §3 | pm-state-3 격리 PG 2/2: 모드만 PAPER로 바뀐 미등록 세션의 DYNAMIC 주문·포지션 유지(KIND_MODE_MISMATCH), pm-state-2 대조는 숨김 재현. pm-read-2 핀·실제 rc·기록·서버 UTC 보완, 가짜 SSH 0/8(실행안 결함1·시험기2)·8/8(Windows 예약 이름 aux 결함) 보존→3회차 8/8. pm-link-1 4/4(불통과 R2 0회·P0 실패 유지). 운영 접근 없음 |
 | **최근 개발 결과(로컬 범위 수용·실행안 보류)** | d65c2c2f [SQL/P0·읽기 승인안](evidence/parallel-monitor-check-20261121/README.md) · [v1.216](evidence/review-40a2fda5/README.md) | 새255·N03 17·기존170/721/581=1,744 블롭 일치. PG0/4→4/4·P0 5/5 연결. DYNAMIC 실자금 제외와 읽기 관문/종료값·시각 축 보완 전 실제 읽기 불허. 합성 R2 연결은 실제 등록표 없이 가능, 기존 시험 재실행 없음 |
 | **최근 개발 결과(로컬 범위 수용)** | a569939b [병행 감시 원천 준비](evidence/parallel-monitor-draft-20261121/README.md) · [v1.215](evidence/review-a569939b/README.md) | 170/170·기존581/721 원문 일치, 독립파일대조14충족. 저장13/13·첫163파일 압축보존 수용, SQL 실제실행은 미검증. 과거 종결 일괄 면제 불허·P0 기존 기준 유지, 다음은 새SQL 격리 검증/P0 파일 후보 |
 | **최근 개발 결과(로컬 범위 수용)** | e7d48c5e·5a5b395b [W4·W6 보완](evidence/weekend-local-fix-20261121/README.md) · [v1.214](evidence/review-5a5b395b/README.md) | R1 5/5·R2 6/6 연결 수용. 보완721·원본581·N03 19·앞 총괄30 블롭 일치. 주문 누락 미확정·실제rc/JSON/판정 계약, 정상 통합은 승인 대기5. 시험 결함2·총괄 소수 문자열 대조 오류/보충은 별도 보존, 기존 시험 재실행 없음 |

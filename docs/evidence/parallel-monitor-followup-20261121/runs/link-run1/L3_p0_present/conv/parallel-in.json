@@ -1,0 +1,62 @@
+{
+ "input_version": "parallel-in-1",
+ "synthetic": true,
+ "source_note": "pm-state-3 SQL 6d71df61 출력 f6773546 · db 구간 2026-12-03T00:00:00.000000+00:00~2026-12-03T00:00:00.000200+00:00 · aux c67fa642 · 합성 입력",
+ "observed_label": "pm-link-1 Q2",
+ "sessions": [
+  {
+   "kind": "DYNAMIC",
+   "id": 900,
+   "mode": "REAL",
+   "status": "RUNNING"
+  },
+  {
+   "kind": "DYNAMIC",
+   "id": 901,
+   "mode": "PAPER",
+   "status": "RUNNING"
+  },
+  {
+   "kind": "LIVE",
+   "id": 203,
+   "mode": "REAL",
+   "status": "CREATED"
+  }
+ ],
+ "orders": [
+  {
+   "kind": "DYNAMIC",
+   "session_id": 900,
+   "order_id": 1,
+   "side": "BUY",
+   "coin_pair": "KRW-ETH",
+   "state": "FILLED"
+  }
+ ],
+ "positions": [
+  {
+   "kind": "DYNAMIC",
+   "session_id": 900,
+   "position_id": 11,
+   "coin_pair": "KRW-ETH",
+   "status": "OPEN"
+  }
+ ],
+ "settlement_unresolved": 0,
+ "p0_events": [
+  {
+   "code": "DB_CONNECTION_TIMEOUT",
+   "label": "01:05:00.000 http-nio-8080-exec-N"
+  },
+  {
+   "code": "DB_CONNECTION_TIMEOUT",
+   "label": "01:05:00.000 http-nio-8080-exec-N"
+  }
+ ],
+ "error_logs": [],
+ "paper_522_587": {
+  "total": 66,
+  "running": 63,
+  "not_running": 3
+ }
+}

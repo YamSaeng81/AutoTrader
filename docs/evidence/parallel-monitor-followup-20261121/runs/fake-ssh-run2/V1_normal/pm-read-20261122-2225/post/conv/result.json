@@ -1,0 +1,70 @@
+{
+ "tool": "convert_state",
+ "version": "pm-conv-4",
+ "sql_version": "pm-state-3",
+ "label": "pm-read-2 state",
+ "synthetic": false,
+ "consumable": true,
+ "not_evidence_of": [
+  "실제 SQL 실행",
+  "P7 통과",
+  "F3 통과",
+  "F1 전체 통과"
+ ],
+ "problems": [],
+ "collection_failures": [],
+ "fixed": {
+  "w1_registry_f1_sha256": "bcdcada6cec4fdeeea16f830c3a6019fcc597c6a397af0a609b99762c4552b78",
+  "w2_parallel_report_sha256": "37978bfca9fed422bdd9a19a35d0bee0427ddf5ee5ab43bd48b9b035bdd9f24c"
+ },
+ "input": {
+  "sql_sha256": "6d71df61a59d144afe9cfa1affc250c6e219c6195612aa97d2580fa8de1bec6b",
+  "tsv_sha256": "74f29e1b55380daf3f9eb896d9182e9a9bdb97ce37cbd14e1e6c20a18f87a859",
+  "rc": "0",
+  "stderr_bytes": 0,
+  "aux_sha256": "e20a34bc3a22da74dc62830debae04b19ed537c1c2428241c28d2537782760c5",
+  "aux_source_sha256": {
+   "n03": "fa342a12b3eac048854d6195b8cf887acdb6980c3525bf0e558ecd1cb0123f15",
+   "p0": "89e1a271eca62630e08a443e28450f7fab32f3c1314e7f0ece101ec3920133c6"
+  }
+ },
+ "sources": {
+  "state": "pm-state-3 SQL 출력(db 축 구간)",
+  "n03": "N03 원천(미분류 ERROR·66)",
+  "p0": {
+   "status": "P0_ABSENT_IN_PROVIDED_LOG",
+   "range": {
+    "since": "2026-11-22T13:00:00Z",
+    "until": "2026-11-22T13:25:05Z",
+    "axis": "server_utc",
+    "basis": "pm-read-2 read: SINCE 인자(보고 명목 시각 UTC)·UNTIL 서버 date -u, docker compose logs --since/--until; backend StartedAt 2026-11-16T05:16:14.129686133Z ≤ SINCE"
+   },
+   "log_sha256": "359350ef2ca07056d569fe3573eb60209a78723474f9c498abc2a2f0cdb5825e",
+   "note": "backend 로그 원천 — db 구간·N03 과 같은 관측이라고 선언하지 않음"
+  }
+ },
+ "window": {
+  "axis": "db",
+  "from": "2026-11-21T13:34:58.723108+00:00",
+  "to": "2026-11-21T13:34:58.736641+00:00",
+  "flyway_max": 96,
+  "note": "db 축 구간 표시일 뿐 — 계좌·거래소 시계 관계를 선언하지 않음"
+ },
+ "rows": {
+  "sessions": 4,
+  "orders": 2,
+  "positions": 1,
+  "dyn_paper_orders_not_listed": 2,
+  "dyn_paper_positions_not_listed": 2
+ },
+ "verdict": "CONVERTED",
+ "settlement_unresolved_parts": {
+  "fill_accounting_pending": 1,
+  "open_discrepancy": 1
+ },
+ "outputs": {
+  "f1-obs.json": "e07b384db4adb40e1d6e61e4264ecdc71756b60efab76951ecf4bb8fd55da774",
+  "parallel-in.json": "3dd8a12cfa3c093473e542ef57ee5f83a9193a48c9dc8655e5c0bb96dc5781c5"
+ },
+ "exit": 0
+}

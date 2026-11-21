@@ -1,0 +1,84 @@
+{
+ "tool": "convert_state",
+ "version": "pm-conv-4",
+ "sql_version": "pm-state-3",
+ "label": "격리PG-G1a_unregistered_real_now_paper",
+ "synthetic": true,
+ "consumable": false,
+ "not_evidence_of": [
+  "실제 SQL 실행",
+  "P7 통과",
+  "F3 통과",
+  "F1 전체 통과"
+ ],
+ "problems": [],
+ "collection_failures": [
+  {
+   "code": "ORDER_OWNER_KIND_MODE_MISMATCH",
+   "order_id": 31,
+   "session_kind": "DYNAMIC",
+   "session_id": 950,
+   "state": "FILLED"
+  },
+  {
+   "code": "ORDER_OWNER_KIND_MODE_MISMATCH",
+   "order_id": 32,
+   "session_kind": "DYNAMIC",
+   "session_id": 950,
+   "state": "SUBMITTED"
+  },
+  {
+   "code": "POSITION_OWNER_KIND_MODE_MISMATCH",
+   "position_id": 31,
+   "session_kind": "DYNAMIC",
+   "session_id": 950,
+   "status": "OPEN"
+  }
+ ],
+ "fixed": {
+  "w1_registry_f1_sha256": "bcdcada6cec4fdeeea16f830c3a6019fcc597c6a397af0a609b99762c4552b78",
+  "w2_parallel_report_sha256": "37978bfca9fed422bdd9a19a35d0bee0427ddf5ee5ab43bd48b9b035bdd9f24c"
+ },
+ "input": {
+  "sql_sha256": "6d71df61a59d144afe9cfa1affc250c6e219c6195612aa97d2580fa8de1bec6b",
+  "tsv_sha256": "d9ab6554993314b803d760de1112d797b17b8427ae2fe6faabf17e8383352767",
+  "rc": "0",
+  "stderr_bytes": 0,
+  "aux_sha256": "fd85d62f9bc8cf0e1871d84679d3544e89db7842b0b312f1961611f28b5d2f8e",
+  "aux_source_sha256": {
+   "n03": "41c57cbe7f5571fd2b5e13e6dc844042a98e5ebb48dbd08a995d4a80122d39b9",
+   "p0": "3ac1c1a0128a51d590f9512eda636567b991f76f792ea6e9ed33509ab87a1a40"
+  }
+ },
+ "sources": {
+  "state": "pm-state-3 SQL 출력(db 축 구간)",
+  "n03": "N03 원천(미분류 ERROR·66)",
+  "p0": {
+   "status": "P0_ABSENT_IN_PROVIDED_LOG",
+   "range": {
+    "since": "2026-11-21T01:00:00Z",
+    "until": "2026-11-21T01:10:00Z",
+    "axis": "server_utc",
+    "basis": "합성: 수집 명령 --since/--until 인자(실제 수집 아님)"
+   },
+   "log_sha256": "359350ef2ca07056d569fe3573eb60209a78723474f9c498abc2a2f0cdb5825e",
+   "note": "backend 로그 원천 — db 구간·N03 과 같은 관측이라고 선언하지 않음"
+  }
+ },
+ "window": {
+  "axis": "db",
+  "from": "2026-11-21T13:34:57.802246+00:00",
+  "to": "2026-11-21T13:34:57.816075+00:00",
+  "flyway_max": 96,
+  "note": "db 축 구간 표시일 뿐 — 계좌·거래소 시계 관계를 선언하지 않음"
+ },
+ "rows": {
+  "sessions": 4,
+  "orders": 3,
+  "positions": 2,
+  "dyn_paper_orders_not_listed": 1,
+  "dyn_paper_positions_not_listed": 1
+ },
+ "verdict": "COLLECTION_NOT_PASSED",
+ "exit": 20
+}

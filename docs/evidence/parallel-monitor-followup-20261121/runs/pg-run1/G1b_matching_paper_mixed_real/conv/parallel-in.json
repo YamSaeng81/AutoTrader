@@ -1,0 +1,67 @@
+{
+ "input_version": "parallel-in-1",
+ "synthetic": true,
+ "source_note": "pm-state-3 SQL 6d71df61 출력 74f29e1b · db 구간 2026-11-21T13:34:58.723108+00:00~2026-11-21T13:34:58.736641+00:00 · aux 1a013805 · 합성 입력",
+ "observed_label": "격리PG-G1b_matching_paper_mixed_real",
+ "sessions": [
+  {
+   "kind": "DYNAMIC",
+   "id": 900,
+   "mode": "REAL",
+   "status": "RUNNING"
+  },
+  {
+   "kind": "DYNAMIC",
+   "id": 901,
+   "mode": "PAPER",
+   "status": "RUNNING"
+  },
+  {
+   "kind": "DYNAMIC",
+   "id": 902,
+   "mode": "PAPER",
+   "status": "RUNNING"
+  },
+  {
+   "kind": "LIVE",
+   "id": 203,
+   "mode": "REAL",
+   "status": "CREATED"
+  }
+ ],
+ "orders": [
+  {
+   "kind": "DYNAMIC",
+   "session_id": 900,
+   "order_id": 1,
+   "side": "BUY",
+   "coin_pair": "KRW-ETH",
+   "state": "FILLED"
+  },
+  {
+   "kind": "DYNAMIC",
+   "session_id": 900,
+   "order_id": 2,
+   "side": "BUY",
+   "coin_pair": "KRW-ETH",
+   "state": "SUBMITTED"
+  }
+ ],
+ "positions": [
+  {
+   "kind": "DYNAMIC",
+   "session_id": 900,
+   "position_id": 11,
+   "coin_pair": "KRW-ETH",
+   "status": "OPEN"
+  }
+ ],
+ "settlement_unresolved": 2,
+ "p0_events": [],
+ "error_logs": [],
+ "paper_522_587": {
+  "total": 66,
+  "running": 63,
+  "not_running": 3
+ }
+}

@@ -1,0 +1,160 @@
+{
+ "env": {
+  "server_version": "PostgreSQL 15.13 on x86_64-pc-linux-musl, compiled by gcc (Alpine 13.2.1_git20240309) 13.2.1 20240309, 64-bit",
+  "psql_version": "psql (PostgreSQL) 15.13",
+  "network_mode": "none",
+  "sql": "parallel-monitor-followup-20261121/sql/state-3.sql",
+  "sql_sha256": "6d71df61a59d144afe9cfa1affc250c6e219c6195612aa97d2580fa8de1bec6b",
+  "contrast_sql": "parallel-monitor-check-20261121/sql/state-2.sql",
+  "contrast_sql_sha256": "4c04efff32b096b420341b5fe10cc84475b0dc421147ae5a27eccd0f086aab94",
+  "conv": "parallel-monitor-followup-20261121/candidate/convert_state_4.py",
+  "conv_sha256": "1416564e5df04cc7b59b5e4eaafce50a096c02a7ce333dd661ffb8d8be8edfcd",
+  "p0_result_copy_of": "parallel-monitor-check-20261121/runs/p0-run1/Q1_valid_no_p0/p0-result.json",
+  "p0_result_sha256": "3ac1c1a0128a51d590f9512eda636567b991f76f792ea6e9ed33509ab87a1a40",
+  "invocation": "docker exec -i -e \"PGOPTIONS=-c statement_timeout=15s -c lock_timeout=2s\" <컨테이너> psql -X -q -U postgres -d <DB> -v ON_ERROR_STOP=1 -f - < SQL",
+  "w1_registry_f1_sha256": "bcdcada6cec4fdeeea16f830c3a6019fcc597c6a397af0a609b99762c4552b78",
+  "w2_parallel_report_sha256": "37978bfca9fed422bdd9a19a35d0bee0427ddf5ee5ab43bd48b9b035bdd9f24c",
+  "registry_sha256": "14599ba6734d11a541b6e8335f1e9aa0cf04c9f24ea4492e02dd50c3a15b0393",
+  "pg_check_2_sha256": "993379f974e1db5d2f72ad08cf2465f7cfc0d00c1da5f01e62360cdd9afecaf4"
+ },
+ "boundaries": [
+  {
+   "boundary": "G1a_unregistered_real_now_paper",
+   "psql_rc": 0,
+   "stderr_bytes": 0,
+   "pgoptions_show": [
+    "15s",
+    "2s"
+   ],
+   "tag_counts": {
+    "META": 1,
+    "S": 4,
+    "O": 3,
+    "P": 2,
+    "U": 1,
+    "CNT": 1,
+    "END": 1
+   },
+   "conv": "COLLECTION_NOT_PASSED",
+   "conv_rc": 20,
+   "codes": [
+    "ORDER_OWNER_KIND_MODE_MISMATCH",
+    "POSITION_OWNER_KIND_MODE_MISMATCH"
+   ],
+   "problems": [],
+   "raw_O": {
+    "1": "OK",
+    "31": "KIND_MODE_MISMATCH",
+    "32": "KIND_MODE_MISMATCH"
+   },
+   "raw_P": {
+    "11": "OK",
+    "31": "KIND_MODE_MISMATCH"
+   },
+   "raw_U": [
+    1,
+    1
+   ],
+   "raw_CNT": [
+    4,
+    3,
+    2,
+    1,
+    1
+   ],
+   "state2_contrast": {
+    "O": [
+     1
+    ],
+    "P": [
+     11
+    ],
+    "U": [
+     0,
+     0
+    ],
+    "CNT": [
+     4,
+     1,
+     1,
+     3,
+     2
+    ]
+   },
+   "ok": true,
+   "checks": {
+    "psql_rc0": true,
+    "psql_stderr_empty": true,
+    "pgoptions_applied": true,
+    "conv_verdict": true,
+    "conv_codes": true,
+    "fail_ids": true,
+    "raw_O_owner": true,
+    "raw_P_owner": true,
+    "raw_U": true,
+    "raw_CNT": true,
+    "state2_contrast_hides_rows": true,
+    "amount_markers_absent": true
+   }
+  },
+  {
+   "boundary": "G1b_matching_paper_mixed_real",
+   "psql_rc": 0,
+   "stderr_bytes": 0,
+   "pgoptions_show": [
+    "15s",
+    "2s"
+   ],
+   "tag_counts": {
+    "META": 1,
+    "S": 4,
+    "O": 2,
+    "P": 1,
+    "U": 1,
+    "CNT": 1,
+    "END": 1
+   },
+   "conv": "CONVERTED",
+   "conv_rc": 0,
+   "codes": [],
+   "problems": [],
+   "u": {
+    "fill_accounting_pending": 1,
+    "open_discrepancy": 1
+   },
+   "rows": {
+    "sessions": 4,
+    "orders": 2,
+    "positions": 1,
+    "dyn_paper_orders_not_listed": 2,
+    "dyn_paper_positions_not_listed": 2
+   },
+   "w1": "SET_MATCH",
+   "w1_rc": 0,
+   "w2": "RISK_PRESENT",
+   "w2_rc": 20,
+   "w2_risks": [
+    "SETTLEMENT_UNRESOLVED"
+   ],
+   "ok": true,
+   "checks": {
+    "psql_rc0": true,
+    "psql_stderr_empty": true,
+    "pgoptions_applied": true,
+    "conv_verdict": true,
+    "conv_codes": true,
+    "u": true,
+    "rows": true,
+    "order_ids": true,
+    "position_ids": true,
+    "w1_verdict": true,
+    "w1_missing": true,
+    "w1_extra": true,
+    "w2_verdict": true,
+    "w2_risk_codes": true,
+    "w_stderr_empty": true,
+    "amount_markers_absent": true
+   }
+  }
+ ]
+}
