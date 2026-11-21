@@ -1,0 +1,323 @@
+{
+ "tool": "check_parallel",
+ "version": "w3-1",
+ "pins": {
+  "p7_v8": "156c38289dba5836db3a61a3b005e9d3b873e8142b3d0146f693080f51f9effa",
+  "f3_v9": "f825ca5e80ef1542abf98962d1aeb91f5fe279555ae6acfc1b1421df73e55f15",
+  "assembler_committed": "ff8549346014095c5cd33ba297f187966fee39f449a6b953755b8ae905447472"
+ },
+ "mode": "full",
+ "p7_output": {
+  "overall": "ANOMALY",
+  "registry_status": "valid",
+  "observation": {
+   "base": "ok",
+   "now": "ok"
+  },
+  "observation_stable": true,
+  "anomalies": [
+   {
+    "code": "SESSION_LEDGER_MISMATCH",
+    "session": [
+     "DYNAMIC",
+     900
+    ],
+    "available_delta": "-17000.00",
+    "order_ledger_delta": "-16000.00000000"
+   },
+   {
+    "code": "ACCOUNT_SUM_NEGATIVE_UNALLOCATED",
+    "currency": "KRW",
+    "amount": "-10000",
+    "detail": "미배정 잔액이 음수 — 불가능한 잔액"
+   }
+  ],
+  "holds": [
+   {
+    "code": "POSITION_CLOSING",
+    "blocks": [],
+    "position": 9001,
+    "session": [
+     "DYNAMIC",
+     900
+    ],
+    "coin": "KRW-ETH"
+   },
+   {
+    "code": "ACCOUNT_SUM_POSITION_CLOSING",
+    "blocks": [],
+    "currency": "ETH",
+    "position": 9001,
+    "detail": "CLOSING 보유량은 매도 진행분과 겹칠 수 있어 합산 보류"
+   }
+  ],
+  "account": {
+   "krw": {
+    "exchange_delta": "-36000",
+    "external": "0",
+    "session_ledger_delta": "-36000.00000000",
+    "raw_residual": "0E-8",
+    "explained_rounding": "0E-8",
+    "adjusted_residual": "0E-8",
+    "quantum": "0",
+    "status": "일치"
+   },
+   "coins": {
+    "BTC": {
+     "exchange_delta_minus_external": "0.0002",
+     "net_filled": "0.00020000",
+     "open_position_delta": "0.00020000",
+     "match": true,
+     "status": "일치"
+    },
+    "ETH": {
+     "exchange_delta_minus_external": "0.0032",
+     "net_filled": "0.00320000",
+     "open_position_delta": "0.00320000",
+     "match": true,
+     "status": "일치"
+    }
+   },
+   "base_holdings": {
+    "BTC": {
+     "amount": "0",
+     "source": "base.exchange_after"
+    },
+    "ETH": {
+     "amount": "0",
+     "source": "base.exchange_after"
+    }
+   },
+   "internal_allocations": [],
+   "sessions": {
+    "LIVE:203": {
+     "available_delta": "-20000.00",
+     "order_ledger_delta": "-20000.00000000",
+     "status": "일치"
+    },
+    "DYNAMIC:900": {
+     "available_delta": "-17000.00",
+     "order_ledger_delta": "-16000.00000000",
+     "status": "불일치"
+    }
+   },
+   "backing": {
+    "BTC": {
+     "exchange_total": "0.0002",
+     "registered_need": "0.00020000",
+     "status": "일치"
+    },
+    "ETH": {
+     "exchange_total": "0.0032",
+     "registered_need": "0.00320000",
+     "status": "일치"
+    },
+    "KRW": {
+     "exchange_total": "64000",
+     "registered_need": "3200.00",
+     "status": "일치"
+    }
+   },
+   "verdict": "불일치"
+  },
+  "account_sum": {
+   "status": "불일치",
+   "currencies": {
+    "BTC": {
+     "exchange_total": "0.0002",
+     "sessions_plus_unallocated": "0.00020000",
+     "status": "일치"
+    },
+    "ETH": {
+     "exchange_total": "0.0032",
+     "sessions_plus_unallocated": "0",
+     "status": "보류"
+    },
+    "KRW": {
+     "exchange_total": "64000",
+     "sessions_plus_unallocated": "-6800.00",
+     "status": "불일치",
+     "reserved_buys": "0",
+     "unallocated": "-10000"
+    }
+   },
+   "events": {
+    "applied": [
+     "alloc-900"
+    ],
+    "in_base": [
+     "alloc-203"
+    ],
+    "after_observation": [],
+    "held": []
+   }
+  },
+  "code": {
+   "base": "0e1d2a02",
+   "now": "0e1d2a02",
+   "base_ref": "로컬 가정: v2 시나리오의 등록 예시값. 운영 관측 출처 아님",
+   "now_ref": "로컬 가정: v2 시나리오의 등록 예시값. 운영 관측 출처 아님"
+  },
+  "exchange_coverage": {
+   "query": {
+    "from": "2026-10-01T00:00:00Z",
+    "to": "2026-11-18T01:56:06.335912Z",
+    "complete": true,
+    "pages": 1
+   },
+   "checked": [
+    3,
+    4
+   ],
+   "gaps": [],
+   "window": {
+    "from": "2026-11-18T01:56:05.830045Z",
+    "to": "2026-11-18T01:56:06.335912Z",
+    "status": "일치",
+    "reason": null
+   }
+  },
+  "clock": {
+   "effective_axis": "app",
+   "base": {
+    "meta": "present",
+    "steps_timing": "point",
+    "samples": {},
+    "relations": {},
+    "same_source": [
+     [
+      [
+       "app",
+       "collector"
+      ],
+      "review synthetic same-clock fixture; not an operational measurement"
+     ],
+     [
+      [
+       "app",
+       "db"
+      ],
+      "review synthetic same-clock fixture; not an operational measurement"
+     ],
+     [
+      [
+       "app",
+       "exchange"
+      ],
+      "review synthetic same-clock fixture; not an operational measurement"
+     ],
+     [
+      [
+       "collector",
+       "db"
+      ],
+      "review synthetic same-clock fixture; not an operational measurement"
+     ],
+     [
+      [
+       "collector",
+       "exchange"
+      ],
+      "review synthetic same-clock fixture; not an operational measurement"
+     ],
+     [
+      [
+       "db",
+       "exchange"
+      ],
+      "review synthetic same-clock fixture; not an operational measurement"
+     ]
+    ]
+   },
+   "now": {
+    "meta": "present",
+    "steps_timing": "point",
+    "samples": {},
+    "relations": {},
+    "same_source": [
+     [
+      [
+       "app",
+       "collector"
+      ],
+      "review synthetic same-clock fixture; not an operational measurement"
+     ],
+     [
+      [
+       "app",
+       "db"
+      ],
+      "review synthetic same-clock fixture; not an operational measurement"
+     ],
+     [
+      [
+       "app",
+       "exchange"
+      ],
+      "review synthetic same-clock fixture; not an operational measurement"
+     ],
+     [
+      [
+       "collector",
+       "db"
+      ],
+      "review synthetic same-clock fixture; not an operational measurement"
+     ],
+     [
+      [
+       "collector",
+       "exchange"
+      ],
+      "review synthetic same-clock fixture; not an operational measurement"
+     ],
+     [
+      [
+       "db",
+       "exchange"
+      ],
+      "review synthetic same-clock fixture; not an operational measurement"
+     ]
+    ]
+   },
+   "same_source_both": [
+    [
+     "app",
+     "collector"
+    ],
+    [
+     "app",
+     "db"
+    ],
+    [
+     "app",
+     "exchange"
+    ],
+    [
+     "collector",
+     "db"
+    ],
+    [
+     "collector",
+     "exchange"
+    ],
+    [
+     "db",
+     "exchange"
+    ]
+   ]
+  }
+ },
+ "p7_overall": "ANOMALY",
+ "p7_exit": 20,
+ "f3": {
+  "pass": false,
+  "reasons": [
+   "anomalies 비어 있지 않음 ['SESSION_LEDGER_MISMATCH', 'ACCOUNT_SUM_NEGATIVE_UNALLOCATED']",
+   "holds 비어 있지 않음 ['POSITION_CLOSING', 'ACCOUNT_SUM_POSITION_CLOSING']"
+  ],
+  "exit": 1
+ },
+ "verdict": "F3_NOT_PASS",
+ "exit": 20,
+ "summary_line": "F3 불통과 — P7 ANOMALY, 사유 2건"
+}

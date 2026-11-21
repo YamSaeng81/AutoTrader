@@ -1,0 +1,90 @@
+{
+ "version": "scorecard-input-3",
+ "period": {
+  "from": "2026-12-01T00:00:00+09:00",
+  "to": "2027-01-01T00:00:00+09:00"
+ },
+ "sessions": [
+  {
+   "kind": "LIVE",
+   "id": 203,
+   "mode": "REAL",
+   "strategy_type": "DAILY_SMA20",
+   "timeframe": "H1",
+   "created_at": "2026-10-30T13:16:58+09:00",
+   "start": {
+    "available_krw": "20200",
+    "pending_buys": [],
+    "positions": []
+   },
+   "end": {
+    "available_krw": "21684.25",
+    "pending_buys": [],
+    "positions": []
+   },
+   "flows": [],
+   "trades": [
+    {
+     "buy": {
+      "qty": null,
+      "funds": null,
+      "fee": null,
+      "value_status": "미확정",
+      "settled_at": "2026-12-10T10:00:00+09:00"
+     },
+     "sells": [
+      {
+       "qty": "0.001",
+       "funds": "11000",
+       "fee": "5.5",
+       "value_status": "확정",
+       "settled_at": "2026-12-20T10:00:00+09:00",
+       "stored_realized_pnl": null
+      }
+     ]
+    },
+    {
+     "buy": {
+      "qty": "0.0005",
+      "funds": "5000",
+      "fee": "2.5",
+      "value_status": "확정",
+      "settled_at": "2026-12-11T10:00:00+09:00"
+     },
+     "sells": [
+      {
+       "qty": "0.0005",
+       "funds": "5500",
+       "fee": "2.75",
+       "value_status": "확정",
+       "settled_at": "2026-12-21T10:00:00+09:00",
+       "stored_realized_pnl": null
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "kind": "DYNAMIC",
+   "id": 900,
+   "mode": "REAL",
+   "strategy_type": "COMPOSITE_BREAKOUT",
+   "timeframe": "H1",
+   "created_at": "2026-12-01T08:50:00+09:00",
+   "started_in_period": true,
+   "end": {
+    "available_krw": "20000",
+    "pending_buys": [],
+    "positions": []
+   },
+   "flows": [
+    {
+     "kind": "ALLOCATE",
+     "amount_krw": "20000",
+     "at": "2026-12-01T00:00:00Z"
+    }
+   ],
+   "trades": []
+  }
+ ]
+}

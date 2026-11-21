@@ -1,0 +1,200 @@
+{
+  "w4_missing_order_sources": [
+    {
+      "case": "orders_not_provided",
+      "returncode": 10,
+      "verdict": "BUILT_WITH_UNCONFIRMED",
+      "orders_source_missing": [
+        "LIVE#203"
+      ],
+      "card": {
+        "session": "LIVE#203",
+        "month_pnl": "989.5",
+        "realized_in_period": "0",
+        "fees_paid": "0",
+        "buy_funds": "0",
+        "round_trips_closed": 0,
+        "wins": 0,
+        "losses": 0,
+        "trade_state": "거래0",
+        "identity_check": "불일치 989.5"
+      },
+      "included": {
+        "sessions": 1,
+        "real": 1,
+        "paper": 0,
+        "zero_trade": 1,
+        "loss": 0,
+        "stopped": 0,
+        "unconfirmed": 0
+      },
+      "aggregates": [
+        {
+          "group": "money",
+          "name": "실자금",
+          "sessions": [
+            "LIVE#203"
+          ],
+          "month_pnl": "989.5",
+          "status": "확정",
+          "known_part_sum": "989.5",
+          "unconfirmed_sessions": [],
+          "note": null
+        },
+        {
+          "group": "kind",
+          "name": "실자금|LIVE",
+          "sessions": [
+            "LIVE#203"
+          ],
+          "month_pnl": "989.5",
+          "status": "확정",
+          "known_part_sum": "989.5",
+          "unconfirmed_sessions": [],
+          "note": null
+        },
+        {
+          "group": "mode",
+          "name": "실자금|REAL",
+          "sessions": [
+            "LIVE#203"
+          ],
+          "month_pnl": "989.5",
+          "status": "확정",
+          "known_part_sum": "989.5",
+          "unconfirmed_sessions": [],
+          "note": null
+        },
+        {
+          "group": "strategy_timeframe",
+          "name": "실자금|DAILY_SMA20/H1",
+          "sessions": [
+            "LIVE#203"
+          ],
+          "month_pnl": "989.5",
+          "status": "확정",
+          "known_part_sum": "989.5",
+          "unconfirmed_sessions": [],
+          "note": null
+        },
+        {
+          "group": "code_version",
+          "name": "실자금|미확인",
+          "sessions": [
+            "LIVE#203"
+          ],
+          "month_pnl": "989.5",
+          "status": "확정",
+          "known_part_sum": "989.5",
+          "unconfirmed_sessions": [],
+          "note": null
+        }
+      ]
+    },
+    {
+      "case": "orders_key_missing",
+      "returncode": 0,
+      "verdict": "BUILT_CORE_CONFIRMED",
+      "orders_source_missing": [],
+      "card": {
+        "session": "LIVE#203",
+        "month_pnl": "989.5",
+        "realized_in_period": "0",
+        "fees_paid": "0",
+        "buy_funds": "0",
+        "round_trips_closed": 0,
+        "wins": 0,
+        "losses": 0,
+        "trade_state": "거래0",
+        "identity_check": "불일치 989.5"
+      },
+      "included": {
+        "sessions": 1,
+        "real": 1,
+        "paper": 0,
+        "zero_trade": 1,
+        "loss": 0,
+        "stopped": 0,
+        "unconfirmed": 0
+      },
+      "aggregates": [
+        {
+          "group": "money",
+          "name": "실자금",
+          "sessions": [
+            "LIVE#203"
+          ],
+          "month_pnl": "989.5",
+          "status": "확정",
+          "known_part_sum": "989.5",
+          "unconfirmed_sessions": [],
+          "note": null
+        },
+        {
+          "group": "kind",
+          "name": "실자금|LIVE",
+          "sessions": [
+            "LIVE#203"
+          ],
+          "month_pnl": "989.5",
+          "status": "확정",
+          "known_part_sum": "989.5",
+          "unconfirmed_sessions": [],
+          "note": null
+        },
+        {
+          "group": "mode",
+          "name": "실자금|REAL",
+          "sessions": [
+            "LIVE#203"
+          ],
+          "month_pnl": "989.5",
+          "status": "확정",
+          "known_part_sum": "989.5",
+          "unconfirmed_sessions": [],
+          "note": null
+        },
+        {
+          "group": "strategy_timeframe",
+          "name": "실자금|DAILY_SMA20/H1",
+          "sessions": [
+            "LIVE#203"
+          ],
+          "month_pnl": "989.5",
+          "status": "확정",
+          "known_part_sum": "989.5",
+          "unconfirmed_sessions": [],
+          "note": null
+        },
+        {
+          "group": "code_version",
+          "name": "실자금|미확인",
+          "sessions": [
+            "LIVE#203"
+          ],
+          "month_pnl": "989.5",
+          "status": "확정",
+          "known_part_sum": "989.5",
+          "unconfirmed_sessions": [],
+          "note": null
+        }
+      ]
+    }
+  ],
+  "w6_exit_code_ignored": [
+    {
+      "changed_module": "w1",
+      "actual_rc": 42,
+      "json_verdict": "SET_MATCH",
+      "classified": "LOCAL_VERIFIED",
+      "overall": "NEEDS_APPROVAL"
+    },
+    {
+      "changed_module": "w3",
+      "actual_rc": 40,
+      "json_verdict": "F3_PASS",
+      "classified": "LOCAL_VERIFIED",
+      "overall": "NEEDS_APPROVAL"
+    }
+  ]
+}

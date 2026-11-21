@@ -1,0 +1,114 @@
+{
+ "version": "source-map-1",
+ "files_sha256": {
+  "D:\\Claude Code\\projects\\crypto-auto-trader\\docs\\evidence\\weekend-local-20261120\\fixtures\\w1\\registry.json": "14599ba6734d11a541b6e8335f1e9aa0cf04c9f24ea4492e02dd50c3a15b0393",
+  "D:\\Claude Code\\projects\\crypto-auto-trader\\docs\\evidence\\weekend-local-20261120\\runs\\w4-run2\\N1_normal_round_trip\\in\\clock.json": "1936a50cf016a00ff4e64407e2b5dea5982a943e289e981d643ac997475caf5b",
+  "D:\\Claude Code\\projects\\crypto-auto-trader\\docs\\evidence\\weekend-local-20261120\\runs\\w4-run2\\N1_normal_round_trip\\in\\LIVE203-meta.json": "c5a8ec94d18b87c351132cf086a1fa78f1f19349989f0c88337c5c1fc6dbf753",
+  "D:\\Claude Code\\projects\\crypto-auto-trader\\docs\\evidence\\weekend-local-20261120\\runs\\w4-run2\\N1_normal_round_trip\\in\\LIVE203-start.json": "8ff190e345df215c173f6beb6499cf546fa065e4b9579ecfea4f8038c53fec52",
+  "D:\\Claude Code\\projects\\crypto-auto-trader\\docs\\evidence\\weekend-local-20261120\\runs\\w4-run2\\N1_normal_round_trip\\in\\LIVE203-end.json": "66b62dad326eae2e2a6209d011148c95b0d6f447ddb47e749a8d7e3e83dc15d3"
+ },
+ "values": [
+  {
+   "value": "자금 이벤트 syn-alloc-900",
+   "file": "D:\\Claude Code\\projects\\crypto-auto-trader\\docs\\evidence\\weekend-local-20261120\\fixtures\\w1\\registry.json",
+   "sha256": "14599ba6734d11a541b6e8335f1e9aa0cf04c9f24ea4492e02dd50c3a15b0393",
+   "field": "/capital_events/0",
+   "axis": "app",
+   "status": "입력"
+  },
+  {
+   "value": "시계 관계",
+   "file": "D:\\Claude Code\\projects\\crypto-auto-trader\\docs\\evidence\\weekend-local-20261120\\runs\\w4-run2\\N1_normal_round_trip\\in\\clock.json",
+   "sha256": "1936a50cf016a00ff4e64407e2b5dea5982a943e289e981d643ac997475caf5b",
+   "field": "/same_source",
+   "status": "선언 있음"
+  },
+  {
+   "value": "BTC 보유 비교 가격",
+   "file": null,
+   "status": "미확인",
+   "why": "가격 원천 미제공 — 수집하지 않음"
+  },
+  {
+   "value": "LIVE#203 세션 정보",
+   "file": "D:\\Claude Code\\projects\\crypto-auto-trader\\docs\\evidence\\weekend-local-20261120\\runs\\w4-run2\\N1_normal_round_trip\\in\\LIVE203-meta.json",
+   "sha256": "c5a8ec94d18b87c351132cf086a1fa78f1f19349989f0c88337c5c1fc6dbf753",
+   "field": "/",
+   "axis": "app(created_at)",
+   "status": "입력"
+  },
+  {
+   "value": "LIVE#203 경계 start",
+   "file": "D:\\Claude Code\\projects\\crypto-auto-trader\\docs\\evidence\\weekend-local-20261120\\runs\\w4-run2\\N1_normal_round_trip\\in\\LIVE203-start.json",
+   "sha256": "8ff190e345df215c173f6beb6499cf546fa065e4b9579ecfea4f8038c53fec52",
+   "field": "/",
+   "axis": "db",
+   "captured_at": "2026-12-01T00:00:00+09:00",
+   "status": "변환기 판정 참조"
+  },
+  {
+   "value": "LIVE#203 경계 end",
+   "file": "D:\\Claude Code\\projects\\crypto-auto-trader\\docs\\evidence\\weekend-local-20261120\\runs\\w4-run2\\N1_normal_round_trip\\in\\LIVE203-end.json",
+   "sha256": "66b62dad326eae2e2a6209d011148c95b0d6f447ddb47e749a8d7e3e83dc15d3",
+   "field": "/",
+   "axis": "db",
+   "captured_at": "2027-01-01T00:00:00+09:00",
+   "status": "변환기 판정 참조"
+  },
+  {
+   "value": "LIVE#203 주문 원천",
+   "file": null,
+   "sha256": null,
+   "field": "/orders",
+   "status": "미제공(거래0 으로 취급하지 않도록 아래 주문별 표시 확인)"
+  },
+  {
+   "value": "LIVE#203 기초",
+   "session": "LIVE#203",
+   "axis": "db",
+   "captured_at": "2026-12-01T00:00:00+09:00",
+   "status": "확정",
+   "why": "포착 시각 = 경계",
+   "from": "변환기 v4 보고"
+  },
+  {
+   "value": "LIVE#203 기말",
+   "session": "LIVE#203",
+   "axis": "db",
+   "captured_at": "2027-01-01T00:00:00+09:00",
+   "status": "확정",
+   "why": "포착 시각 = 경계",
+   "from": "변환기 v4 보고"
+  },
+  {
+   "value": "LIVE#203 순입금",
+   "session": "LIVE#203",
+   "status": "확정",
+   "why": null,
+   "refs": [],
+   "from": "변환기 v4 보고"
+  },
+  {
+   "value": "LIVE#203 주문 원천",
+   "status": "미확정",
+   "why": "주문 원천 파일 미제공 — 거래0 표시는 원천 없음 때문일 수 있음"
+  },
+  {
+   "value": "daily_equity",
+   "status": "미확정",
+   "why": "일별 곡선 원천 미제공 — 낙폭 미확정(조립기 현재 행으로 만들지 않음)"
+  },
+  {
+   "value": "market_regime",
+   "status": "미확인",
+   "why": "시장 국면 원천 미제공"
+  },
+  {
+   "value": "LIVE#203 월손익",
+   "session": "LIVE#203",
+   "status": "확정",
+   "why": [],
+   "from": "성적표 v5"
+  }
+ ]
+}

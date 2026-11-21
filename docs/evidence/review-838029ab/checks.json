@@ -1,0 +1,564 @@
+{
+  "sha": "838029abab85578956f3fcd5055ffa5d514d06c2",
+  "passed": 17,
+  "failed": 1,
+  "manifest_entries": 603,
+  "saved_case_totals": {
+    "w1-run2": {
+      "cases": 8,
+      "ok": 8
+    },
+    "w2-run2": {
+      "cases": 6,
+      "ok": 6
+    },
+    "w3-run1": {
+      "cases": 6,
+      "ok": 6
+    },
+    "w4-run2": {
+      "cases": 6,
+      "ok": 6
+    },
+    "w5-run3": {
+      "cases": 8,
+      "ok": 8
+    },
+    "w6-run1": {
+      "cases": 4,
+      "ok": 4
+    }
+  },
+  "sources": {
+    "p7_v8": {
+      "path": "docs/evidence/dec-registry-p7v8-20261120/p7v8/reconcile.py",
+      "sha256": "156c38289dba5836db3a61a3b005e9d3b873e8142b3d0146f693080f51f9effa"
+    },
+    "f3_v9": {
+      "path": "docs/evidence/dec-f3-v9-20261120/f3v9/f3.py",
+      "sha256": "f825ca5e80ef1542abf98962d1aeb91f5fe279555ae6acfc1b1421df73e55f15"
+    },
+    "assembler_committed": {
+      "path": "docs/evidence/dec-collect-assembler-commit-20261120/assemble.py",
+      "sha256": "ff8549346014095c5cd33ba297f187966fee39f449a6b953755b8ae905447472"
+    },
+    "source_converter_v4": {
+      "path": "docs/evidence/dec-scorecard-source-v4-20261120/convert.py",
+      "sha256": "f63a857fcdb623176c3c8635e6ed41149808c9a5554648ce45bc06a38c40fa32"
+    },
+    "scorecard_v5": {
+      "path": "docs/evidence/dec-scorecard-source-v4-20261120/scorecard/scorecard.py",
+      "sha256": "b95acebdd9719e6b25ee6b62bfc03a4791992f5f8ed5e3c62d10d3635529a143"
+    },
+    "dynamic_request": {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/dto/DynamicSessionRequest.java",
+      "sha256": "b2a9311e513324a4a8fbe50dffb14e0c5efa40c52187826604f797e7c561a9b0"
+    },
+    "dynamic_entry_limits": {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/DynamicEntryLimits.java",
+      "sha256": "94e54397d76968808f760f2817f208fea05ece089f23f14991b9db76e8b03d63"
+    }
+  },
+  "checks": [
+    {
+      "name": "HEAD and saved origin/main",
+      "ok": true,
+      "detail": "Saved references only; no new remote query"
+    },
+    {
+      "name": "Only approved candidate/evidence and management paths",
+      "ok": true,
+      "detail": {
+        "paths": 425,
+        "settings_included": false
+      }
+    },
+    {
+      "name": "Manifest weekend-local-20261120",
+      "ok": false,
+      "detail": {
+        "entries": 581,
+        "mismatches": [
+          "docs/evidence/weekend-local-20261120/runs/w3-run1/C5a_bundle_uncommitted/bundle/psql_rc.txt",
+          "docs/evidence/weekend-local-20261120/runs/w3-run1/C5b_bundle_hash_mismatch/bundle/psql_rc.txt",
+          "docs/evidence/weekend-local-20261120/runs/w4-run1/C2_buy_cost_unconfirmed/out/conversion-report.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run1/C2_buy_cost_unconfirmed/out/result.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run1/C2_buy_cost_unconfirmed/out/scorecard-input.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run1/C2_buy_cost_unconfirmed/out/scorecard.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run1/C2_buy_cost_unconfirmed/out/scorecard.md",
+          "docs/evidence/weekend-local-20261120/runs/w4-run1/C2_buy_cost_unconfirmed/out/source.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run1/C2_buy_cost_unconfirmed/out/source_map.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run1/C3_sell_month_unconfirmed/out/conversion-report.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run1/C3_sell_month_unconfirmed/out/result.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run1/C3_sell_month_unconfirmed/out/scorecard-input.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run1/C3_sell_month_unconfirmed/out/scorecard.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run1/C3_sell_month_unconfirmed/out/scorecard.md",
+          "docs/evidence/weekend-local-20261120/runs/w4-run1/C3_sell_month_unconfirmed/out/source.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run1/C3_sell_month_unconfirmed/out/source_map.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run1/C4_no_clock_relation/out/conversion-report.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run1/C4_no_clock_relation/out/result.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run1/C4_no_clock_relation/out/scorecard-input.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run1/C4_no_clock_relation/out/scorecard.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run1/C4_no_clock_relation/out/scorecard.md",
+          "docs/evidence/weekend-local-20261120/runs/w4-run1/C4_no_clock_relation/out/source.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run1/C4_no_clock_relation/out/source_map.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run1/C5_no_month_end_capture/out/conversion-report.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run1/C5_no_month_end_capture/out/result.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run1/C5_no_month_end_capture/out/scorecard-input.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run1/C5_no_month_end_capture/out/scorecard.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run1/C5_no_month_end_capture/out/scorecard.md",
+          "docs/evidence/weekend-local-20261120/runs/w4-run1/C5_no_month_end_capture/out/source.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run1/C5_no_month_end_capture/out/source_map.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run1/C6_zero_trade_loss_new_session/out/conversion-report.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run1/C6_zero_trade_loss_new_session/out/result.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run1/C6_zero_trade_loss_new_session/out/scorecard-input.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run1/C6_zero_trade_loss_new_session/out/scorecard.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run1/C6_zero_trade_loss_new_session/out/scorecard.md",
+          "docs/evidence/weekend-local-20261120/runs/w4-run1/C6_zero_trade_loss_new_session/out/source.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run1/C6_zero_trade_loss_new_session/out/source_map.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run1/N1_normal_round_trip/out/conversion-report.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run1/N1_normal_round_trip/out/result.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run1/N1_normal_round_trip/out/scorecard-input.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run1/N1_normal_round_trip/out/scorecard.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run1/N1_normal_round_trip/out/scorecard.md",
+          "docs/evidence/weekend-local-20261120/runs/w4-run1/N1_normal_round_trip/out/source.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run1/N1_normal_round_trip/out/source_map.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run2/C2_buy_cost_unconfirmed/out/conversion-report.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run2/C2_buy_cost_unconfirmed/out/result.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run2/C2_buy_cost_unconfirmed/out/scorecard-input.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run2/C2_buy_cost_unconfirmed/out/scorecard.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run2/C2_buy_cost_unconfirmed/out/scorecard.md",
+          "docs/evidence/weekend-local-20261120/runs/w4-run2/C2_buy_cost_unconfirmed/out/source.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run2/C2_buy_cost_unconfirmed/out/source_map.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run2/C3_sell_month_unconfirmed/out/conversion-report.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run2/C3_sell_month_unconfirmed/out/result.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run2/C3_sell_month_unconfirmed/out/scorecard-input.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run2/C3_sell_month_unconfirmed/out/scorecard.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run2/C3_sell_month_unconfirmed/out/scorecard.md",
+          "docs/evidence/weekend-local-20261120/runs/w4-run2/C3_sell_month_unconfirmed/out/source.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run2/C3_sell_month_unconfirmed/out/source_map.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run2/C4_no_clock_relation/out/conversion-report.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run2/C4_no_clock_relation/out/result.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run2/C4_no_clock_relation/out/scorecard-input.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run2/C4_no_clock_relation/out/scorecard.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run2/C4_no_clock_relation/out/scorecard.md",
+          "docs/evidence/weekend-local-20261120/runs/w4-run2/C4_no_clock_relation/out/source.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run2/C4_no_clock_relation/out/source_map.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run2/C5_no_month_end_capture/out/conversion-report.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run2/C5_no_month_end_capture/out/result.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run2/C5_no_month_end_capture/out/scorecard-input.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run2/C5_no_month_end_capture/out/scorecard.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run2/C5_no_month_end_capture/out/scorecard.md",
+          "docs/evidence/weekend-local-20261120/runs/w4-run2/C5_no_month_end_capture/out/source.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run2/C5_no_month_end_capture/out/source_map.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run2/C6_zero_trade_loss_new_session/out/conversion-report.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run2/C6_zero_trade_loss_new_session/out/result.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run2/C6_zero_trade_loss_new_session/out/scorecard-input.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run2/C6_zero_trade_loss_new_session/out/scorecard.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run2/C6_zero_trade_loss_new_session/out/scorecard.md",
+          "docs/evidence/weekend-local-20261120/runs/w4-run2/C6_zero_trade_loss_new_session/out/source.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run2/C6_zero_trade_loss_new_session/out/source_map.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run2/N1_normal_round_trip/out/conversion-report.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run2/N1_normal_round_trip/out/result.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run2/N1_normal_round_trip/out/scorecard-input.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run2/N1_normal_round_trip/out/scorecard.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run2/N1_normal_round_trip/out/scorecard.md",
+          "docs/evidence/weekend-local-20261120/runs/w4-run2/N1_normal_round_trip/out/source.json",
+          "docs/evidence/weekend-local-20261120/runs/w4-run2/N1_normal_round_trip/out/source_map.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I1_normal_parallel/out/summary.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I1_normal_parallel/out/summary.md",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I1_normal_parallel/out/w1/out.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I1_normal_parallel/out/w1/rc.txt",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I1_normal_parallel/out/w1/stderr.txt",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I1_normal_parallel/out/w2/out.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I1_normal_parallel/out/w2/out.md",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I1_normal_parallel/out/w2/rc.txt",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I1_normal_parallel/out/w2/stderr.txt",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I1_normal_parallel/out/w3/out.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I1_normal_parallel/out/w3/p7.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I1_normal_parallel/out/w3/rc.txt",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I1_normal_parallel/out/w3/stderr.txt",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I1_normal_parallel/out/w4/out/conversion-report.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I1_normal_parallel/out/w4/out/result.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I1_normal_parallel/out/w4/out/scorecard-input.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I1_normal_parallel/out/w4/out/scorecard.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I1_normal_parallel/out/w4/out/scorecard.md",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I1_normal_parallel/out/w4/out/source.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I1_normal_parallel/out/w4/out/source_map.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I1_normal_parallel/out/w4/rc.txt",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I1_normal_parallel/out/w5/out.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I1_normal_parallel/out/w5/rc.txt",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I1_normal_parallel/out/w5/stderr.txt",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I2_unregistered_real/out/summary.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I2_unregistered_real/out/summary.md",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I2_unregistered_real/out/w1/out.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I2_unregistered_real/out/w1/rc.txt",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I2_unregistered_real/out/w1/stderr.txt",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I2_unregistered_real/out/w2/out.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I2_unregistered_real/out/w2/out.md",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I2_unregistered_real/out/w2/rc.txt",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I2_unregistered_real/out/w2/stderr.txt",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I2_unregistered_real/out/w3/out.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I2_unregistered_real/out/w3/p7.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I2_unregistered_real/out/w3/rc.txt",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I2_unregistered_real/out/w3/stderr.txt",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I2_unregistered_real/out/w4/out/conversion-report.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I2_unregistered_real/out/w4/out/result.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I2_unregistered_real/out/w4/out/scorecard-input.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I2_unregistered_real/out/w4/out/scorecard.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I2_unregistered_real/out/w4/out/scorecard.md",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I2_unregistered_real/out/w4/out/source.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I2_unregistered_real/out/w4/out/source_map.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I2_unregistered_real/out/w4/rc.txt",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I2_unregistered_real/out/w5/out.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I2_unregistered_real/out/w5/rc.txt",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I2_unregistered_real/out/w5/stderr.txt",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I3_account_anomaly_and_hold/out/summary.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I3_account_anomaly_and_hold/out/summary.md",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I3_account_anomaly_and_hold/out/w1/out.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I3_account_anomaly_and_hold/out/w1/rc.txt",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I3_account_anomaly_and_hold/out/w1/stderr.txt",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I3_account_anomaly_and_hold/out/w2/out.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I3_account_anomaly_and_hold/out/w2/out.md",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I3_account_anomaly_and_hold/out/w2/rc.txt",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I3_account_anomaly_and_hold/out/w2/stderr.txt",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I3_account_anomaly_and_hold/out/w3/out.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I3_account_anomaly_and_hold/out/w3/p7.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I3_account_anomaly_and_hold/out/w3/rc.txt",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I3_account_anomaly_and_hold/out/w3/stderr.txt",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I3_account_anomaly_and_hold/out/w4/out/conversion-report.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I3_account_anomaly_and_hold/out/w4/out/result.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I3_account_anomaly_and_hold/out/w4/out/scorecard-input.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I3_account_anomaly_and_hold/out/w4/out/scorecard.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I3_account_anomaly_and_hold/out/w4/out/scorecard.md",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I3_account_anomaly_and_hold/out/w4/out/source.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I3_account_anomaly_and_hold/out/w4/out/source_map.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I3_account_anomaly_and_hold/out/w4/rc.txt",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I3_account_anomaly_and_hold/out/w5/out.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I3_account_anomaly_and_hold/out/w5/rc.txt",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I3_account_anomaly_and_hold/out/w5/stderr.txt",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I4_time_cost_unconfirmed/out/summary.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I4_time_cost_unconfirmed/out/summary.md",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I4_time_cost_unconfirmed/out/w1/out.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I4_time_cost_unconfirmed/out/w1/rc.txt",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I4_time_cost_unconfirmed/out/w1/stderr.txt",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I4_time_cost_unconfirmed/out/w2/out.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I4_time_cost_unconfirmed/out/w2/out.md",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I4_time_cost_unconfirmed/out/w2/rc.txt",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I4_time_cost_unconfirmed/out/w2/stderr.txt",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I4_time_cost_unconfirmed/out/w3/out.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I4_time_cost_unconfirmed/out/w3/p7.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I4_time_cost_unconfirmed/out/w3/rc.txt",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I4_time_cost_unconfirmed/out/w3/stderr.txt",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I4_time_cost_unconfirmed/out/w4/out/conversion-report.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I4_time_cost_unconfirmed/out/w4/out/result.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I4_time_cost_unconfirmed/out/w4/out/scorecard-input.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I4_time_cost_unconfirmed/out/w4/out/scorecard.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I4_time_cost_unconfirmed/out/w4/out/scorecard.md",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I4_time_cost_unconfirmed/out/w4/out/source.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I4_time_cost_unconfirmed/out/w4/out/source_map.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I4_time_cost_unconfirmed/out/w4/rc.txt",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I4_time_cost_unconfirmed/out/w5/out.json",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I4_time_cost_unconfirmed/out/w5/rc.txt",
+          "docs/evidence/weekend-local-20261120/runs/w6-run1/I4_time_cost_unconfirmed/out/w5/stderr.txt"
+        ]
+      }
+    },
+    {
+      "name": "Manifest n03-1120-2200",
+      "ok": true,
+      "detail": {
+        "entries": 17,
+        "mismatches": []
+      }
+    },
+    {
+      "name": "Manifest weekend-work-order-20261120",
+      "ok": true,
+      "detail": {
+        "entries": 5,
+        "mismatches": []
+      }
+    },
+    {
+      "name": "Seven accepted sources unchanged",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Preserved results w1-run2",
+      "ok": true,
+      "detail": {
+        "cases": 8,
+        "ok": 8
+      }
+    },
+    {
+      "name": "Preserved results w2-run2",
+      "ok": true,
+      "detail": {
+        "cases": 6,
+        "ok": 6
+      }
+    },
+    {
+      "name": "Preserved results w3-run1",
+      "ok": true,
+      "detail": {
+        "cases": 6,
+        "ok": 6
+      }
+    },
+    {
+      "name": "Preserved results w4-run2",
+      "ok": true,
+      "detail": {
+        "cases": 6,
+        "ok": 6
+      }
+    },
+    {
+      "name": "Preserved results w5-run3",
+      "ok": true,
+      "detail": {
+        "cases": 8,
+        "ok": 8
+      }
+    },
+    {
+      "name": "Preserved results w6-run1",
+      "ok": true,
+      "detail": {
+        "cases": 4,
+        "ok": 4
+      }
+    },
+    {
+      "name": "Four saved report files match server hashes",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "N03 script, read exit, and empty error/stderr files",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "N03 reported SID203, real exposure, and BTC inputs",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "N03 send success and existing BLAST warning",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "W4 missing source becomes zero-trade card (defect reproduced)",
+      "ok": true,
+      "detail": [
+        {
+          "case": "orders_not_provided",
+          "returncode": 10,
+          "verdict": "BUILT_WITH_UNCONFIRMED",
+          "orders_source_missing": [
+            "LIVE#203"
+          ],
+          "card": {
+            "session": "LIVE#203",
+            "month_pnl": "989.5",
+            "realized_in_period": "0",
+            "fees_paid": "0",
+            "buy_funds": "0",
+            "round_trips_closed": 0,
+            "wins": 0,
+            "losses": 0,
+            "trade_state": "거래0",
+            "identity_check": "불일치 989.5"
+          },
+          "included": {
+            "sessions": 1,
+            "real": 1,
+            "paper": 0,
+            "zero_trade": 1,
+            "loss": 0,
+            "stopped": 0,
+            "unconfirmed": 0
+          },
+          "aggregates": [
+            {
+              "group": "money",
+              "name": "실자금",
+              "sessions": [
+                "LIVE#203"
+              ],
+              "month_pnl": "989.5",
+              "status": "확정",
+              "known_part_sum": "989.5",
+              "unconfirmed_sessions": [],
+              "note": null
+            },
+            {
+              "group": "kind",
+              "name": "실자금|LIVE",
+              "sessions": [
+                "LIVE#203"
+              ],
+              "month_pnl": "989.5",
+              "status": "확정",
+              "known_part_sum": "989.5",
+              "unconfirmed_sessions": [],
+              "note": null
+            },
+            {
+              "group": "mode",
+              "name": "실자금|REAL",
+              "sessions": [
+                "LIVE#203"
+              ],
+              "month_pnl": "989.5",
+              "status": "확정",
+              "known_part_sum": "989.5",
+              "unconfirmed_sessions": [],
+              "note": null
+            },
+            {
+              "group": "strategy_timeframe",
+              "name": "실자금|DAILY_SMA20/H1",
+              "sessions": [
+                "LIVE#203"
+              ],
+              "month_pnl": "989.5",
+              "status": "확정",
+              "known_part_sum": "989.5",
+              "unconfirmed_sessions": [],
+              "note": null
+            },
+            {
+              "group": "code_version",
+              "name": "실자금|미확인",
+              "sessions": [
+                "LIVE#203"
+              ],
+              "month_pnl": "989.5",
+              "status": "확정",
+              "known_part_sum": "989.5",
+              "unconfirmed_sessions": [],
+              "note": null
+            }
+          ]
+        },
+        {
+          "case": "orders_key_missing",
+          "returncode": 0,
+          "verdict": "BUILT_CORE_CONFIRMED",
+          "orders_source_missing": [],
+          "card": {
+            "session": "LIVE#203",
+            "month_pnl": "989.5",
+            "realized_in_period": "0",
+            "fees_paid": "0",
+            "buy_funds": "0",
+            "round_trips_closed": 0,
+            "wins": 0,
+            "losses": 0,
+            "trade_state": "거래0",
+            "identity_check": "불일치 989.5"
+          },
+          "included": {
+            "sessions": 1,
+            "real": 1,
+            "paper": 0,
+            "zero_trade": 1,
+            "loss": 0,
+            "stopped": 0,
+            "unconfirmed": 0
+          },
+          "aggregates": [
+            {
+              "group": "money",
+              "name": "실자금",
+              "sessions": [
+                "LIVE#203"
+              ],
+              "month_pnl": "989.5",
+              "status": "확정",
+              "known_part_sum": "989.5",
+              "unconfirmed_sessions": [],
+              "note": null
+            },
+            {
+              "group": "kind",
+              "name": "실자금|LIVE",
+              "sessions": [
+                "LIVE#203"
+              ],
+              "month_pnl": "989.5",
+              "status": "확정",
+              "known_part_sum": "989.5",
+              "unconfirmed_sessions": [],
+              "note": null
+            },
+            {
+              "group": "mode",
+              "name": "실자금|REAL",
+              "sessions": [
+                "LIVE#203"
+              ],
+              "month_pnl": "989.5",
+              "status": "확정",
+              "known_part_sum": "989.5",
+              "unconfirmed_sessions": [],
+              "note": null
+            },
+            {
+              "group": "strategy_timeframe",
+              "name": "실자금|DAILY_SMA20/H1",
+              "sessions": [
+                "LIVE#203"
+              ],
+              "month_pnl": "989.5",
+              "status": "확정",
+              "known_part_sum": "989.5",
+              "unconfirmed_sessions": [],
+              "note": null
+            },
+            {
+              "group": "code_version",
+              "name": "실자금|미확인",
+              "sessions": [
+                "LIVE#203"
+              ],
+              "month_pnl": "989.5",
+              "status": "확정",
+              "known_part_sum": "989.5",
+              "unconfirmed_sessions": [],
+              "note": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "W6 accepts success verdict despite failing child rc (defect reproduced)",
+      "ok": true,
+      "detail": [
+        {
+          "changed_module": "w1",
+          "actual_rc": 42,
+          "json_verdict": "SET_MATCH",
+          "classified": "LOCAL_VERIFIED",
+          "overall": "NEEDS_APPROVAL"
+        },
+        {
+          "changed_module": "w3",
+          "actual_rc": 40,
+          "json_verdict": "F3_PASS",
+          "classified": "LOCAL_VERIFIED",
+          "overall": "NEEDS_APPROVAL"
+        }
+      ]
+    }
+  ],
+  "note": "Passing checks include successful reproduction of two defects; not zero product defects"
+}

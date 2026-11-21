@@ -1,0 +1,170 @@
+{
+ "version": "scorecard-4",
+ "period": {
+  "from": "2026-12-01T00:00:00+09:00",
+  "to": "2027-01-01T00:00:00+09:00"
+ },
+ "sessions": [
+  {
+   "session": "LIVE#203",
+   "money": "실자금",
+   "kind": "LIVE",
+   "mode": "REAL",
+   "strategy": "DAILY_SMA20",
+   "timeframe": "H1",
+   "status_end": "미확인",
+   "trade_state": "이 달 종료 왕복 미확정(확정 0)",
+   "start_equity": "20200",
+   "end_equity": "21189.5",
+   "net_flows": "0",
+   "month_pnl": "989.5",
+   "month_pnl_status": "확정",
+   "unconfirmed_reasons": [
+    "거래0 매도0 정산 시각 없음 — 이 달 실현 미확정"
+   ],
+   "month_return_pct": "4.90",
+   "realized_in_period": null,
+   "realized_known_part": "0",
+   "unrealized_start": "0",
+   "unrealized_end": "0",
+   "unrealized_change": null,
+   "unrealized_change_note": "월손익 − 기간 실현 = 기간 중 미실현 증감(기말 미실현 아님)",
+   "identity_check": "미확인",
+   "fees_paid": null,
+   "fees_known_part": "5",
+   "fees_status": "미확정",
+   "fees_unconfirmed_reasons": [
+    "거래0 매도0 수수료 월 귀속 모름(매도 정산 시각 없음)"
+   ],
+   "fee_note": "손익에 이미 반영(매도 수수료는 대금에서, 매수 수수료는 평균가에) — 다시 빼지 않음",
+   "buy_funds": "10000",
+   "buy_funds_known_part": "10000",
+   "buy_funds_unconfirmed_reasons": [],
+   "round_trips_closed": null,
+   "wins": null,
+   "losses": null,
+   "round_trips_closed_known_part": 0,
+   "wins_known_part": 0,
+   "losses_known_part": 0,
+   "round_trips_unconfirmed": [
+    {
+     "trade": 0,
+     "why": "매도 정산 월 소속 미상 — 이 달 왕복 종료 여부·승패를 확정하지 않음"
+    }
+   ],
+   "value_unconfirmed": [],
+   "win_loss_basis": "이 달 종료 왕복의 생애 손익",
+   "holding_hours_median": null,
+   "round_trips": [],
+   "stored_realized_mismatch": [],
+   "drawdown": {
+    "max_amount_krw": null,
+    "max_pct": null,
+    "label": "미확인(일별 평가 표본 없음 — 복원하지 않음)"
+   },
+   "provenance": {
+    "code_sha": "미확인",
+    "code_sha_source": "미확인",
+    "ruleset_hashes": [
+     "미확인"
+    ],
+    "registry_ref": "미확인"
+   },
+   "market_regime": "미확인",
+   "benchmark": {
+    "cash_pnl": "0",
+    "btc_hold_pnl": "미확인"
+   },
+   "flags": []
+  }
+ ],
+ "aggregates": [
+  {
+   "group": "money",
+   "name": "실자금",
+   "sessions": [
+    "LIVE#203"
+   ],
+   "month_pnl": "989.5",
+   "status": "확정",
+   "known_part_sum": "989.5",
+   "unconfirmed_sessions": [],
+   "note": null
+  },
+  {
+   "group": "kind",
+   "name": "실자금|LIVE",
+   "sessions": [
+    "LIVE#203"
+   ],
+   "month_pnl": "989.5",
+   "status": "확정",
+   "known_part_sum": "989.5",
+   "unconfirmed_sessions": [],
+   "note": null
+  },
+  {
+   "group": "mode",
+   "name": "실자금|REAL",
+   "sessions": [
+    "LIVE#203"
+   ],
+   "month_pnl": "989.5",
+   "status": "확정",
+   "known_part_sum": "989.5",
+   "unconfirmed_sessions": [],
+   "note": null
+  },
+  {
+   "group": "strategy_timeframe",
+   "name": "실자금|DAILY_SMA20/H1",
+   "sessions": [
+    "LIVE#203"
+   ],
+   "month_pnl": "989.5",
+   "status": "확정",
+   "known_part_sum": "989.5",
+   "unconfirmed_sessions": [],
+   "note": null
+  },
+  {
+   "group": "code_version",
+   "name": "실자금|미확인",
+   "sessions": [
+    "LIVE#203"
+   ],
+   "month_pnl": "989.5",
+   "status": "확정",
+   "known_part_sum": "989.5",
+   "unconfirmed_sessions": [],
+   "note": null
+  }
+ ],
+ "account": {
+  "month_pnl": null,
+  "status": "미확인(계좌 기초/기말 없음)"
+ },
+ "account_minus_real_sessions": "미확인(계좌 또는 실자금 세션 합계 미확정·없음)",
+ "included": {
+  "sessions": 1,
+  "real": 1,
+  "paper": 0,
+  "zero_trade": 0,
+  "loss": 0,
+  "stopped": 0,
+  "unconfirmed": 0
+ },
+ "rules": [
+  "월손익=기말−기초−기간 순입금",
+  "실자금·모의 합산 금지, 계좌 대조는 실자금만",
+  "월 밖 입출금은 계약 위반",
+  "CLOSING·가격 없음·예약 금액 없음은 미확정",
+  "체결/정산 시각만 월 귀속(생성 시각 아님)",
+  "수수료는 손익에 이미 반영 — 표시만",
+  "미실현 증감≠기말 미실현",
+  "최대 금액·비율 낙폭 각각",
+  "손실·거래0·중단 포함",
+  "없는 출처는 미확인",
+  "값 미확정 거래는 실현·승패·왕복 미확정(알려진 부분 합 별도)"
+ ]
+}

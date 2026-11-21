@@ -1,0 +1,44 @@
+{
+ "tool": "registry_f1",
+ "version": "w1-1",
+ "p7_v8_sha256": "156c38289dba5836db3a61a3b005e9d3b873e8142b3d0146f693080f51f9effa",
+ "f1_overall": "NOT_DETERMINED_BY_THIS_TOOL",
+ "covered": "활성 REAL 종류+ID 집합 일치와 등록 세션 고정 조건(모드·전략·주기·코인·생성 시각)",
+ "not_covered_separate_check_required": [
+  "SID203 KEEP 저장값(initial_capital·invest_ratio·max_investment·stop_loss_pct·max_hold_hours·strategy_params·생성 시각)",
+  "LIVE1 의 SID203 상태 값(CREATED/RUNNING) — 단계별 기대 상태",
+  "EG 비상 정지 목록(LIVE 157…200 / DYNAMIC 92)·capital_stage_baseline 개수·risk_config 값",
+  "BASE = BASEX(capital_stage_baseline 행)",
+  "운영 코드 SHA·이미지·설치 장부(F1 다른 줄)",
+  "ruleset 확인 지문(F3)·계좌 합산(P7 v8 account_sum → F3 v9)"
+ ],
+ "synthetic_input": true,
+ "invalid": [],
+ "holds": [],
+ "missing": [],
+ "extra": [],
+ "fixed_mismatch": [],
+ "status_unknown": [],
+ "paper_active_ignored": [],
+ "registry_sha256": "c6a9fb2c9d672546a7cbc8f34164bcba8fdfbeedc3255695b093e332d9716314",
+ "registry_status": "valid",
+ "expected": {
+  "LIVE": [
+   203
+  ],
+  "DYNAMIC": [
+   900
+  ]
+ },
+ "observed_active_real": {
+  "LIVE": [
+   203
+  ],
+  "DYNAMIC": [
+   900
+  ]
+ },
+ "verdict": "SET_MATCH",
+ "summary_line": "F1 기대 {'LIVE': [203], 'DYNAMIC': [900]} / 관측 {'LIVE': [203], 'DYNAMIC': [900]} / 집합 일치(F1 전체 통과 아님 — 별도 확인 필요 항목 남음) (초과 -, 누락 -, 고정 조건 불일치 -, 알 수 없는 상태 -)",
+ "exit": 0
+}

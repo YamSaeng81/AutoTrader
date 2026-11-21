@@ -1,0 +1,43 @@
+{
+ "version": "scorecard-input-3",
+ "period": {
+  "from": "2026-12-01T00:00:00+09:00",
+  "to": "2027-01-01T00:00:00+09:00"
+ },
+ "sessions": [
+  {
+   "kind": "LIVE",
+   "id": 203,
+   "mode": "REAL",
+   "strategy_type": "DAILY_SMA20",
+   "timeframe": "H1",
+   "end": {
+    "available_krw": "21189.5",
+    "pending_buys": [],
+    "positions": []
+   },
+   "flows": [],
+   "trades": [
+    {
+     "buy": {
+      "qty": "0.001",
+      "funds": "10000",
+      "fee": "5",
+      "value_status": "확정",
+      "settled_at": null
+     },
+     "sells": [
+      {
+       "qty": "0.001",
+       "funds": "11000",
+       "fee": "5.5",
+       "value_status": "확정",
+       "settled_at": null,
+       "stored_realized_pnl": null
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

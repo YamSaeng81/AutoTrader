@@ -1,0 +1,35 @@
+{
+  "version": "monthly-manifest-1",
+  "synthetic": true,
+  "period": {
+    "from": "2026-12-01T00:00:00+09:00",
+    "to": "2027-01-01T00:00:00+09:00",
+    "axis": "db"
+  },
+  "deadline_M": "2027-01-01T10:30:00+09:00",
+  "month_bounds": [],
+  "registry": {
+    "file": "D:\\Claude Code\\projects\\crypto-auto-trader\\docs\\evidence\\weekend-local-20261120\\fixtures\\w1\\registry.json"
+  },
+  "clock": {
+    "file": "D:\\Claude Code\\projects\\crypto-auto-trader\\docs\\evidence\\weekend-local-20261120\\runs\\w4-run2\\N1_normal_round_trip\\in\\clock.json"
+  },
+  "benchmarks": null,
+  "account": null,
+  "sessions": [
+    {
+      "kind": "LIVE",
+      "id": 203,
+      "meta": {
+        "file": "D:\\Claude Code\\projects\\crypto-auto-trader\\docs\\evidence\\weekend-local-20261120\\runs\\w4-run2\\N1_normal_round_trip\\in\\LIVE203-meta.json"
+      },
+      "boundary_start": {
+        "file": "D:\\Claude Code\\projects\\crypto-auto-trader\\docs\\evidence\\weekend-local-20261120\\runs\\w4-run2\\N1_normal_round_trip\\in\\LIVE203-start.json"
+      },
+      "boundary_end": {
+        "file": "D:\\Claude Code\\projects\\crypto-auto-trader\\docs\\evidence\\weekend-local-20261120\\runs\\w4-run2\\N1_normal_round_trip\\in\\LIVE203-end.json"
+      },
+      "orders": null
+    }
+  ]
+}
