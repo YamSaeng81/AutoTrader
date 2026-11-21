@@ -1,0 +1,41 @@
+{
+ "tool": "build_monthly_r1",
+ "version": "w4-3",
+ "orig_sha256": {
+  "build_monthly": "1b7739b3c2e010ce61dafdd18349f23d9cce0b86ae4268e565dc365d425befdb",
+  "pins": "674e746e00a85f94f09cf9cf25d5ff12572a7b3afeda19ab00b40835824182c8"
+ },
+ "pins": {
+  "source_converter_v4": "f63a857fcdb623176c3c8635e6ed41149808c9a5554648ce45bc06a38c40fa32",
+  "scorecard_v5": "b95acebdd9719e6b25ee6b62bfc03a4791992f5f8ed5e3c62d10d3635529a143",
+  "p7_v8": "156c38289dba5836db3a61a3b005e9d3b873e8142b3d0146f693080f51f9effa"
+ },
+ "synthetic_input": true,
+ "sessions_built": [],
+ "sessions_failed": [
+  {
+   "session": "LIVE#203",
+   "error": "ORDERS_KEY_MISSING",
+   "message": "LIVE203-orders.json: 객체의 orders 키 없음 — 거래 없음으로 바꾸지 않고 세션 거절"
+  }
+ ],
+ "unconfirmed_core_fields": {},
+ "unconfirmed_aggregates": [
+  "money:실자금",
+  "kind:실자금|LIVE",
+  "mode:실자금|REAL",
+  "strategy_timeframe:실자금|DAILY_SMA20/H1",
+  "code_version:실자금|미확인"
+ ],
+ "account_unconfirmed": false,
+ "orders_source": {
+  "LIVE#203": "rejected"
+ },
+ "orders_source_missing": [],
+ "not_provided_columns": {
+  "daily_equity": "일별 곡선 원천 미제공 — 낙폭 미확정(조립기 현재 행으로 만들지 않음)",
+  "benchmark_btc_hold": "가격 원천 미제공"
+ },
+ "verdict": "PARTIAL",
+ "exit": 20
+}

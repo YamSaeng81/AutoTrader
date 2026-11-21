@@ -1,0 +1,53 @@
+{
+ "version": "source-map-1",
+ "files_sha256": {
+  "LIVE203-meta.json": "c5a8ec94d18b87c351132cf086a1fa78f1f19349989f0c88337c5c1fc6dbf753",
+  "..\\..\\..\\..\\..\\weekend-local-20261120\\fixtures\\w1\\registry.json": "14599ba6734d11a541b6e8335f1e9aa0cf04c9f24ea4492e02dd50c3a15b0393",
+  "clock.json": "1936a50cf016a00ff4e64407e2b5dea5982a943e289e981d643ac997475caf5b"
+ },
+ "values": [
+  {
+   "value": "LIVE#203 주문 원천",
+   "file": "LIVE203-orders.json",
+   "status": "거절",
+   "why": "LIVE203-orders.json: orders 가 목록 아님(dict) — 세션 거절",
+   "code": "ORDERS_TYPE_INVALID"
+  },
+  {
+   "value": "자금 이벤트 syn-alloc-900",
+   "file": "..\\..\\..\\..\\..\\weekend-local-20261120\\fixtures\\w1\\registry.json",
+   "sha256": "14599ba6734d11a541b6e8335f1e9aa0cf04c9f24ea4492e02dd50c3a15b0393",
+   "field": "/capital_events/0",
+   "axis": "app",
+   "status": "입력"
+  },
+  {
+   "value": "시계 관계",
+   "file": "clock.json",
+   "sha256": "1936a50cf016a00ff4e64407e2b5dea5982a943e289e981d643ac997475caf5b",
+   "field": "/same_source",
+   "status": "선언 있음"
+  },
+  {
+   "value": "BTC 보유 비교 가격",
+   "file": null,
+   "status": "미확인",
+   "why": "가격 원천 미제공 — 수집하지 않음"
+  },
+  {
+   "value": "LIVE#203 전체",
+   "status": "변환 실패",
+   "why": "ORDERS_TYPE_INVALID: LIVE203-orders.json: orders 가 목록 아님(dict) — 세션 거절"
+  },
+  {
+   "value": "daily_equity",
+   "status": "미확정",
+   "why": "일별 곡선 원천 미제공 — 낙폭 미확정(조립기 현재 행으로 만들지 않음)"
+  },
+  {
+   "value": "market_regime",
+   "status": "미확인",
+   "why": "시장 국면 원천 미제공"
+  }
+ ]
+}

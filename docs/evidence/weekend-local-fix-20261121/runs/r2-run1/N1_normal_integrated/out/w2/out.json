@@ -1,0 +1,93 @@
+{
+ "tool": "parallel_report",
+ "version": "w2-1",
+ "p7_v8_sha256": "156c38289dba5836db3a61a3b005e9d3b873e8142b3d0146f693080f51f9effa",
+ "problems": [],
+ "synthetic_input": true,
+ "groups": {
+  "REGISTERED_LIVE": {
+   "sessions": [
+    {
+     "kind": "LIVE",
+     "id": 203,
+     "status": "RUNNING",
+     "mode": "REAL"
+    }
+   ],
+   "orders": [
+    {
+     "kind": "LIVE",
+     "session_id": 203,
+     "order_id": 3,
+     "side": "BUY",
+     "coin_pair": "KRW-BTC",
+     "state": "FILLED"
+    }
+   ],
+   "positions": [
+    {
+     "kind": "LIVE",
+     "session_id": 203,
+     "position_id": 8001,
+     "coin_pair": "KRW-BTC",
+     "status": "OPEN"
+    }
+   ]
+  },
+  "REGISTERED_DYNAMIC_REAL": {
+   "sessions": [
+    {
+     "kind": "DYNAMIC",
+     "id": 900,
+     "status": "RUNNING",
+     "mode": "REAL"
+    }
+   ],
+   "orders": [
+    {
+     "kind": "DYNAMIC",
+     "session_id": 900,
+     "order_id": 4,
+     "side": "BUY",
+     "coin_pair": "KRW-ETH",
+     "state": "FILLED"
+    }
+   ],
+   "positions": [
+    {
+     "kind": "DYNAMIC",
+     "session_id": 900,
+     "position_id": 9001,
+     "coin_pair": "KRW-ETH",
+     "status": "OPEN"
+    }
+   ]
+  },
+  "UNREGISTERED_REAL": {
+   "sessions": [],
+   "orders": [],
+   "positions": []
+  }
+ },
+ "risks": [],
+ "paper_sessions_excluded": [],
+ "unresolved_orders": 0,
+ "paper_522_587": {
+  "total": 66,
+  "running": 63,
+  "not_running": 3
+ },
+ "account_check": {
+  "status": "QUOTED",
+  "sha256": "6521d2905a3de26b794048fd6e46119232906f3f37c8e9d0094e9cf303ad204d",
+  "p7_overall": "OK",
+  "account_sum_status": "일치",
+  "note": "P7 v8 결과 인용 — 이 도구는 계좌 식을 계산하지 않음. account_sum 일치는 F3 통과가 아님"
+ },
+ "evidence_links": [
+  "docs/evidence/dec-parallel-20261118/README.md (§2-1 real_* 3키 오경보, §2-3 영향표)",
+  "docs/evidence/dec-parallel-registry-20261120/README.md (§1 고정 명령 충돌, §4 N03 초안)"
+ ],
+ "verdict": "NO_RISK_ITEMS",
+ "exit": 0
+}

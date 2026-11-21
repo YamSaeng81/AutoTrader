@@ -1,0 +1,191 @@
+{
+ "version": "source-map-1",
+ "files_sha256": {
+  "..\\..\\..\\..\\..\\weekend-local-20261120\\fixtures\\w1\\registry.json": "14599ba6734d11a541b6e8335f1e9aa0cf04c9f24ea4492e02dd50c3a15b0393",
+  "clock.json": "1936a50cf016a00ff4e64407e2b5dea5982a943e289e981d643ac997475caf5b",
+  "LIVE203-meta.json": "c5a8ec94d18b87c351132cf086a1fa78f1f19349989f0c88337c5c1fc6dbf753",
+  "LIVE203-start.json": "8ff190e345df215c173f6beb6499cf546fa065e4b9579ecfea4f8038c53fec52",
+  "LIVE203-end.json": "55c6612a5ffeaf8361a8d5d29644f9d21c0e579afadc110e0d4c2b7fc5b47650",
+  "LIVE203-orders.json": "b6c09bf11b9910ac1c7287d8f466ce17f525b89dd1f4752b9ea18b5bf27416e1",
+  "DYNAMIC900-meta.json": "df704b00907cd41f4bcbba7d8a976fe94ba72521de31b196c6b663b8cf06c346",
+  "DYNAMIC900-end.json": "435b1b5efbf29c9757fa563d3f25be22c9bc93a763584fcf0322b1d522711fde",
+  "DYNAMIC900-orders.json": "8912f1557b46ce4e2446358d8f899b1d1d4a2a58122b3cf7d3d7e94501da10e6"
+ },
+ "values": [
+  {
+   "value": "자금 이벤트 syn-alloc-900",
+   "file": "..\\..\\..\\..\\..\\weekend-local-20261120\\fixtures\\w1\\registry.json",
+   "sha256": "14599ba6734d11a541b6e8335f1e9aa0cf04c9f24ea4492e02dd50c3a15b0393",
+   "field": "/capital_events/0",
+   "axis": "app",
+   "status": "입력"
+  },
+  {
+   "value": "시계 관계",
+   "file": "clock.json",
+   "sha256": "1936a50cf016a00ff4e64407e2b5dea5982a943e289e981d643ac997475caf5b",
+   "field": "/same_source",
+   "status": "선언 있음"
+  },
+  {
+   "value": "BTC 보유 비교 가격",
+   "file": null,
+   "status": "미확인",
+   "why": "가격 원천 미제공 — 수집하지 않음"
+  },
+  {
+   "value": "LIVE#203 세션 정보",
+   "file": "LIVE203-meta.json",
+   "sha256": "c5a8ec94d18b87c351132cf086a1fa78f1f19349989f0c88337c5c1fc6dbf753",
+   "field": "/",
+   "axis": "app(created_at)",
+   "status": "입력"
+  },
+  {
+   "value": "LIVE#203 경계 start",
+   "file": "LIVE203-start.json",
+   "sha256": "8ff190e345df215c173f6beb6499cf546fa065e4b9579ecfea4f8038c53fec52",
+   "field": "/",
+   "axis": "db",
+   "captured_at": "2026-12-01T00:00:00+09:00",
+   "status": "변환기 판정 참조"
+  },
+  {
+   "value": "LIVE#203 경계 end",
+   "file": "LIVE203-end.json",
+   "sha256": "55c6612a5ffeaf8361a8d5d29644f9d21c0e579afadc110e0d4c2b7fc5b47650",
+   "field": "/",
+   "axis": "db",
+   "captured_at": "2027-01-01T00:00:00+09:00",
+   "status": "변환기 판정 참조"
+  },
+  {
+   "value": "LIVE#203 주문 원천",
+   "file": "LIVE203-orders.json",
+   "sha256": "b6c09bf11b9910ac1c7287d8f466ce17f525b89dd1f4752b9ea18b5bf27416e1",
+   "field": "/orders",
+   "status": "입력"
+  },
+  {
+   "value": "DYNAMIC#900 세션 정보",
+   "file": "DYNAMIC900-meta.json",
+   "sha256": "df704b00907cd41f4bcbba7d8a976fe94ba72521de31b196c6b663b8cf06c346",
+   "field": "/",
+   "axis": "app(created_at)",
+   "status": "입력"
+  },
+  {
+   "value": "DYNAMIC#900 경계 start",
+   "file": null,
+   "status": "미확정",
+   "why": "경계 포착 미제공"
+  },
+  {
+   "value": "DYNAMIC#900 경계 end",
+   "file": "DYNAMIC900-end.json",
+   "sha256": "435b1b5efbf29c9757fa563d3f25be22c9bc93a763584fcf0322b1d522711fde",
+   "field": "/",
+   "axis": "db",
+   "captured_at": "2027-01-01T00:00:00+09:00",
+   "status": "변환기 판정 참조"
+  },
+  {
+   "value": "DYNAMIC#900 주문 원천",
+   "file": "DYNAMIC900-orders.json",
+   "sha256": "8912f1557b46ce4e2446358d8f899b1d1d4a2a58122b3cf7d3d7e94501da10e6",
+   "field": "/orders",
+   "status": "입력"
+  },
+  {
+   "value": "LIVE#203 기초",
+   "session": "LIVE#203",
+   "axis": "db",
+   "captured_at": "2026-12-01T00:00:00+09:00",
+   "status": "확정",
+   "why": "포착 시각 = 경계",
+   "from": "변환기 v4 보고"
+  },
+  {
+   "value": "LIVE#203 기말",
+   "session": "LIVE#203",
+   "axis": "db",
+   "captured_at": "2027-01-01T00:00:00+09:00",
+   "status": "확정",
+   "why": "포착 시각 = 경계",
+   "from": "변환기 v4 보고"
+  },
+  {
+   "value": "LIVE#203 순입금",
+   "session": "LIVE#203",
+   "status": "확정",
+   "why": null,
+   "refs": [],
+   "from": "변환기 v4 보고"
+  },
+  {
+   "value": "DYNAMIC#900 기말",
+   "session": "DYNAMIC#900",
+   "axis": "db",
+   "captured_at": "2027-01-01T00:00:00+09:00",
+   "status": "확정",
+   "why": "포착 시각 = 경계",
+   "from": "변환기 v4 보고"
+  },
+  {
+   "value": "DYNAMIC#900 순입금",
+   "session": "DYNAMIC#900",
+   "status": "확정",
+   "why": null,
+   "refs": [
+    "syn-alloc-900"
+   ],
+   "from": "변환기 v4 보고"
+  },
+  {
+   "value": "DYNAMIC#900 주문 5 BUY",
+   "session": "DYNAMIC#900",
+   "file": "DYNAMIC900-orders.json",
+   "axis": "app",
+   "observed_at": "2026-12-02T10:00:00+09:00",
+   "month": "이 달",
+   "status": "확정",
+   "why": null,
+   "from": "변환기 v4 보고"
+  },
+  {
+   "value": "DYNAMIC#900 주문 6 SELL",
+   "session": "DYNAMIC#900",
+   "file": "DYNAMIC900-orders.json",
+   "axis": "app",
+   "observed_at": "2026-12-03T10:00:00+09:00",
+   "month": "이 달",
+   "status": "확정",
+   "why": null,
+   "from": "변환기 v4 보고"
+  },
+  {
+   "value": "daily_equity",
+   "status": "미확정",
+   "why": "일별 곡선 원천 미제공 — 낙폭 미확정(조립기 현재 행으로 만들지 않음)"
+  },
+  {
+   "value": "market_regime",
+   "status": "미확인",
+   "why": "시장 국면 원천 미제공"
+  },
+  {
+   "value": "LIVE#203 월손익",
+   "session": "LIVE#203",
+   "status": "확정",
+   "why": [],
+   "from": "성적표 v5"
+  },
+  {
+   "value": "DYNAMIC#900 월손익",
+   "session": "DYNAMIC#900",
+   "status": "확정",
+   "why": [],
+   "from": "성적표 v5"
+  }
+ ]
+}

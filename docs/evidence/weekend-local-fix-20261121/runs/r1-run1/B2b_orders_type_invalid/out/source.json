@@ -1,0 +1,37 @@
+{
+ "version": "scorecard-source-3",
+ "period": {
+  "from": "2026-12-01T00:00:00+09:00",
+  "to": "2027-01-01T00:00:00+09:00",
+  "axis": "db"
+ },
+ "deadline_M": "2027-01-01T10:30:00+09:00",
+ "month_bounds": [],
+ "sessions": [],
+ "registry_events": [
+  {
+   "ref": "syn-alloc-900",
+   "type": "ALLOCATE",
+   "amount": "20000",
+   "currency": "KRW",
+   "applied_at": "2026-12-01T00:00:00Z",
+   "recorded_at": "2026-12-01T00:00:00Z",
+   "axis": "app",
+   "session": [
+    "DYNAMIC",
+    900
+   ]
+  }
+ ],
+ "clock": {
+  "same_source": [
+   {
+    "axes": [
+     "app",
+     "db"
+    ],
+    "basis": "합성 선언(W4 시험) — 운영 시계 측정 아님"
+   }
+  ]
+ }
+}

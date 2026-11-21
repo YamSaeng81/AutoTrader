@@ -1,0 +1,142 @@
+{
+ "tool": "run_offline_r2",
+ "version": "w6-2",
+ "scenario": "E1a_w1_success_json_rc42",
+ "synthetic": true,
+ "modules": {
+  "w1": {
+   "status": "FAILED",
+   "verdict": "SET_MATCH",
+   "rc": 42,
+   "detail": "실제 rc 42 · JSON exit 0 · 표[SET_MATCH] 0 불일치",
+   "contract": "EXIT_CONTRACT_MISMATCH"
+  },
+  "w2": {
+   "status": "LOCAL_VERIFIED",
+   "verdict": "NO_RISK_ITEMS",
+   "rc": 0,
+   "detail": [],
+   "contract": "OK",
+   "json_exit": 0
+  },
+  "w3": {
+   "status": "LOCAL_VERIFIED",
+   "verdict": "F3_PASS",
+   "rc": 0,
+   "detail": null,
+   "contract": "OK",
+   "json_exit": 0
+  },
+  "w4": {
+   "status": "LOCAL_VERIFIED",
+   "verdict": "BUILT_CORE_CONFIRMED",
+   "rc": 0,
+   "detail": [],
+   "contract": "OK",
+   "json_exit": 0
+  },
+  "w5": {
+   "status": "NEEDS_APPROVAL",
+   "verdict": "FORMAT_OK_NOT_APPROVED",
+   "rc": 0,
+   "detail": "로컬 형식 점검 완료·실제 실행 승인 전(요청 전송 안 함)",
+   "contract": "OK",
+   "json_exit": 0
+  }
+ },
+ "overall": "FAILED",
+ "local_success": false,
+ "operational_ready": false,
+ "operational_ready_note": "로컬 합성 파일 예행 — 운영 배포·계좌 읽기·생성·시작 승인 전. 이 결과로 운영 준비를 표시하지 않는다",
+ "next_approvals": [
+  {
+   "step": "d81 배포",
+   "next_approval": "d81c3f2f 운영 배포(설치·재기동 단계별 확인) 1건",
+   "evidence": "runs/w5-run3/C5_observed_code_0e1d2a02 — 0e1d2a02 는 DynamicEntryLimits 없음·모드 비엄격(W5 DEPLOY_DOES_NOT_SUPPORT)"
+  },
+  {
+   "step": "병행 감시 설치",
+   "next_approval": "종류+ID 단위 세션·주문·포지션 상태(금액 없음) 읽기의 N03 신규 설치 1건",
+   "evidence": "candidate/parallel_report.py 입력 계약 — 설치본 real_* 는 ID 없는 합계(dec-parallel-20261118 §2-1)"
+  },
+  {
+   "step": "계좌 읽기",
+   "next_approval": "P7 전체 관측 1회 수집(지문 전후·거래소 전후·코드 SHA) 승인 1건",
+   "evidence": "runs/w3-run1/C4_db_partial_bundle_only — DB 부분 묶음만으로는 추가 원천 필요"
+  },
+  {
+   "step": "실제 생성",
+   "next_approval": "총원금·월 손실 상한·DYNAMIC 전략/배정액 사용자 결정 1건(→ 등록표 v3 실제 값·W5 승인 참조)",
+   "evidence": "runs/w5-run3/R0_actual_plan_skeleton — NOT_READY(VALUE_UNDECIDED·APPROVAL_VALUE_UNDECIDED)"
+  },
+  {
+   "step": "시작",
+   "next_approval": "생성 뒤 W1 집합 일치 + W3 F3 통과 결과를 붙인 시작 승인 1건",
+   "evidence": "W1 SET_MATCH 는 F1 전체 통과 아님(별도 확인 항목 6개), W3 F3_PASS 만 계좌 통과"
+  }
+ ],
+ "w2_account_quote": {
+  "status": "QUOTED",
+  "sha256": "6521d2905a3de26b794048fd6e46119232906f3f37c8e9d0094e9cf303ad204d",
+  "p7_overall": "OK",
+  "account_sum_status": "일치",
+  "note": "P7 v8 결과 인용 — 이 도구는 계좌 식을 계산하지 않음. account_sum 일치는 F3 통과가 아님"
+ },
+ "w2_p7_quoted": true,
+ "raw": {
+  "w3": {
+   "rc": 0,
+   "json_exit": 0,
+   "verdict": "F3_PASS",
+   "contract_ok": true,
+   "contract_code": null,
+   "contract": "실제 rc = JSON exit = 표[F3_PASS] = 0",
+   "detail": null
+  },
+  "w1": {
+   "rc": 42,
+   "json_exit": 0,
+   "verdict": "SET_MATCH",
+   "contract_ok": false,
+   "contract_code": "EXIT_CONTRACT_MISMATCH",
+   "contract": "실제 rc 42 · JSON exit 0 · 표[SET_MATCH] 0 불일치"
+  },
+  "w2": {
+   "rc": 0,
+   "json_exit": 0,
+   "verdict": "NO_RISK_ITEMS",
+   "contract_ok": true,
+   "contract_code": null,
+   "contract": "실제 rc = JSON exit = 표[NO_RISK_ITEMS] = 0",
+   "detail": [],
+   "account_check": {
+    "status": "QUOTED",
+    "sha256": "6521d2905a3de26b794048fd6e46119232906f3f37c8e9d0094e9cf303ad204d",
+    "p7_overall": "OK",
+    "account_sum_status": "일치",
+    "note": "P7 v8 결과 인용 — 이 도구는 계좌 식을 계산하지 않음. account_sum 일치는 F3 통과가 아님"
+   },
+   "p7_quoted": true
+  },
+  "w4": {
+   "rc": 0,
+   "json_exit": 0,
+   "verdict": "BUILT_CORE_CONFIRMED",
+   "contract_ok": true,
+   "contract_code": null,
+   "contract": "실제 rc = JSON exit = 표[BUILT_CORE_CONFIRMED] = 0",
+   "detail": []
+  },
+  "w5": {
+   "rc": 0,
+   "json_exit": 0,
+   "verdict": "FORMAT_OK_NOT_APPROVED",
+   "contract_ok": true,
+   "contract_code": null,
+   "contract": "실제 rc = JSON exit = 표[FORMAT_OK_NOT_APPROVED] = 0",
+   "detail": "로컬 형식 점검 완료·실제 실행 승인 전(요청 전송 안 함)",
+   "not_ready_codes": []
+  }
+ },
+ "exit": 20
+}
