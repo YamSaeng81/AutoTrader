@@ -1,0 +1,101 @@
+{
+  "baseline": "a569939b414bd4698fab678ee7a7effcb3b72a6f",
+  "checks": [
+    {
+      "name": "Committed and working manifests",
+      "ok": true,
+      "detail": {
+        "entries": 1472,
+        "folders": {
+          "parallel-monitor-draft-20261121": 170,
+          "weekend-local-20261120": 581,
+          "weekend-local-fix-20261121": 721
+        },
+        "committed_mismatches": [],
+        "working_mismatches": []
+      }
+    },
+    {
+      "name": "Saved final 13 cases",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Archived first 13 cases",
+      "ok": true,
+      "detail": {
+        "files": 163,
+        "unsafe_names": [],
+        "extracted_to_disk": false
+      }
+    },
+    {
+      "name": "Same-count wrong ID detected",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Registered DYNAMIC PAPER caught by W1",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Ownerless source not consumed",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Empty success differs from empty failure",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Missing P0 not counted as zero",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Locked sources",
+      "ok": true,
+      "detail": {
+        "verified": 15,
+        "mismatches": []
+      }
+    },
+    {
+      "name": "SQL read-only and protected schema excluded",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "LIVE actual mode selected",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "LIVE mode and timestamp schema",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Existing P0 criterion located",
+      "ok": true,
+      "detail": {
+        "path": "docs/evidence/d81d4r-20261120/d4/blocks-d81/U변수.sh",
+        "sha256": "efb96108113142132da3685669c1a034e7a3050bc891bbacbecd2891137b19fd",
+        "criterion": "Connection is not available, request timed out"
+      }
+    },
+    {
+      "name": "Registry version remains registry-3",
+      "ok": true,
+      "detail": null
+    }
+  ],
+  "passed": 14,
+  "total": 14,
+  "sql_executed": false,
+  "candidate_tests_rerun": false,
+  "production_access": false,
+  "settings_content_read_or_changed": false
+}
