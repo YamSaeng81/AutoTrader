@@ -1,0 +1,57 @@
+{
+ "observation_version": "f1-obs-1",
+ "synthetic": true,
+ "source_note": "pm-state-1 SQL 3c0b656f 출력 953504fc · db 구간 2026-12-02T01:00:00.000000+00:00~2026-12-02T01:00:00.420000+00:00 · aux e27186d7 · 합성 입력",
+ "sessions": [
+  {
+   "kind": "LIVE",
+   "id": 157,
+   "mode": "REAL",
+   "status": "STOPPED",
+   "strategy_type": "DAILY_SMA20",
+   "timeframe": "H1",
+   "coin_pair": "KRW-BTC",
+   "created_at": "2026-10-01T00:00:00.000000+00:00"
+  },
+  {
+   "kind": "LIVE",
+   "id": 203,
+   "mode": "REAL",
+   "status": "CREATED",
+   "strategy_type": "DAILY_SMA20",
+   "timeframe": "H1",
+   "coin_pair": "KRW-BTC",
+   "created_at": "2026-10-30T04:16:58.044684+00:00"
+  },
+  {
+   "kind": "DYNAMIC",
+   "id": 92,
+   "mode": "REAL",
+   "status": "EMERGENCY_STOPPED",
+   "strategy_type": "COMPOSITE_BREAKOUT",
+   "timeframe": "H1",
+   "coin_pair": null,
+   "created_at": "2026-10-01T00:00:00.000000+00:00"
+  },
+  {
+   "kind": "DYNAMIC",
+   "id": 902,
+   "mode": "REAL",
+   "status": "RUNNING",
+   "strategy_type": "COMPOSITE_BREAKOUT",
+   "timeframe": "H1",
+   "coin_pair": null,
+   "created_at": "2026-12-01T00:05:00.000000+00:00"
+  },
+  {
+   "kind": "DYNAMIC",
+   "id": 901,
+   "mode": "PAPER",
+   "status": "RUNNING",
+   "strategy_type": "COMPOSITE_BREAKOUT",
+   "timeframe": "H1",
+   "coin_pair": null,
+   "created_at": "2026-11-15T00:00:00.000000+00:00"
+  }
+ ]
+}

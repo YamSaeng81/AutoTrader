@@ -1,0 +1,318 @@
+{
+ "synthetic": true,
+ "sql_sha256": "3c0b656f75dfbb20ae5bafa99323a6f949c0e7d64b3ae4c59bb573e8e19cde0f",
+ "registry_sha256": "14599ba6734d11a541b6e8335f1e9aa0cf04c9f24ea4492e02dd50c3a15b0393",
+ "cases": [
+  {
+   "case": "P1_normal_identity_state",
+   "conv": "CONVERTED",
+   "conv_rc": 0,
+   "codes": [],
+   "problems": [],
+   "w1": "SET_MATCH",
+   "w1_rc": 0,
+   "w2": "NO_RISK_ITEMS",
+   "w2_rc": 0,
+   "w2_risks": [],
+   "ok": true,
+   "checks": {
+    "verdict": true,
+    "exit": true,
+    "stderr_empty": true,
+    "consumable_only_when_converted": true,
+    "outputs_only_when_converted": true,
+    "codes": true,
+    "problem_prefix": true,
+    "forbidden_values_absent": true,
+    "w1_verdict": true,
+    "w1_missing": true,
+    "w1_extra": true,
+    "w1_not_f1_pass": true,
+    "w2_verdict": true,
+    "w2_risk_codes": true,
+    "w2_no_p7_quote": true,
+    "w1w2_stderr_empty": true
+   }
+  },
+  {
+   "case": "P2a_same_count_id_swapped",
+   "conv": "CONVERTED",
+   "conv_rc": 0,
+   "codes": [],
+   "problems": [],
+   "w1": "MISMATCH",
+   "w1_rc": 20,
+   "w2": "RISK_PRESENT",
+   "w2_rc": 20,
+   "w2_risks": [
+    "UNREGISTERED_REAL_ORDER",
+    "UNREGISTERED_REAL_POSITION",
+    "UNREGISTERED_REAL_SESSION_ACTIVE"
+   ],
+   "ok": true,
+   "checks": {
+    "verdict": true,
+    "exit": true,
+    "stderr_empty": true,
+    "consumable_only_when_converted": true,
+    "outputs_only_when_converted": true,
+    "codes": true,
+    "problem_prefix": true,
+    "forbidden_values_absent": true,
+    "w1_verdict": true,
+    "w1_missing": true,
+    "w1_extra": true,
+    "w1_not_f1_pass": true,
+    "w2_verdict": true,
+    "w2_risk_codes": true,
+    "w2_no_p7_quote": true,
+    "w1w2_stderr_empty": true
+   }
+  },
+  {
+   "case": "P2b_registered_dynamic_is_paper",
+   "conv": "CONVERTED",
+   "conv_rc": 0,
+   "codes": [],
+   "problems": [],
+   "w1": "MISMATCH",
+   "w1_rc": 20,
+   "w2": "NO_RISK_ITEMS",
+   "w2_rc": 0,
+   "w2_risks": [],
+   "ok": true,
+   "checks": {
+    "verdict": true,
+    "exit": true,
+    "stderr_empty": true,
+    "consumable_only_when_converted": true,
+    "outputs_only_when_converted": true,
+    "codes": true,
+    "problem_prefix": true,
+    "forbidden_values_absent": true,
+    "w1_verdict": true,
+    "w1_missing": true,
+    "w1_extra": true,
+    "w1_not_f1_pass": true,
+    "w2_verdict": true,
+    "w2_risk_codes": true,
+    "w2_no_p7_quote": true,
+    "w1w2_stderr_empty": true
+   }
+  },
+  {
+   "case": "P3a_ownerless_order_position",
+   "conv": "COLLECTION_NOT_PASSED",
+   "conv_rc": 20,
+   "codes": [
+    "ORDER_OWNER_NO_SESSION_ID",
+    "POSITION_OWNER_NO_SESSION_ROW"
+   ],
+   "problems": [],
+   "ok": true,
+   "checks": {
+    "verdict": true,
+    "exit": true,
+    "stderr_empty": true,
+    "consumable_only_when_converted": true,
+    "outputs_only_when_converted": true,
+    "codes": true,
+    "problem_prefix": true,
+    "forbidden_values_absent": true
+   }
+  },
+  {
+   "case": "P3b_unknown_status_mode",
+   "conv": "COLLECTION_NOT_PASSED",
+   "conv_rc": 20,
+   "codes": [
+    "DYNAMIC_MODE_UNKNOWN",
+    "ORDER_STATE_UNKNOWN",
+    "SESSION_STATUS_UNKNOWN"
+   ],
+   "problems": [],
+   "ok": true,
+   "checks": {
+    "verdict": true,
+    "exit": true,
+    "stderr_empty": true,
+    "consumable_only_when_converted": true,
+    "outputs_only_when_converted": true,
+    "codes": true,
+    "problem_prefix": true,
+    "forbidden_values_absent": true
+   }
+  },
+  {
+   "case": "P4a_amount_column_appended",
+   "conv": "INVALID",
+   "conv_rc": 30,
+   "codes": [],
+   "problems": [
+    "줄 3 S: 열 수 10≠9 — 허용 열 밖의 열(금액 등) 혼입 또는 누락, 값 미출력"
+   ],
+   "ok": true,
+   "checks": {
+    "verdict": true,
+    "exit": true,
+    "stderr_empty": true,
+    "consumable_only_when_converted": true,
+    "outputs_only_when_converted": true,
+    "codes": true,
+    "problem_prefix": true,
+    "forbidden_values_absent": true
+   }
+  },
+  {
+   "case": "P4b_amount_in_status_slot",
+   "conv": "INVALID",
+   "conv_rc": 30,
+   "codes": [],
+   "problems": [
+    "줄 3 S status: 형식 위반(값 미출력)"
+   ],
+   "ok": true,
+   "checks": {
+    "verdict": true,
+    "exit": true,
+    "stderr_empty": true,
+    "consumable_only_when_converted": true,
+    "outputs_only_when_converted": true,
+    "codes": true,
+    "problem_prefix": true,
+    "forbidden_values_absent": true
+   }
+  },
+  {
+   "case": "P5a_query_failed_partial_rows",
+   "conv": "INVALID",
+   "conv_rc": 30,
+   "codes": [],
+   "problems": [
+    "QUERY_FAILED: psql 종료값이 0 아님 — 행이 있어도 부분 출력으로 보고 소비하지 않음"
+   ],
+   "ok": true,
+   "checks": {
+    "verdict": true,
+    "exit": true,
+    "stderr_empty": true,
+    "consumable_only_when_converted": true,
+    "outputs_only_when_converted": true,
+    "codes": true,
+    "problem_prefix": true,
+    "forbidden_values_absent": true
+   }
+  },
+  {
+   "case": "P5b_failed_empty_output",
+   "conv": "INVALID",
+   "conv_rc": 30,
+   "codes": [],
+   "problems": [
+    "OUTPUT_EMPTY: 0바이트 출력 — 성공 빈 목록이 아님"
+   ],
+   "ok": true,
+   "checks": {
+    "verdict": true,
+    "exit": true,
+    "stderr_empty": true,
+    "consumable_only_when_converted": true,
+    "outputs_only_when_converted": true,
+    "codes": true,
+    "problem_prefix": true,
+    "forbidden_values_absent": true
+   }
+  },
+  {
+   "case": "P5c_truncated_no_end",
+   "conv": "INVALID",
+   "conv_rc": 30,
+   "codes": [],
+   "problems": [
+    "OUTPUT_TRUNCATED: 끝 줄이 END 아님(부분 출력)"
+   ],
+   "ok": true,
+   "checks": {
+    "verdict": true,
+    "exit": true,
+    "stderr_empty": true,
+    "consumable_only_when_converted": true,
+    "outputs_only_when_converted": true,
+    "codes": true,
+    "problem_prefix": true,
+    "forbidden_values_absent": true
+   }
+  },
+  {
+   "case": "P5d_row_count_mismatch",
+   "conv": "INVALID",
+   "conv_rc": 30,
+   "codes": [],
+   "problems": [
+    "ROW_COUNT_MISMATCH: CNT [5, 1, 1] ≠ 실제 행 [4, 1, 1](부분 출력/중복)"
+   ],
+   "ok": true,
+   "checks": {
+    "verdict": true,
+    "exit": true,
+    "stderr_empty": true,
+    "consumable_only_when_converted": true,
+    "outputs_only_when_converted": true,
+    "codes": true,
+    "problem_prefix": true,
+    "forbidden_values_absent": true
+   }
+  },
+  {
+   "case": "P5e_explicit_success_empty",
+   "conv": "CONVERTED",
+   "conv_rc": 0,
+   "codes": [],
+   "problems": [],
+   "w1": "MISMATCH",
+   "w1_rc": 20,
+   "w2": "NO_RISK_ITEMS",
+   "w2_rc": 0,
+   "w2_risks": [],
+   "ok": true,
+   "checks": {
+    "verdict": true,
+    "exit": true,
+    "stderr_empty": true,
+    "consumable_only_when_converted": true,
+    "outputs_only_when_converted": true,
+    "codes": true,
+    "problem_prefix": true,
+    "forbidden_values_absent": true,
+    "w1_verdict": true,
+    "w1_missing": true,
+    "w1_extra": true,
+    "w1_not_f1_pass": true,
+    "w2_verdict": true,
+    "w2_risk_codes": true,
+    "w2_no_p7_quote": true,
+    "w1w2_stderr_empty": true
+   }
+  },
+  {
+   "case": "P5f_aux_p0_not_provided",
+   "conv": "COLLECTION_NOT_PASSED",
+   "conv_rc": 20,
+   "codes": [
+    "AUX_NOT_PROVIDED"
+   ],
+   "problems": [],
+   "ok": true,
+   "checks": {
+    "verdict": true,
+    "exit": true,
+    "stderr_empty": true,
+    "consumable_only_when_converted": true,
+    "outputs_only_when_converted": true,
+    "codes": true,
+    "problem_prefix": true,
+    "forbidden_values_absent": true
+   }
+  }
+ ]
+}

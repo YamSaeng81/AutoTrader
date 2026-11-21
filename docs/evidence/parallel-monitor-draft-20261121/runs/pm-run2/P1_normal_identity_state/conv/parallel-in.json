@@ -1,0 +1,65 @@
+{
+ "input_version": "parallel-in-1",
+ "synthetic": true,
+ "source_note": "pm-state-1 SQL 3c0b656f 출력 b47d38db · db 구간 2026-12-02T01:00:00.000000+00:00~2026-12-02T01:00:00.420000+00:00 · aux 292b76ac · 합성 입력",
+ "observed_label": "합성-P1_normal_identity_state",
+ "sessions": [
+  {
+   "kind": "LIVE",
+   "id": 157,
+   "mode": "REAL",
+   "status": "STOPPED"
+  },
+  {
+   "kind": "LIVE",
+   "id": 203,
+   "mode": "REAL",
+   "status": "CREATED"
+  },
+  {
+   "kind": "DYNAMIC",
+   "id": 92,
+   "mode": "REAL",
+   "status": "EMERGENCY_STOPPED"
+  },
+  {
+   "kind": "DYNAMIC",
+   "id": 900,
+   "mode": "REAL",
+   "status": "RUNNING"
+  },
+  {
+   "kind": "DYNAMIC",
+   "id": 901,
+   "mode": "PAPER",
+   "status": "RUNNING"
+  }
+ ],
+ "orders": [
+  {
+   "kind": "DYNAMIC",
+   "session_id": 900,
+   "order_id": 1,
+   "side": "BUY",
+   "coin_pair": "KRW-ETH",
+   "state": "FILLED"
+  }
+ ],
+ "positions": [
+  {
+   "kind": "DYNAMIC",
+   "session_id": 900,
+   "position_id": 11,
+   "coin_pair": "KRW-ETH",
+   "status": "OPEN"
+  }
+ ],
+ "settlement_unresolved": 0,
+ "p0_events": [],
+ "error_logs": [],
+ "paper_522_587": {
+  "total": 66,
+  "running": 63,
+  "not_running": 3
+ }
+}

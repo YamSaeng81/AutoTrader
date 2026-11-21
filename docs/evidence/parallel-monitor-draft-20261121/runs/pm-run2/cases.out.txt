@@ -1,0 +1,14 @@
+PASS P1_normal_identity_state 변환 CONVERTED(0)  → W1 SET_MATCH(0) · W2 NO_RISK_ITEMS(0) []
+PASS P2a_same_count_id_swapped 변환 CONVERTED(0)  → W1 MISMATCH(20) · W2 RISK_PRESENT(20) ['UNREGISTERED_REAL_ORDER', 'UNREGISTERED_REAL_POSITION', 'UNREGISTERED_REAL_SESSION_ACTIVE']
+PASS P2b_registered_dynamic_is_paper 변환 CONVERTED(0)  → W1 MISMATCH(20) · W2 NO_RISK_ITEMS(0) []
+PASS P3a_ownerless_order_position 변환 COLLECTION_NOT_PASSED(20) ['ORDER_OWNER_NO_SESSION_ID', 'POSITION_OWNER_NO_SESSION_ROW']
+PASS P3b_unknown_status_mode 변환 COLLECTION_NOT_PASSED(20) ['DYNAMIC_MODE_UNKNOWN', 'ORDER_STATE_UNKNOWN', 'SESSION_STATUS_UNKNOWN']
+PASS P4a_amount_column_appended 변환 INVALID(30) 
+PASS P4b_amount_in_status_slot 변환 INVALID(30) 
+PASS P5a_query_failed_partial_rows 변환 INVALID(30) 
+PASS P5b_failed_empty_output 변환 INVALID(30) 
+PASS P5c_truncated_no_end 변환 INVALID(30) 
+PASS P5d_row_count_mismatch 변환 INVALID(30) 
+PASS P5e_explicit_success_empty 변환 CONVERTED(0)  → W1 MISMATCH(20) · W2 NO_RISK_ITEMS(0) []
+PASS P5f_aux_p0_not_provided 변환 COLLECTION_NOT_PASSED(20) ['AUX_NOT_PROVIDED']
+13/13 기대대로 (직접 영향 5사례·13변형, 합성 입력 — 실제 SQL 실행·P7/F3 통과 증거 아님)

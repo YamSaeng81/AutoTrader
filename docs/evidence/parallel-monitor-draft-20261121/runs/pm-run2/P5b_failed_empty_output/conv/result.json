@@ -1,0 +1,30 @@
+{
+ "tool": "convert_state",
+ "version": "pm-conv-1",
+ "sql_version": "pm-state-1",
+ "label": "합성-P5b_failed_empty_output",
+ "synthetic": true,
+ "consumable": false,
+ "not_evidence_of": [
+  "실제 SQL 실행",
+  "P7 통과",
+  "F3 통과",
+  "F1 전체 통과"
+ ],
+ "problems": [
+  "OUTPUT_EMPTY: 0바이트 출력 — 성공 빈 목록이 아님"
+ ],
+ "collection_failures": [],
+ "fixed": {
+  "w1_registry_f1_sha256": "bcdcada6cec4fdeeea16f830c3a6019fcc597c6a397af0a609b99762c4552b78",
+  "w2_parallel_report_sha256": "37978bfca9fed422bdd9a19a35d0bee0427ddf5ee5ab43bd48b9b035bdd9f24c"
+ },
+ "input": {
+  "sql_sha256": "3c0b656f75dfbb20ae5bafa99323a6f949c0e7d64b3ae4c59bb573e8e19cde0f",
+  "tsv_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "rc": "0",
+  "stderr_bytes": 0
+ },
+ "verdict": "INVALID",
+ "exit": 30
+}

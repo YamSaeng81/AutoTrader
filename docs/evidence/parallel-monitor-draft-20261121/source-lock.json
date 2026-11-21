@@ -1,0 +1,139 @@
+{
+ "submission": "parallel-monitor-draft-20261121",
+ "instruction": "v1.214 §3",
+ "base_lock": "docs/evidence/review-5a5b395b/source-lock.json",
+ "base_lock_sha256": "d1141d6297f626841fb3295f7e3cf2372e239da83d0923f694962eb94ba98423",
+ "sources": {
+  "p7_v8": {
+   "path": "docs/evidence/dec-registry-p7v8-20261120/p7v8/reconcile.py",
+   "sha256": "156c38289dba5836db3a61a3b005e9d3b873e8142b3d0146f693080f51f9effa",
+   "read_only": true
+  },
+  "f3_v9": {
+   "path": "docs/evidence/dec-f3-v9-20261120/f3v9/f3.py",
+   "sha256": "f825ca5e80ef1542abf98962d1aeb91f5fe279555ae6acfc1b1421df73e55f15",
+   "read_only": true
+  },
+  "assembler_committed": {
+   "path": "docs/evidence/dec-collect-assembler-commit-20261120/assemble.py",
+   "sha256": "ff8549346014095c5cd33ba297f187966fee39f449a6b953755b8ae905447472",
+   "read_only": true
+  },
+  "source_converter_v4": {
+   "path": "docs/evidence/dec-scorecard-source-v4-20261120/convert.py",
+   "sha256": "f63a857fcdb623176c3c8635e6ed41149808c9a5554648ce45bc06a38c40fa32",
+   "read_only": true
+  },
+  "scorecard_v5": {
+   "path": "docs/evidence/dec-scorecard-source-v4-20261120/scorecard/scorecard.py",
+   "sha256": "b95acebdd9719e6b25ee6b62bfc03a4791992f5f8ed5e3c62d10d3635529a143",
+   "read_only": true
+  },
+  "dynamic_request": {
+   "git_revision": "d81c3f2f91c0239aacb0e1176dde9b898f4d7466",
+   "path": "web-api/src/main/java/com/cryptoautotrader/api/dto/DynamicSessionRequest.java",
+   "sha256": "b2a9311e513324a4a8fbe50dffb14e0c5efa40c52187826604f797e7c561a9b0",
+   "read_only": true
+  },
+  "dynamic_entry_limits": {
+   "git_revision": "d81c3f2f91c0239aacb0e1176dde9b898f4d7466",
+   "path": "web-api/src/main/java/com/cryptoautotrader/api/service/DynamicEntryLimits.java",
+   "sha256": "94e54397d76968808f760f2817f208fea05ece089f23f14991b9db76e8b03d63",
+   "read_only": true
+  },
+  "monthly_wrapper_r1": {
+   "path": "docs/evidence/weekend-local-fix-20261121/candidate/build_monthly_r1.py",
+   "git_revision": "5a5b395bef154674ff1ef1009f3c858239f1550e",
+   "sha256": "bface5d580206c731d607efb623cda3f25681cce317b24c4d22120eac4da09a3",
+   "read_only": true
+  },
+  "offline_runner_r2": {
+   "path": "docs/evidence/weekend-local-fix-20261121/candidate/run_offline_r2.py",
+   "git_revision": "5a5b395bef154674ff1ef1009f3c858239f1550e",
+   "sha256": "e203ea6c1e6a4f28ecbe59e0783a370e936453abe251f7acb5a96de6a712bd4f",
+   "read_only": true
+  },
+  "original_loader": {
+   "path": "docs/evidence/weekend-local-fix-20261121/candidate/orig.py",
+   "git_revision": "5a5b395bef154674ff1ef1009f3c858239f1550e",
+   "sha256": "3d7a1dccfa57359bccef2e71abc3132390ae10d04a8b668bb6d3e7a0a8161b0c",
+   "read_only": true
+  },
+  "metadata_original_sql": {
+   "path": "docs/evidence/dec-read-gate-v3-20261120/read.sql",
+   "git_revision": "5a5b395bef154674ff1ef1009f3c858239f1550e",
+   "sha256": "9818db5452f66f058c97322ac9aaf73097036997777d10a0af9f6dde05bdae03",
+   "read_only": true
+  },
+  "w1": {
+   "path": "docs/evidence/weekend-local-20261120/candidate/registry_f1.py",
+   "git_revision": "5a5b395bef154674ff1ef1009f3c858239f1550e",
+   "sha256": "bcdcada6cec4fdeeea16f830c3a6019fcc597c6a397af0a609b99762c4552b78",
+   "read_only": true
+  },
+  "w2": {
+   "path": "docs/evidence/weekend-local-20261120/candidate/parallel_report.py",
+   "git_revision": "5a5b395bef154674ff1ef1009f3c858239f1550e",
+   "sha256": "37978bfca9fed422bdd9a19a35d0bee0427ddf5ee5ab43bd48b9b035bdd9f24c",
+   "read_only": true
+  },
+  "w3": {
+   "path": "docs/evidence/weekend-local-20261120/candidate/check_parallel.py",
+   "git_revision": "5a5b395bef154674ff1ef1009f3c858239f1550e",
+   "sha256": "4dfdd83b4e06c8f8bc31b75351037d34c7c142b7efba1457e08ca6a39fd75efb",
+   "read_only": true
+  },
+  "w5": {
+   "path": "docs/evidence/weekend-local-20261120/candidate/check_dynamic_plan.py",
+   "git_revision": "5a5b395bef154674ff1ef1009f3c858239f1550e",
+   "sha256": "76ec8c74e99ef7647028c69e2747a3f55e55f96ebb9ad86cf96002b7a2b6c5c9",
+   "read_only": true
+  }
+ },
+ "added": {
+  "state_sql_draft": {
+   "path": "docs/evidence/parallel-monitor-draft-20261121/sql/state.sql",
+   "sha256": "3c0b656f75dfbb20ae5bafa99323a6f949c0e7d64b3ae4c59bb573e8e19cde0f",
+   "executed": false,
+   "schema_revision": "d81c3f2f91c0239aacb0e1176dde9b898f4d7466"
+  },
+  "state_converter": {
+   "path": "docs/evidence/parallel-monitor-draft-20261121/candidate/convert_state.py",
+   "sha256": "8d8806b8d5330604c829b8eb5e683dc297df4872fa725fde0531f30f33f85fb1"
+  },
+  "cases": {
+   "path": "docs/evidence/parallel-monitor-draft-20261121/candidate/cases_pm.py",
+   "sha256": "d156b0bcf79f635db1a0cf632c4ce9eb6d8f84afa9f45918b9c00da8acf4ea42"
+  },
+  "registry_fixture_synthetic": {
+   "path": "docs/evidence/weekend-local-20261120/fixtures/w1/registry.json",
+   "sha256": "14599ba6734d11a541b6e8335f1e9aa0cf04c9f24ea4492e02dd50c3a15b0393",
+   "synthetic": true
+  },
+  "installed_daily_checks": {
+   "git_revision": "c669ccdc6e248ce8e55e9a7ac7405197d266fa18",
+   "paths": [
+    "scripts/ops/daily_checks.sql",
+    "scripts/ops/daily_check.sh"
+   ],
+   "changed": false
+  }
+ },
+ "consumption_path": {
+  "state": "state.sql → convert_state(CONVERTED only) → W1 registry_f1 / W2 parallel_report",
+  "integrated": "offline_runner_r2",
+  "monthly_scorecard": "monthly_wrapper_r1"
+ },
+ "registry_version": "registry-3",
+ "registry_v2_draft_used": false,
+ "undecided": [
+  "total_principal",
+  "monthly_loss_cap",
+  "dynamic_strategy_and_allocation",
+  "actual_dynamic_id",
+  "actual_registry_file_and_sha256",
+  "p0_mapping_rule",
+  "historical_terminal_unregistered_rows_exemption"
+ ],
+ "production_access": false
+}

@@ -6,6 +6,7 @@
 
 | 구분 | 기준 | 상태 |
 |---|---|---|
+| **최근 개발 제출(총괄 판정 전)** | [병행 감시 원천 준비](evidence/parallel-monitor-draft-20261121/README.md) | v1.214 §3: 금액 없는 상태 SQL 초안 pm-state-1(미실행)·변환기 5사례13변형 13/13(합성, W1/W2 고정 원본 연결)·설치 변경표·D81 승인 묶음·출처 고정. 미결: P0 옮김 규칙·과거 종결 미등록 행 면제 |
 | **최근 개발 결과(로컬 범위 수용)** | e7d48c5e·5a5b395b [W4·W6 보완](evidence/weekend-local-fix-20261121/README.md) · [v1.214](evidence/review-5a5b395b/README.md) | R1 5/5·R2 6/6 연결 수용. 보완721·원본581·N03 19·앞 총괄30 블롭 일치. 주문 누락 미확정·실제rc/JSON/판정 계약, 정상 통합은 승인 대기5. 시험 결함2·총괄 소수 문자열 대조 오류/보충은 별도 보존, 기존 시험 재실행 없음 |
 | **최근 개발 결과(로컬 범위 수용)** | [W1~W6 후보](evidence/weekend-local-20261120/README.md) · [v1.213 검토](evidence/review-838029ab/README.md) | 보존38사례 연결, W4/W6 당시 공백은v1.214에서 종결. 원문180누락+2바이트 차이 보충 후기존 체크섬603항목 일치. 운영 설치 승인은 아님 |
 | **최근 개발 결과(460차 로컬 범위 검토)** | [사용량 조사](evidence/dec-usage-resume-20261120/README.md) · [읽기 승인 묶음](evidence/dec-read-approval-bundle-20261120/README.md) · [시작 인수표](evidence/dec-parallel-start-acceptance-20261120/README.md) | v1.211: 로컬13조건·새README3목록/앞 총괄8항목·원문36블롭 확인. 자료 연결 방향 수용, 비용 보완/복구판/registry-3/기존SID203 정정 우선. 실제 사용률 관측은 미완료, d95c7a84는 예약 보고값. 신규 제품·PG·운영 없음 |
