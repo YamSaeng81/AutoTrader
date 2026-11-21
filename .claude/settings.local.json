@@ -5,7 +5,11 @@
       "Bash(start \"\" \"C:\\\\Program Files\\\\Docker\\\\Docker\\\\Docker Desktop.exe\")",
       "Bash(curl -s -X POST http://localhost:8080/api/v1/data/collect -H 'Content-Type: application/json' -H 'Authorization: Bearer dev-token-change-me-in-production' -d '{\"coinPair\":\"__TRACKED_VAR__\",\"timeframe\":\"M5\",\"startDate\":\"2023-01-01\",\"endDate\":\"2025-12-31\"}')",
       "Skill(update-config)",
-      "Skill(update-config:*)"
+      "Skill(update-config:*)",
+      "Bash(/d/tmp/d3run/run.sh U3 deploy:*)",
+      "Bash(/d/tmp/d3run/run.sh U4 deploy:*)",
+      "Bash(/d/tmp/d3run/run.sh U뒤관측 deploy:*)",
+      "Bash(/d/tmp/d3run/run.sh U5 deploy:*)"
     ]
   }
 }
