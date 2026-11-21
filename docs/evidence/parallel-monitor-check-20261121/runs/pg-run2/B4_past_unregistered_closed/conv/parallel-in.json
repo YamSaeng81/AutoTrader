@@ -1,0 +1,82 @@
+{
+ "input_version": "parallel-in-1",
+ "synthetic": true,
+ "source_note": "pm-state-1 SQL 4c04efff 출력 201305d6 · db 구간 2026-11-21T10:21:23.543527+00:00~2026-11-21T10:21:23.557289+00:00 · aux ad2d6591 · 합성 입력",
+ "observed_label": "격리PG-B4_past_unregistered_closed",
+ "sessions": [
+  {
+   "kind": "DYNAMIC",
+   "id": 900,
+   "mode": "REAL",
+   "status": "RUNNING"
+  },
+  {
+   "kind": "DYNAMIC",
+   "id": 901,
+   "mode": "PAPER",
+   "status": "RUNNING"
+  },
+  {
+   "kind": "LIVE",
+   "id": 157,
+   "mode": "REAL",
+   "status": "STOPPED"
+  },
+  {
+   "kind": "LIVE",
+   "id": 203,
+   "mode": "REAL",
+   "status": "CREATED"
+  }
+ ],
+ "orders": [
+  {
+   "kind": "DYNAMIC",
+   "session_id": 900,
+   "order_id": 1,
+   "side": "BUY",
+   "coin_pair": "KRW-ETH",
+   "state": "FILLED"
+  },
+  {
+   "kind": "LIVE",
+   "session_id": 157,
+   "order_id": 21,
+   "side": "BUY",
+   "coin_pair": "KRW-BTC",
+   "state": "FILLED"
+  },
+  {
+   "kind": "LIVE",
+   "session_id": 157,
+   "order_id": 22,
+   "side": "SELL",
+   "coin_pair": "KRW-BTC",
+   "state": "FILLED"
+  }
+ ],
+ "positions": [
+  {
+   "kind": "DYNAMIC",
+   "session_id": 900,
+   "position_id": 11,
+   "coin_pair": "KRW-ETH",
+   "status": "OPEN"
+  },
+  {
+   "kind": "LIVE",
+   "session_id": 157,
+   "position_id": 20,
+   "coin_pair": "KRW-BTC",
+   "status": "CLOSED"
+  }
+ ],
+ "settlement_unresolved": 0,
+ "p0_events": [],
+ "error_logs": [],
+ "paper_522_587": {
+  "total": 66,
+  "running": 63,
+  "not_running": 3
+ }
+}

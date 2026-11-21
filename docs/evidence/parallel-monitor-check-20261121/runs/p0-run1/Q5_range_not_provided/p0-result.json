@@ -1,0 +1,37 @@
+{
+ "tool": "p0_input",
+ "version": "pm-p0-1",
+ "label": "합성-Q5_range_not_provided",
+ "synthetic": true,
+ "status": "P0_CHECK_INCOMPLETE",
+ "p0_events": null,
+ "long_lease_warnings": {
+  "hold": 1,
+  "other": 0,
+  "note": "장기 대여 경고(holdobs 3) — P0 아님, 별도 보고"
+ },
+ "incomplete_reasons": [
+  "RANGE_NOT_PROVIDED"
+ ],
+ "scope_note": "제공 로그 안의 고정 패턴 검사일 뿐 운영 전체 안전·뉴스/외부 API 상태가 아니다. 뉴스/66 은 N03 원천을 따로 본다.",
+ "pattern": "Connection is not available, request timed out",
+ "holdobs_source": {
+  "u_vars": "d81d4r-20261120/d4/blocks-d81/U변수.sh",
+  "u_vars_sha256": "efb96108113142132da3685669c1a034e7a3050bc891bbacbecd2891137b19fd",
+  "extracted_sha256": "31100c2a2bd1828493b1ae6bdff5dc2a3041b6e965c66daca4b6ecc852a01937"
+ },
+ "input": {
+  "collect_rc": "0",
+  "log_sha256": "359350ef2ca07056d569fe3573eb60209a78723474f9c498abc2a2f0cdb5825e",
+  "log_bytes": 1366,
+  "log_lines": 10
+ },
+ "range": null,
+ "holdobs": {
+  "exit": 3,
+  "stdout_sha256": "a0a4aa01f8b730b37e249e0be9af947cefaf756109b63d7ae9ead7eb1bd6a12b",
+  "stderr_bytes": 0
+ },
+ "consumable_as_empty_p0": false,
+ "exit": 20
+}

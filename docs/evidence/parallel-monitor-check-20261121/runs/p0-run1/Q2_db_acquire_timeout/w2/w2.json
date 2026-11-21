@@ -1,0 +1,101 @@
+{
+ "tool": "parallel_report",
+ "version": "w2-1",
+ "p7_v8_sha256": "156c38289dba5836db3a61a3b005e9d3b873e8142b3d0146f693080f51f9effa",
+ "problems": [],
+ "synthetic_input": true,
+ "groups": {
+  "REGISTERED_LIVE": {
+   "sessions": [
+    {
+     "kind": "LIVE",
+     "id": 203,
+     "status": "CREATED",
+     "mode": "REAL"
+    }
+   ],
+   "orders": [],
+   "positions": []
+  },
+  "REGISTERED_DYNAMIC_REAL": {
+   "sessions": [
+    {
+     "kind": "DYNAMIC",
+     "id": 900,
+     "status": "RUNNING",
+     "mode": "REAL"
+    }
+   ],
+   "orders": [
+    {
+     "kind": "DYNAMIC",
+     "session_id": 900,
+     "order_id": 1,
+     "side": "BUY",
+     "coin_pair": "KRW-ETH",
+     "state": "FILLED"
+    },
+    {
+     "kind": "DYNAMIC",
+     "session_id": 900,
+     "order_id": 2,
+     "side": "BUY",
+     "coin_pair": "KRW-ETH",
+     "state": "SUBMITTED"
+    }
+   ],
+   "positions": [
+    {
+     "kind": "DYNAMIC",
+     "session_id": 900,
+     "position_id": 11,
+     "coin_pair": "KRW-ETH",
+     "status": "OPEN"
+    }
+   ]
+  },
+  "UNREGISTERED_REAL": {
+   "sessions": [],
+   "orders": [],
+   "positions": []
+  }
+ },
+ "risks": [
+  {
+   "code": "SETTLEMENT_UNRESOLVED",
+   "count": 2
+  },
+  {
+   "code": "P0",
+   "p0_code": "DB_CONNECTION_TIMEOUT",
+   "label": "01:05:00.000 http-nio-8080-exec-N"
+  },
+  {
+   "code": "P0",
+   "p0_code": "DB_CONNECTION_TIMEOUT",
+   "label": "01:05:00.000 http-nio-8080-exec-N"
+  }
+ ],
+ "paper_sessions_excluded": [
+  {
+   "kind": "DYNAMIC",
+   "id": 901
+  }
+ ],
+ "unresolved_orders": 1,
+ "paper_522_587": {
+  "total": 66,
+  "running": 63,
+  "not_running": 3
+ },
+ "account_check": {
+  "status": "NOT_REFERENCED",
+  "note": "P7 결과 미제공 — 계좌 일치 미확인"
+ },
+ "evidence_links": [
+  "docs/evidence/dec-parallel-20261118/README.md (§2-1 real_* 3키 오경보, §2-3 영향표)",
+  "docs/evidence/dec-parallel-registry-20261120/README.md (§1 고정 명령 충돌, §4 N03 초안)"
+ ],
+ "verdict": "RISK_PRESENT",
+ "exit": 20
+}

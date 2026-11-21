@@ -1,0 +1,70 @@
+{
+ "tool": "convert_state",
+ "version": "pm-conv-3",
+ "sql_version": "pm-state-2",
+ "label": "합성-Q1_valid_no_p0",
+ "synthetic": true,
+ "consumable": true,
+ "not_evidence_of": [
+  "실제 SQL 실행",
+  "P7 통과",
+  "F3 통과",
+  "F1 전체 통과"
+ ],
+ "problems": [],
+ "collection_failures": [],
+ "fixed": {
+  "w1_registry_f1_sha256": "bcdcada6cec4fdeeea16f830c3a6019fcc597c6a397af0a609b99762c4552b78",
+  "w2_parallel_report_sha256": "37978bfca9fed422bdd9a19a35d0bee0427ddf5ee5ab43bd48b9b035bdd9f24c"
+ },
+ "input": {
+  "sql_sha256": "4c04efff32b096b420341b5fe10cc84475b0dc421147ae5a27eccd0f086aab94",
+  "tsv_sha256": "d77281456eaacf417285373098239d2b7139d5754a36562d7e5fe2361368ff81",
+  "rc": "0",
+  "stderr_bytes": 0,
+  "aux_sha256": "dfc0f7e9c4268c36a9605cefc5a4e125adf31ce0f4baf22b36bd969f9130b1bc",
+  "aux_source_sha256": {
+   "n03": "3a039eb92de24f9398491cd7c278ac993f60c855da93e44d365131076053c487",
+   "p0": "3ac1c1a0128a51d590f9512eda636567b991f76f792ea6e9ed33509ab87a1a40"
+  }
+ },
+ "sources": {
+  "state": "pm-state-2 SQL 출력(db 축 구간)",
+  "n03": "N03 원천(미분류 ERROR·66)",
+  "p0": {
+   "status": "P0_ABSENT_IN_PROVIDED_LOG",
+   "range": {
+    "since": "2026-11-21T01:00:00Z",
+    "until": "2026-11-21T01:10:00Z",
+    "axis": "server_utc",
+    "basis": "합성: 수집 명령 --since/--until 인자(실제 수집 아님)"
+   },
+   "log_sha256": "359350ef2ca07056d569fe3573eb60209a78723474f9c498abc2a2f0cdb5825e",
+   "note": "backend 로그 원천 — db 구간·N03 과 같은 관측이라고 선언하지 않음"
+  }
+ },
+ "window": {
+  "axis": "db",
+  "from": "2026-11-21T10:21:18.963509+00:00",
+  "to": "2026-11-21T10:21:18.978160+00:00",
+  "flyway_max": 96,
+  "note": "db 축 구간 표시일 뿐 — 계좌·거래소 시계 관계를 선언하지 않음"
+ },
+ "rows": {
+  "sessions": 3,
+  "orders": 2,
+  "positions": 1,
+  "dyn_paper_orders_not_listed": 1,
+  "dyn_paper_positions_not_listed": 1
+ },
+ "verdict": "CONVERTED",
+ "settlement_unresolved_parts": {
+  "fill_accounting_pending": 1,
+  "open_discrepancy": 1
+ },
+ "outputs": {
+  "f1-obs.json": "465e209fa752e22317dcc673968b17516f51944c447f363391021751f9b7092d",
+  "parallel-in.json": "279081e6e0618435ef99896ce12c0b51a15c249465d1c733d5b493fe5950523b"
+ },
+ "exit": 0
+}

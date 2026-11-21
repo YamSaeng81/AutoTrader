@@ -1,0 +1,152 @@
+{
+ "synthetic": true,
+ "cases": [
+  {
+   "case": "Q1_valid_no_p0",
+   "p0": "P0_ABSENT_IN_PROVIDED_LOG",
+   "p0_rc": 0,
+   "reasons": [],
+   "p0_events": [],
+   "holdobs_exit": 3,
+   "conv": "CONVERTED",
+   "conv_rc": 0,
+   "codes": [],
+   "w2": "RISK_PRESENT",
+   "w2_rc": 20,
+   "w2_risks": [
+    "SETTLEMENT_UNRESOLVED"
+   ],
+   "ok": true,
+   "checks": {
+    "p0_status": true,
+    "p0_stderr_empty": true,
+    "reasons": true,
+    "events": true,
+    "empty_only_when_absent": true,
+    "lease_separate": true,
+    "conv": true,
+    "conv_outputs": true,
+    "conv_codes": true,
+    "p0_passed_through": true,
+    "w2_p0": true
+   }
+  },
+  {
+   "case": "Q2_db_acquire_timeout",
+   "p0": "P0_PRESENT",
+   "p0_rc": 10,
+   "reasons": [],
+   "p0_events": [
+    {
+     "code": "DB_CONNECTION_TIMEOUT",
+     "label": "01:05:00.000 http-nio-8080-exec-N"
+    },
+    {
+     "code": "DB_CONNECTION_TIMEOUT",
+     "label": "01:05:00.000 http-nio-8080-exec-N"
+    }
+   ],
+   "holdobs_exit": 1,
+   "conv": "CONVERTED",
+   "conv_rc": 0,
+   "codes": [],
+   "w2": "RISK_PRESENT",
+   "w2_rc": 20,
+   "w2_risks": [
+    "P0",
+    "SETTLEMENT_UNRESOLVED"
+   ],
+   "ok": true,
+   "checks": {
+    "p0_status": true,
+    "p0_stderr_empty": true,
+    "reasons": true,
+    "events": true,
+    "empty_only_when_absent": true,
+    "conv": true,
+    "conv_outputs": true,
+    "conv_codes": true,
+    "p0_passed_through": true,
+    "w2_p0": true
+   }
+  },
+  {
+   "case": "Q3_log_collection_failed",
+   "p0": "P0_CHECK_INCOMPLETE",
+   "p0_rc": 20,
+   "reasons": [
+    "LOG_COLLECTION_FAILED"
+   ],
+   "p0_events": null,
+   "holdobs_exit": 0,
+   "conv": "COLLECTION_NOT_PASSED",
+   "conv_rc": 20,
+   "codes": [
+    "AUX_P0_CHECK_INCOMPLETE"
+   ],
+   "ok": true,
+   "checks": {
+    "p0_status": true,
+    "p0_stderr_empty": true,
+    "reasons": true,
+    "events": true,
+    "empty_only_when_absent": true,
+    "conv": true,
+    "conv_outputs": true,
+    "conv_codes": true
+   }
+  },
+  {
+   "case": "Q4_empty_log",
+   "p0": "P0_CHECK_INCOMPLETE",
+   "p0_rc": 20,
+   "reasons": [
+    "LOG_EMPTY"
+   ],
+   "p0_events": null,
+   "holdobs_exit": null,
+   "conv": "COLLECTION_NOT_PASSED",
+   "conv_rc": 20,
+   "codes": [
+    "AUX_P0_CHECK_INCOMPLETE"
+   ],
+   "ok": true,
+   "checks": {
+    "p0_status": true,
+    "p0_stderr_empty": true,
+    "reasons": true,
+    "events": true,
+    "empty_only_when_absent": true,
+    "conv": true,
+    "conv_outputs": true,
+    "conv_codes": true
+   }
+  },
+  {
+   "case": "Q5_range_not_provided",
+   "p0": "P0_CHECK_INCOMPLETE",
+   "p0_rc": 20,
+   "reasons": [
+    "RANGE_NOT_PROVIDED"
+   ],
+   "p0_events": null,
+   "holdobs_exit": 3,
+   "conv": "COLLECTION_NOT_PASSED",
+   "conv_rc": 20,
+   "codes": [
+    "AUX_P0_CHECK_INCOMPLETE"
+   ],
+   "ok": true,
+   "checks": {
+    "p0_status": true,
+    "p0_stderr_empty": true,
+    "reasons": true,
+    "events": true,
+    "empty_only_when_absent": true,
+    "conv": true,
+    "conv_outputs": true,
+    "conv_codes": true
+   }
+  }
+ ]
+}

@@ -1,0 +1,59 @@
+{
+ "tool": "convert_state",
+ "version": "pm-conv-1",
+ "sql_version": "pm-state-1",
+ "label": "격리PG-B1_normal_identity_settlement",
+ "synthetic": true,
+ "consumable": false,
+ "not_evidence_of": [
+  "실제 SQL 실행",
+  "P7 통과",
+  "F3 통과",
+  "F1 전체 통과"
+ ],
+ "problems": [],
+ "collection_failures": [
+  {
+   "code": "ORDER_OWNER_UNKNOWN_KIND",
+   "order_id": 3,
+   "session_kind": "DYN_PAPER",
+   "session_id": 901,
+   "state": "FILLED"
+  },
+  {
+   "code": "POSITION_OWNER_UNKNOWN_KIND",
+   "position_id": 13,
+   "session_kind": "DYN_PAPER",
+   "session_id": 901,
+   "status": "OPEN"
+  }
+ ],
+ "fixed": {
+  "w1_registry_f1_sha256": "bcdcada6cec4fdeeea16f830c3a6019fcc597c6a397af0a609b99762c4552b78",
+  "w2_parallel_report_sha256": "37978bfca9fed422bdd9a19a35d0bee0427ddf5ee5ab43bd48b9b035bdd9f24c"
+ },
+ "input": {
+  "sql_sha256": "3c0b656f75dfbb20ae5bafa99323a6f949c0e7d64b3ae4c59bb573e8e19cde0f",
+  "tsv_sha256": "780a2456e2ea02be3e50ac83dbde501d6ef0907eb82afff8ec1e2f3c29ef3513",
+  "rc": "0",
+  "stderr_bytes": 0,
+  "aux_sha256": "338ff37834ba0e20a4ec2c4a422af4406ec6574d4b17e67cab3fae64eb12d4ef",
+  "aux_source_sha256": "803e072a35eb0bcac5258118682103f3d6a452a909ea1cf5bb7487a34051b992"
+ },
+ "window": {
+  "axis": "db",
+  "from": "2026-11-21T10:20:21.900264+00:00",
+  "to": "2026-11-21T10:20:21.914689+00:00",
+  "flyway_max": 96,
+  "note": "db 축 구간 표시일 뿐 — 계좌·거래소 시계 관계를 선언하지 않음"
+ },
+ "rows": {
+  "sessions": 3,
+  "orders": 3,
+  "positions": 2,
+  "dyn_paper_orders_not_listed": 0,
+  "dyn_paper_positions_not_listed": 0
+ },
+ "verdict": "COLLECTION_NOT_PASSED",
+ "exit": 20
+}

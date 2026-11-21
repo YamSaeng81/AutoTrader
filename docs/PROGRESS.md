@@ -6,6 +6,7 @@
 
 | 구분 | 기준 | 상태 |
 |---|---|---|
+| **최근 개발 결과(제출, 판정 전)** | [SQL 격리 검증·P0 후보·읽기 승인안](evidence/parallel-monitor-check-20261121/README.md) · v1.215 §3 | 격리 PG15.13 V1~V96: 원본 pm-state-1 rc0·형식 통과이나 DYN_PAPER를 UNKNOWN_KIND로 내 0/4 보존 → 최소 수정 pm-state-2 4/4(과거 종결 경보 유지·UTC/KST 동일·금액 0). P0 pm-p0-1 5/5·pm-aux-2 원천 분리. pm-read-1 미실행. 운영 접근 없음 |
 | **최근 개발 결과(로컬 범위 수용)** | a569939b [병행 감시 원천 준비](evidence/parallel-monitor-draft-20261121/README.md) · [v1.215](evidence/review-a569939b/README.md) | 170/170·기존581/721 원문 일치, 독립파일대조14충족. 저장13/13·첫163파일 압축보존 수용, SQL 실제실행은 미검증. 과거 종결 일괄 면제 불허·P0 기존 기준 유지, 다음은 새SQL 격리 검증/P0 파일 후보 |
 | **최근 개발 결과(로컬 범위 수용)** | e7d48c5e·5a5b395b [W4·W6 보완](evidence/weekend-local-fix-20261121/README.md) · [v1.214](evidence/review-5a5b395b/README.md) | R1 5/5·R2 6/6 연결 수용. 보완721·원본581·N03 19·앞 총괄30 블롭 일치. 주문 누락 미확정·실제rc/JSON/판정 계약, 정상 통합은 승인 대기5. 시험 결함2·총괄 소수 문자열 대조 오류/보충은 별도 보존, 기존 시험 재실행 없음 |
 | **최근 개발 결과(로컬 범위 수용)** | [W1~W6 후보](evidence/weekend-local-20261120/README.md) · [v1.213 검토](evidence/review-838029ab/README.md) | 보존38사례 연결, W4/W6 당시 공백은v1.214에서 종결. 원문180누락+2바이트 차이 보충 후기존 체크섬603항목 일치. 운영 설치 승인은 아님 |

@@ -1,0 +1,13 @@
+p0_input sha256=3fdd580a2008af692e9448ed0766f1a1a058ae3aaf17128352911f8d403d1f66
+convert_state_3 sha256=a131c531c54bcab354249edcfa1fe862de78ee801dacc0cb03da18083483b2d3
+U변수.sh sha256=efb96108113142132da3685669c1a034e7a3050bc891bbacbecd2891137b19fd
+state-2.sql sha256=4c04efff32b096b420341b5fe10cc84475b0dc421147ae5a27eccd0f086aab94
+상태 입력(pg-run2 B1) state.tsv sha256=d77281456eaacf417285373098239d2b7139d5754a36562d7e5fe2361368ff81
+W2 parallel_report sha256=37978bfca9fed422bdd9a19a35d0bee0427ddf5ee5ab43bd48b9b035bdd9f24c
+registry sha256=14599ba6734d11a541b6e8335f1e9aa0cf04c9f24ea4492e02dd50c3a15b0393
+PASS Q1_valid_no_p0 P0 P0_ABSENT_IN_PROVIDED_LOG(0) 사유=[] events=0 holdobs=3 → 변환 CONVERTED(0)  → W2 RISK_PRESENT(20) ['SETTLEMENT_UNRESOLVED']
+PASS Q2_db_acquire_timeout P0 P0_PRESENT(10) 사유=[] events=2 holdobs=1 → 변환 CONVERTED(0)  → W2 RISK_PRESENT(20) ['P0', 'SETTLEMENT_UNRESOLVED']
+PASS Q3_log_collection_failed P0 P0_CHECK_INCOMPLETE(20) 사유=['LOG_COLLECTION_FAILED'] events=None holdobs=0 → 변환 COLLECTION_NOT_PASSED(20) ['AUX_P0_CHECK_INCOMPLETE']
+PASS Q4_empty_log P0 P0_CHECK_INCOMPLETE(20) 사유=['LOG_EMPTY'] events=None holdobs=None → 변환 COLLECTION_NOT_PASSED(20) ['AUX_P0_CHECK_INCOMPLETE']
+PASS Q5_range_not_provided P0 P0_CHECK_INCOMPLETE(20) 사유=['RANGE_NOT_PROVIDED'] events=None holdobs=3 → 변환 COLLECTION_NOT_PASSED(20) ['AUX_P0_CHECK_INCOMPLETE']
+5/5 기대대로 (P0 직접 5경계, 합성 로그 — 실제 로그 수집·운영 P0 판정 아님)

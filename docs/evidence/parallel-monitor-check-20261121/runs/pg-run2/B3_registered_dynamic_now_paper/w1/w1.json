@@ -1,0 +1,57 @@
+{
+ "tool": "registry_f1",
+ "version": "w1-1",
+ "p7_v8_sha256": "156c38289dba5836db3a61a3b005e9d3b873e8142b3d0146f693080f51f9effa",
+ "f1_overall": "NOT_DETERMINED_BY_THIS_TOOL",
+ "covered": "활성 REAL 종류+ID 집합 일치와 등록 세션 고정 조건(모드·전략·주기·코인·생성 시각)",
+ "not_covered_separate_check_required": [
+  "SID203 KEEP 저장값(initial_capital·invest_ratio·max_investment·stop_loss_pct·max_hold_hours·strategy_params·생성 시각)",
+  "LIVE1 의 SID203 상태 값(CREATED/RUNNING) — 단계별 기대 상태",
+  "EG 비상 정지 목록(LIVE 157…200 / DYNAMIC 92)·capital_stage_baseline 개수·risk_config 값",
+  "BASE = BASEX(capital_stage_baseline 행)",
+  "운영 코드 SHA·이미지·설치 장부(F1 다른 줄)",
+  "ruleset 확인 지문(F3)·계좌 합산(P7 v8 account_sum → F3 v9)"
+ ],
+ "synthetic_input": true,
+ "invalid": [],
+ "holds": [],
+ "missing": [
+  {
+   "kind": "DYNAMIC",
+   "id": 900,
+   "why": "mode 'PAPER'(PAPER — 실자금 아님)"
+  }
+ ],
+ "extra": [],
+ "fixed_mismatch": [],
+ "status_unknown": [],
+ "paper_active_ignored": [
+  {
+   "kind": "DYNAMIC",
+   "id": 900
+  },
+  {
+   "kind": "DYNAMIC",
+   "id": 901
+  }
+ ],
+ "registry_sha256": "14599ba6734d11a541b6e8335f1e9aa0cf04c9f24ea4492e02dd50c3a15b0393",
+ "registry_status": "valid",
+ "expected": {
+  "LIVE": [
+   203
+  ],
+  "DYNAMIC": [
+   900
+  ]
+ },
+ "observed_active_real": {
+  "LIVE": [
+   203
+  ],
+  "DYNAMIC": []
+ },
+ "verdict": "MISMATCH",
+ "summary_line": "F1 기대 {'LIVE': [203], 'DYNAMIC': [900]} / 관측 {'LIVE': [203], 'DYNAMIC': []} / 불일치 (초과 -, 누락 DYNAMIC#900, 고정 조건 불일치 -, 알 수 없는 상태 -)",
+ "exit": 20
+}

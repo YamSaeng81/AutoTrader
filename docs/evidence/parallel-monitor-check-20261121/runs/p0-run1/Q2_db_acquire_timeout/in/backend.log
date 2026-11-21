@@ -1,0 +1,8 @@
+backend-1  | 01:00:00.100 [main] INFO  c.c.a.CryptoAutoTraderApplication - Started CryptoAutoTraderApplication in 41.2 seconds
+backend-1  | 01:00:05.000 [scheduling-1] INFO  c.c.a.s.SignalQualityService - [SignalQuality] 시작 Catchup 시작
+backend-1  | 01:00:09.000 [scheduling-1] INFO  c.c.a.s.SignalQualityService - [SignalQuality] 시작 Catchup 완료
+backend-1  | 01:04:00.000 [news-1] ERROR c.c.a.s.NewsCollectorService - 뉴스 수집 실패: java.net.SocketException: Connection reset
+backend-1  | 01:04:30.000 [candle-2] WARN  c.c.a.s.CandleService - 캔들 조회 실패 HTTP 502
+backend-1  | 01:04:40.000 [ext-1] WARN  c.c.a.s.ExchangeClient - 외부 API timeout: java.net.SocketTimeoutException: Read timed out
+backend-1  | 01:05:00.000 [http-nio-8080-exec-3] ERROR o.h.engine.jdbc.spi.SqlExceptionHelper - HikariPool-1 - Connection is not available, request timed out after 30000ms.
+backend-1  | Caused by: java.sql.SQLTransientConnectionException: HikariPool-1 - Connection is not available, request timed out after 30000ms.

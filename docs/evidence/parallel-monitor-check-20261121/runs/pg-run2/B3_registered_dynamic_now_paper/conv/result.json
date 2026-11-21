@@ -1,0 +1,52 @@
+{
+ "tool": "convert_state",
+ "version": "pm-conv-2",
+ "sql_version": "pm-state-2",
+ "label": "격리PG-B3_registered_dynamic_now_paper",
+ "synthetic": true,
+ "consumable": true,
+ "not_evidence_of": [
+  "실제 SQL 실행",
+  "P7 통과",
+  "F3 통과",
+  "F1 전체 통과"
+ ],
+ "problems": [],
+ "collection_failures": [],
+ "fixed": {
+  "w1_registry_f1_sha256": "bcdcada6cec4fdeeea16f830c3a6019fcc597c6a397af0a609b99762c4552b78",
+  "w2_parallel_report_sha256": "37978bfca9fed422bdd9a19a35d0bee0427ddf5ee5ab43bd48b9b035bdd9f24c"
+ },
+ "input": {
+  "sql_sha256": "4c04efff32b096b420341b5fe10cc84475b0dc421147ae5a27eccd0f086aab94",
+  "tsv_sha256": "fac737ec6866046587380728052f68c951a76c580af963f5cb2cdb8b39737c2e",
+  "rc": "0",
+  "stderr_bytes": 0,
+  "aux_sha256": "fe270838d036326e99509d74646677c1731fd60638647b5e7a99284f5c22722f",
+  "aux_source_sha256": "0bb72c2944b3aa16c92addf28afb6b2ea8b984d1d7f8db56901a2ea25de6b5ba"
+ },
+ "window": {
+  "axis": "db",
+  "from": "2026-11-21T10:21:22.700218+00:00",
+  "to": "2026-11-21T10:21:22.714415+00:00",
+  "flyway_max": 96,
+  "note": "db 축 구간 표시일 뿐 — 계좌·거래소 시계 관계를 선언하지 않음"
+ },
+ "rows": {
+  "sessions": 3,
+  "orders": 0,
+  "positions": 0,
+  "dyn_paper_orders_not_listed": 2,
+  "dyn_paper_positions_not_listed": 2
+ },
+ "verdict": "CONVERTED",
+ "settlement_unresolved_parts": {
+  "fill_accounting_pending": 0,
+  "open_discrepancy": 0
+ },
+ "outputs": {
+  "f1-obs.json": "b7262a209548d820c55e5cec4aad46a2864808a33d32dbf003c312c6a6c94e49",
+  "parallel-in.json": "5875ee9ba941972802fbe81562e8ddaf8c6cf272a05eba281245730cc9645732"
+ },
+ "exit": 0
+}

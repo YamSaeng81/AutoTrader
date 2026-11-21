@@ -1,0 +1,10 @@
+backend-1  | 01:00:00.100 [main] INFO  c.c.a.CryptoAutoTraderApplication - Started CryptoAutoTraderApplication in 41.2 seconds
+backend-1  | 01:00:05.000 [scheduling-1] INFO  c.c.a.s.SignalQualityService - [SignalQuality] 시작 Catchup 시작
+backend-1  | 01:00:09.000 [scheduling-1] INFO  c.c.a.s.SignalQualityService - [SignalQuality] 시작 Catchup 완료
+backend-1  | 01:02:03.456 [HikariPool-1 housekeeper] WARN  com.zaxxer.hikari.pool.ProxyLeakTask - Connection leak detection triggered for org.postgresql.jdbc.PgConnection@1a2b3c on thread scheduling-1, stack trace follows
+backend-1  | java.lang.Exception: Apparent connection leak detected
+backend-1  | 	at com.cryptoautotrader.api.service.SignalQualityService.evaluateHoldBaselineLoop(SignalQualityService.java:412)
+backend-1  | 01:03:10.000 [scheduling-1] INFO  com.zaxxer.hikari.pool.ProxyLeakTask - Previously reported leaked connection org.postgresql.jdbc.PgConnection@1a2b3c on thread scheduling-1 was returned to the pool (unleaked)
+backend-1  | 01:04:00.000 [news-1] ERROR c.c.a.s.NewsCollectorService - 뉴스 수집 실패: java.net.SocketException: Connection reset
+backend-1  | 01:04:30.000 [candle-2] WARN  c.c.a.s.CandleService - 캔들 조회 실패 HTTP 502
+backend-1  | 01:04:40.000 [ext-1] WARN  c.c.a.s.ExchangeClient - 외부 API timeout: java.net.SocketTimeoutException: Read timed out

@@ -1,0 +1,42 @@
+{
+ "tool": "p0_input",
+ "version": "pm-p0-1",
+ "label": "합성-Q3_log_collection_failed",
+ "synthetic": true,
+ "status": "P0_CHECK_INCOMPLETE",
+ "p0_events": null,
+ "long_lease_warnings": {
+  "hold": 0,
+  "other": 0,
+  "note": "장기 대여 경고(holdobs 3) — P0 아님, 별도 보고"
+ },
+ "incomplete_reasons": [
+  "LOG_COLLECTION_FAILED"
+ ],
+ "scope_note": "제공 로그 안의 고정 패턴 검사일 뿐 운영 전체 안전·뉴스/외부 API 상태가 아니다. 뉴스/66 은 N03 원천을 따로 본다.",
+ "pattern": "Connection is not available, request timed out",
+ "holdobs_source": {
+  "u_vars": "d81d4r-20261120/d4/blocks-d81/U변수.sh",
+  "u_vars_sha256": "efb96108113142132da3685669c1a034e7a3050bc891bbacbecd2891137b19fd",
+  "extracted_sha256": "31100c2a2bd1828493b1ae6bdff5dc2a3041b6e965c66daca4b6ecc852a01937"
+ },
+ "input": {
+  "collect_rc": "1",
+  "log_sha256": "7db2968ecf545fbde6fbb1a6ba8d5d4f1b4c3043f3b070c64376e4151833e925",
+  "log_bytes": 243,
+  "log_lines": 2
+ },
+ "range": {
+  "since": "2026-11-21T01:00:00Z",
+  "until": "2026-11-21T01:10:00Z",
+  "axis": "server_utc",
+  "basis": "합성: 수집 명령 --since/--until 인자(실제 수집 아님)"
+ },
+ "holdobs": {
+  "exit": 0,
+  "stdout_sha256": "08593e62cd7e520d64dc8e9d8355065e422dcdbfbec05a40fe9699747e679a4f",
+  "stderr_bytes": 0
+ },
+ "consumable_as_empty_p0": false,
+ "exit": 20
+}
