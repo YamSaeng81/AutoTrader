@@ -1,0 +1,108 @@
+{
+  "baseline": "40a2fda56665f5131b243634323278687fd74481",
+  "checks": [
+    {
+      "name": "Committed and working manifests",
+      "ok": true,
+      "detail": {
+        "entries": 1744,
+        "folders": {
+          "parallel-monitor-check-20261121": 255,
+          "n03-1121-2200": 17,
+          "parallel-monitor-draft-20261121": 170,
+          "weekend-local-fix-20261121": 721,
+          "weekend-local-20261120": 581
+        },
+        "committed_mismatches": [],
+        "working_mismatches": []
+      }
+    },
+    {
+      "name": "Saved pg-run1",
+      "ok": true,
+      "detail": {
+        "passed": 0,
+        "total": 4
+      }
+    },
+    {
+      "name": "Saved pg-run2",
+      "ok": true,
+      "detail": {
+        "passed": 4,
+        "total": 4
+      }
+    },
+    {
+      "name": "Saved p0-run1",
+      "ok": true,
+      "detail": {
+        "passed": 5,
+        "total": 5
+      }
+    },
+    {
+      "name": "DYN_PAPER branch exists",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Confirmed current-mode filtering remains",
+      "ok": true,
+      "detail": "Finding: persisted DYNAMIC rows can be hidden after current session mode becomes PAPER; not an acceptance check"
+    },
+    {
+      "name": "Saved B3 has no emitted order/position rows",
+      "ok": true,
+      "detail": {
+        "fixture_sha256": "224333096603f62780e6eaf14c358c7d69578a9735e620019048f72664b2f803",
+        "note": "Saved PG observation; no new SQL execution. Unknown actual production mode-change path."
+      }
+    },
+    {
+      "name": "Documented HEAD/image guards absent from runner",
+      "ok": true,
+      "detail": {
+        "expected_head": true,
+        "expected_backend": true
+      }
+    },
+    {
+      "name": "Read/post both explicitly finish with zero",
+      "ok": true,
+      "detail": {
+        "count": 2,
+        "note": "Static finding; no shell runner or SSH executed"
+      }
+    },
+    {
+      "name": "N03 four server hashes",
+      "ok": true,
+      "detail": {
+        "20261121-2200.txt": true,
+        "20261121-2200.txt.msg": true,
+        "20261121-2200.txt.raw": true,
+        "last_send": true
+      }
+    },
+    {
+      "name": "N03 fixed reader",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "N03 saved single successful read",
+      "ok": true,
+      "detail": null
+    }
+  ],
+  "passed": 12,
+  "total": 12,
+  "contains_confirmed_gap_checks": true,
+  "not_a_zero_defect_claim": true,
+  "candidate_tests_rerun": false,
+  "sql_executed": false,
+  "shell_runner_executed": false,
+  "production_access": false,
+  "settings_content_read_or_changed": false
+}

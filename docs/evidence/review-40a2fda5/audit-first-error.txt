@@ -1,0 +1,8 @@
+Initial review helper stopped before writing checks.json.
+Traceback (most recent call last):
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\review-40a2fda5\review_checks.py", line 66, in <module>
+    cs = d['cases']
+         ~^^^^^^^^^
+KeyError: 'cases'
+PG saved results use boundaries; P0 saved results use cases.
+Only the review helper's result-file reader was corrected. No candidate/SQL/shell tests ran.
