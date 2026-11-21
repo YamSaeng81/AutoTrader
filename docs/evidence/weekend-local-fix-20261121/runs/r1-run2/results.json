@@ -1,0 +1,120 @@
+{
+ "synthetic": true,
+ "cases": [
+  {
+   "case": "B1_orders_not_provided",
+   "ok": true,
+   "rc": 10,
+   "verdict": "BUILT_WITH_UNCONFIRMED",
+   "checks": {
+    "verdict": true,
+    "exit": true,
+    "stderr_empty": true,
+    "LIVE#203.month_pnl": true,
+    "LIVE#203.month_pnl_status": true,
+    "LIVE#203.trade_state": true,
+    "LIVE#203.identity_check": true,
+    "LIVE#203.orders_source": true,
+    "LIVE#203.realized_in_period": true,
+    "LIVE#203.fees_paid": true,
+    "LIVE#203.buy_funds": true,
+    "LIVE#203.round_trips_closed": true,
+    "LIVE#203.wins": true,
+    "LIVE#203.losses": true,
+    "LIVE#203.unrealized_change": true,
+    "included.zero_trade": true,
+    "included.orders_source_missing": true,
+    "agg_real": true,
+    "orders_source_missing": true,
+    "md_row": true,
+    "source_map_reason": true,
+    "no_zero_from_missing": true
+   }
+  },
+  {
+   "case": "B2a_orders_key_missing",
+   "ok": true,
+   "rc": 20,
+   "verdict": "PARTIAL",
+   "checks": {
+    "verdict": true,
+    "exit": true,
+    "stderr_empty": true,
+    "included.zero_trade": true,
+    "included.excluded": true,
+    "agg_real": true,
+    "failed": true,
+    "built": true,
+    "source_map_reason": true,
+    "no_zero_from_missing": true
+   }
+  },
+  {
+   "case": "B2b_orders_type_invalid",
+   "ok": true,
+   "rc": 20,
+   "verdict": "PARTIAL",
+   "checks": {
+    "verdict": true,
+    "exit": true,
+    "stderr_empty": true,
+    "included.zero_trade": true,
+    "included.excluded": true,
+    "agg_real": true,
+    "failed": true,
+    "built": true,
+    "source_map_reason": true,
+    "no_zero_from_missing": true
+   }
+  },
+  {
+   "case": "B3_empty_orders_with_other",
+   "ok": true,
+   "rc": 0,
+   "verdict": "BUILT_CORE_CONFIRMED",
+   "checks": {
+    "verdict": true,
+    "exit": true,
+    "stderr_empty": true,
+    "LIVE#203.month_pnl": true,
+    "LIVE#203.trade_state": true,
+    "LIVE#203.round_trips_closed": true,
+    "LIVE#203.fees_paid": true,
+    "DYNAMIC#900.month_pnl": true,
+    "DYNAMIC#900.realized_in_period": true,
+    "DYNAMIC#900.fees_paid": true,
+    "DYNAMIC#900.losses": true,
+    "included.zero_trade": true,
+    "included.orders_source_missing": true,
+    "agg_real": true,
+    "orders_source_missing": true,
+    "source_map_reason": true,
+    "no_zero_from_missing": true
+   }
+  },
+  {
+   "case": "B4_session_fail_with_other",
+   "ok": true,
+   "rc": 20,
+   "verdict": "PARTIAL",
+   "checks": {
+    "verdict": true,
+    "exit": true,
+    "stderr_empty": true,
+    "LIVE#203.month_pnl": true,
+    "LIVE#203.realized_in_period": true,
+    "LIVE#203.fees_paid": true,
+    "LIVE#203.round_trips_closed": true,
+    "LIVE#203.identity_check": true,
+    "agg_real": true,
+    "agg_real_known": true,
+    "agg_real_unconfirmed": true,
+    "account_gap_na": true,
+    "failed": true,
+    "built": true,
+    "source_map_reason": true,
+    "no_zero_from_missing": true
+   }
+  }
+ ]
+}

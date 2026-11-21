@@ -1,0 +1,240 @@
+{
+ "db_fp_pre": "0d79b81193a9b86dcabba795e4d6ecbb",
+ "exchange_before": {
+  "accounts": {
+   "KRW": {
+    "balance": "64000",
+    "locked": "0"
+   },
+   "BTC": {
+    "balance": "0.0002",
+    "locked": "0"
+   },
+   "ETH": {
+    "balance": "0.0032",
+    "locked": "0"
+   }
+  },
+  "open_orders": [],
+  "done_order_ids": [
+   "u-btc-203",
+   "u-eth-buy"
+  ],
+  "done_query": {
+   "from": "2026-10-01T00:00:00Z",
+   "to": "2026-11-18T01:56:06.333912Z",
+   "complete": true,
+   "pages": 1
+  }
+ },
+ "db": {
+  "observed_at": "2026-11-18T01:56:06.334912Z",
+  "snapshot": "5281:5281:",
+  "flyway_version": 94,
+  "fingerprint": "0d79b81193a9b86dcabba795e4d6ecbb",
+  "sessions": [
+   {
+    "kind": "DYNAMIC",
+    "id": 900,
+    "mode": "REAL",
+    "strategy_type": "COMPOSITE_BREAKOUT",
+    "coin_pair": null,
+    "timeframe": "H1",
+    "initial_capital": "20000.00",
+    "available_krw": "4000.00",
+    "status": "RUNNING",
+    "created_at": "2026-11-18T01:56:05.591018+00:00",
+    "started_at": null,
+    "stopped_at": null
+   },
+   {
+    "kind": "LIVE",
+    "id": 203,
+    "mode": "REAL",
+    "strategy_type": "DAILY_SMA20",
+    "coin_pair": "KRW-BTC",
+    "timeframe": "H1",
+    "initial_capital": "20200.00",
+    "available_krw": "200.00",
+    "status": "RUNNING",
+    "created_at": "2026-11-06T10:07:36.87044+00:00",
+    "started_at": "2026-10-27T23:50:00+00:00",
+    "stopped_at": null
+   }
+  ],
+  "orders": [
+   {
+    "id": 3,
+    "session_kind": "LIVE",
+    "session_id": 203,
+    "position_id": 8001,
+    "coin_pair": "KRW-BTC",
+    "side": "BUY",
+    "order_type": "MARKET",
+    "quantity": "20000.00000000",
+    "reserved_krw": "20000.00000000",
+    "client_order_id": "c-u-btc-203",
+    "state": "FILLED",
+    "filled_quantity": "0.00020000",
+    "exchange_order_id": "u-btc-203",
+    "created_at": "2026-11-18T01:56:06.090985+00:00",
+    "reported_executed_funds": "19990.00000000",
+    "reported_paid_fee": "10.00000000",
+    "applied_executed_funds": "19990.00000000",
+    "applied_paid_fee": "10.00000000",
+    "fill_accounting_pending": false
+   },
+   {
+    "id": 4,
+    "session_kind": "DYNAMIC",
+    "session_id": 900,
+    "position_id": 9001,
+    "coin_pair": "KRW-ETH",
+    "side": "BUY",
+    "order_type": "MARKET",
+    "quantity": "16000.00000000",
+    "reserved_krw": "16000.00000000",
+    "client_order_id": "c-u-eth-buy",
+    "state": "FILLED",
+    "filled_quantity": "0.00320000",
+    "exchange_order_id": "u-eth-buy",
+    "created_at": "2026-11-18T01:56:06.090985+00:00",
+    "reported_executed_funds": "15992.00000000",
+    "reported_paid_fee": "8.00000000",
+    "applied_executed_funds": "15992.00000000",
+    "applied_paid_fee": "8.00000000",
+    "fill_accounting_pending": false
+   }
+  ],
+  "positions": [
+   {
+    "id": 8001,
+    "session_kind": "LIVE",
+    "session_id": 203,
+    "coin_pair": "KRW-BTC",
+    "status": "OPEN",
+    "size": "0.00020000",
+    "opened_at": "2026-11-18T01:56:06.090985+00:00"
+   },
+   {
+    "id": 9001,
+    "session_kind": "DYNAMIC",
+    "session_id": 900,
+    "coin_pair": "KRW-ETH",
+    "status": "OPEN",
+    "size": "0.00320000",
+    "opened_at": "2026-11-18T01:56:06.090985+00:00"
+   }
+  ],
+  "unresolved_discrepancies": []
+ },
+ "exchange_after": {
+  "accounts": {
+   "KRW": {
+    "balance": "64000",
+    "locked": "0"
+   },
+   "BTC": {
+    "balance": "0.0002",
+    "locked": "0"
+   },
+   "ETH": {
+    "balance": "0.0032",
+    "locked": "0"
+   }
+  },
+  "open_orders": [],
+  "done_order_ids": [
+   "u-btc-203",
+   "u-eth-buy"
+  ],
+  "done_query": {
+   "from": "2026-10-01T00:00:00Z",
+   "to": "2026-11-18T01:56:06.335912Z",
+   "complete": true,
+   "pages": 1
+  }
+ },
+ "db_fp_post": "0d79b81193a9b86dcabba795e4d6ecbb",
+ "external_flows": [],
+ "query_errors": [],
+ "meta": {
+  "source": {
+   "environment": "local-isolated",
+   "db": "cat-rt-pg/p7v2-scenario-copy",
+   "exchange_account": "fake-exchange-fixed-balances"
+  },
+  "app_code_sha": "0e1d2a02",
+  "app_code_sha_ref": "로컬 가정: v2 시나리오의 등록 예시값. 운영 관측 출처 아님",
+  "steps": [
+   {
+    "step": "db_fp_pre",
+    "at": "2026-11-18T01:56:06.332912Z"
+   },
+   {
+    "step": "exchange_before",
+    "at": "2026-11-18T01:56:06.333912Z"
+   },
+   {
+    "step": "db_extract",
+    "at": "2026-11-18T01:56:06.334912Z"
+   },
+   {
+    "step": "exchange_after",
+    "at": "2026-11-18T01:56:06.335912Z"
+   },
+   {
+    "step": "db_fp_post",
+    "at": "2026-11-18T01:56:06.336912Z"
+   }
+  ],
+  "clock": {
+   "version": "p7-clock-1",
+   "samples": [],
+   "same_source": [
+    {
+     "axes": [
+      "collector",
+      "db"
+     ],
+     "basis": "review synthetic same-clock fixture; not an operational measurement"
+    },
+    {
+     "axes": [
+      "collector",
+      "app"
+     ],
+     "basis": "review synthetic same-clock fixture; not an operational measurement"
+    },
+    {
+     "axes": [
+      "collector",
+      "exchange"
+     ],
+     "basis": "review synthetic same-clock fixture; not an operational measurement"
+    },
+    {
+     "axes": [
+      "db",
+      "app"
+     ],
+     "basis": "review synthetic same-clock fixture; not an operational measurement"
+    },
+    {
+     "axes": [
+      "db",
+      "exchange"
+     ],
+     "basis": "review synthetic same-clock fixture; not an operational measurement"
+    },
+    {
+     "axes": [
+      "app",
+      "exchange"
+     ],
+     "basis": "review synthetic same-clock fixture; not an operational measurement"
+    }
+   ]
+  }
+ }
+}

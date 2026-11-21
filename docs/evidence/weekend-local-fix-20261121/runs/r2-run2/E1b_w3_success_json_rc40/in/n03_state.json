@@ -1,0 +1,62 @@
+{
+ "input_version": "parallel-in-1",
+ "synthetic": true,
+ "source_note": "합성(W6 E1b_w3_success_json_rc40) — P0 현재 관측에서 금액 제거",
+ "observed_label": "E1b_w3_success_json_rc40",
+ "sessions": [
+  {
+   "kind": "DYNAMIC",
+   "id": 900,
+   "mode": "REAL",
+   "status": "RUNNING"
+  },
+  {
+   "kind": "LIVE",
+   "id": 203,
+   "mode": "REAL",
+   "status": "RUNNING"
+  }
+ ],
+ "orders": [
+  {
+   "kind": "LIVE",
+   "session_id": 203,
+   "order_id": 3,
+   "side": "BUY",
+   "coin_pair": "KRW-BTC",
+   "state": "FILLED"
+  },
+  {
+   "kind": "DYNAMIC",
+   "session_id": 900,
+   "order_id": 4,
+   "side": "BUY",
+   "coin_pair": "KRW-ETH",
+   "state": "FILLED"
+  }
+ ],
+ "positions": [
+  {
+   "kind": "LIVE",
+   "session_id": 203,
+   "position_id": 8001,
+   "coin_pair": "KRW-BTC",
+   "status": "OPEN"
+  },
+  {
+   "kind": "DYNAMIC",
+   "session_id": 900,
+   "position_id": 9001,
+   "coin_pair": "KRW-ETH",
+   "status": "OPEN"
+  }
+ ],
+ "settlement_unresolved": 0,
+ "p0_events": [],
+ "error_logs": [],
+ "paper_522_587": {
+  "total": 66,
+  "running": 63,
+  "not_running": 3
+ }
+}

@@ -1,0 +1,160 @@
+{
+ "synthetic": true,
+ "cases": [
+  {
+   "case": "E1a_w1_success_json_rc42",
+   "ok": true,
+   "rc": 20,
+   "overall": "FAILED",
+   "modules": {
+    "w1": "FAILED",
+    "w2": "LOCAL_VERIFIED",
+    "w3": "LOCAL_VERIFIED",
+    "w4": "LOCAL_VERIFIED",
+    "w5": "NEEDS_APPROVAL"
+   },
+   "checks": {
+    "overall": true,
+    "exit": true,
+    "stderr_empty": true,
+    "operational_ready_false": true,
+    "modules": true,
+    "contract_codes": true,
+    "others_contract_ok": true,
+    "p7_quoted": true,
+    "quote_not_ok_when_not_quoted": true,
+    "local_success": true,
+    "w1_raw_kept": true
+   }
+  },
+  {
+   "case": "E1b_w3_success_json_rc40",
+   "ok": true,
+   "rc": 20,
+   "overall": "FAILED",
+   "modules": {
+    "w1": "LOCAL_VERIFIED",
+    "w2": "LOCAL_VERIFIED",
+    "w3": "FAILED",
+    "w4": "LOCAL_VERIFIED",
+    "w5": "NEEDS_APPROVAL"
+   },
+   "checks": {
+    "overall": true,
+    "exit": true,
+    "stderr_empty": true,
+    "operational_ready_false": true,
+    "modules": true,
+    "contract_codes": true,
+    "others_contract_ok": true,
+    "p7_quoted": true,
+    "quote_not_ok_when_not_quoted": true,
+    "local_success": true,
+    "w3_raw_kept": true,
+    "no_p7_from_broken_w3": true
+   }
+  },
+  {
+   "case": "E2a_w1_rc0_failed_json",
+   "ok": true,
+   "rc": 20,
+   "overall": "FAILED",
+   "modules": {
+    "w1": "FAILED",
+    "w2": "LOCAL_VERIFIED",
+    "w3": "LOCAL_VERIFIED",
+    "w4": "LOCAL_VERIFIED",
+    "w5": "NEEDS_APPROVAL"
+   },
+   "checks": {
+    "overall": true,
+    "exit": true,
+    "stderr_empty": true,
+    "operational_ready_false": true,
+    "modules": true,
+    "contract_codes": true,
+    "others_contract_ok": true,
+    "p7_quoted": true,
+    "quote_not_ok_when_not_quoted": true,
+    "local_success": true,
+    "w1_raw_kept": true
+   }
+  },
+  {
+   "case": "E2b_w1_rc0_json_missing",
+   "ok": true,
+   "rc": 20,
+   "overall": "FAILED",
+   "modules": {
+    "w1": "FAILED",
+    "w2": "LOCAL_VERIFIED",
+    "w3": "LOCAL_VERIFIED",
+    "w4": "LOCAL_VERIFIED",
+    "w5": "NEEDS_APPROVAL"
+   },
+   "checks": {
+    "overall": true,
+    "exit": true,
+    "stderr_empty": true,
+    "operational_ready_false": true,
+    "modules": true,
+    "contract_codes": true,
+    "others_contract_ok": true,
+    "p7_quoted": true,
+    "quote_not_ok_when_not_quoted": true,
+    "local_success": true,
+    "w1_raw_kept": true
+   }
+  },
+  {
+   "case": "E3_w3_contract_exit10",
+   "ok": true,
+   "rc": 10,
+   "overall": "NEEDS_DATA",
+   "modules": {
+    "w1": "LOCAL_VERIFIED",
+    "w2": "LOCAL_VERIFIED",
+    "w3": "NEEDS_DATA",
+    "w4": "LOCAL_VERIFIED",
+    "w5": "NEEDS_APPROVAL"
+   },
+   "checks": {
+    "overall": true,
+    "exit": true,
+    "stderr_empty": true,
+    "operational_ready_false": true,
+    "modules": true,
+    "contract_codes": true,
+    "others_contract_ok": true,
+    "p7_quoted": true,
+    "quote_not_ok_when_not_quoted": true,
+    "local_success": true
+   }
+  },
+  {
+   "case": "N1_normal_integrated",
+   "ok": true,
+   "rc": 5,
+   "overall": "NEEDS_APPROVAL",
+   "modules": {
+    "w1": "LOCAL_VERIFIED",
+    "w2": "LOCAL_VERIFIED",
+    "w3": "LOCAL_VERIFIED",
+    "w4": "LOCAL_VERIFIED",
+    "w5": "NEEDS_APPROVAL"
+   },
+   "checks": {
+    "overall": true,
+    "exit": true,
+    "stderr_empty": true,
+    "operational_ready_false": true,
+    "modules": true,
+    "contract_codes": true,
+    "others_contract_ok": true,
+    "p7_quoted": true,
+    "quote_not_ok_when_not_quoted": true,
+    "local_success": true
+   }
+  }
+ ]
+}

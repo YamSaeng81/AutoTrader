@@ -1,0 +1,6 @@
+PASS B1_orders_not_provided rc=10 BUILT_WITH_UNCONFIRMED
+PASS B2a_orders_key_missing rc=20 PARTIAL
+PASS B2b_orders_type_invalid rc=20 PARTIAL
+PASS B3_empty_orders_with_other rc=0 BUILT_CORE_CONFIRMED
+PASS B4_session_fail_with_other rc=20 PARTIAL
+5/5 기대대로 (R1 직접 영향 4경계·5변형, 합성 입력, 기대 금액은 cases_w4 손 계산)

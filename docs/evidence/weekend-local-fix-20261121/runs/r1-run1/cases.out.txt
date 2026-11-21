@@ -1,0 +1,6 @@
+FAIL B1_orders_not_provided rc=10 BUILT_WITH_UNCONFIRMED {'verdict': True, 'exit': True, 'stderr_empty': True, 'LIVE#203.month_pnl': True, 'LIVE#203.month_pnl_status': True, 'LIVE#203.trade_state': True, 'LIVE#203.identity_check': True, 'LIVE#203.orders_source': True, 'LIVE#203.realized_in_period': True, 'LIVE#203.fees_paid': True, 'LIVE#203.buy_funds': True, 'LIVE#203.round_trips_closed': True, 'LIVE#203.wins': True, 'LIVE#203.losses': True, 'LIVE#203.unrealized_change': True, 'included.zero_trade': True, 'included.orders_source_missing': True, 'agg_real': True, 'orders_source_missing': True, 'md_row': False, 'source_map_reason': True, 'no_zero_from_missing': True}
+PASS B2a_orders_key_missing rc=20 PARTIAL
+PASS B2b_orders_type_invalid rc=20 PARTIAL
+PASS B3_empty_orders_with_other rc=0 BUILT_CORE_CONFIRMED
+PASS B4_session_fail_with_other rc=20 PARTIAL
+4/5 기대대로 (R1 직접 영향 4경계·5변형, 합성 입력, 기대 금액은 cases_w4 손 계산)

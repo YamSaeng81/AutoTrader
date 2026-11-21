@@ -1,0 +1,7 @@
+PASS E1a_w1_success_json_rc42 rc=20 전체 FAILED {'w1': 'FAILED', 'w2': 'LOCAL_VERIFIED', 'w3': 'LOCAL_VERIFIED', 'w4': 'LOCAL_VERIFIED', 'w5': 'NEEDS_APPROVAL'}
+PASS E1b_w3_success_json_rc40 rc=20 전체 FAILED {'w1': 'LOCAL_VERIFIED', 'w2': 'LOCAL_VERIFIED', 'w3': 'FAILED', 'w4': 'LOCAL_VERIFIED', 'w5': 'NEEDS_APPROVAL'}
+PASS E2a_w1_rc0_failed_json rc=20 전체 FAILED {'w1': 'FAILED', 'w2': 'LOCAL_VERIFIED', 'w3': 'LOCAL_VERIFIED', 'w4': 'LOCAL_VERIFIED', 'w5': 'NEEDS_APPROVAL'}
+PASS E2b_w1_rc0_json_missing rc=20 전체 FAILED {'w1': 'FAILED', 'w2': 'LOCAL_VERIFIED', 'w3': 'LOCAL_VERIFIED', 'w4': 'LOCAL_VERIFIED', 'w5': 'NEEDS_APPROVAL'}
+FAIL E3_w3_contract_exit10 rc=20 전체 FAILED {'w1': 'LOCAL_VERIFIED', 'w2': 'LOCAL_VERIFIED', 'w3': 'FAILED', 'w4': 'LOCAL_VERIFIED', 'w5': 'NEEDS_APPROVAL'} {'overall': False, 'exit': True, 'stderr_empty': True, 'operational_ready_false': True, 'modules': False, 'contract_codes': True, 'others_contract_ok': True, 'p7_quoted': True, 'quote_not_ok_when_not_quoted': True, 'local_success': False}
+PASS N1_normal_integrated rc=5 전체 NEEDS_APPROVAL {'w1': 'LOCAL_VERIFIED', 'w2': 'LOCAL_VERIFIED', 'w3': 'LOCAL_VERIFIED', 'w4': 'LOCAL_VERIFIED', 'w5': 'NEEDS_APPROVAL'}
+5/6 기대대로 (R2 3경계·5변형 + 정상 통합 1회, 합성 입력, 운영 준비 표시 0)

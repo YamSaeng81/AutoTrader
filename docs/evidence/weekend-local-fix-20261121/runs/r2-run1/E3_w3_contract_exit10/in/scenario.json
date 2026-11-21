@@ -1,0 +1,27 @@
+{
+ "scenario_version": "offline-scenario-1",
+ "name": "E3_w3_contract_exit10",
+ "synthetic": true,
+ "w1": {
+  "registry": "registry.json",
+  "registry_sha256": "279b8e4889e45b2eef1d9d877db7642f0086258792691b3dccbd5e9f4339b20c",
+  "observed": "f1_observed.json"
+ },
+ "w2": {
+  "registry": "registry.json",
+  "registry_sha256": "279b8e4889e45b2eef1d9d877db7642f0086258792691b3dccbd5e9f4339b20c",
+  "state": "n03_state.json",
+  "p7_from_w3": true
+ },
+ "w3": {
+  "db_bundle": "..\\..\\..\\..\\..\\dec-collect-assembler-commit-20261120\\run1\\normal\\bundle.json"
+ },
+ "w4": {
+  "manifest": "w4in\\manifest.json"
+ },
+ "w5": {
+  "plan": "dynamic_plan.json",
+  "dto_java": "..\\..\\..\\..\\..\\weekend-local-20261120\\fixtures\\w5\\DynamicSessionRequest.d81c3f2f.java.txt",
+  "limits_java": "..\\..\\..\\..\\..\\weekend-local-20261120\\fixtures\\w5\\DynamicEntryLimits.d81c3f2f.java.txt"
+ }
+}
