@@ -1,0 +1,27 @@
+{
+  "decision_date_kst": "2026-11-23",
+  "decision_source": "User confirmed combined principal KRW 100000 and maximum December loss 40 percent; reconsider for later periods",
+  "currency": "KRW",
+  "period_from_kst": "2026-12-01T00:00:00+09:00",
+  "period_to_exclusive_kst": "2027-01-01T00:00:00+09:00",
+  "combined_principal_budget": 100000,
+  "maximum_december_loss_krw": 40000,
+  "maximum_december_loss_fraction": "0.40",
+  "loss_threshold_applies_during_month_not_only_at_month_end": true,
+  "includes_existing_sid203_budget": true,
+  "first_stage": {
+    "kind": "LIVE",
+    "session_id": 203,
+    "capital_from_existing_plan": 20200,
+    "capital_is_not_an_observed_account_balance": true,
+    "start_authorized_by_this_file": false
+  },
+  "remaining_budget_before_dynamic_allocation": 79800,
+  "remaining_budget_is_not_observed_cash_base": true,
+  "dynamic_allocation": null,
+  "existing_stricter_risk_controls_preserved": true,
+  "runtime_monthly_limit_configured": false,
+  "fund_transfer_or_order_authorized_by_this_file": false,
+  "automatic_replenishment_or_restart_authorized": false,
+  "applies_to_period_after_december": false
+}
