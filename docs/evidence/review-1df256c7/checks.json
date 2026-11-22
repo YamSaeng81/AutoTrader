@@ -1,0 +1,101 @@
+{
+  "baseline": "1df256c7f50934a547d3f33d96523dd1c424e163",
+  "checks": [
+    {
+      "name": "Committed and working manifests",
+      "ok": true,
+      "detail": {
+        "entries": 820,
+        "folders": {
+          "parallel-monitor-followup-20261121": 784,
+          "n03-1122-1000": 18,
+          "n03-1122-2200": 18
+        },
+        "committed_mismatches": [],
+        "working_mismatches": []
+      }
+    },
+    {
+      "name": "Saved PG 2 boundaries",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Saved synthetic link 4 cases",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Saved final fake SSH 8 cases",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Saved critical failure distinctions",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Fixed read source hashes",
+      "ok": true,
+      "detail": {
+        "sql/state-3.sql": "6d71df61a59d144afe9cfa1affc250c6e219c6195612aa97d2580fa8de1bec6b",
+        "candidate/convert_state_4.py": "1416564e5df04cc7b59b5e4eaafce50a096c02a7ce333dd661ffb8d8be8edfcd",
+        "candidate/make_aux2.py": "bde58ccb40af3a18d65d624b98edb5065486fee4f082d366291e16a2f5c50cbd",
+        "approval/pm-read-2.sh": "fa767e7d2337d6fcbee0636d2ff270bafab9f0121c52f0b2089f482306ce1e1c"
+      }
+    },
+    {
+      "name": "Stored REAL kind retained on current-mode mismatch",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Explicit read pins and server until",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Post and read completion markers present",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "n03-1122-1000 four server hashes",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "n03-1122-1000 fixed reader",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "n03-1122-2200 four server hashes",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "n03-1122-2200 fixed reader",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Day FE unknown and night FE observed are separate",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Night saved successful read and empty stderr",
+      "ok": true,
+      "detail": null
+    }
+  ],
+  "passed": 15,
+  "total": 15,
+  "tests_rerun": false,
+  "production_access": false,
+  "settings_read_or_changed": false,
+  "compose_env_on_production_verified": false,
+  "official_compose_reference": "https://docs.docker.com/reference/cli/docker/compose/exec/"
+}
