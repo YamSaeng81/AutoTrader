@@ -1,0 +1,367 @@
+{
+  "review": "v1.227",
+  "reviewed_head": "b76f9d5e8e1a0a3eaa24abcae6f00a54966c834d",
+  "scope": "Git and stored files; two new function-only A3 clock probes and decimal arithmetic; no stored test suite rerun, shell runner, production, network, SQL, Docker, PG, build, reservation or account call",
+  "commit_files": 70,
+  "commit_raw_byte_matching": 68,
+  "management_files_equal_after_LF_normalization": [
+    "docs/CURRENT_HANDOFF.md",
+    "docs/PROGRESS.md"
+  ],
+  "commit_evidence_raw_byte_matching": 68,
+  "committed_file_sha256": {
+    "docs/CURRENT_HANDOFF.md": "064ef9b7c2f902e66839bf421b23e03ee52c398e58be8e6fc3a3cc5d4ed83f07",
+    "docs/PROGRESS.md": "fd054a0a4c73d7677a57618a61b62dc051506c0560b3bf19ae40baf966162a29",
+    "docs/evidence/a2-fail-export-20261123/.gitattributes": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+    "docs/evidence/a2-fail-export-20261123/README.md": "d175f21b26250dfcc5e4d2af7d9c46c5dd3a569fc48f72d66354ccc0b25b4937",
+    "docs/evidence/a2-fail-export-20261123/SHA256SUMS": "07349cd2194589a84dea89e07da01ec48286178cfb6003152ccc8aac5bf4e42e",
+    "docs/evidence/a2-fail-export-20261123/U0.a2fix.sh": "91ea93428ab4dc4f515d2497d388b4ccd75d4dcb48a1be1089468a3a433f1457",
+    "docs/evidence/a2-fail-export-20261123/U0.diff": "829b2c42086db0d747578e3219e7268fd70e6be533d21bbb4277eac397eedd13",
+    "docs/evidence/a2-fail-export-20261123/runs/r1/detect-calls.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/a2-fail-export-20261123/runs/r1/fix-empty/console.txt": "d5defd8e4071b0e4955fd2aac41bdd7c6aefbad50c58403fd2e167a92a0ae01f",
+    "docs/evidence/a2-fail-export-20261123/runs/r1/fix-empty/maint/predeploy-read.sql": "b4e0497804e46e0a0b0b8c31975b062152d551bac49c3c2e80932567b4085dcd",
+    "docs/evidence/a2-fail-export-20261123/runs/r1/fix-empty/maint/predeploy-read.txt": "2a6f7e25b61150f4436c5c6974c941a7430fcc57de6c81a26f261a476912e392",
+    "docs/evidence/a2-fail-export-20261123/runs/r1/fix-fmt/console.txt": "0ac41271f06dcb990c0c7d466259318c4b4efd5cdf6e5674b02b74713b1f0ac9",
+    "docs/evidence/a2-fail-export-20261123/runs/r1/fix-fmt/maint/predeploy-read.sql": "b4e0497804e46e0a0b0b8c31975b062152d551bac49c3c2e80932567b4085dcd",
+    "docs/evidence/a2-fail-export-20261123/runs/r1/fix-fmt/maint/predeploy-read.txt": "f7f1fdfde474167f6c01caaa39a92fdc788ffda2ee84b59da46a458dea668f00",
+    "docs/evidence/a2-fail-export-20261123/runs/r1/fix-fmt/maint/predeploy-verdict.txt": "3a41b764a34cbf72c86c6880a91d18ebea3f5432072ac5a308e0c6ea28737fbf",
+    "docs/evidence/a2-fail-export-20261123/runs/r1/fix-odir/console.txt": "fe3cfbf8423f87b67fcfcca0dcaabdf017d0d1cc537aa55ba6f3ac7e7e09d97b",
+    "docs/evidence/a2-fail-export-20261123/runs/r1/fix-odir/maint/predeploy-read.sql": "b4e0497804e46e0a0b0b8c31975b062152d551bac49c3c2e80932567b4085dcd",
+    "docs/evidence/a2-fail-export-20261123/runs/r1/fix-ok/console.txt": "b2bfa2aaa75042e8e52a61039e11e4776d0b12dd733b24d937d08f9582a7fccc",
+    "docs/evidence/a2-fail-export-20261123/runs/r1/fix-ok/maint/ok-U0": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/a2-fail-export-20261123/runs/r1/fix-ok/maint/predeploy-read.sql": "b4e0497804e46e0a0b0b8c31975b062152d551bac49c3c2e80932567b4085dcd",
+    "docs/evidence/a2-fail-export-20261123/runs/r1/fix-ok/maint/predeploy-read.txt": "dd554f7da481bec75be2fb8b75dd219e69f710ce7e4cfa71f3084be1eecf7916",
+    "docs/evidence/a2-fail-export-20261123/runs/r1/fix-ok/maint/predeploy-verdict.txt": "e87059a0156e78324c692e7fc72697fb2b81bbb4811c4870f4aefad65ab2ba90",
+    "docs/evidence/a2-fail-export-20261123/runs/r1/fix-partial/console.txt": "487e09aac2817ec9be3f97e5d76b5be32efe00a96c8f372bfa416686f2ae2e6e",
+    "docs/evidence/a2-fail-export-20261123/runs/r1/fix-partial/maint/predeploy-read.sql": "b4e0497804e46e0a0b0b8c31975b062152d551bac49c3c2e80932567b4085dcd",
+    "docs/evidence/a2-fail-export-20261123/runs/r1/fix-partial/maint/predeploy-read.txt": "24decb7530e560f5e87dfcc7490e739c4d8dbc37c4af8dd41265ce91b53625a2",
+    "docs/evidence/a2-fail-export-20261123/runs/r1/fix-r1/console.txt": "067c30a340a8706138055aac36ba8449835962fba228e142223c9275c6db7069",
+    "docs/evidence/a2-fail-export-20261123/runs/r1/fix-r1/maint/predeploy-read.sql": "b4e0497804e46e0a0b0b8c31975b062152d551bac49c3c2e80932567b4085dcd",
+    "docs/evidence/a2-fail-export-20261123/runs/r1/fix-r1/maint/predeploy-read.txt": "2f8d8d5ddbcfc8b75a6297c5ea58d515be2267f802fa2ca449448a3bc6cdd07c",
+    "docs/evidence/a2-fail-export-20261123/runs/r1/fix-r1/maint/predeploy-verdict.txt": "f224bed963ed4b5187624bcb7b26ded4affe8ea796cdca908931f93e18472f8a",
+    "docs/evidence/a2-fail-export-20261123/runs/r1/fix-vdir/console.txt": "6d73ccbe4076b76c02e78a1512bd441966c46629e9b53fd46e8f17ed479eb792",
+    "docs/evidence/a2-fail-export-20261123/runs/r1/fix-vdir/maint/predeploy-read.sql": "b4e0497804e46e0a0b0b8c31975b062152d551bac49c3c2e80932567b4085dcd",
+    "docs/evidence/a2-fail-export-20261123/runs/r1/fix-vdir/maint/predeploy-read.txt": "dd554f7da481bec75be2fb8b75dd219e69f710ce7e4cfa71f3084be1eecf7916",
+    "docs/evidence/a2-fail-export-20261123/runs/r1/orig-ok/console.txt": "b2bfa2aaa75042e8e52a61039e11e4776d0b12dd733b24d937d08f9582a7fccc",
+    "docs/evidence/a2-fail-export-20261123/runs/r1/orig-ok/maint/ok-U0": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/a2-fail-export-20261123/runs/r1/orig-ok/maint/predeploy-read.sql": "b4e0497804e46e0a0b0b8c31975b062152d551bac49c3c2e80932567b4085dcd",
+    "docs/evidence/a2-fail-export-20261123/runs/r1/orig-ok/maint/predeploy-read.txt": "dd554f7da481bec75be2fb8b75dd219e69f710ce7e4cfa71f3084be1eecf7916",
+    "docs/evidence/a2-fail-export-20261123/runs/r1/orig-ok/maint/predeploy-verdict.txt": "e87059a0156e78324c692e7fc72697fb2b81bbb4811c4870f4aefad65ab2ba90",
+    "docs/evidence/a2-fail-export-20261123/runs/r1/orig-partial/console.txt": "b572cb5a8e7bcdde28a1d7172a17312b12721160eedbff9a80def900273cbfbe",
+    "docs/evidence/a2-fail-export-20261123/runs/r1/orig-partial/maint/predeploy-read.sql": "b4e0497804e46e0a0b0b8c31975b062152d551bac49c3c2e80932567b4085dcd",
+    "docs/evidence/a2-fail-export-20261123/runs/r1/orig-partial/maint/predeploy-read.txt": "24decb7530e560f5e87dfcc7490e739c4d8dbc37c4af8dd41265ce91b53625a2",
+    "docs/evidence/a2-fail-export-20261123/runs/r1/psql-calls.txt": "7fe306293ed2186a18ee282cb142b398de41a72133c3ee6749b51abad24d0a82",
+    "docs/evidence/a2-fail-export-20261123/runs/r1/results.tsv": "6fd90ce08f488a05f1e354f8b5572bdbac9521b8560e8e007c13b29e26886b9c",
+    "docs/evidence/a2-fail-export-20261123/tools/detect/curl": "22c1c67983c1691569ffd5ded9573f9dd37d484af0710d98cf5b9caed932ee5b",
+    "docs/evidence/a2-fail-export-20261123/tools/detect/docker": "4c9f7b2c7fdd249d1e43ece27d6fd75163cdb79a5b253f8b498d85a60350da22",
+    "docs/evidence/a2-fail-export-20261123/tools/detect/git": "bc19821b92f5f2a3652dd93ca29efb3fe857f675e037ba922343dd3f5298de35",
+    "docs/evidence/a2-fail-export-20261123/tools/detect/nc": "d80e3a4794e3d256fdef5060bdfbc6c8e36bbc7ab3e50265d81eb88ef26469fe",
+    "docs/evidence/a2-fail-export-20261123/tools/detect/psql": "d1e5953e2d508dfeb279601ae689747e71d3aebd5b9f2ee82b6efb6baf765a58",
+    "docs/evidence/a2-fail-export-20261123/tools/detect/scp": "ab27c2929e236b14b632fdee4bf7799764ae477b6ba4607803bda81c54186d95",
+    "docs/evidence/a2-fail-export-20261123/tools/detect/sftp": "489eb495dd836d813da6290a44777972b7bf7383999198be5db6ce7d5a9798b0",
+    "docs/evidence/a2-fail-export-20261123/tools/detect/ssh": "f39de70d509aafc7939f837002b632f0d2afe69c17d9da477057882013c10bf2",
+    "docs/evidence/a2-fail-export-20261123/tools/detect/telnet": "6b03ffe93a9442ee25aa16fa7035ed4bb71cfd8e6a7c53a1ebd3fa898ee4d05d",
+    "docs/evidence/a2-fail-export-20261123/tools/detect/wget": "c47b213b24d7a841540766e053dfa3655cce8cc65693f62ea8d7af21244932bc",
+    "docs/evidence/a2-fail-export-20261123/tools/fake-psql.sh": "2271de2dfd97cfd8f1492d1ba9df00b8642c01f3a112adf01c97f2596ee19021",
+    "docs/evidence/a2-fail-export-20261123/tools/make-seg.sh": "6b9fd5e82f559a7f78715571d6daac79f98b96dc67fedc3a2ef42c016d462b89",
+    "docs/evidence/a2-fail-export-20261123/tools/run-a2.sh": "4430eeaf1d94af7f30dcb94fb64bd6598973f8e70d3b2834a0586456c5d34108",
+    "docs/evidence/a2-fail-export-20261123/tools/seg-fix.sh": "86e3fc38fb2d857aad283e99f6b30e1cd990d38654d8cc10619cc52888b77de6",
+    "docs/evidence/a2-fail-export-20261123/tools/seg-orig.sh": "293fbc83b5cd574e8241f6d60d8754739fffce131eea35d06dcdf971dae33a38",
+    "docs/evidence/bundle-1124-r2-20261123/.gitattributes": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+    "docs/evidence/bundle-1124-r2-20261123/README.md": "fdad87c62d13078c5438f8790c9895bb8b04a0a2d0600722e840d7215b24a925",
+    "docs/evidence/bundle-1124-r2-20261123/SHA256SUMS": "483f127cf8cef439e64c74917f011bff31469efdc925355f1c8bbc2442de7d4e",
+    "docs/evidence/bundle-1124-r2-20261123/a3/a3-r1.tsv": "b0a505abf54e55808ae946c6222c61a69415f9fde7eece6f955c0e2ebb7df551",
+    "docs/evidence/bundle-1124-r2-20261123/a3/a3calc.py": "81efc4f4be2cd15631c2e3aa83ae077fe8e996462c018f11cffb65c36f07b294",
+    "docs/evidence/bundle-1124-r2-20261123/a3/cases/c1-round-two.json": "3390a35513a646d2f774df5c56c8e4ab2824beab0858206c6fec1a0e91793a24",
+    "docs/evidence/bundle-1124-r2-20261123/a3/cases/c2-boundary-need.json": "ae8aeb25c9efc2b4dc78c7da3f0e05aaed6bdcf4a6839c64ffc023eeaea5b4d0",
+    "docs/evidence/bundle-1124-r2-20261123/a3/cases/c3-enough.json": "9d7e34e14ff3d3ee3b266fc07e71151151544f41ee8a55e29272d21c46591cc9",
+    "docs/evidence/bundle-1124-r2-20261123/a3/cases/c4-unexplained.json": "bc2fb35fc6a87b0d07994388306d5c3fbe172cfec23f9418fdf09af731f984e9",
+    "docs/evidence/bundle-1124-r2-20261123/a3/cases/c5-active-order.json": "967a340cddcf25fc11529347d7735ccd7206c2f310a56cb64a93a7c7c8256858",
+    "docs/evidence/bundle-1124-r2-20261123/a3/cases/c6-error.json": "c802bb1f062e6900dc45ab2943358bc29496ec52b38078aa14ea030ddc2ce9ec",
+    "docs/evidence/bundle-1124-r2-20261123/a3/cases/c7-no-time.json": "5d06530ffea3cafbea22a64e49785b91614b0cb3199b4423c0969a609b8a06f7",
+    "docs/evidence/bundle-1124-r2-20261123/a3/cases/c8-gap-event.json": "09da20e0445bf9b80a0aa87d381616b8425d8ce75380b291804f681785ce0ac9"
+  },
+  "manifest_counts_worktree_and_commit": {
+    "docs/evidence/a2-fail-export-20261123/SHA256SUMS": 53,
+    "docs/evidence/bundle-1124-r2-20261123/SHA256SUMS": 11
+  },
+  "manifest_entries_equal": 64,
+  "manifest_omissions": [],
+  "a2": {
+    "old_u0_sha256": "736351dbaddab38212ee36d44aca30160b336ebcc58fff28a24b58d0803bb9cd",
+    "new_u0_sha256": "91ea93428ab4dc4f515d2497d388b4ccd75d4dcb48a1be1089468a3a433f1457",
+    "same_first_lines": 103,
+    "replace_old_line": 104,
+    "new_lines": [
+      104,
+      105
+    ],
+    "suffix_unchanged": true,
+    "stored_rows": [
+      {
+        "case": "ok",
+        "seg": "fix",
+        "rc": "0",
+        "okU0": "yes",
+        "sentinel_console": "0",
+        "fail_line": "0",
+        "hash_match": "-",
+        "file_kept": "yes"
+      },
+      {
+        "case": "partial",
+        "seg": "fix",
+        "rc": "1",
+        "okU0": "no",
+        "sentinel_console": "0",
+        "fail_line": "1",
+        "hash_match": "yes",
+        "file_kept": "yes"
+      },
+      {
+        "case": "empty",
+        "seg": "fix",
+        "rc": "1",
+        "okU0": "no",
+        "sentinel_console": "0",
+        "fail_line": "1",
+        "hash_match": "yes",
+        "file_kept": "yes"
+      },
+      {
+        "case": "odir",
+        "seg": "fix",
+        "rc": "1",
+        "okU0": "no",
+        "sentinel_console": "0",
+        "fail_line": "1",
+        "hash_match": "-",
+        "file_kept": "no"
+      },
+      {
+        "case": "vdir",
+        "seg": "fix",
+        "rc": "1",
+        "okU0": "no",
+        "sentinel_console": "0",
+        "fail_line": "0",
+        "hash_match": "-",
+        "file_kept": "yes"
+      },
+      {
+        "case": "fmt",
+        "seg": "fix",
+        "rc": "1",
+        "okU0": "no",
+        "sentinel_console": "0",
+        "fail_line": "0",
+        "hash_match": "-",
+        "file_kept": "yes"
+      },
+      {
+        "case": "r1",
+        "seg": "fix",
+        "rc": "1",
+        "okU0": "no",
+        "sentinel_console": "0",
+        "fail_line": "0",
+        "hash_match": "-",
+        "file_kept": "yes"
+      },
+      {
+        "case": "ok",
+        "seg": "orig",
+        "rc": "0",
+        "okU0": "yes",
+        "sentinel_console": "0",
+        "fail_line": "0",
+        "hash_match": "-",
+        "file_kept": "yes"
+      },
+      {
+        "case": "partial",
+        "seg": "orig",
+        "rc": "1",
+        "okU0": "no",
+        "sentinel_console": "2",
+        "fail_line": "0",
+        "hash_match": "-",
+        "file_kept": "yes"
+      }
+    ],
+    "tripwire_bytes": 0,
+    "fake_psql_calls_stored": 8,
+    "original_partial_sentinel_lines": 2,
+    "fixed_sentinel_lines": 0,
+    "known_verdict_write_failure": "rc1, no ok-U0; fixed reason not printed. Accept fail-closed limitation; no cat || true modification required.",
+    "old_extractor_and_runner_reject_new_u0_by_hash": true,
+    "full_U0_or_U1_tested": false
+  },
+  "a3": {
+    "stored_eight_rows_have_expected_OK": true,
+    "calculator_sha256": "81efc4f4be2cd15631c2e3aa83ae077fe8e996462c018f11cffb65c36f07b294",
+    "new_function_only_clock_probes": [
+      {
+        "input": {
+          "expect": "충분",
+          "need": "79800",
+          "t0": "2026-11-30T23:30:00Z",
+          "t1": "2026-11-30T23:30:02Z",
+          "db": "2020-01-01T00:00:00Z",
+          "acct": {
+            "availableKrw": 100001,
+            "lockedKrw": 0,
+            "totalKrwBalance": 100001,
+            "fetchedAt": "2026-11-30T23:30:01Z"
+          },
+          "sessions": [
+            {
+              "sid": 203,
+              "available_krw": "20200.00"
+            }
+          ]
+        },
+        "actual_verdict": "충분",
+        "actual_message": "미배정 원천 범위 [79800.50, 79801.50)"
+      },
+      {
+        "input": {
+          "expect": "충분",
+          "need": "79800",
+          "t0": "2026-11-30T23:30:00Z",
+          "t1": "2026-11-30T23:30:02Z",
+          "db": "2027-01-01T00:00:00Z",
+          "acct": {
+            "availableKrw": 100001,
+            "lockedKrw": 0,
+            "totalKrwBalance": 100001,
+            "fetchedAt": "2026-11-30T23:30:01Z"
+          },
+          "sessions": [
+            {
+              "sid": 203,
+              "available_krw": "20200.00"
+            }
+          ]
+        },
+        "actual_verdict": "충분",
+        "actual_message": "미배정 원천 범위 [79800.50, 79801.50)"
+      }
+    ],
+    "issue": "DB time checked only for nonempty value, not used for clock relation, interval stability or ordering. Missing counts default to zero.",
+    "stored_eight_rows": [
+      [
+        "c1-round-two.json",
+        "범위만",
+        "기대 범위만",
+        "OK",
+        "미배정 원천 범위 [0.5, 1.5) · 참고: availableKrw+lockedKrw=0 ≠ totalKrwBalance=1(각각 반올림, 판정에 쓰지 않음)"
+      ],
+      [
+        "c2-boundary-need.json",
+        "미확정",
+        "기대 미확정",
+        "OK",
+        "미배정 원천 범위 [79799.50, 79800.50) · 필요 79800 가 범위 안 — 반올림 경계"
+      ],
+      [
+        "c3-enough.json",
+        "충분",
+        "기대 충분",
+        "OK",
+        "미배정 원천 범위 [79800.50, 79801.50)"
+      ],
+      [
+        "c4-unexplained.json",
+        "보류",
+        "기대 보류",
+        "OK",
+        "계좌 KRW 총액 99990 이 기록 기대 100000 의 반올림 범위 밖 — 확정 설명 없는 차이, 허용 오차로 흡수하지 않고 보고"
+      ],
+      [
+        "c5-active-order.json",
+        "보류",
+        "기대 보류",
+        "OK",
+        "구간 안 주문/체결·진행 주문·정리 대기 또는 묶인 KRW 있음 — 예약/배정 중복 차감을 피하려 산출하지 않는다"
+      ],
+      [
+        "c6-error.json",
+        "미확정",
+        "기대 미확정",
+        "OK",
+        "계좌 조회 실패/KRW 필드 없음 — 0으로 채우지 않는다"
+      ],
+      [
+        "c7-no-time.json",
+        "보류",
+        "기대 보류",
+        "OK",
+        "호출 전후 구간(t0≤fetchedAt≤t1)·DB 시각이 없음 — 계좌와 장부의 시각 관계 미정"
+      ],
+      [
+        "c8-gap-event.json",
+        "보류",
+        "기대 보류",
+        "OK",
+        "구간 안 주문/체결·진행 주문·정리 대기 또는 묶인 KRW 있음 — 예약/배정 중복 차감을 피하려 산출하지 않는다"
+      ]
+    ]
+  },
+  "monthly_arithmetic_examples": [
+    {
+      "case": "filled_buy_no_price_change",
+      "initial_equity": "20200",
+      "cash": "195",
+      "reservation": "0",
+      "position_market_value": "20000",
+      "buy_funds": "20000",
+      "buy_fee": "5",
+      "cash_minus_initial": "-20005",
+      "equity_pnl_after_net_flows": "-5"
+    },
+    {
+      "case": "unfilled_buy_reservation",
+      "initial_equity": "20200",
+      "cash": "200",
+      "reservation": "20000",
+      "position_market_value": "0",
+      "cash_minus_initial": "-20000",
+      "equity_pnl_after_net_flows": "0"
+    }
+  ],
+  "monthly_issues": [
+    "available_krw minus initial allocation is not realized or equity PnL when inventory or reservations exist",
+    "old scorecard-v2 is superseded by converter-v4 / scorecard-v5 / W4-R1",
+    "no new order is insufficient proof of unchanged fees, settlements and boundary prices",
+    "manual stop thresholds do not guarantee prior execution before another threshold",
+    "N03 read does not by itself collect the monthly sources"
+  ],
+  "immutable_sources_unchanged": {
+    "docs/evidence/review-1df256c7/README.md": "4cf96bde22ce8e2cf953caef2554338adf26ae1c7998f2bc2646f853594209e4",
+    "docs/evidence/review-1df256c7/preflight-remote.sh": "63b7819cc3f0bd779caa9cec9b6227b7656e0c7a6118361bd0515569585b597a",
+    "docs/evidence/parallel-monitor-followup-20261121/approval/pm-read-2.sh": "fa767e7d2337d6fcbee0636d2ff270bafab9f0121c52f0b2089f482306ce1e1c",
+    "docs/LIMITED_LIVE_TEST_RUNBOOK.md": "fe16cb2eb01c56dd727ce9b053b7d75ed40316223cc463b773e1b205403f32c0",
+    "docs/evidence/dec-launch-order-20261123/README.md": "20e4a31e3bc8ec7e190a4b085ef406cec5ea743dd1b5317358ec3ba59a3a46ad",
+    "docs/evidence/dec-launch-order-20261123/budget.json": "6be4b598cdef7960c882319aac90965f9b30474273243131a7571d0138f69956",
+    "docs/evidence/parallel-monitor-followup-20261121/sql/state-3.sql": "6d71df61a59d144afe9cfa1affc250c6e219c6195612aa97d2580fa8de1bec6b",
+    "docs/evidence/dec-costbasis-followup-20261119/predeploy-v3/predeploy_read.v3.sql": "ca6e7c8d6cc67ee967ac21b7847f7230cc859dc3cb9dc895da6f7694dfe26aa3",
+    "docs/evidence/n03-1123-1000/read.sh": "41e4f33747f47ed4089ffe8ca192964529cfea24b8d150a7b1a8300c572f73ad"
+  },
+  "reservation": {
+    "id": "4bc9e12a",
+    "registered_at_KST": "2026-11-23 14:17",
+    "scheduled_at_KST": "2026-11-23 22:14",
+    "state": "developer-reported registration only; reviewer did not query or register"
+  },
+  "unrelated_untracked_directory": "%SystemDrive%/ not read, changed or staged",
+  "operations_approval": "none added; existing N03 scope only",
+  "reviewer_audit_note": "First audit asserted raw equality for CURRENT_HANDOFF. It differs only by Git LF/CRLF normalization; evidence raw bytes are separately checked.",
+  "document_validation": {
+    "local_links_checked": 195,
+    "broken_links": 0,
+    "unexpected_glyphs": 0,
+    "historical_0821_handoff_preserved": true,
+    "reviewer_draft_note": "Transient foreign drafting glyphs removed before sealing; no stored source changed."
+  }
+}
