@@ -1,0 +1,8 @@
+c1-round-two.json	범위만	기대 범위만	OK	미배정 원천 범위 [0.5, 1.5) · 참고: availableKrw+lockedKrw=0 ≠ totalKrwBalance=1(각각 반올림, 판정에 쓰지 않음)
+c2-boundary-need.json	미확정	기대 미확정	OK	미배정 원천 범위 [79799.50, 79800.50) · 필요 79800 가 범위 안 — 반올림 경계
+c3-enough.json	충분	기대 충분	OK	미배정 원천 범위 [79800.50, 79801.50)
+c4-unexplained.json	보류	기대 보류	OK	계좌 KRW 총액 99990 이 기록 기대 100000 의 반올림 범위 밖 — 확정 설명 없는 차이, 허용 오차로 흡수하지 않고 보고
+c5-active-order.json	보류	기대 보류	OK	구간 안 주문/체결·진행 주문·정리 대기 또는 묶인 KRW 있음 — 예약/배정 중복 차감을 피하려 산출하지 않는다
+c6-error.json	미확정	기대 미확정	OK	계좌 조회 실패/KRW 필드 없음 — 0으로 채우지 않는다
+c7-no-time.json	보류	기대 보류	OK	호출 전후 구간(t0≤fetchedAt≤t1)·DB 시각이 없음 — 계좌와 장부의 시각 관계 미정
+c8-gap-event.json	보류	기대 보류	OK	구간 안 주문/체결·진행 주문·정리 대기 또는 묶인 KRW 있음 — 예약/배정 중복 차감을 피하려 산출하지 않는다

@@ -1,0 +1,12 @@
+--- docs/evidence/d81d4r-20261120/runner/extract-cd8bd76f/U0.sh	2026-11-20 10:18:26.471585000 +0900
++++ docs/evidence/a2-fail-export-20261123/U0.a2fix.sh	2026-11-23 14:18:55.053621000 +0900
+@@ -101,7 +101,8 @@
+ echo "frontend 는 이 판에서 빌드·태그·재생성하지 않는다 — 시작 기동 기록(svc-before.txt frontend 줄)과 U0 대응(image-fe-before-chain.txt)을 U4 까지 직접 대조한다"
+ gsok || stop "GS(관문·조회문 고정 커밋)가 미정이거나 없음"
+ git show "$GS:$PFP" > "$M/predeploy-read.sql" && [ "$(h256 "$M/predeploy-read.sql")" = "$PFSUM" ] || stop "배포 전 읽기 v3 원문·해시가 다름"
+-$PSQL -At -F ' | ' < "$M/predeploy-read.sql" > "$M/predeploy-read.txt" 2>&1 || { cat "$M/predeploy-read.txt"; stop "🔴 배포 전 읽기 v3 조회 실패 — 배포 전 중단·보고(빌드·체크아웃·재기동으로 넘어가지 않는다)"; }
++PR=0; $PSQL -At -F ' | ' < "$M/predeploy-read.sql" > "$M/predeploy-read.txt" 2>&1 || PR=$?   # v1.226 §3-1 A2 실패 반출 보정: 실패 원문(부분 R3 금액 행·오류 문구)은 서버 $M 에만 둔다
++[ "$PR" = 0 ] || { PH=$(h256 "$M/predeploy-read.txt" 2>/dev/null) || PH=불명; stop "🔴 배포 전 읽기 v3 조회 실패(종료 $PR) — 원문은 콘솔에 내보내지 않고 서버에만 보존: $M/predeploy-read.txt sha256 $PH — 배포 전 중단·보고(빌드·체크아웃·재기동으로 넘어가지 않는다)"; }
+ pf3ok "$M/predeploy-read.txt" > "$M/predeploy-verdict.txt" && PV=0 || PV=$?; cat "$M/predeploy-verdict.txt"
+ [ "$PV" = 0 ] || stop "🔴 배포 전 읽기 v3 가 진행 가능이 아님(pf3ok 종료 $PV — 1 보수적 사전 기준 미충족 / 3 형식 이상·읽기 실패) — 배포 전 중단·보고. 한도·자본·세션·과거 행을 바꾸지 않는다(원문 predeploy-read.txt 보존)"
+ rm -f "$M/image-new.txt" "$M/image-new-chain.txt"   # V172D4 R2(D81D4 는 frontend 빌드 기록이 없다): 이번 빌드판 기록은 이 U0 뒤의 U1 만 쓴다(앞 시도 기록을 이번 빌드로 오인하지 않게, 모든 확인 통과 뒤에만 지운다)
