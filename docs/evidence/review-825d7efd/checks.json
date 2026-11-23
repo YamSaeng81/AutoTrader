@@ -1,0 +1,171 @@
+{
+  "review": "v1.229",
+  "reviewed_head": "825d7efdde35e578ad499db3a6a65f6f8a8c6e22",
+  "parent_review": "3fbf2a001ae1da295a0a4f58a3de92dcf4ef8296",
+  "scope": "Local Git and stored files; five new file-only executions of the Python projection heredoc in a disposable local directory. No shell source/runner, SSH, SQL, PG, Docker, account or reservation calls; no prior test-suite reruns.",
+  "changed_paths": 19,
+  "nondeleted_paths": 15,
+  "raw_byte_matching": 15,
+  "management_LF_normalized": [],
+  "reviewed_file_sha256": {
+    "docs/CURRENT_HANDOFF.md": "18ea9a6162fefc79ae896bccda96fad5d50b7f1eb8bbce53eb337e6412fbd652",
+    "docs/LIMITED_LIVE_TEST_PLAN.md": "91c95abb3f4cfeb4b2991d8e539c1b42502acabd64f3c03f388d25e71f5a972a",
+    "docs/PROGRESS.md": "21859ef7b35cc2900e9a68aee2f03f56d68b851fa6210aa27d99427c7be9f440",
+    "docs/evidence/bundle-1124-r4-20261123/.gitattributes": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+    "docs/evidence/bundle-1124-r4-20261123/README.md": "254bb0103e52fe16fc579b9bd1ff904dfece79a358e43cb22e243b5ca0855e74",
+    "docs/evidence/bundle-1124-r4-20261123/SHA256SUMS": "f02cb5abea8ed92aeb52a23c29a62cd2f1d44e6421854fc2b68a96a8284c5086",
+    "docs/evidence/bundle-1124-r4-20261123/a3/a3calc3.py": "ebc7439d2c755c17b4ce53c8fb4d50b2e55d37d27210fc4a3fa4a7776edcb9ad",
+    "docs/evidence/bundle-1124-r4-20261123/a3/a3v3-r1.tsv": "faae816548dbd4fdd8ecbac7ed935e4a8567e1f8557bfeaa0bfc69f6af11821c",
+    "docs/evidence/bundle-1124-r4-20261123/a3/cases/p1-db-cover-hold.json": "64285fec5dc5e13cfad3876a4703a67a815bcd1dfa060369e6e0bb62b9b0906b",
+    "docs/evidence/bundle-1124-r4-20261123/a3/cases/p2-db-cover-margin-ok.json": "10adaa7e66ec7fbcd13acd5b227e3bfd48266e2f410626693586db397fcd2fa0",
+    "docs/evidence/bundle-1124-r4-20261123/cache/ADOPTED-SHA256SUMS": "67f61f5756af9526c1e6e7d7baddf8db9a5731f4d02835e19169b1bacf6bc6da",
+    "docs/evidence/bundle-1124-r4-20261123/cache/excluded.tsv": "759005cb45c5c92f3a4864e7eee3e38f098f53e07c307f093053569107b3a2f8",
+    "docs/evidence/bundle-1124-r4-20261123/read/a3-pre.sql": "d505d08fa351a0d8d64822d9319c80e7c8210f342a3eed673531a49dd14b520b",
+    "docs/evidence/bundle-1124-r4-20261123/read/a3-preread.sh": "324d05d92dbadf56f128b3962def7eca1ddfe63c0e924e778dcb441055272091",
+    "docs/evidence/bundle-1124-r4-20261123/read/a3-remote.sh": "94db4ca967a5f990b2ac7ab0b898098a49072928afb360ff1b2b260fc24501e5"
+  },
+  "cache": {
+    "deleted_tracked_paths": [
+      "docs/evidence/d81a2-src-20261123/test/%SystemDrive%/ProgramData/Microsoft/Windows/Caches/cversions.2.db",
+      "docs/evidence/d81a2-src-20261123/test/%SystemDrive%/ProgramData/Microsoft/Windows/Caches/{14EA1ED3-BF21-444C-9DF3-C22B424E9668}.2.ver0x0000000000000001.db",
+      "docs/evidence/d81a2-src-20261123/test/%SystemDrive%/ProgramData/Microsoft/Windows/Caches/{6AF0698E-D558-4F6E-9B3C-3716689AF493}.2.ver0x0000000000000001.db",
+      "docs/evidence/d81a2-src-20261123/test/%SystemDrive%/ProgramData/Microsoft/Windows/Caches/{DDF571F2-BE98-426D-8288-1A9A39C3FDA2}.2.ver0x0000000000000001.db"
+    ],
+    "local_files_present": true,
+    "contents_read_or_hashed": false,
+    "old_manifest_sha256": "aea092741cd3b3a7c36f0808b3c84418cbb3525c6dda5adea5732037416606e2",
+    "old_manifest_preserved": true,
+    "adopted_entries_verified_worktree_old_and_current_git": 73,
+    "no_history_rewrite": true
+  },
+  "new_manifest_entries_verified": 11,
+  "immutable_sources_unchanged": {
+    "docs/evidence/review-1df256c7/README.md": "4cf96bde22ce8e2cf953caef2554338adf26ae1c7998f2bc2646f853594209e4",
+    "docs/evidence/review-1df256c7/preflight-remote.sh": "63b7819cc3f0bd779caa9cec9b6227b7656e0c7a6118361bd0515569585b597a",
+    "docs/evidence/parallel-monitor-followup-20261121/approval/pm-read-2.sh": "fa767e7d2337d6fcbee0636d2ff270bafab9f0121c52f0b2089f482306ce1e1c",
+    "docs/LIMITED_LIVE_TEST_RUNBOOK.md": "fe16cb2eb01c56dd727ce9b053b7d75ed40316223cc463b773e1b205403f32c0",
+    "docs/evidence/dec-launch-order-20261123/README.md": "20e4a31e3bc8ec7e190a4b085ef406cec5ea743dd1b5317358ec3ba59a3a46ad",
+    "docs/evidence/dec-launch-order-20261123/budget.json": "6be4b598cdef7960c882319aac90965f9b30474273243131a7571d0138f69956",
+    "docs/evidence/parallel-monitor-followup-20261121/sql/state-3.sql": "6d71df61a59d144afe9cfa1affc250c6e219c6195612aa97d2580fa8de1bec6b",
+    "docs/evidence/dec-costbasis-followup-20261119/predeploy-v3/predeploy_read.v3.sql": "ca6e7c8d6cc67ee967ac21b7847f7230cc859dc3cb9dc895da6f7694dfe26aa3",
+    "docs/evidence/n03-1123-1000/read.sh": "41e4f33747f47ed4089ffe8ca192964529cfea24b8d150a7b1a8300c572f73ad"
+  },
+  "D81A2_source": "65a384e563a90d949c94a4e343ea491939e6f5f7",
+  "d81_block_hashes_unchanged": {
+    "F": "26d392695c47fecb2321e850b07418679c1326c2a7eec13c02002056f96f4c24",
+    "G": "4d7ff02a94194fc17e11ed062b4c0fdb80a395aa282c941e7b624be95851c822",
+    "U변수": "efb96108113142132da3685669c1a034e7a3050bc891bbacbecd2891137b19fd",
+    "U0": "91ea93428ab4dc4f515d2497d388b4ccd75d4dcb48a1be1089468a3a433f1457",
+    "U1": "8d0ce7906fd04124c2c9e251614867e0389ab7a96e8ccb5fae2efae3b79b2af3",
+    "U1되돌림": "a272ab5862a97539233f9425d4efda2da077e26fe6828a0211cd99c2c5827c8b",
+    "U2": "caac178a9b7cae104584b91107c19ee5594eb0437d01b74e16935fe29803644f",
+    "U3": "cc414408aa11133279ad491d6815ac0f9ed521ce0ea87cc46e7a4ec4b204e573",
+    "U4": "979c5d85addf7f58c92cfe31aa1759438db790995d642fb530600e0676d3b740",
+    "U되돌림": "65df00d5d52430077357d9207b188de5e063f96374c33fe0c32591dca95bfe83",
+    "U뒤관측": "c748a791e87e31ad557977ce3b8c3ab3c0a82436aa4d68ffee93c07bd3d9fd31"
+  },
+  "a3": {
+    "source_sha256": "ebc7439d2c755c17b4ce53c8fb4d50b2e55d37d27210fc4a3fa4a7776edcb9ad",
+    "stored_rows": [
+      [
+        "p1-db-cover-hold.json",
+        "보류",
+        "기대 보류",
+        "OK",
+        "변화 근거가 서버 축에서 확실히 덮는 구간 2026-11-30T23:30:02~2026-11-30T23:30:03 이 두 읽기 구간 2026-11-30T23:30:00~2026-11-30T23:30:05 를 포함하지 않음"
+      ],
+      [
+        "p2-db-cover-margin-ok.json",
+        "충분",
+        "기대 충분",
+        "OK",
+        "미배정 원천 범위 [79800.50, 79801.50) · 참고 DB now()=2026-11-30T23:30:04Z(스냅숏 시각으로 쓰지 않음, DB 축 정합 확인에만 씀)"
+      ]
+    ],
+    "axis_fix_accepted": true,
+    "old_v2_preserved": true,
+    "sufficiency_source_unavailable": true
+  },
+  "projection_heredoc_sha256": "28a30e650752ec12e220aba97183a460a202eb1a8cd6186b58acd4c24d9d4f0e",
+  "new_projection_probes": {
+    "normal": {
+      "returncode": 0,
+      "stdout": "ACCT apiKeyConfigured=True error_key=False availableKrw=100000 lockedKrw=0 totalKrwBalance=100000 fetchedAt=2026-11-23T06:00:00Z btc_balance=0 btc_locked=0 btc_currentPrice=- other_holdings=0\r\nMETA\ta3-pre-1\r\nEND\t2026-11-23T06:00:00Z\r\n",
+      "stdout_sha256": "f6a829aa933bbca426d17964cc2aa6079d1cdd4c9da29df222bc25f903ae30ea",
+      "stderr_bytes": 0,
+      "synthetic_token_shape_printed": false
+    },
+    "invalid_json": {
+      "returncode": 0,
+      "stdout": "ACCT parse=fail\r\nMETA\ta3-pre-1\r\nEND\t2026-11-23T06:00:00Z\r\n",
+      "stdout_sha256": "09097642e23746e0483c5478f4a370939800f1f6ddd48a5560852a2bedad56ae",
+      "stderr_bytes": 0,
+      "synthetic_token_shape_printed": false
+    },
+    "service_error": {
+      "returncode": 0,
+      "stdout": "ACCT apiKeyConfigured=True error_key=True availableKrw=- lockedKrw=- totalKrwBalance=- fetchedAt=- btc_balance=0 btc_locked=0 btc_currentPrice=- other_holdings=0\r\nMETA\ta3-pre-1\r\nEND\t2026-11-23T06:00:00Z\r\n",
+      "stdout_sha256": "b979e90af532cdf4b1697433d98bf27f3541e943e29e1ce39ad23f2676f580f3",
+      "stderr_bytes": 0,
+      "synthetic_token_shape_printed": false
+    },
+    "no_api_key": {
+      "returncode": 0,
+      "stdout": "ACCT apiKeyConfigured=False error_key=False availableKrw=- lockedKrw=- totalKrwBalance=- fetchedAt=- btc_balance=0 btc_locked=0 btc_currentPrice=- other_holdings=0\r\nMETA\ta3-pre-1\r\nEND\t2026-11-23T06:00:00Z\r\n",
+      "stdout_sha256": "210e2ffe405c54ee3ff4d1f1c27f87d61e13e8feac4fe87b1315f3715869b2e2",
+      "stderr_bytes": 0,
+      "synthetic_token_shape_printed": false
+    },
+    "synthetic_token_in_field": {
+      "returncode": 0,
+      "stdout": "[synthetic credential-shaped sentinel present; not a real credential]",
+      "stdout_sha256": "4c52a8f438cb8977fd4ef095155882319e46e6a893b419d152fdfb65a64f4c9f",
+      "stderr_bytes": 0,
+      "synthetic_token_shape_printed": true
+    }
+  },
+  "static_read_issues": {
+    "scope": "SESS/OBUY/POS/MAXTS scan all REAL sessions; MORD filters kind+sid but has no REAL-owner gate; REG is metadata-only. A PAPER LIVE id would reach order amount SELECT. This is static SQL analysis, not a PG result.",
+    "window": "Only PC date/window checked; approval date/window are not among remote arguments. No authoritative server-time check before SQL/account.",
+    "account": "Controller wraps service errors/no-key as ApiResponse.ok. Projection prints failures but exits 0; remote final exit only checks curl/http.",
+    "clock": "AR0/AR1 captured and printed, never gate later calls or exit.",
+    "token": "Regex detection may set RC=4 but unconditional cat remote.out later prints it; grep read error is not independently classified.",
+    "record": "Final cat/echo occur after manifest and INCOMPLETE removal, return values not used in final RC.",
+    "cost": "POS complete=true for zero BUY rows by 0=0 counts although SUM is NULL; all historical BUY cost is not remaining inventory cost after partial SELL. No PG execution."
+  },
+  "cost_arithmetic_example": {
+    "buy_qty": 20,
+    "buy_total_cost": 10005,
+    "remaining_size": 10,
+    "full_cost_output": 10005,
+    "remaining_cost": 5002.5,
+    "valuation_price": 500,
+    "unrealized_if_full_cost": -5005,
+    "unrealized_if_remaining_cost": -2.5,
+    "kind": "arithmetic illustration only"
+  },
+  "primary_source_hashes": {
+    "web-api/src/main/java/com/cryptoautotrader/api/controller/AccountController.java": "ddb6106fe8ae827b998212468b4fca063ea604f9d25de384e8be039c47c71c66",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/AccountService.java": "bdd5a50afb664fabcbf53368d60de175f42aaa546d45732197689ffdedce25f6",
+    "web-api/src/main/java/com/cryptoautotrader/api/entity/OrderEntity.java": "45014cfcfdf762efeec26f997bed9f09fa953a5884bb6e22d05c0f800e432cdd",
+    "web-api/src/main/java/com/cryptoautotrader/api/entity/LiveTradingSessionEntity.java": "4dac9a4ecfeffd002e4bf3e6b57296a0970e9b80f8a39dd6f2851243f2937e37",
+    "web-api/src/main/java/com/cryptoautotrader/api/repository/OrderRepository.java": "dbfd44e426b9073933d0a22a47125c72a533b6898df1f1ff7ac5b965873d1fde"
+  },
+  "reservation": {
+    "id": "4bc9e12a",
+    "scheduled_kst": "2026-11-23 22:14",
+    "queried": false,
+    "execution_observed": false
+  },
+  "operations_approval": false,
+  "audit_notes": [
+    "One initial source lookup used the wrong Java package path; corrected to com/cryptoautotrader. No production invocation."
+  ],
+  "document_validation": {
+    "local_links_checked": 190,
+    "broken_links": [],
+    "foreign_glyphs": [],
+    "historical_0821_handoff_preserved": true,
+    "corrected_before_seal": "Transient Japanese cache spelling and punctuation in new management lines corrected."
+  }
+}
