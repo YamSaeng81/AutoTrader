@@ -1,0 +1,81 @@
+{
+  "review_version": "1.219",
+  "reviewed_commit": "5ffde2e1afc02f66f8a5f8bbe323fdab405dcbad",
+  "submitted_manifest": [
+    {
+      "path": "docs/evidence/dec-fixed1-prep-20261123/README.md",
+      "expected": "199dab3adccd34a72d20bbb24b77da739a0ea99429c872b679d9fd3e10570b07",
+      "commit_sha256": "199dab3adccd34a72d20bbb24b77da739a0ea99429c872b679d9fd3e10570b07",
+      "working_sha256": "199dab3adccd34a72d20bbb24b77da739a0ea99429c872b679d9fd3e10570b07"
+    },
+    {
+      "path": "docs/evidence/dec-fixed1-prep-20261123/.gitattributes",
+      "expected": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+      "commit_sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+      "working_sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    }
+  ],
+  "submitted_files_matching_commit": [
+    "docs/evidence/dec-fixed1-prep-20261123/.gitattributes",
+    "docs/evidence/dec-fixed1-prep-20261123/README.md",
+    "docs/evidence/dec-fixed1-prep-20261123/SHA256SUMS"
+  ],
+  "accepted_vars_commit": "cd8bd76fdd4d46bac893a98f4eab36cceb990c99",
+  "accepted_vars_path": "docs/evidence/d81d4r-20261120/d4/blocks-d81/U\ubcc0\uc218.sh",
+  "accepted_vars_sha256": "efb96108113142132da3685669c1a034e7a3050bc891bbacbecd2891137b19fd",
+  "stored_expectations": {
+    "IMGOLDM": "sha256:b3a42cd2dd9947e6dffc5ccec71de077b3d2fccfc810d21796378be73b05aa0c",
+    "IMGOLDC": "sha256:4016cc389044ba95a88f9048f6b14de7118e276c75f9a524998e2b8baa50ac34",
+    "FEMOLD": "sha256:13343943ed4ab0db003bf40e77cb38c9d41e67287a7d51fcb6da818ad6569d93",
+    "FECOLD": "sha256:11d9a954a3054d3eff3c6d2d798fad55beefce3a166c9335259d8fa6367e4f89",
+    "FEIMGOLD": "sha256:9d7f123ad6afd75b46d954b7c7031267df5afb3bf6e99660d5a53a3c5d43798e",
+    "JARM": "33a06f0edf1767356d206f8d36b5f71b1ffd707102d43936e602ec7a6162d509"
+  },
+  "stored_JARN": "(\ub05d) 895 898",
+  "unchanged_sources": [
+    {
+      "path": "docs/evidence/review-1df256c7/README.md",
+      "sha256": "4cf96bde22ce8e2cf953caef2554338adf26ae1c7998f2bc2646f853594209e4",
+      "unchanged_from_5ffde2e1": true
+    },
+    {
+      "path": "docs/evidence/review-1df256c7/preflight-remote.sh",
+      "sha256": "63b7819cc3f0bd779caa9cec9b6227b7656e0c7a6118361bd0515569585b597a",
+      "unchanged_from_5ffde2e1": true
+    },
+    {
+      "path": "docs/evidence/parallel-monitor-followup-20261121/approval/pm-read-2.sh",
+      "sha256": "fa767e7d2337d6fcbee0636d2ff270bafab9f0121c52f0b2089f482306ce1e1c",
+      "unchanged_from_5ffde2e1": true
+    },
+    {
+      "path": "docs/LIMITED_LIVE_TEST_RUNBOOK.md",
+      "sha256": "fe16cb2eb01c56dd727ce9b053b7d75ed40316223cc463b773e1b205403f32c0",
+      "unchanged_from_5ffde2e1": true
+    },
+    {
+      "path": "docs/evidence/dec-launch-order-20261123/README.md",
+      "sha256": "20e4a31e3bc8ec7e190a4b085ef406cec5ea743dd1b5317358ec3ba59a3a46ad",
+      "unchanged_from_5ffde2e1": true
+    },
+    {
+      "path": "docs/evidence/dec-launch-order-20261123/budget.json",
+      "sha256": "6be4b598cdef7960c882319aac90965f9b30474273243131a7571d0138f69956",
+      "unchanged_from_5ffde2e1": true
+    }
+  ],
+  "document_validation": {
+    "markdown_files": [
+      "docs/evidence/review-5ffde2e1/README.md",
+      "docs/LIMITED_LIVE_TEST_PLAN.md",
+      "docs/CURRENT_HANDOFF.md",
+      "docs/PROGRESS.md"
+    ],
+    "local_links_checked": 177,
+    "broken_links": 0,
+    "foreign_script_runs": 0,
+    "question_mark_runs": 0,
+    "preserved_0821_handoff_sha256": "647ce625decaa712003b698ce7003b09de0ccf86ac74e46893a09905ac38d4de"
+  },
+  "scope": "Read-only Git/file review; no scheduling, production SSH, DB, PG, product tests or builds executed"
+}
