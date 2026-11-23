@@ -1,0 +1,73 @@
+{
+  "reviewed_commit": "8861a3da4ed642c3526128b39c7aecf2c14eaacf",
+  "review_baseline": "00b40316456f20710227b94129ec9987bd253f13",
+  "baseline_origin_main_confirmed": true,
+  "baseline_worktree_clean": true,
+  "submitted_manifest": {
+    "matched": 20,
+    "mismatches": 0,
+    "blob_and_worktree": true
+  },
+  "submitted_commit_files": {
+    "matched": 21,
+    "scope": "n03-1123-1000 only"
+  },
+  "saved_server_raw_hashes": {
+    "matched": 4,
+    "names": [
+      "20261123-1000.txt",
+      "20261123-1000.txt.msg",
+      "20261123-1000.txt.raw",
+      "last_send"
+    ]
+  },
+  "saved_server_ledger_hash_matches": true,
+  "error_lines": {
+    "count": 15,
+    "all_blast": true,
+    "saved_server_hash_matches": true
+  },
+  "execution_record": {
+    "read_rc": 0,
+    "stderr_bytes": 0,
+    "server_markers_kst": [
+      "2026-11-23 10:14:34",
+      "2026-11-23 10:14:38"
+    ],
+    "pc_start_utc": "2026-11-23T01:14:32Z",
+    "pc_end_utc": "2026-11-23T01:14:37Z",
+    "server_and_pc_clocks_not_assumed_identical": true
+  },
+  "read_script_sha256": "41e4f33747f47ed4089ffe8ca192964529cfea24b8d150a7b1a8300c572f73ad",
+  "token_pattern_counts": {
+    "lines": 9,
+    "all_zero": true
+  },
+  "scope": {
+    "review": "saved files and Git only",
+    "production_connections": 0,
+    "db_queries": 0,
+    "test_runs": 0,
+    "builds": 0,
+    "new_runtime_authorizations": false,
+    "reservation_liveness": "developer report; not queried by reviewer",
+    "usage": "unconfirmed"
+  },
+  "immutable_sources_unchanged": {
+    "docs/evidence/review-1df256c7/README.md": "4cf96bde22ce8e2cf953caef2554338adf26ae1c7998f2bc2646f853594209e4",
+    "docs/evidence/review-1df256c7/preflight-remote.sh": "63b7819cc3f0bd779caa9cec9b6227b7656e0c7a6118361bd0515569585b597a",
+    "docs/evidence/parallel-monitor-followup-20261121/approval/pm-read-2.sh": "fa767e7d2337d6fcbee0636d2ff270bafab9f0121c52f0b2089f482306ce1e1c",
+    "docs/LIMITED_LIVE_TEST_RUNBOOK.md": "fe16cb2eb01c56dd727ce9b053b7d75ed40316223cc463b773e1b205403f32c0",
+    "docs/evidence/dec-launch-order-20261123/README.md": "20e4a31e3bc8ec7e190a4b085ef406cec5ea743dd1b5317358ec3ba59a3a46ad",
+    "docs/evidence/dec-launch-order-20261123/budget.json": "6be4b598cdef7960c882319aac90965f9b30474273243131a7571d0138f69956"
+  },
+  "previous_review_manifest_matches": 3,
+  "historical_0821_handoff_preserved_sha256": "647ce625decaa712003b698ce7003b09de0ccf86ac74e46893a09905ac38d4de",
+  "document_validation": {
+    "authored_markdown_files": 4,
+    "local_link_targets_checked": 181,
+    "broken_targets": 0,
+    "foreign_glyph_or_repeated_question_mark_lines": 0,
+    "git_diff_check": "passed"
+  }
+}
