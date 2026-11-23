@@ -1,0 +1,40 @@
+{
+ "tool": "p0_input",
+ "version": "pm-p0-1",
+ "label": "pm-read-2 P0",
+ "synthetic": false,
+ "status": "P0_ABSENT_IN_PROVIDED_LOG",
+ "p0_events": [],
+ "long_lease_warnings": {
+  "hold": 0,
+  "other": 0,
+  "note": "장기 대여 경고(holdobs 3) — P0 아님, 별도 보고"
+ },
+ "incomplete_reasons": [],
+ "scope_note": "제공 로그 안의 고정 패턴 검사일 뿐 운영 전체 안전·뉴스/외부 API 상태가 아니다. 뉴스/66 은 N03 원천을 따로 본다.",
+ "pattern": "Connection is not available, request timed out",
+ "holdobs_source": {
+  "u_vars": "d81d4r-20261120/d4/blocks-d81/U변수.sh",
+  "u_vars_sha256": "efb96108113142132da3685669c1a034e7a3050bc891bbacbecd2891137b19fd",
+  "extracted_sha256": "31100c2a2bd1828493b1ae6bdff5dc2a3041b6e965c66daca4b6ecc852a01937"
+ },
+ "input": {
+  "collect_rc": "0",
+  "log_sha256": "b95f6beef2833c441204663443168c2f513f17a45bf457750ce59f992fdbc1f7",
+  "log_bytes": 162069,
+  "log_lines": 1202
+ },
+ "range": {
+  "since": "2026-11-23T01:00:00Z",
+  "until": "2026-11-23T01:36:39Z",
+  "axis": "server_utc",
+  "basis": "pm-read-2 read: SINCE 인자(보고 명목 시각 UTC)·UNTIL 서버 date -u, docker compose logs --since/--until; backend StartedAt 2026-11-16T05:16:14.129686133Z ≤ SINCE"
+ },
+ "holdobs": {
+  "exit": 0,
+  "stdout_sha256": "c749854195380d65d79fa1cb89f58f52b28f676fe2be8a1c045ff477b2b5786e",
+  "stderr_bytes": 0
+ },
+ "consumable_as_empty_p0": true,
+ "exit": 0
+}
