@@ -1,0 +1,46 @@
+1a2
+> # ⚠ 시험 사본(make-test-copy.sh 생성) — 운영에 쓰지 않는다. 원격 호출은 검증된 가짜 절대 경로로만 한다.
+15c16,52
+< D=${D4RUN:-/d/tmp/d81run}; B=$D/blocks-d81; SSH=${D4SSH:-ssh}
+---
+> # ── 시험 사본 전용 가드(생산용 run.sh 에는 없음, v1.225 §3 — a1-fake-boundary-20261123/tools/test-guard.inc 에서 대상·경로 이름만 바꿈) ──
+> # (1)~(4)는 셸 내장 명령만 쓴다. PATH 를 확인하기 전에는 외부 프로그램을 하나도 부르지 않는다.
+> # 원격 호출은 아래에서 고정한 가짜 절대 경로 "$FAKE" 로만 한다. 실제 원격 도구로의 기본값·대체 경로는 없다.
+> [ -z "$(declare -F)" ] || { printf '🔴 시험 가드 거절(종료 2): 상속 함수 있음 — 가짜/외부 도구 호출 0회\n'; exit 2; }
+> tdeny() { printf '🔴 시험 가드 거절(종료 2): %s — 가짜/외부 도구 호출 0회\n' "$*"; exit 2; }
+> D8T_FAKE_SHA=30635ace6a89a192ee8f49093bd22a1d863e8887eae2fcc19f25c9db82d2f1ee
+> D8T_HOST=d81-test.invalid
+> D8T_PROD="cat""-prod"
+> # (1) 셸 초기화 주입·옛 원격 도구 변수
+> [ -z "${BASH_ENV:-}" ] && [ -z "${ENV:-}" ] || tdeny "BASH_ENV/ENV 설정됨"
+> [ -z "${D4SSH:-}" ] || tdeny "D4SSH 설정됨(시험 사본은 원격 도구 변수를 쓰지 않는다)"
+> # (2) PATH: 모든 항목이 절대 POSIX 경로여야 한다(Windows 형식·빈 항목·상대 경로 거절)
+> case "$PATH" in ''|:*|*:|*::*) tdeny "PATH 빈 항목";; esac
+> case "$PATH" in *'\'*|*';'*) tdeny "PATH 에 Windows 형식(역슬래시/세미콜론)";; esac
+> IFS=: read -r -a D8T_PE <<< "$PATH"
+> for D8T_P in "${D8T_PE[@]}"; do
+>   case "$D8T_P" in /*) ;; *) tdeny "PATH 항목이 절대 POSIX 경로가 아님: '$D8T_P'";; esac
+>   case "$D8T_P/" in */./*|*/../*|*//*) tdeny "PATH 항목 정규화 안 됨: '$D8T_P'";; esac
+> done
+> # (3) 시험 대상: 존재하지 않는 시험 전용 이름만. 운영 별칭 혼입 거절
+> case "${D81_TEST_HOST:-}" in *"$D8T_PROD"*) tdeny "운영 별칭 혼입(D81_TEST_HOST)";; esac
+> [ "${D81_TEST_HOST:-}" = "$D8T_HOST" ] || tdeny "D81_TEST_HOST 는 $D8T_HOST 이어야 함(받은 값 '${D81_TEST_HOST:-}')"
+> # (4) 가짜 절대 경로: 이 시험 사본 키트의 fake/fake-ssh.sh 하나만 허용
+> case "$0" in /*/runner/run-test.sh) ;; *) tdeny "시험 사본을 절대 경로로 실행해야 함";; esac
+> D8T_KIT=${0%/runner/run-test.sh}
+> case "$D8T_KIT/" in */./*|*/../*|*//*) tdeny "키트 경로 정규화 안 됨";; esac
+> [ -n "${D81_FAKE_BIN:-}" ] || tdeny "가짜 경로(D81_FAKE_BIN) 누락"
+> case "$D81_FAKE_BIN" in /*) ;; *) tdeny "가짜 경로가 절대 경로가 아님";; esac
+> [ "$D81_FAKE_BIN" = "$D8T_KIT/fake/fake-ssh.sh" ] || tdeny "가짜 경로 불일치(허용: $D8T_KIT/fake/fake-ssh.sh)"
+> [ -f "$D81_FAKE_BIN" ] && [ ! -L "$D81_FAKE_BIN" ] || tdeny "가짜 파일 누락/연결 파일"
+> [ -x "$D81_FAKE_BIN" ] || tdeny "가짜 파일 실행 불가"
+> # (5) 여기서부터 외부 프로그램(검증한 PATH). 가짜 해시·운영 별칭 문자열 검사
+> [ "$(sha256sum < "$D81_FAKE_BIN" | cut -d' ' -f1)" = "$D8T_FAKE_SHA" ] || tdeny "가짜 해시 불일치"
+> ! grep -qF "$D8T_PROD" "$0" "$D81_FAKE_BIN" || tdeny "운영 별칭 문자열이 시험 사본/가짜에 있음"
+> FAKE=$D81_FAKE_BIN; TEST_HOST=$D8T_HOST
+> # ── 시험 사본 전용 가드 끝 ─────────────────────────────────────────────────────────
+> D=${D4RUN:?시험 사본은 D4RUN 필수}; B=$D/blocks-d81
+53c90
+< $SSH -o BatchMode=yes cat-prod "bash -c $(printf '%q' "$s")" < /dev/null 2>&1 | tee -a "$o"
+---
+> "$FAKE" "$TEST_HOST" "bash -c $(printf '%q' "$s")" < /dev/null 2>&1 | tee -a "$o"

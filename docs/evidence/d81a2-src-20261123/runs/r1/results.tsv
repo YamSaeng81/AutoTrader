@@ -1,0 +1,9 @@
+case	kind	expect_rc	rc	fake_calls	expect_calls	out_dir	incomplete	exit_codes_lines	cmd_match	verdict
+g1_fake_missing	guard	2	2	0	0	no	no	0	-	ok
+g2_fake_other_path	guard	2	2	0	0	no	no	0	-	ok
+g3_fake_hash_mismatch	guard	2	2	0	0	no	no	0	-	ok
+g4_win_path	guard	2	2	0	0	no	no	0	-	ok
+g5_prod_alias_host	guard	2	2	0	0	no	no	0	-	ok
+b1_new_source_ok	boundary	0	0	1	1	yes	no	1	DIFF	FAIL
+b2_old_u0_mixed	boundary	2	2	0	0	no	no	0	-	ok
+b3_new_u0_tampered	boundary	2	2	0	0	no	no	0	-	ok
