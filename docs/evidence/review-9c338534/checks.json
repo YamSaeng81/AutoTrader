@@ -1,0 +1,80 @@
+{
+  "review_version": "1.220",
+  "reviewed_commit": "9c3385347a8f4483c62991549f0dcc96db1cb791",
+  "submitted_manifest": [
+    {
+      "path": "docs/evidence/dec-fixed1-prep-v1219-20261123/README.md",
+      "sha256": "7a6a83ed9302b1137c41de6ec1f9c5f65d42691fe0c8b510ff8f6842c7f60d90"
+    },
+    {
+      "path": "docs/evidence/dec-fixed1-prep-v1219-20261123/.gitattributes",
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    }
+  ],
+  "submitted_files_matching_commit": [
+    "docs/evidence/dec-fixed1-prep-v1219-20261123/.gitattributes",
+    "docs/evidence/dec-fixed1-prep-v1219-20261123/README.md",
+    "docs/evidence/dec-fixed1-prep-v1219-20261123/SHA256SUMS"
+  ],
+  "accepted_vars": {
+    "commit": "cd8bd76fdd4d46bac893a98f4eab36cceb990c99",
+    "path": "docs/evidence/d81d4r-20261120/d4/blocks-d81/U변수.sh",
+    "sha256": "efb96108113142132da3685669c1a034e7a3050bc891bbacbecd2891137b19fd",
+    "expectation_fields_checked": 7
+  },
+  "static_source_checks": {
+    "live_cost_block": true,
+    "live_global_risk": true,
+    "global_live_cost": true,
+    "global_dynamic_cost": true,
+    "session_closed_cost_scope": true,
+    "live_no_ENTRY_REJECTED_write": true,
+    "dynamic_ENTRY_REJECTED_write": true,
+    "runbook_global_cleanup": true,
+    "first_day_F3_no_buy_label": true,
+    "F3_2_no_such_label": true
+  },
+  "d81_product_java_files": 14,
+  "d81_migration_diff": 0,
+  "immutable_sources": [
+    {
+      "path": "docs/evidence/review-1df256c7/README.md",
+      "sha256": "4cf96bde22ce8e2cf953caef2554338adf26ae1c7998f2bc2646f853594209e4"
+    },
+    {
+      "path": "docs/evidence/review-1df256c7/preflight-remote.sh",
+      "sha256": "63b7819cc3f0bd779caa9cec9b6227b7656e0c7a6118361bd0515569585b597a"
+    },
+    {
+      "path": "docs/evidence/parallel-monitor-followup-20261121/approval/pm-read-2.sh",
+      "sha256": "fa767e7d2337d6fcbee0636d2ff270bafab9f0121c52f0b2089f482306ce1e1c"
+    },
+    {
+      "path": "docs/LIMITED_LIVE_TEST_RUNBOOK.md",
+      "sha256": "fe16cb2eb01c56dd727ce9b053b7d75ed40316223cc463b773e1b205403f32c0"
+    },
+    {
+      "path": "docs/evidence/dec-launch-order-20261123/README.md",
+      "sha256": "20e4a31e3bc8ec7e190a4b085ef406cec5ea743dd1b5317358ec3ba59a3a46ad"
+    },
+    {
+      "path": "docs/evidence/dec-launch-order-20261123/budget.json",
+      "sha256": "6be4b598cdef7960c882319aac90965f9b30474273243131a7571d0138f69956"
+    }
+  ],
+  "original_prep_files_preserved": 3,
+  "scope": "Static Git and document review only. No scheduler, production SSH, DB, account, PG, product test or build executed.",
+  "document_validation": {
+    "markdown_files": [
+      "docs/evidence/review-9c338534/README.md",
+      "docs/LIMITED_LIVE_TEST_PLAN.md",
+      "docs/CURRENT_HANDOFF.md",
+      "docs/PROGRESS.md"
+    ],
+    "local_links_checked": 175,
+    "broken_links": 0,
+    "foreign_script_runs": 0,
+    "question_mark_runs": 0,
+    "preserved_0821_handoff_sha256": "647ce625decaa712003b698ce7003b09de0ccf86ac74e46893a09905ac38d4de"
+  }
+}

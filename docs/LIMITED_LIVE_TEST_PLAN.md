@@ -1,6 +1,6 @@
 # 12월 제한 실거래 시험 — 현재 계획
 
-정리 기준은 **2026-11-23, 총괄 v1.219 / 고정1 준비 초안 검토**다. [v1.218 일정·예산](evidence/dec-launch-order-20261123/README.md)과 고정 실행 출처cd8bd76f·[12월 목표](DECEMBER_SMALL_LIVE_PLAN.md)는 유지한다. 최근 서버 읽기 표지는 **11-22 22:14:17~22:14:20 KST**다([22:00 보고](evidence/n03-1122-2200/README.md)). DB는22:00 보고 값, 마지막 장부는11-22 09:30 값이며 연속 감시는 아니다. [최신 지시](evidence/review-5ffde2e1/README.md)
+정리 기준은 **2026-11-23, 총괄 v1.220 / 고정1 준비 정정 수용**다. [v1.218 일정·예산](evidence/dec-launch-order-20261123/README.md)과 고정 실행 출처cd8bd76f·[12월 목표](DECEMBER_SMALL_LIVE_PLAN.md)는 유지한다. 최근 서버 읽기 표지는 **11-22 22:14:17~22:14:20 KST**다([22:00 보고](evidence/n03-1122-2200/README.md)). DB는22:00 보고 값, 마지막 장부는11-22 09:30 값이며 연속 감시는 아니다. [최신 지시](evidence/review-9c338534/README.md)
 
 **운영은0e1d2a02·V96·frontend9d7f123a다. 사용자는 기존SID203 포함 합산 총예산100,000원·12월 최대손실40,000원을 확정했다. 기존 더 엄격한 보호·중단 기준은 유지하며 제어 설정/실제 자본 관측 완료를 뜻하지 않는다. d81 비용 보완 반영 뒤 고정 LIVE를 먼저 판정하고 DYNAMIC은 병행 조건을 별도로 닫는다. 배포·실제 자금 이동/배정·생성/시작·토큰 준비·설정/키 변경은 별도 승인 전이다.**
 
@@ -8,7 +8,7 @@
 |---|---|
 | 현재 상태·남은 작업·다음 일정 | 이 문서 |
 | F0~F6 시작·확인·정지·종료 명령 | [실행 절차](LIMITED_LIVE_TEST_RUNBOOK.md) — F 원문·현재 핀·F5-3v |
-| 현재 상세 판정과 허용 범위 | [v1.219 초안 검토·보완](evidence/review-5ffde2e1/README.md) · [v1.218 일정·예산](evidence/dec-launch-order-20261123/README.md) · [v1.217 당일 한정 읽기](evidence/review-1df256c7/README.md) |
+| 현재 상세 판정과 허용 범위 | [v1.220 정정 수용·다음 작업](evidence/review-9c338534/README.md) · [v1.218 일정·예산](evidence/dec-launch-order-20261123/README.md) · [v1.217 당일 한정 읽기](evidence/review-1df256c7/README.md) |
 | 완료된 배포, 옛 후보·판정, 정정 전 서술, 종전 §1~§7·§5-9 1~126 | [2026-11-12 전체 원문 보존본](LIMITED_LIVE_TEST_PLAN_ARCHIVE_20261112.md) — 이력 조회용 |
 | 전체 관리 목록·일별 점검 | [LIVE_READINESS](LIVE_READINESS.md) · [11월 관리표](NOVEMBER_LIVE_UPGRADE.md) · [OPS](OPS_DAILY_CHECK.md) |
 | 실행 결과와 작업 인계 | [PROGRESS](PROGRESS.md) · [현재 인계](CURRENT_HANDOFF.md) · 각 결과의 evidence/README |
@@ -59,7 +59,7 @@ SSH 대량 인증 실패·MaxStartups 제한은 별도🔴 후속이다. 11-17 1
 | 수용 | **V172D4 절차 보완·고정 출처** | ce6df2fa의 [424차 제출](evidence/v172d4-20261116/README.md) 수용. R1~R3·두 번째 로그 보완, 대역 r2 100/0·실행 틀12/12. 근거42/42·압축9,212파일 일치 |
 | 1 | **SSH 관리자 제한 읽기** | v2 범위 수용. admin_read + admin_read_add 개별 종료값·UseDNS/Host/Include/서비스 인자, 운영자 답4개 확인. 실제 변경 전 |
 | 2 | **새 모의9세션 실행 판단** | 11-18·11-19 날짜 파일은 미승인 만료 이력. 도구 수용은 유지하고 다음 실제 일정의 날짜·창·T0·해시를 새로 제출, 토큰/배치/POST/생성은 별도 승인 |
-| 3 | **12월 시작 준비** | [v1.219](evidence/review-5ffde2e1/README.md): 회수 주체8d0db7de 단일화 보고 수용. 대기 중 저장 기대값·기존RUNBOOK F3·손실/정지 표현 보충. 실제 읽기는 [v1.217](evidence/review-1df256c7/README.md)의10:34~10:54/PRE0/최신 보고 조건 그대로1회. 새 운영 승인 없음 |
+| 3 | **12월 시작 준비** | [v1.220](evidence/review-9c338534/README.md): 9c338534의 네 정정 수용. 첫날 세션 비용 차단과 전역 관문·F3/F3-2 용도·기결정 월손실 기준을 구분하며 DYNAMIC안 병행. 실제 읽기는 [v1.217](evidence/review-1df256c7/README.md)의10:34~10:54/PRE0/최신 보고 조건 그대로1회. 새 운영 승인 없음 |
 | 완료 | **문서 정리·F5-3v** | b12f19f8·729cdbe2 수용. 종전F15개 보존, 새 출처 추출 대역15/15. 장부 시험의 공통 자료 실패9건은 남음 |
 | 수용 | **대기 대상 정리·독립 시험 보완** | [409차](evidence/v164-wait20-20261113/README.md). 합집합21·실제18클래스87곳. 실패42는 대기 경합40과 G1 시험 읽기2로 구분. 후속3f9cc926에서 음성 단언3곳 보완·관련19클래스 성공230/건너뜀4, 실패0 |
 | 수용 | **N05 최종판·화면** | [N05](evidence/n05-final-0e1d2a02/README.md) K14~K23 39/39 대응, G4 운영0e1d2a02 확인 완료. G2·G3 미확정. [화면](evidence/screen-0e1d2a02/README.md) 7개 확인 수용, 대비 결함은 독립 frontend 후보로 보완 |
@@ -97,7 +97,7 @@ SSH 대량 인증 실패·MaxStartups 제한은 별도🔴 후속이다. 11-17 1
 
 ## 3. 전략 검증과 모의투자
 
-**12월1~31일은 소액 고정코인 LIVE(특정 코인·특정 전략)와 DYNAMIC REAL(다수 코인 감시·특정 전략)의 수익성 자료 수집을 목표로 한다.** [v1.184](DECEMBER_SMALL_LIVE_PLAN.md)에 따라 시장 상황별 성과와 향후 전략 선택형 LIVE의 기초 자료를 준비한다. 총원금/월 손실 상한은 미확정이고12월 말 평가와 기존56일 종료 규칙은 구분한다.
+**12월1~31일은 소액 고정코인 LIVE(특정 코인·특정 전략)와 DYNAMIC REAL(다수 코인 감시·특정 전략)의 수익성 자료 수집을 목표로 한다.** [12월 계획](DECEMBER_SMALL_LIVE_PLAN.md)에 따라 시장 상황별 성과와 향후 전략 선택형 LIVE의 기초 자료를 준비한다. 합산 예산100,000원·12월 허용손실40,000원은 확정했으며 실제 배정/월 한도 제어는 확인 전이다. 12월 말 평가와 기존56일 종료 규칙은 구분한다.
 
 **시스템 회귀 통과와 전략 수익성은 별도로 판정한다.** 현재 DAILY_SMA20의 전향 모의 성과는 아직 없다.
 
