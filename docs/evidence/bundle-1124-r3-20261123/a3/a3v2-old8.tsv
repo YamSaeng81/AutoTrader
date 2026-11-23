@@ -1,0 +1,9 @@
+사례	v1 기대(보존)	v2 판정	v2 사유
+c1-round-two.json	범위만	보류	계좌 호출의 서버 시계 전후 구간(t0·t1) 없음 — DB now()·앱 시각으로 대신하지 않는다
+c2-boundary-need.json	미확정	보류	계좌 호출의 서버 시계 전후 구간(t0·t1) 없음 — DB now()·앱 시각으로 대신하지 않는다
+c3-enough.json	충분	보류	계좌 호출의 서버 시계 전후 구간(t0·t1) 없음 — DB now()·앱 시각으로 대신하지 않는다
+c4-unexplained.json	보류	보류	계좌 호출의 서버 시계 전후 구간(t0·t1) 없음 — DB now()·앱 시각으로 대신하지 않는다
+c5-active-order.json	보류	보류	계좌 호출의 서버 시계 전후 구간(t0·t1) 없음 — DB now()·앱 시각으로 대신하지 않는다
+c6-error.json	미확정	미확정	계좌 조회 실패/KRW 필드 없음 — 0으로 채우지 않는다
+c7-no-time.json	보류	보류	계좌 호출의 서버 시계 전후 구간(t0·t1) 없음 — DB now()·앱 시각으로 대신하지 않는다
+c8-gap-event.json	보류	보류	계좌 호출의 서버 시계 전후 구간(t0·t1) 없음 — DB now()·앱 시각으로 대신하지 않는다

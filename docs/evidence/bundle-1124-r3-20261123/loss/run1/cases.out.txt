@@ -1,0 +1,9 @@
+FAIL M1 매수 원금 20,000·수수료 5
+     {"start_equity": "20200", "end_equity": "20195.0000", "net_flows": "0", "month_pnl": "-5.0000", "month_pnl_status": "확정", "realized_in_period": "0", "realized_known_part": "0", "fees_paid": "5", "fees_known_part": "5", "unconfirmed_why": null, "corrections": []}
+OK   M2 남은 매수 예약 20,000
+     {"start_equity": "20200", "end_equity": "20200", "net_flows": "0", "month_pnl": "0", "month_pnl_status": "확정", "realized_in_period": "0", "realized_known_part": "0", "fees_paid": "0", "fees_known_part": "0", "unconfirmed_why": null, "corrections": []}
+OK   M3 경계 뒤 수수료 정정(새 주문 0)
+     {"start_equity": "20200", "end_equity": null, "net_flows": "0", "month_pnl": null, "month_pnl_status": "미확정", "realized_in_period": null, "realized_known_part": "0", "fees_paid": null, "fees_known_part": "0", "unconfirmed_why": null, "corrections": [{"order": 1, "prev_capture": "b-pre", "cur_capture": "b-post", "known_delta": {"fee": "1"}, "observed_window": ["2026-12-31T23:40:00+09:00", "2027-01-01T10:00:00+09:00"], "attribution": "귀속 미확정", "note": "어느 달 확정 손익에도 자동으로 넣지 않음"}]}
+참고 M1 철회한 현금 식: -20005원
+참고 M2 철회한 현금 식: -20000원
+합계 3 통과 2 실패 1 · 변환기 v4 f63a857f · 성적표 v5 b95acebd
