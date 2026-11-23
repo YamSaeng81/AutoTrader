@@ -1,0 +1,258 @@
+{
+  "review": "v1.225",
+  "reviewed_head": "f6bb3d08a1a9568fd776790c79ff08d6e21169f3",
+  "scope": "local files/Git only; no production, SQL, Docker, build or executable test",
+  "incident_manifest_matching": 79,
+  "incident_files_preserved": {
+    "docs/evidence/a1-incident-20261123-1307/.gitattributes": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+    "docs/evidence/a1-incident-20261123-1307/fake-ssh-not-used.sh": "3fabcd60d6b4895cd6d451188c674f66634272e17a99c607ad049e03132e0cff",
+    "docs/evidence/a1-incident-20261123-1307/README.md": "87b0c8fd10e0929fd23c361a8107c70a573a2d0777e9b0efa48eee95851f1782",
+    "docs/evidence/a1-incident-20261123-1307/SHA256SUMS": "b655fba729402b4469512d58258545c2e4594f18325ca643b06cb08afad3e54d",
+    "docs/evidence/a1-incident-20261123-1307/runs/empty/a1-time-1.sql": "b84a89e7fec21a95dd80ba8f9491b39a7e65697e3ea05b12ae21a8de49feefcf",
+    "docs/evidence/a1-incident-20261123-1307/runs/empty/a1.rc": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "docs/evidence/a1-incident-20261123-1307/runs/empty/a1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/a1-incident-20261123-1307/runs/empty/a1.tsv": "d978d1b9c7e0788fcb611ccf9145ea031f39e7e8cb48143d938dd6518c8cb351",
+    "docs/evidence/a1-incident-20261123-1307/runs/empty/install_state.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/a1-incident-20261123-1307/runs/empty/install_state.txt": "ed18b90f805705b58d779b9fc8477f988798af651c09694dd1178fc73dedeb63",
+    "docs/evidence/a1-incident-20261123-1307/runs/empty/pins.txt": "d85f121154b14dc190ce9f6419c87c24ecafc45f9c37a4c137f99a65e4d117a7",
+    "docs/evidence/a1-incident-20261123-1307/runs/empty/range-args.txt": "17582679bfd3ea3d34df5200abd541b3c905ddd45af1c302018d4c78ad210d53",
+    "docs/evidence/a1-incident-20261123-1307/runs/empty/rc.txt": "6b8c7a92dc6a7e7c817eb6d13174f434b7b126d4c4cf748391795a128818307f",
+    "docs/evidence/a1-incident-20261123-1307/runs/empty/read-SHA256SUMS": "52704caed85178d85fcce7058070fdf755c7691c4720ca71cd37fbcb82b2e7bc",
+    "docs/evidence/a1-incident-20261123-1307/runs/empty/read-status.txt": "68dbd5f9654c5075ad1aa2e640219ee0d54fd3cfd1d5f6cc45ac318127e9b521",
+    "docs/evidence/a1-incident-20261123-1307/runs/empty/run-time.txt": "0e4ea06eeb6869f6217475a81cac2baa75547876641029f7c2ba77e202251307",
+    "docs/evidence/a1-incident-20261123-1307/runs/empty/sum-check.txt": "63b2efd44ad436057c0daa694c45f80bd4a7acc8a7997da1f0d76d005c81c30c",
+    "docs/evidence/a1-incident-20261123-1307/runs/noguard/a1-time-1.sql": "b84a89e7fec21a95dd80ba8f9491b39a7e65697e3ea05b12ae21a8de49feefcf",
+    "docs/evidence/a1-incident-20261123-1307/runs/noguard/a1.rc": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "docs/evidence/a1-incident-20261123-1307/runs/noguard/a1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/a1-incident-20261123-1307/runs/noguard/a1.tsv": "b8fa4b911d8eaf6e1a44e6707112517949c65ffb3850f706484da748dc471588",
+    "docs/evidence/a1-incident-20261123-1307/runs/noguard/install_state.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/a1-incident-20261123-1307/runs/noguard/install_state.txt": "5485fbcd302d06caab8fbcfd5bb5a9efe96e62cb546e618c747d9aaacd2439d4",
+    "docs/evidence/a1-incident-20261123-1307/runs/noguard/pins.txt": "d85f121154b14dc190ce9f6419c87c24ecafc45f9c37a4c137f99a65e4d117a7",
+    "docs/evidence/a1-incident-20261123-1307/runs/noguard/range-args.txt": "17582679bfd3ea3d34df5200abd541b3c905ddd45af1c302018d4c78ad210d53",
+    "docs/evidence/a1-incident-20261123-1307/runs/noguard/rc.txt": "6b8c7a92dc6a7e7c817eb6d13174f434b7b126d4c4cf748391795a128818307f",
+    "docs/evidence/a1-incident-20261123-1307/runs/noguard/read-SHA256SUMS": "6d13756cb33644601a5e5c0a6565eb18f4626ef5e6605a52e8eda6e748263d19",
+    "docs/evidence/a1-incident-20261123-1307/runs/noguard/read-status.txt": "68dbd5f9654c5075ad1aa2e640219ee0d54fd3cfd1d5f6cc45ac318127e9b521",
+    "docs/evidence/a1-incident-20261123-1307/runs/noguard/run-time.txt": "e6735b3312cf56eb7b9f739129905b49b38f85ff0ac1b6fe38cc5b40568051c0",
+    "docs/evidence/a1-incident-20261123-1307/runs/noguard/sum-check.txt": "63b2efd44ad436057c0daa694c45f80bd4a7acc8a7997da1f0d76d005c81c30c",
+    "docs/evidence/a1-incident-20261123-1307/runs/ok/a1-time-1.sql": "b84a89e7fec21a95dd80ba8f9491b39a7e65697e3ea05b12ae21a8de49feefcf",
+    "docs/evidence/a1-incident-20261123-1307/runs/ok/a1.rc": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "docs/evidence/a1-incident-20261123-1307/runs/ok/a1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/a1-incident-20261123-1307/runs/ok/a1.tsv": "2b4d57c7d03c9aee15293c4eb93b3b26bf1f2ab62308847298d943109028d5ab",
+    "docs/evidence/a1-incident-20261123-1307/runs/ok/install_state.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/a1-incident-20261123-1307/runs/ok/install_state.txt": "1dba6362d661e71a1e931eec801d603daaba3df4d3d5b0fbd1b9a0e146f747c0",
+    "docs/evidence/a1-incident-20261123-1307/runs/ok/pins.txt": "d85f121154b14dc190ce9f6419c87c24ecafc45f9c37a4c137f99a65e4d117a7",
+    "docs/evidence/a1-incident-20261123-1307/runs/ok/range-args.txt": "17582679bfd3ea3d34df5200abd541b3c905ddd45af1c302018d4c78ad210d53",
+    "docs/evidence/a1-incident-20261123-1307/runs/ok/rc.txt": "6b8c7a92dc6a7e7c817eb6d13174f434b7b126d4c4cf748391795a128818307f",
+    "docs/evidence/a1-incident-20261123-1307/runs/ok/read-SHA256SUMS": "714fe3bba601606f677f724fdeca722f8385f89d5968e2a06a928af72c38c2d5",
+    "docs/evidence/a1-incident-20261123-1307/runs/ok/read-status.txt": "68dbd5f9654c5075ad1aa2e640219ee0d54fd3cfd1d5f6cc45ac318127e9b521",
+    "docs/evidence/a1-incident-20261123-1307/runs/ok/run-time.txt": "9e53d19dbbfd46d24b971827d904e25781489dc4321ecf6a9a4fbc487992d3a2",
+    "docs/evidence/a1-incident-20261123-1307/runs/ok/sum-check.txt": "63b2efd44ad436057c0daa694c45f80bd4a7acc8a7997da1f0d76d005c81c30c",
+    "docs/evidence/a1-incident-20261123-1307/runs/pinbad/a1-time-1.sql": "b84a89e7fec21a95dd80ba8f9491b39a7e65697e3ea05b12ae21a8de49feefcf",
+    "docs/evidence/a1-incident-20261123-1307/runs/pinbad/a1.rc": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "docs/evidence/a1-incident-20261123-1307/runs/pinbad/a1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/a1-incident-20261123-1307/runs/pinbad/a1.tsv": "3b8830ac6ee9b86a2f212daa1a9716930695f1c7a074c300705d30bd6c40a5b6",
+    "docs/evidence/a1-incident-20261123-1307/runs/pinbad/install_state.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/a1-incident-20261123-1307/runs/pinbad/install_state.txt": "0816a78c6f95fc3f3aa307fa3fb806bf8386203c0ab07ee299a69d5acf35c3ba",
+    "docs/evidence/a1-incident-20261123-1307/runs/pinbad/pins.txt": "d85f121154b14dc190ce9f6419c87c24ecafc45f9c37a4c137f99a65e4d117a7",
+    "docs/evidence/a1-incident-20261123-1307/runs/pinbad/range-args.txt": "17582679bfd3ea3d34df5200abd541b3c905ddd45af1c302018d4c78ad210d53",
+    "docs/evidence/a1-incident-20261123-1307/runs/pinbad/rc.txt": "6b8c7a92dc6a7e7c817eb6d13174f434b7b126d4c4cf748391795a128818307f",
+    "docs/evidence/a1-incident-20261123-1307/runs/pinbad/read-SHA256SUMS": "e6fc9a11f1dd812b0289a0a93b4f7277d821c403f91e2b2811a6d2442e6e8775",
+    "docs/evidence/a1-incident-20261123-1307/runs/pinbad/read-status.txt": "68dbd5f9654c5075ad1aa2e640219ee0d54fd3cfd1d5f6cc45ac318127e9b521",
+    "docs/evidence/a1-incident-20261123-1307/runs/pinbad/run-time.txt": "88aa48fbe3a1bd8928491c21840bdff0b0134166fd38a1ed5272c3c66d7b2412",
+    "docs/evidence/a1-incident-20261123-1307/runs/pinbad/sum-check.txt": "63b2efd44ad436057c0daa694c45f80bd4a7acc8a7997da1f0d76d005c81c30c",
+    "docs/evidence/a1-incident-20261123-1307/runs/ssh255/a1-time-1.sql": "b84a89e7fec21a95dd80ba8f9491b39a7e65697e3ea05b12ae21a8de49feefcf",
+    "docs/evidence/a1-incident-20261123-1307/runs/ssh255/a1.rc": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "docs/evidence/a1-incident-20261123-1307/runs/ssh255/a1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/a1-incident-20261123-1307/runs/ssh255/a1.tsv": "b731a634fd65bf3f98d02aa6176ec00e4478139f4623295037793bb16ec9c5f8",
+    "docs/evidence/a1-incident-20261123-1307/runs/ssh255/install_state.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/a1-incident-20261123-1307/runs/ssh255/install_state.txt": "576c63ee2cd548df9a388c087887f0b40a66a790789fdcef4fc17e39ba3913ed",
+    "docs/evidence/a1-incident-20261123-1307/runs/ssh255/pins.txt": "d85f121154b14dc190ce9f6419c87c24ecafc45f9c37a4c137f99a65e4d117a7",
+    "docs/evidence/a1-incident-20261123-1307/runs/ssh255/range-args.txt": "17582679bfd3ea3d34df5200abd541b3c905ddd45af1c302018d4c78ad210d53",
+    "docs/evidence/a1-incident-20261123-1307/runs/ssh255/rc.txt": "6b8c7a92dc6a7e7c817eb6d13174f434b7b126d4c4cf748391795a128818307f",
+    "docs/evidence/a1-incident-20261123-1307/runs/ssh255/read-SHA256SUMS": "73634d14d62dc4218e96e2403e389a5bd9cfa1c867d530500bc800637cdcc204",
+    "docs/evidence/a1-incident-20261123-1307/runs/ssh255/read-status.txt": "68dbd5f9654c5075ad1aa2e640219ee0d54fd3cfd1d5f6cc45ac318127e9b521",
+    "docs/evidence/a1-incident-20261123-1307/runs/ssh255/run-time.txt": "b2ab695dcde3df8171c80cf9c1fbf3b9b2bb4d016a1bbadd4aa17d956655aa87",
+    "docs/evidence/a1-incident-20261123-1307/runs/ssh255/sum-check.txt": "63b2efd44ad436057c0daa694c45f80bd4a7acc8a7997da1f0d76d005c81c30c",
+    "docs/evidence/a1-incident-20261123-1307/runs/stderr/a1-time-1.sql": "b84a89e7fec21a95dd80ba8f9491b39a7e65697e3ea05b12ae21a8de49feefcf",
+    "docs/evidence/a1-incident-20261123-1307/runs/stderr/a1.rc": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "docs/evidence/a1-incident-20261123-1307/runs/stderr/a1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/a1-incident-20261123-1307/runs/stderr/a1.tsv": "580cf08699e35e7736ef609bc85f8f87068899acc7eede29603350f385fb2b07",
+    "docs/evidence/a1-incident-20261123-1307/runs/stderr/install_state.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/a1-incident-20261123-1307/runs/stderr/install_state.txt": "e520cbee5db85c7cfd0bd834c7af821ff0a79a9ad447ee35e0df24bd8bd5879a",
+    "docs/evidence/a1-incident-20261123-1307/runs/stderr/pins.txt": "d85f121154b14dc190ce9f6419c87c24ecafc45f9c37a4c137f99a65e4d117a7",
+    "docs/evidence/a1-incident-20261123-1307/runs/stderr/range-args.txt": "17582679bfd3ea3d34df5200abd541b3c905ddd45af1c302018d4c78ad210d53",
+    "docs/evidence/a1-incident-20261123-1307/runs/stderr/rc.txt": "6b8c7a92dc6a7e7c817eb6d13174f434b7b126d4c4cf748391795a128818307f",
+    "docs/evidence/a1-incident-20261123-1307/runs/stderr/read-SHA256SUMS": "79915dc808a093b5fb963fd066f2e910cf38d1ae25d36382061b9465cd9e459f",
+    "docs/evidence/a1-incident-20261123-1307/runs/stderr/read-status.txt": "68dbd5f9654c5075ad1aa2e640219ee0d54fd3cfd1d5f6cc45ac318127e9b521",
+    "docs/evidence/a1-incident-20261123-1307/runs/stderr/run-time.txt": "e2c5dbc80c4dea1a8af20e94d4de1c2c6687282faf373b870e3ffffa428ce670",
+    "docs/evidence/a1-incident-20261123-1307/runs/stderr/sum-check.txt": "63b2efd44ad436057c0daa694c45f80bd4a7acc8a7997da1f0d76d005c81c30c"
+  },
+  "cases": [
+    {
+      "case": "empty",
+      "pc_time": [
+        "pc-start 2026-11-23T04:08:00Z",
+        "pc-end 2026-11-23T04:08:02Z"
+      ],
+      "rc": [
+        0,
+        0
+      ],
+      "stderr_bytes": [
+        0,
+        0
+      ],
+      "status": "READ_OK exit=0",
+      "tsv_lines": 14,
+      "count_identification_only": [
+        7026,
+        199
+      ]
+    },
+    {
+      "case": "noguard",
+      "pc_time": [
+        "pc-start 2026-11-23T04:07:55Z",
+        "pc-end 2026-11-23T04:07:57Z"
+      ],
+      "rc": [
+        0,
+        0
+      ],
+      "stderr_bytes": [
+        0,
+        0
+      ],
+      "status": "READ_OK exit=0",
+      "tsv_lines": 14,
+      "count_identification_only": [
+        7026,
+        199
+      ]
+    },
+    {
+      "case": "ok",
+      "pc_time": [
+        "pc-start 2026-11-23T04:07:50Z",
+        "pc-end 2026-11-23T04:07:52Z"
+      ],
+      "rc": [
+        0,
+        0
+      ],
+      "stderr_bytes": [
+        0,
+        0
+      ],
+      "status": "READ_OK exit=0",
+      "tsv_lines": 14,
+      "count_identification_only": [
+        7026,
+        199
+      ]
+    },
+    {
+      "case": "pinbad",
+      "pc_time": [
+        "pc-start 2026-11-23T04:07:53Z",
+        "pc-end 2026-11-23T04:07:55Z"
+      ],
+      "rc": [
+        0,
+        0
+      ],
+      "stderr_bytes": [
+        0,
+        0
+      ],
+      "status": "READ_OK exit=0",
+      "tsv_lines": 14,
+      "count_identification_only": [
+        7026,
+        199
+      ]
+    },
+    {
+      "case": "ssh255",
+      "pc_time": [
+        "pc-start 2026-11-23T04:08:03Z",
+        "pc-end 2026-11-23T04:08:05Z"
+      ],
+      "rc": [
+        0,
+        0
+      ],
+      "stderr_bytes": [
+        0,
+        0
+      ],
+      "status": "READ_OK exit=0",
+      "tsv_lines": 14,
+      "count_identification_only": [
+        7026,
+        199
+      ]
+    },
+    {
+      "case": "stderr",
+      "pc_time": [
+        "pc-start 2026-11-23T04:07:58Z",
+        "pc-end 2026-11-23T04:08:00Z"
+      ],
+      "rc": [
+        0,
+        0
+      ],
+      "stderr_bytes": [
+        0,
+        0
+      ],
+      "status": "READ_OK exit=0",
+      "tsv_lines": 14,
+      "count_identification_only": [
+        7026,
+        199
+      ]
+    }
+  ],
+  "recorded_remote_calls": 12,
+  "mock_failure_cases_verified": 0,
+  "pre_start_denial_cases_report_only": 2,
+  "cause_limit": "Parent invocation and command resolution were not preserved; Windows PATH explanation reported, not independently replayed",
+  "draft_originals": {
+    "docs/evidence/a1-time-20261123/.gitattributes": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+    "docs/evidence/a1-time-20261123/approval/a1-read.sh": "15e3e412502f5013dfdc87444b17bf4a8b8254b02cc9dcf0c966f6030bac09da",
+    "docs/evidence/a1-time-20261123/sql/a1-time-1.sql": "b84a89e7fec21a95dd80ba8f9491b39a7e65697e3ea05b12ae21a8de49feefcf"
+  },
+  "local_pg_claim": "No PG run output in draft folder; not independently accepted",
+  "schema_static_blobs": {
+    "V4__create_position_order.sql": "ba329f9e454bff3bd5ae25c2d8ceade96d64c8fc9e7efed93c8a1957e988cdd4",
+    "V12__create_live_trading_session.sql": "2737dc32f4f65ea59748d6ee3345c76ac35a9b0db532330df733069d546a0568",
+    "V51__add_session_kind_to_position.sql": "da5144eda70b4c682e0a568d46e766a6b7169892398fbff70cae598cd5efd5b8",
+    "V52__add_session_kind_to_order.sql": "23f0e27e6ef818c2a0cafa89263fea7826794bbf8f5b8d20f802cafdb4d4f89f"
+  },
+  "immutable_sources_unchanged": {
+    "docs/evidence/review-1df256c7/README.md": "4cf96bde22ce8e2cf953caef2554338adf26ae1c7998f2bc2646f853594209e4",
+    "docs/evidence/review-1df256c7/preflight-remote.sh": "63b7819cc3f0bd779caa9cec9b6227b7656e0c7a6118361bd0515569585b597a",
+    "docs/evidence/parallel-monitor-followup-20261121/approval/pm-read-2.sh": "fa767e7d2337d6fcbee0636d2ff270bafab9f0121c52f0b2089f482306ce1e1c",
+    "docs/LIMITED_LIVE_TEST_RUNBOOK.md": "fe16cb2eb01c56dd727ce9b053b7d75ed40316223cc463b773e1b205403f32c0",
+    "docs/evidence/dec-launch-order-20261123/README.md": "20e4a31e3bc8ec7e190a4b085ef406cec5ea743dd1b5317358ec3ba59a3a46ad",
+    "docs/evidence/dec-launch-order-20261123/budget.json": "6be4b598cdef7960c882319aac90965f9b30474273243131a7571d0138f69956",
+    "docs/evidence/parallel-monitor-followup-20261121/sql/state-3.sql": "6d71df61a59d144afe9cfa1affc250c6e219c6195612aa97d2580fa8de1bec6b",
+    "docs/evidence/dec-costbasis-followup-20261119/predeploy-v3/predeploy_read.v3.sql": "ca6e7c8d6cc67ee967ac21b7847f7230cc859dc3cb9dc895da6f7694dfe26aa3"
+  },
+  "previous_review_manifest_matching": 3,
+  "historical_0821_line_sha256": "647ce625decaa712003b698ce7003b09de0ccf86ac74e46893a09905ac38d4de",
+  "decision": {
+    "retroactive_operational_approval": false,
+    "a1_approved": false,
+    "post_status": 20,
+    "local_mock_retry": "only after explicit file-only mock transport guards; no real ssh fallback",
+    "independent_package_deadline": "2026-11-24T18:00:00+09:00"
+  },
+  "document_validation": {
+    "links": 186,
+    "foreign_glyphs": 0,
+    "first_draft_check": "Stopped on checks.json link before creating that file; final check performed after creating it"
+  }
+}
