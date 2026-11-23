@@ -1,0 +1,15 @@
+backend-1  | 19:10:01.404 [task-2] ERROR c.c.exchange.upbit.UpbitRestClient - Upbit API 오류: status=404, url=https://api.upbit.com/v1/candles/minutes/60?market=KRW-BLAST&count=200&to=2026-10-31T15:00:00, body={"error":{"name":404,"message":"Code not found"}}
+backend-1  | 19:10:01.404 [task-2] ERROR c.c.e.upbit.UpbitCandleCollector - 캔들 수집 실패: Upbit API 호출 실패: 404 (https://api.upbit.com/v1/candles/minutes/60?market=KRW-BLAST&count=200&to=2026-10-31T15:00:00)
+backend-1  | 19:10:01.404 [task-2] ERROR c.c.a.service.DataCollectionService - 캔들 수집 실패: KRW-BLAST — 캔들 데이터 수집 실패
+backend-1  | 19:10:46.401 [task-3] ERROR c.c.exchange.upbit.UpbitRestClient - Upbit API 오류: status=404, url=https://api.upbit.com/v1/candles/minutes/60?market=KRW-BLAST&count=200&to=2026-11-07T15:00:00, body={"error":{"name":404,"message":"Code not found"}}
+backend-1  | 19:10:46.401 [task-3] ERROR c.c.e.upbit.UpbitCandleCollector - 캔들 수집 실패: Upbit API 호출 실패: 404 (https://api.upbit.com/v1/candles/minutes/60?market=KRW-BLAST&count=200&to=2026-11-07T15:00:00)
+backend-1  | 19:10:46.402 [task-3] ERROR c.c.a.service.DataCollectionService - 캔들 수집 실패: KRW-BLAST — 캔들 데이터 수집 실패
+backend-1  | 19:11:31.403 [task-4] ERROR c.c.exchange.upbit.UpbitRestClient - Upbit API 오류: status=404, url=https://api.upbit.com/v1/candles/minutes/60?market=KRW-BLAST&count=200&to=2026-11-14T15:00:00, body={"error":{"name":404,"message":"Code not found"}}
+backend-1  | 19:11:31.403 [task-4] ERROR c.c.e.upbit.UpbitCandleCollector - 캔들 수집 실패: Upbit API 호출 실패: 404 (https://api.upbit.com/v1/candles/minutes/60?market=KRW-BLAST&count=200&to=2026-11-14T15:00:00)
+backend-1  | 19:11:31.403 [task-4] ERROR c.c.a.service.DataCollectionService - 캔들 수집 실패: KRW-BLAST — 캔들 데이터 수집 실패
+backend-1  | 19:12:16.404 [task-1] ERROR c.c.exchange.upbit.UpbitRestClient - Upbit API 오류: status=404, url=https://api.upbit.com/v1/candles/minutes/60?market=KRW-BLAST&count=200&to=2026-11-21T15:00:00, body={"error":{"name":404,"message":"Code not found"}}
+backend-1  | 19:12:16.405 [task-1] ERROR c.c.e.upbit.UpbitCandleCollector - 캔들 수집 실패: Upbit API 호출 실패: 404 (https://api.upbit.com/v1/candles/minutes/60?market=KRW-BLAST&count=200&to=2026-11-21T15:00:00)
+backend-1  | 19:12:16.405 [task-1] ERROR c.c.a.service.DataCollectionService - 캔들 수집 실패: KRW-BLAST — 캔들 데이터 수집 실패
+backend-1  | 19:13:01.408 [task-2] ERROR c.c.exchange.upbit.UpbitRestClient - Upbit API 오류: status=404, url=https://api.upbit.com/v1/candles/minutes/60?market=KRW-BLAST&count=200&to=2026-11-22T15:00:00, body={"error":{"name":404,"message":"Code not found"}}
+backend-1  | 19:13:01.408 [task-2] ERROR c.c.e.upbit.UpbitCandleCollector - 캔들 수집 실패: Upbit API 호출 실패: 404 (https://api.upbit.com/v1/candles/minutes/60?market=KRW-BLAST&count=200&to=2026-11-22T15:00:00)
+backend-1  | 19:13:01.408 [task-2] ERROR c.c.a.service.DataCollectionService - 캔들 수집 실패: KRW-BLAST — 캔들 데이터 수집 실패
