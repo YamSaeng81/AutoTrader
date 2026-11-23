@@ -88,3 +88,58 @@ PAPER 손익은 합치지 않는다. 미확정 평가·정산은 0으로 채우�
 4. 생성·T0·배포·실제 자금 배정은 이번 제안에 포함하지 않는다.
 
 체크섬 [SHA256SUMS](SHA256SUMS).
+
+## 9. v1.221 §2 보완 — 제안 설명과 실제 유효 조건 구분 (2026-11-23 10:0x KST)
+
+[총괄 v1.221 §2](../review-54b9d417/README.md) 지시에 따른 보완이다. 행 번호는 모두 **d81c3f2f** 기준이다(현재 main의 같은 파일과 다르다). 새 시험·PG·빌드·운영 조회는 하지 않았다. **이 절이 §2의 `maxCandidateSize`~`maxHoldHours` 설명, §3의 "1회 최대 노출", §4 첫 항목, §7 종료 행을 대체한다.** 앞 절 본문은 이력으로 보존한다.
+
+### 9-1. 승인용 본문과 유효 설정
+
+승인 대상은 아래 본문 그대로다. 생략 칸이 없도록 제안값을 모두 적는다.
+
+```json
+{"strategyType":"COMPOSITE_BREAKOUT","timeframe":"H1","tradingMode":"REAL","initialCapital":30000,
+ "investRatio":0.80,"stopLossPct":5.0,"maxCandidateSize":30,"targetWatchSize":10,
+ "minAtrPct":0.5,"maxSpreadPct":0.1,"watchlistRefreshMin":60,"maxHoldHours":24,
+ "strategyParams":{"maxOrderKrw":10000,"excludeCoins":["KRW-BTC"]}}
+```
+
+(배정 20,000 선택 시 `initialCapital`만 바뀐다.) 생략하면 `maxCandidateSize`·`minAtrPct`·`maxSpreadPct`는 **요청값 → risk_config(`scan_max_candidate_size`·`scan_min_atr_pct`·`scan_max_spread_pct`) → 코드 기본** 순서다(DynamicTradingService 566~577행). 그래서 "코드 기본이므로 운영도 30/0.5/0.1"이라고 쓰지 않는다. 명시해도 아래 품질 필터는 본문으로 정할 수 없다.
+
+| 구분 | 결정 출처 | 소스 기본 | 운영 유효 값 |
+|---|---|---|---|
+| 후보·감시 크기, ATR 하한, 스프레드 상한 | 위 본문(명시 시) | 30/10/0.5/0.1 | 생성 응답·`dynamic_session` 저장값으로 대조 |
+| 거래대금 하한·ATR 상한·상승추세·급락 제외 | risk_config `scan_min_trade_value_krw`·`scan_max_atr_pct`·`scan_require_uptrend`·`scan_exclude_crashing`, NULL이면 코드 상수(2343~2352행, 255~258행) | 50억·4.0·참·참 | **미관측** |
+| 공유 유니버스 여부·강제 주기·갱신 분 | `SHARED_UNIVERSE_ENABLED`·`SHARED_UNIVERSE_TIMEFRAME`·`SHARED_UNIVERSE_REFRESH_MIN`(application.yml 98~107행) | 참·H1·30 | **미관측** |
+
+**응답/저장값 대조 칸(생성 뒤 기입):** strategyType · timeframe · tradingMode · initialCapital · investRatio · stopLossPct · maxCandidateSize · targetWatchSize · minAtrPct · maxSpreadPct · watchlistRefreshMin · maxHoldHours · strategyParams(두 키) — 각 "요청 / 응답 / 저장" 세 칸. 하나라도 다르면 시작하지 않고 보고한다.
+
+**유효 값 최소 추가 읽기안(제출, 미실행·미승인):** 승인된 현재 상태 읽기(pm-read-2)에 열을 붙이지 않고 별도 1회로 한다. 시점은 d81 배포 뒤·생성 전(배포가 환경변수를 바꿀 수 있어 지금 읽은 값은 그대로 쓰지 못한다).
+
+| # | 범위 | 기록 | 중단 조건 |
+|---|---|---|---|
+| R1 | risk_config 한 행의 위 7개 scan 열만 `SELECT` | 열 이름·값·NULL 여부, 서버 시각 | 행 수≠1, 조회 실패 → 생성하지 않고 보고 |
+| R2 | backend 컨테이너 환경에서 `SHARED_UNIVERSE_` 접두 세 키만 이름=값으로 필터해 출력(다른 환경변수·비밀값은 출력하지 않음) | 키 존재/값, 없으면 "미설정→소스 기본" | 필터 밖 값 출력, 실패 → 보고 |
+
+설정 변경·글로벌 조정·다른 세션에 영향이 가는 수정은 이 안에 없다. 명령 원문은 승인 요청 때 고정 출처·해시로 따로 낸다.
+
+### 9-2. 감시 갱신 주기
+
+`watchlistRefreshMin=60`은 **공유 유니버스가 꺼진 경로에서만** 쓰인다(2267~2272행 분기, 2274~2276행 비교). 켜져 있으면 세션 값은 무시되고, 함대 공통 갱신 분(소스 기본 30)·강제 timeframe(소스 기본 H1)·품질 필터로 공용 목록을 만든다(2307~2314행, SharedUniverseService 52~72행). §2의 "H1 봉 주기와 같게"는 실제 60분 갱신을 보장하지 않는다. **현재 운영 값은 미관측이다.** 성과 기록에는 R1·R2로 확인한 공유 여부·유효 주기·강제 timeframe·품질 필터 값을 조건으로 적는다. 공유가 켜져 있으면 감시 목록은 다른 DYNAMIC/DYN_PAPER 세션과 같은 유니버스다.
+
+### 9-3. 손절·위험 표현
+
+`stopLossPct=5.0`은 요청 파라미터다. 실제 손절가는 `ExitRuleCalculator.resolveStopLossPct`(5.0을 하한으로 쓰는 ATR 계산)로 만든 가격과 전략 제안 손절가 중 **더 넓은(낮은) 쪽**이다(1763~1778행). 그러므로 "항상 5%에 청산", "손실 상한 5%"라고 쓰지 않는다. 손절 도달 뒤 시장가 체결 가격·수수료·갭도 따로 생긴다. §3의 20,000+10,000=30,000은 **두 세션의 1회 요청 원금 합계**이며, 평가 노출·수수료·체결 손실의 최대치 보장이 아니다.
+
+### 9-4. 평가와 종료
+
+- 12-31 평가에서 열린 포지션은 **수량·평가 가격·가격 시각/출처가 모두 확정되면 미실현 평가손익을 따로 계산**한다. 빠진 원천만 미확정으로 둔다. 미실현 평가는 확정 왕복 손익(매수·매도 모두 체결·정산된 쌍)과 합치지 않고 별도 줄로 적는다.
+- 포착·종료 확인은 SID203 전용 F1·F5-3 명령을 재사용하지 않는다. 동적1은 종류/ID로 따로 묶는다: 세션 `dynamic_session.id=<DID>`, 주문·포지션 `session_kind='DYNAMIC' AND session_id=<DID>`, 정리 대기·정산 불일치는 그 주문 ID 집합으로. 정지 경로는 `POST /api/v1/dynamic-sessions/<DID>/stop`이며 미종결 매수 취소 → 보유 청산 → STOPPED, 미해결 제출이 남으면 "정리 미완료"로 둔다(DynamicTradingService 666~703행). 완료 판정은 O4 기준이다. 실행 원문은 시작 전 별도 제출한다.
+- **12-31 평가는 자동 청산도, 1월 자동 계속 승인도 아니다.** 코드에는 월말 자동 정지가 없으므로 결정이 없으면 세션은 계속 돈다. 그래서 아래를 최종 시작안의 필수 칸으로 둔다.
+
+| # | 항목 | 기입 |
+|---|---|---|
+| O8 | 월 경계 처리: 1월 계속/12-31 중 정지 중 선택, 결정 기한(제안 12-31 18:00 KST)과 결정 담당 | 사용자 결정, 빈칸 |
+| O9 | 결정 없음·기한 경과 시 조치(제안: 정지 경로로 정지 후 O4 확인)와 실행 담당·대응 시간 | 운영자 기입, 빈칸 |
+
+SID203의 56일 계약은 바꾸지 않는다. 동적1의 월 경계 규칙은 동적1에만 붙는다.
