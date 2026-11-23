@@ -1,0 +1,134 @@
+{
+  "review": "v1.224",
+  "reviewed_head": "6c8111f9958503644031ce9f4f42608b3138e5de",
+  "manifest_entries_matching_blob_and_worktree": {
+    "docs/evidence/pm-preflight-20261123-1036/SHA256SUMS": 5,
+    "docs/evidence/pm-read-20261123-1036/read-SHA256SUMS": 15,
+    "docs/evidence/pm-read-20261123-1036/post-SHA256SUMS": 17
+  },
+  "tracked_evidence_files_matching_blob_and_worktree": 45,
+  "preflight": {
+    "rc": 0,
+    "stderr_bytes": 0,
+    "stdout_exact": "15s and 2s, LF",
+    "pc_start_utc": "2026-11-23T01:36:26.541Z",
+    "pc_end_utc": "2026-11-23T01:36:27.546Z"
+  },
+  "read": {
+    "recorded_remote_calls": 4,
+    "all_recorded_rc": 0,
+    "all_stderr_bytes": 0,
+    "status": "READ_OK exit=0",
+    "pc_start_utc": "2026-11-23T01:36:37Z",
+    "pc_end_utc": "2026-11-23T01:36:40Z",
+    "db_meta": [
+      "pm-state-3",
+      "2026-11-23T01:36:39.337604+00:00",
+      "2026-11-23T01:36:39.350424+00:00",
+      "96",
+      "repeatable read"
+    ],
+    "db_end_marker": "2026-11-23T01:36:39.401558+00:00",
+    "exact_snapshot_instant_claimed": false,
+    "server_since": "2026-11-23T01:00:00Z",
+    "server_until": "2026-11-23T01:36:39Z",
+    "local_log_bytes": 162069,
+    "local_log_hash_verified": "b95f6beef2833c441204663443168c2f513f17a45bf457750ce59f992fdbc1f7",
+    "local_only_files_tracked": 0
+  },
+  "state": {
+    "rows_by_type": {
+      "META": 1,
+      "S": 141,
+      "O": 7363,
+      "P": 360,
+      "U": 1,
+      "CNT": 1,
+      "END": 1
+    },
+    "legacy_order_states": {
+      "CANCELLED": 8,
+      "FAILED": 6705,
+      "FILLED": 313
+    },
+    "legacy_position_states": {
+      "CLOSED": 199
+    },
+    "normal_owner_orders": 337,
+    "normal_owner_positions": 161,
+    "legacy_order_ids": [
+      444,
+      8398
+    ],
+    "normal_order_min_id": 8399,
+    "legacy_position_ids": [
+      216,
+      879
+    ],
+    "normal_position_min_id": 891,
+    "running_in_two_session_tables": 0,
+    "sid203": "REAL CREATED; no associated orders/positions",
+    "u_markers": [
+      0,
+      0
+    ],
+    "dyn_paper_excluded_counts": [
+      945,
+      473
+    ]
+  },
+  "post": {
+    "exit": 20,
+    "verdict": "COLLECTION_NOT_PASSED",
+    "consumable": false,
+    "problem_count": 0,
+    "failure_codes": {
+      "ORDER_OWNER_NO_SESSION_ID": 7026,
+      "POSITION_OWNER_NO_SESSION_ID": 199
+    },
+    "p0_status": "P0_ABSENT_IN_PROVIDED_LOG",
+    "p0_fixed_pattern_only": true,
+    "n03_copy_matches_accepted_raw": true,
+    "n03_error_logs_means": "unclassified only, not total ERROR",
+    "w1_w2_r2_p7_f3_scorecard_not_run": "developer report; downstream outputs absent"
+  },
+  "migration_static_context": {
+    "source_commit": "0e1d2a02",
+    "V12": "nullable session_id added",
+    "V51_V52": "LIVE default and kind backfill; not proof of actual row origins"
+  },
+  "immutable_sources_unchanged": {
+    "docs/evidence/review-1df256c7/README.md": "4cf96bde22ce8e2cf953caef2554338adf26ae1c7998f2bc2646f853594209e4",
+    "docs/evidence/review-1df256c7/preflight-remote.sh": "63b7819cc3f0bd779caa9cec9b6227b7656e0c7a6118361bd0515569585b597a",
+    "docs/evidence/parallel-monitor-followup-20261121/approval/pm-read-2.sh": "fa767e7d2337d6fcbee0636d2ff270bafab9f0121c52f0b2089f482306ce1e1c",
+    "docs/LIMITED_LIVE_TEST_RUNBOOK.md": "fe16cb2eb01c56dd727ce9b053b7d75ed40316223cc463b773e1b205403f32c0",
+    "docs/evidence/dec-launch-order-20261123/README.md": "20e4a31e3bc8ec7e190a4b085ef406cec5ea743dd1b5317358ec3ba59a3a46ad",
+    "docs/evidence/dec-launch-order-20261123/budget.json": "6be4b598cdef7960c882319aac90965f9b30474273243131a7571d0138f69956",
+    "docs/evidence/parallel-monitor-followup-20261121/sql/state-3.sql": "6d71df61a59d144afe9cfa1affc250c6e219c6195612aa97d2580fa8de1bec6b",
+    "docs/evidence/dec-costbasis-followup-20261119/predeploy-v3/predeploy_read.v3.sql": "ca6e7c8d6cc67ee967ac21b7847f7230cc859dc3cb9dc895da6f7694dfe26aa3"
+  },
+  "previous_review_manifest_entries_matching": 3,
+  "historical_0821_handoff_preserved_sha256": "647ce625decaa712003b698ce7003b09de0ccf86ac74e46893a09905ac38d4de",
+  "review_scope": {
+    "production_connections": 0,
+    "db_queries": 0,
+    "pg_or_product_test_runs": 0,
+    "builds": 0,
+    "new_runtime_authorizations": false,
+    "reservation_liveness": "developer report only",
+    "usage": "unconfirmed"
+  },
+  "reviewer_audit_note": "First check expected bare 0 in PRE0 rc.txt; corrected to the saved format rc=0. No source changes or operational reruns.",
+  "document_validation": {
+    "authored_markdown_files": 4,
+    "local_links_checked": 180,
+    "broken_targets": 0,
+    "foreign_glyph_or_question_mark_lines": 0,
+    "git_diff_check": "passed",
+    "management_doc_lines": {
+      "LIMITED_LIVE_TEST_PLAN.md": 155,
+      "CURRENT_HANDOFF.md": 56,
+      "PROGRESS.md": 112
+    }
+  }
+}
