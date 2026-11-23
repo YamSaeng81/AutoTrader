@@ -10,9 +10,10 @@
 | 최근 결과와 수용 여부 | [PROGRESS](PROGRESS.md) · [현재 인계](CURRENT_HANDOFF.md) | 이전 세션 결과가 필요할 때 |
 | 담당·완료 조건·N번호 | [11월 관리표](NOVEMBER_LIVE_UPGRADE.md) | 맡은 행 |
 | 시작 가능 여부 | [준비 목록](LIVE_READINESS.md) | 현재 체크 항목 |
+| 추후 개발·확장 우선순위 | [후속 개발 목록](DEVELOPMENT_BACKLOG.md) | 선택한 FD 항목의 근거·선행 조건·완료 조건. 현재 작업 범위와 구분 |
 | F 명령 | [실행 절차](LIMITED_LIVE_TEST_RUNBOOK.md) | 필요한 F 변수/블록과 선행 조건 |
 | 점검 설치·전환·결과 해석 | [OPS](OPS_DAILY_CHECK.md) | 필요한 §번호 |
-| 새 코드 수용·허용 범위 | [최신 총괄 v1.192](evidence/review-0bc5d295/README.md) | 443차 일부 범위 수용·비용 후보 두 경계 보완·로컬 통합 검증 |
+| 새 코드 수용·허용 범위 | [현재 계획의 최신 지시](LIMITED_LIVE_TEST_PLAN.md) | 첫머리에 연결한 최신 총괄 판정과 해당 절. 과거 검토는 당시 이력 |
 | 엔진 공통 제약 | [ENGINE_PARITY](ENGINE_PARITY.md) | 변경하는 규칙/엔진의 항목 |
 
 ## 고정 계약·상세 설계 — 필요한 부분만

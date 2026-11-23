@@ -12,6 +12,7 @@
 | 완료된 배포, 옛 후보·판정, 정정 전 서술, 종전 §1~§7·§5-9 1~126 | [2026-11-12 전체 원문 보존본](LIMITED_LIVE_TEST_PLAN_ARCHIVE_20261112.md) — 이력 조회용 |
 | 전체 관리 목록·일별 점검 | [LIVE_READINESS](LIVE_READINESS.md) · [11월 관리표](NOVEMBER_LIVE_UPGRADE.md) · [OPS](OPS_DAILY_CHECK.md) |
 | 실행 결과와 작업 인계 | [PROGRESS](PROGRESS.md) · [현재 인계](CURRENT_HANDOFF.md) · 각 결과의 evidence/README |
+| 추후 개발 선정·우선순위 | [후속 개발 목록](DEVELOPMENT_BACKLOG.md) — 사용자11-23 요청, FD01~FD16 후보. 현재v1.229 범위/시작 조건은 유지하고 다음 차수에서 근거·의존성·완료 조건으로 한 범위씩 선정 |
 
 보존본의 과거 SHA·“미반영”·“승인 대기”는 **그 기록 당시 상태**다. 현재 판단은 아래 표와 최신 검토 근거를 따른다. 옛 배포 블록을 새 실행 출처로 사용하지 않는다.
 
