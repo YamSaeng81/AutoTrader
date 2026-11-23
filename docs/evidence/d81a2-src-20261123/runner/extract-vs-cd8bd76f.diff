@@ -1,0 +1,22 @@
+1,2c1,2
+< # D81D4R 실행 틀 추출기(총괄 v1.199) — d81d4-20261120/runner/extract.py(e21c777f)에서 블록 경로(d81d4r-20261120)와 U변수·U0 고정 해시만 바꿨다.
+< # 사용: python -I extract.py <출력 폴더(없는 경로)> <D81D4 고정 출처 커밋 40자>
+---
+> # D81A2 실행 틀 추출기(총괄 v1.227 §3-1) — d81d4r-20261120/runner/extract.py(cd8bd76f)에서 블록 경로(d81a2-src-20261123)와 U0 고정 해시(736351db→91ea9342, A2 104행 실패 반출 보정)만 바꿨다.
+> # 사용: python -I extract.py <출력 폴더(없는 경로)> <D81A2 고정 출처 커밋 40자>
+4c4
+< #   U 9블록: 출처 커밋의 docs/evidence/d81d4-20261120/d4/blocks-d81/*.sh — 그 커밋의 blocks-d81.sha256 과 아래 고정값이 모두 같아야 한다.
+---
+> #   U 9블록: 출처 커밋의 docs/evidence/d81a2-src-20261123/d4/blocks-d81/*.sh — 그 커밋의 blocks-d81.sha256 과 아래 고정값이 모두 같아야 한다.
+13c13
+< D = 'docs/evidence/d81d4r-20261120/d4/'
+---
+> D = 'docs/evidence/d81a2-src-20261123/d4/'
+15c15
+< EXP = {  # F·G 는 7c62a7db, U 9블록은 mkd81r.py 생성(blocks-d81.sha256)
+---
+> EXP = {  # F·G 는 7c62a7db, U 9블록은 mkd81r.py 생성 + U0 만 A2 보정본(blocks-d81.sha256)
+19c19
+<     'U0': '736351dbaddab38212ee36d44aca30160b336ebcc58fff28a24b58d0803bb9cd',
+---
+>     'U0': '91ea93428ab4dc4f515d2497d388b4ccd75d4dcb48a1be1089468a3a433f1457',
