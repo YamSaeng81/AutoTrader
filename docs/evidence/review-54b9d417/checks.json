@@ -1,0 +1,94 @@
+{
+  "review_version": "1.221",
+  "reviewed_commit": "54b9d4170feb9c20fb70f147ef3b229a343329bb",
+  "submitted_manifest": [
+    {
+      "path": "docs/evidence/dec-fixed1-prep-v1219-20261123/README.md",
+      "sha256": "9c6f44acb6fd2254783afaceae7a7a5507a4c69e7d0fc62aa0d8996f0af81ee2"
+    },
+    {
+      "path": "docs/evidence/dec-fixed1-prep-v1219-20261123/.gitattributes",
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "path": "docs/evidence/dec-dyn1-final-20261123/README.md",
+      "sha256": "03c2d29383c209714b6d9ea54030355722c0d854e29844e5025a4cac5248b99a"
+    },
+    {
+      "path": "docs/evidence/dec-dyn1-final-20261123/.gitattributes",
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    }
+  ],
+  "submitted_files_matching_commit": [
+    "docs/evidence/dec-dyn1-final-20261123/.gitattributes",
+    "docs/evidence/dec-dyn1-final-20261123/README.md",
+    "docs/evidence/dec-dyn1-final-20261123/SHA256SUMS",
+    "docs/evidence/dec-fixed1-prep-v1219-20261123/README.md",
+    "docs/evidence/dec-fixed1-prep-v1219-20261123/SHA256SUMS"
+  ],
+  "previous_sections_preserved": {
+    "commit": "9c338534",
+    "original_lines_before_checksum": 94
+  },
+  "original_prep_files_preserved": 3,
+  "immutable_sources": [
+    {
+      "path": "docs/evidence/review-1df256c7/README.md",
+      "sha256": "4cf96bde22ce8e2cf953caef2554338adf26ae1c7998f2bc2646f853594209e4"
+    },
+    {
+      "path": "docs/evidence/review-1df256c7/preflight-remote.sh",
+      "sha256": "63b7819cc3f0bd779caa9cec9b6227b7656e0c7a6118361bd0515569585b597a"
+    },
+    {
+      "path": "docs/evidence/parallel-monitor-followup-20261121/approval/pm-read-2.sh",
+      "sha256": "fa767e7d2337d6fcbee0636d2ff270bafab9f0121c52f0b2089f482306ce1e1c"
+    },
+    {
+      "path": "docs/LIMITED_LIVE_TEST_RUNBOOK.md",
+      "sha256": "fe16cb2eb01c56dd727ce9b053b7d75ed40316223cc463b773e1b205403f32c0"
+    },
+    {
+      "path": "docs/evidence/dec-launch-order-20261123/README.md",
+      "sha256": "20e4a31e3bc8ec7e190a4b085ef406cec5ea743dd1b5317358ec3ba59a3a46ad"
+    },
+    {
+      "path": "docs/evidence/dec-launch-order-20261123/budget.json",
+      "sha256": "6be4b598cdef7960c882319aac90965f9b30474273243131a7571d0138f69956"
+    }
+  ],
+  "source_commit": "d81c3f2f",
+  "static_source_checks": {
+    "mode_before_save": true,
+    "request_risk_code_fallback": true,
+    "ratio_and_stop_defaults": true,
+    "entry_keys_together": true,
+    "buy_amount_cap": true,
+    "new_buy_exclusion": true,
+    "shared_branch": true,
+    "shared_defaults": true,
+    "quality_uses_risk_config": true,
+    "atr_stop_and_wider_suggestion": true,
+    "fixed_weights": true,
+    "hold_default_24": true
+  },
+  "preserved_morning_handoff_sha256": "647ce625decaa712003b698ce7003b09de0ccf86ac74e46893a09905ac38d4de",
+  "scope": "Static Git and document review only. No scheduler query, production SSH, DB, account, PG, product test or build executed.",
+  "document_validation": {
+    "markdown_files": [
+      "docs/evidence/review-54b9d417/README.md",
+      "docs/LIMITED_LIVE_TEST_PLAN.md",
+      "docs/CURRENT_HANDOFF.md",
+      "docs/PROGRESS.md"
+    ],
+    "local_links_checked": 175,
+    "broken_links": 0,
+    "foreign_script_or_questionmark_runs": 0,
+    "line_counts": {
+      "README.md": 29,
+      "LIMITED_LIVE_TEST_PLAN.md": 155,
+      "CURRENT_HANDOFF.md": 56,
+      "PROGRESS.md": 109
+    }
+  }
+}
