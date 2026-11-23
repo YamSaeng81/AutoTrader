@@ -10,7 +10,7 @@
 | 최근 결과와 수용 여부 | [PROGRESS](PROGRESS.md) · [현재 인계](CURRENT_HANDOFF.md) | 이전 세션 결과가 필요할 때 |
 | 담당·완료 조건·N번호 | [11월 관리표](NOVEMBER_LIVE_UPGRADE.md) | 맡은 행 |
 | 시작 가능 여부 | [준비 목록](LIVE_READINESS.md) | 현재 체크 항목 |
-| 추후 개발·확장 우선순위 | [후속 개발 목록](DEVELOPMENT_BACKLOG.md) | 선택한 FD 항목의 근거·선행 조건·완료 조건. 현재 작업 범위와 구분 |
+| 추후 개발·확장 우선순위 | [후속 개발 목록](DEVELOPMENT_BACKLOG.md) · [프런트엔드 계획](FRONTEND_DEVELOPMENT_PLAN.md) | FD 후보의 근거/완료 조건과 FD15/FE01~FE06. 현재 작업 범위와 구분, 프런트엔드 정리는12월1일 이후 초기 안정 확인 뒤 선정 |
 | F 명령 | [실행 절차](LIMITED_LIVE_TEST_RUNBOOK.md) | 필요한 F 변수/블록과 선행 조건 |
 | 점검 설치·전환·결과 해석 | [OPS](OPS_DAILY_CHECK.md) | 필요한 §번호 |
 | 새 코드 수용·허용 범위 | [현재 계획의 최신 지시](LIMITED_LIVE_TEST_PLAN.md) | 첫머리에 연결한 최신 총괄 판정과 해당 절. 과거 검토는 당시 이력 |

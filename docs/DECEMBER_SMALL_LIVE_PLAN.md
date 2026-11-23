@@ -57,6 +57,8 @@
 
 **11-23 후속 개발 요청:** 이 방향과 운영/자료 공백을 [후속 개발 목록](DEVELOPMENT_BACKLOG.md)에 연결했다. 전략 선택형 LIVE는 FD14, 판단 당시 자료는 FD13이며 자금/정산 이력·자산 곡선·알림·실행 경계도 함께 우선순위를 정한다. 다음 작업 선정 때 이 목록을 확인하되 현재 시작 조건과 승인 범위는 바꾸지 않는다.
 
+**프런트엔드 추가 요청:** [FD15 후속 계획](FRONTEND_DEVELOPMENT_PLAN.md)에 심플한 디자인·세션별 보기 편한 상세 데이터·모바일/테마·공통 코드 정리를 반영했다. 12월1일 실운영 개시 이후 초기 안정성을 확인하고 착수하며 현재 실전 준비 일정과 승인 범위를 유지한다.
+
 수수료율·최소/최대 주문 제약은 실제 시작 시점의 [업비트 주문 가능 정보](https://docs.upbit.com/kr/reference/available-order-information)로 확인할 대상이다. 성과는 비용·시장 상황·비교 기준·유리한 결과만 고르는 문제를 함께 보아야 하며, 한 달의 수익이 향후 수익을 보장하지 않는다. [SEC 성과 해석 안내](https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins-47)
 
 ## 4. 시작과 중단 경계
