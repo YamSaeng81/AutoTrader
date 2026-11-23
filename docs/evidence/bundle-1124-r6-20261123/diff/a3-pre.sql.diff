@@ -1,0 +1,59 @@
+--- r5/read/a3-pre.sql
++++ r6/read/a3-pre.sql
+@@ -1,4 +1,8 @@
+--- A3 관측 수집·월중 원천 부록 공용 읽기 SQL a3-pre-2 (총괄 v1.229 §3 R1·R3). **검토용 원문 — 미실행, 별도 승인 전 실행 금지.**
++-- A3 관측 수집·월중 원천 부록 공용 읽기 SQL a3-pre-3 (총괄 v1.230 §2 R6-1). **검토용 원문 — 미실행, 별도 승인 전 실행 금지.**
++-- a3-pre-2(r5, 69e1f277) 대비: 범위 관문에 **소유 연결 관문**(LINK_OWNER_MISMATCH)을 SESSION_NOT_REAL 뒤·금액 절 앞에 추가했다.
++--   대상 포지션(LIVE#203 OPEN/CLOSING)을 position_id 로 가리키는 주문 중 소유가 LIVE#203 이 아닌 행(다른 세션·다른 종류·소유 없음)이
++--   하나라도 있으면 같은 스냅숏에서 범위 절 전체를 실행하지 않는다. 그 행을 빼고 정상 원가로 확정하지 않으며, 금액 없는 사유와
++--   개수(LINKX)만 남긴다. 소유 없는 옛 행을 임의 귀속하지 않는다. 그 밖의 절·열은 a3-pre-2 와 같다.
+ -- a3-pre-1(r4, d505d08f) 대비: ① 승인 대상 LIVE#203 한 개로 고정, 같은 트랜잭션에서 세션 존재·정확한 REAL 확인을 **금액 SELECT 전에** 하고
+ --   불통과면 금액·주문·포지션 절을 실행하지 않는다(SCOPE 표지만) ② 대상 밖은 안전 개수(XCNT)만 ③ POS 원가를 매수 총수량·총원가·
+ --   미확인 원천 건수·현재 잔량으로 나누고, 남은 보유 원가는 d81 수량 배분 규칙을 그대로 쓸 수 있을 때만 낸다.
+@@ -6,8 +10,9 @@
+ --   -v ON_ERROR_STOP=1 -v sid=<SID> -v with_orders=<true|false> -f -   (표준 입력). 결과 원문은 서버 출력 폴더에만 둔다.
+ -- 열은 배포 후보 d81c3f2f(= 운영 0e1d2a02, V96) 엔티티의 실제 열 이름이다. 쓰기·임시 객체 없음. REPEATABLE READ READ ONLY + ROLLBACK.
+ -- 출력 줄(탭 구분, 첫 칸이 표지). 모든 시각은 UTC 마이크로초 'YYYY-MM-DDTHH:MM:SS.ffffffZ'(DB 시계).
+---   META    a3-pre-2  db_clock_start  db_txn_now  flyway_max  sid  with_orders
+---   SCOPE   OK|SID_NOT_APPROVED|SESSION_NOT_FOUND|SESSION_NOT_REAL  LIVE  sid
++--   META    a3-pre-3  db_clock_start  db_txn_now  flyway_max  sid  with_orders
++--   SCOPE   OK|SID_NOT_APPROVED|SESSION_NOT_FOUND|SESSION_NOT_REAL|LINK_OWNER_MISMATCH  LIVE  sid
++--   LINKX   foreign_linked_orders   (SCOPE 가 LINK_OWNER_MISMATCH 일 때만. 대상 포지션에 연결된 소유 불일치 주문 개수. 금액·행 없음)
+ --           → OK 가 아니면 아래 범위 절(TSES~MORD) 0행. 금액·주문/포지션 행을 내지 않는다.
+ --   ── 범위 절(SCOPE OK 일 때만, 모두 LIVE#203 소유 행만) ──
+ --   TSES    LIVE  id  session_type  status  initial_capital  available_krw  started_at  stopped_at
+@@ -33,17 +38,23 @@
+ \pset null '-'
+ \set approved_sid 203
+ BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY;
+-SELECT 'META', 'a3-pre-2',
++SELECT 'META', 'a3-pre-3',
+        to_char(clock_timestamp() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'),
+        to_char(now() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'),
+        (SELECT max(version::int) FROM flyway_schema_history WHERE success AND version ~ '^[0-9]+$'),
+        :'sid', :'with_orders';
++-- R6-1 소유 연결 개수: 승인 대상(:approved_sid)의 POS 범위 포지션에만 묻는다. 소유 없는 행(NULL)도 불일치로 센다(IS DISTINCT FROM).
++SELECT count(*) AS link_foreign_n
++  FROM "order" o JOIN position p ON p.id = o.position_id
++ WHERE p.session_kind = 'LIVE' AND p.session_id = :approved_sid AND p.status IN ('OPEN','CLOSING')
++   AND (o.session_kind IS DISTINCT FROM 'LIVE' OR o.session_id IS DISTINCT FROM :approved_sid) \gset
+ -- R1 범위 관문: 금액을 읽기 전에, 같은 트랜잭션 스냅숏에서. 인자는 숫자로 캐스팅하지 않고 문자열로 비교한다.
+ SELECT CASE WHEN :'sid' <> :'approved_sid' THEN 'SID_NOT_APPROVED'
+             WHEN NOT EXISTS (SELECT 1 FROM live_trading_session WHERE id::text = :'sid') THEN 'SESSION_NOT_FOUND'
+             WHEN NOT EXISTS (SELECT 1 FROM live_trading_session WHERE id::text = :'sid' AND session_type = 'REAL') THEN 'SESSION_NOT_REAL'
++            WHEN :link_foreign_n <> 0 THEN 'LINK_OWNER_MISMATCH'
+             ELSE 'OK' END AS scope_reason \gset
+-SELECT (:'scope_reason' = 'OK') AS scope_ok \gset
++SELECT (:'scope_reason' = 'OK') AS scope_ok, (:'scope_reason' = 'LINK_OWNER_MISMATCH') AS link_denied \gset
+ SELECT 'SCOPE', :'scope_reason', 'LIVE', :'sid';
+ \if :scope_ok
+ SELECT 'TSES', 'LIVE', l.id, l.session_type, l.status, l.initial_capital, l.available_krw,
+@@ -135,6 +146,8 @@
+   FROM "order" o WHERE o.session_kind = 'LIVE' AND o.session_id = :approved_sid
+  ORDER BY o.id;
+ \endif
++\elif :link_denied
++SELECT 'LINKX', :link_foreign_n;
+ \endif
+ SELECT 'END', to_char(clock_timestamp() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"');
+ ROLLBACK;

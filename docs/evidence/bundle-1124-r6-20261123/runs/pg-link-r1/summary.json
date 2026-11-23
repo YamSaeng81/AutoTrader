@@ -1,0 +1,57 @@
+{
+ "case": "link_foreign_buy",
+ "ok": true,
+ "container_network": "none",
+ "pgoptions_show": [
+  "15s",
+  "2s"
+ ],
+ "sql_old_sha256": "69e1f277c6612758313a7927f10427d979eb07f1a5b9e6875a8d05310e29b31d",
+ "sql_new_sha256": "add895a2bef948f52fd992e657e2cbeeb944948ef46dedfce326c7ea20cc38c2",
+ "test_sha256": "0447a6cc8e7d526e4e084a72309b152034819495d00969f73d947a4d40c0877c",
+ "before_r5": {
+  "rc0": true,
+  "stderr_empty": true,
+  "scope_ok": true,
+  "pos21_buy_n_2": true,
+  "pos21_buy_qty_40_mixed": true,
+  "pos21_buy_cost_100005_mixed": true,
+  "foreign_amount_in_output": true
+ },
+ "before_r5_pos21": [
+  "POS",
+  "21",
+  "OPEN",
+  "KRW-BTC",
+  "20.00000000",
+  "2",
+  "40.00000000",
+  "100005.00000000",
+  "0",
+  "0",
+  "0",
+  "-",
+  "0",
+  "0",
+  "0",
+  "QTY_MISMATCH",
+  "-"
+ ],
+ "after_r6": {
+  "rc0": true,
+  "stderr_empty": true,
+  "scope_link_owner_mismatch": true,
+  "linkx_count_1": true,
+  "only_meta_scope_linkx_end": true,
+  "scoped_sections_zero_rows": true,
+  "foreign_amounts_absent": true,
+  "normal_cost_not_confirmed": true,
+  "meta_version_a3_pre_3": true
+ },
+ "after_rows_by_tag": {
+  "END": 1,
+  "LINKX": 1,
+  "META": 1,
+  "SCOPE": 1
+ }
+}

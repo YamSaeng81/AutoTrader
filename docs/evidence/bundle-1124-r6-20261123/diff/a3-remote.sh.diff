@@ -1,0 +1,31 @@
+--- r5/read/a3-remote.sh
++++ r6/read/a3-remote.sh
+@@ -1,7 +1,10 @@
+-# A3 관측 수집 원격 본문 a3-remote-2 (총괄 v1.229 §3 R1·R2). **검토용 원문 — 미실행, 별도 승인 전 실행 금지. 가짜 SSH·서버 별칭 구동 시험도 하지 않았다.**
++# A3 관측 수집 원격 본문 a3-remote-3 (총괄 v1.230 §2 R6-2, 기반 v1.229 §3 R1·R2). **검토용 원문 — 미실행, 별도 승인 전 실행 금지. 가짜 SSH·서버 별칭 구동 시험도 하지 않았다.**
+ # a3-preread.sh 가 해시 확인 뒤 표준 입력으로 서버 bash 에 1회 보낸다: ssh cat-prod "bash -s -- <인자 11개>" < a3-remote.sh
+ # 인자: $1 TAG $2 인증 파일 서버 경로 $3 with_orders $4 SID $5 KIND $6 승인 날짜(KST) $7 승인 창(KST HH:MM-HH:MM)
+ #       $8 SQL base64 $9 SQL sha256 $10 a3-proj.py base64 $11 a3-proj.py sha256
++# r5(a3-remote-2, 2cb80742) 대비(R6-2): 앱 시계 앞 관문(gate ACCOUNT)은 그대로 두고, 첫 앱 시계 검증 뒤·curl 바로 앞에
++#   같은 창 검사(gate ACCOUNT_CURL)를 한 번 더 둔다. 앱 시계 호출이 늦어져 창이 지났으면 STOP 2 WINDOW_OUT_ACCOUNT_CURL, 계좌 호출 0회.
++#   추가 SSH·SQL·계좌 호출 없음(서버 date 1회만 늘어난다). 그 밖의 줄은 a3-remote-2 와 같다.
+ # r4(a3-remote-1, 94db4ca9) 대비:
+ #   R1 승인 대상(LIVE#203)·날짜·창을 원격 인자로 받아 **서버 KST** 로 SQL 직전·계좌 호출 직전에 각각 다시 검사(불통과면 그 호출 0회).
+ #      SQL 의 SCOPE 가 OK 가 아니면 계좌·앱 시계 호출 0회. 앱 시계 실패/형식 불일치는 표본으로 쓰지 않고, 첫 표본 실패면 계좌 호출 0회.
+@@ -27,7 +30,7 @@
+   [[ "$4" =~ ^[0-2][0-9]:[0-5][0-9]$ ]] || return 1
+   [[ ! "$4" < "$a" && ! "$4" > "$b" ]]
+ }
+-# 호출 직전 관문: 서버 시계를 한 번에 읽어(날짜·시각 분리 호출 없음) 창 안일 때만 통과. $1 은 어느 호출 앞인지(SQL|ACCOUNT).
++# 호출 직전 관문: 서버 시계를 한 번에 읽어(날짜·시각 분리 호출 없음) 창 안일 때만 통과. $1 은 어느 호출 앞인지(SQL|ACCOUNT|ACCOUNT_CURL).
+ gate() {
+   local now; now=$(TZ=Asia/Seoul date +%F_%H:%M) || stop 2 SERVER_CLOCK_READ_FAILED
+   win_ok "$ADATE" "$AWIN" "${now%_*}" "${now#*_}" || stop 2 "WINDOW_OUT_$1"
+@@ -65,6 +68,7 @@
+ gate ACCOUNT
+ AT0=$(ts); AP0=$($DC exec -T backend date -u +%Y-%m-%dT%H:%M:%S.%6NZ); AR0=$?; AT1=$(ts)
+ if [ "$AR0" = 0 ] && [[ "$AP0" =~ $APPRE ]]; then out "APP_CLOCK_1 server=$AT0..$AT1 app=$AP0"; else stop 7 APP_CLOCK_1_INVALID; fi
++gate ACCOUNT_CURL                                         # R6-2 마지막 창 검사. 불통과면 계좌 호출 0회
+ CT0=$(ts)
+ HC=$(curl -sS --max-time 20 -o "$M/account.json" -w '%{http_code}' -H @"$AUTH" http://localhost:8080/api/v1/account/summary); CRC=$?
+ CT1=$(ts)

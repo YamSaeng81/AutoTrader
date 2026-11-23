@@ -1,0 +1,37 @@
+--- r5/read/a3-preread.sh
++++ r6/read/a3-preread.sh
+@@ -1,6 +1,12 @@
+ #!/usr/bin/env bash
+-# A3 관측 수집 실행 원문 a3-preread-2 (총괄 v1.229 §3 R1·R2). **검토용 원문 — 미실행. 별도 승인 전 실행 금지. 가짜 SSH·서버 별칭 구동 시험도 하지 않았다.**
++# A3 관측 수집 실행 원문 a3-preread-3 (총괄 v1.230 §2 R6-1·R6-2, 기반 v1.229 §3 R1·R2). **검토용 원문 — 미실행. 별도 승인 전 실행 금지. 가짜 SSH·서버 별칭 구동 시험도 하지 않았다.**
+ # 성격: '허용된 관측값 수집안'이다. A3 미배정 현금 확정·'충분' 판정 경로가 아니다(v1.229 §2).
++# r5(a3-preread-2) 대비: 고정 해시 두 개만 바꿨다 — a3-pre.sql → a3-pre-3(R6-1 소유 연결 관문), a3-remote.sh → a3-remote-3(R6-2 curl 직전 창 재검사).
++#   a3-proj.py(24802e60)·a3-finish.sh(fb2aac5e)는 r5 와 바이트가 같다. 인자·거절·종료값은 그대로다.
++# 실행 사전 조건(승인 본문에서 확인, 이 원문은 운영 탐색을 하지 않는다. 하나라도 아니면 실행하지 않거나 원격이 비영 종료·재시도 없음):
++#   ① 서버 curl 이 `-H @파일` 을 지원(아니면 원격 STOP 6) ② 서버에 python3 (아니면 변환 실패 STOP 4)
++#   ③ 서버 GNU date 가 `+%6N`·`TZ=Asia/Seoul` 을 지원(아니면 앱 시계 형식 불일치 STOP 7·창 관문 STOP 2)
++#   ④ PGOPTIONS 전달: 운영 compose exec 형식의 15s/2s 실측은 11-23 10:36 PRE0(review-6c8111f9)에서 수용됐다. 이 본문 문맥에서는 미실행.
+ # r4(a3-preread-1, 324d05d9) 대비:
+ #   R1 대상은 **LIVE#203 한 개로 고정**(--kind LIVE --sid 203 외 거절). --reg-id 는 대상을 묶지 못하므로 뺐다.
+ #      승인 날짜·창·대상을 원격 인자로 넘기고, 원격이 서버 KST 로 SQL·계좌 호출 직전에 다시 검사한다(PC 검사는 사전 거절용일 뿐).
+@@ -18,9 +24,9 @@
+ set -u
+ SELF="$(cd "$(dirname "$0")" && pwd)"
+ APPROVED_KIND=LIVE; APPROVED_SID=203
+-SQL="$SELF/a3-pre.sql";       SQL_SHA=69e1f277c6612758313a7927f10427d979eb07f1a5b9e6875a8d05310e29b31d
++SQL="$SELF/a3-pre.sql";       SQL_SHA=add895a2bef948f52fd992e657e2cbeeb944948ef46dedfce326c7ea20cc38c2
+ PROJ="$SELF/a3-proj.py";      PROJ_SHA=24802e60a4da2c9ed35f11a85d7e40a1d167465522d0259de748c7121754662e
+-REM="$SELF/a3-remote.sh";     REM_SHA=2cb807428c70e6878c989aff357f6725efbf654d8ba39bb858e4a9dca3ecec3e
++REM="$SELF/a3-remote.sh";     REM_SHA=bb3f7aa208feb89fa575218c1425c8eef79fcc51397426997caeda9ed4159e37
+ FIN="$SELF/a3-finish.sh";     FIN_SHA=fb2aac5e9567c09e14ff43a536eb9f37820cb7bf240841d4ce9284eaa7df0f06
+ deny() { echo "🔴 거절(종료 2): $* — 원격 호출 0회"; exit 2; }
+ hashok() { [ "$(sha256sum < "$1" | cut -d' ' -f1)" = "$2" ]; }
+@@ -49,7 +55,7 @@
+ TAG=$(basename "$OUT")
+ mkdir "$OUT" || { echo "🔴 기록 실패(종료 4): 보존 폴더 — 원격 호출 0회"; exit 4; }
+ I="$OUT/INCOMPLETE.txt"
+-{ printf '미완료 — a3-preread-2 시작 %s(PC UTC)\n' "$(date -u +%FT%T.%6NZ)" > "$I" \
++{ printf '미완료 — a3-preread-3 시작 %s(PC UTC)\n' "$(date -u +%FT%T.%6NZ)" > "$I" \
+   && printf 'date %s\nwindow %s\nkind %s\nsid %s\nalloc_src_sha256 %s\nauth_path %s\nwith_orders %s\nsql_sha256 %s\nproj_sha256 %s\nremote_sha256 %s\nfinish_sha256 %s\n' \
+        "$DATE" "$WIN" "$KIND" "$SID" "$(sha256sum < "$ALLOC" | cut -d' ' -f1)" "$AUTH" "$WO" "$SQL_SHA" "$PROJ_SHA" "$REM_SHA" "$FIN_SHA" > "$OUT/args.txt"; } \
+   || { echo "🔴 기록 실패(종료 4): 시작 기록 — 원격 호출 0회, 미완료 표지 남김"; exit 4; }

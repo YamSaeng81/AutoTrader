@@ -1,0 +1,104 @@
+# A3 관측 수집 원격 본문 a3-remote-3 (총괄 v1.230 §2 R6-2, 기반 v1.229 §3 R1·R2). **검토용 원문 — 미실행, 별도 승인 전 실행 금지. 가짜 SSH·서버 별칭 구동 시험도 하지 않았다.**
+# a3-preread.sh 가 해시 확인 뒤 표준 입력으로 서버 bash 에 1회 보낸다: ssh cat-prod "bash -s -- <인자 11개>" < a3-remote.sh
+# 인자: $1 TAG $2 인증 파일 서버 경로 $3 with_orders $4 SID $5 KIND $6 승인 날짜(KST) $7 승인 창(KST HH:MM-HH:MM)
+#       $8 SQL base64 $9 SQL sha256 $10 a3-proj.py base64 $11 a3-proj.py sha256
+# r5(a3-remote-2, 2cb80742) 대비(R6-2): 앱 시계 앞 관문(gate ACCOUNT)은 그대로 두고, 첫 앱 시계 검증 뒤·curl 바로 앞에
+#   같은 창 검사(gate ACCOUNT_CURL)를 한 번 더 둔다. 앱 시계 호출이 늦어져 창이 지났으면 STOP 2 WINDOW_OUT_ACCOUNT_CURL, 계좌 호출 0회.
+#   추가 SSH·SQL·계좌 호출 없음(서버 date 1회만 늘어난다). 그 밖의 줄은 a3-remote-2 와 같다.
+# r4(a3-remote-1, 94db4ca9) 대비:
+#   R1 승인 대상(LIVE#203)·날짜·창을 원격 인자로 받아 **서버 KST** 로 SQL 직전·계좌 호출 직전에 각각 다시 검사(불통과면 그 호출 0회).
+#      SQL 의 SCOPE 가 OK 가 아니면 계좌·앱 시계 호출 0회. 앱 시계 실패/형식 불일치는 표본으로 쓰지 않고, 첫 표본 실패면 계좌 호출 0회.
+#   R2 반출 변환을 파일 전용 a3-proj.py 로 분리. 계좌 error/키 미설정/손상 JSON/형식 불일치는 고정 사유·비영 종료.
+#      STOP 사유는 ASCII 고정 코드뿐. 마지막 서버 기록(해시 목록) 실패도 비영 종료.
+# 서버에 쓰는 곳은 새 출력 폴더 ~/a3-pre/$TAG 하나뿐이다(없어야 함). 계좌 JSON·SQL 결과·표준오류 원문은 그 폴더에만 둔다.
+# 표준 출력(=개발 PC 로 오는 것)은 out() 의 허용 줄과 a3-proj.py 통과 줄뿐이다. 토큰·인증 파일 내용·로그·오류 원문은 내보내지 않는다.
+# 종료값: 0 성공 · 2 거절(대상/창/폴더/해시/인증 파일) · 3 장부 SQL 실패 · 4 기록/변환 실패 · 5 SQL 표준오류 · 6 계좌 불통과
+#         · 7 앱 시계 불통과 · 8 SQL 범위 거절. 재시도 없음.
+set -u
+TAG=$1; AUTH=$2; WO=$3; SID=$4; KIND=$5; ADATE=$6; AWIN=$7; SQLB=$8; SQLSHA=$9; PROJB=${10}; PROJSHA=${11}
+APPROVED_KIND=LIVE; APPROVED_SID=203
+ts() { date -u +%Y-%m-%dT%H:%M:%S.%6NZ; }      # 서버 시계, 마이크로초(그 아래는 버림)
+out() { printf '%s\n' "$*"; }
+stop() { out "STOP $1 $2"; [ -n "${M:-}" ] && [ -d "$M" ] && out "STDERR_BYTES $(wc -c < "$M/stderr.txt" 2>/dev/null || echo -)"; exit "$1"; }
+# 창 판정은 순수 함수: $1 승인 날짜 $2 승인 창 $3 서버 KST 날짜 $4 서버 KST HH:MM. 자정을 넘는 창은 받지 않는다.
+win_ok() {
+  [[ "$1" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || return 1
+  [[ "$2" =~ ^([0-2][0-9]:[0-5][0-9])-([0-2][0-9]:[0-5][0-9])$ ]] || return 1
+  local a=${BASH_REMATCH[1]} b=${BASH_REMATCH[2]}
+  [[ ! "$a" > "$b" ]] || return 1
+  [ "$3" = "$1" ] || return 1
+  [[ "$4" =~ ^[0-2][0-9]:[0-5][0-9]$ ]] || return 1
+  [[ ! "$4" < "$a" && ! "$4" > "$b" ]]
+}
+# 호출 직전 관문: 서버 시계를 한 번에 읽어(날짜·시각 분리 호출 없음) 창 안일 때만 통과. $1 은 어느 호출 앞인지(SQL|ACCOUNT|ACCOUNT_CURL).
+gate() {
+  local now; now=$(TZ=Asia/Seoul date +%F_%H:%M) || stop 2 SERVER_CLOCK_READ_FAILED
+  win_ok "$ADATE" "$AWIN" "${now%_*}" "${now#*_}" || stop 2 "WINDOW_OUT_$1"
+  out "WINDOW_OK $1 ${now%_*} ${now#*_}"
+}
+APPRE='^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{6}Z$'
+# 0) 폴더를 만들기 전에 대상·인자 형식 거절
+[ "$KIND" = "$APPROVED_KIND" ] && [ "$SID" = "$APPROVED_SID" ] || { out "STOP 2 TARGET_NOT_APPROVED"; exit 2; }
+[ "$WO" = true ] || [ "$WO" = false ] || { out "STOP 2 ARG_INVALID"; exit 2; }
+[[ "$TAG" =~ ^a3pre-[0-9]{8}-[0-9]{4}$ ]] || { out "STOP 2 ARG_INVALID"; exit 2; }
+M=~/a3-pre/$TAG
+[ ! -e "$M" ] || { M=; out "STOP 2 OUTPUT_DIR_EXISTS"; exit 2; }
+mkdir -p ~/a3-pre && mkdir "$M" && : > "$M/stderr.txt" || { M=; out "STOP 4 OUTPUT_DIR_CREATE_FAILED"; exit 4; }
+exec 2>>"$M/stderr.txt"
+out "SERVER_START $(ts)"
+case "$AUTH" in "~/"*) AUTH="$HOME/${AUTH#\~/}";; esac
+[ -f "$AUTH" ] && [ -r "$AUTH" ] && [ "$(stat -c %a "$AUTH")" = 600 ] || stop 2 AUTH_FILE_MISSING_OR_NOT_600   # 내용은 읽지 않는다
+printf '%s' "$SQLB" | base64 -d > "$M/a3-pre.sql" && [ "$(sha256sum < "$M/a3-pre.sql" | cut -d' ' -f1)" = "$SQLSHA" ] || stop 2 SQL_HASH_MISMATCH
+printf '%s' "$PROJB" | base64 -d > "$M/a3-proj.py" && [ "$(sha256sum < "$M/a3-proj.py" | cut -d' ' -f1)" = "$PROJSHA" ] || stop 2 PROJ_HASH_MISMATCH
+cd ~/crypto_trader/AutoTrader || stop 2 APP_DIR_MISSING
+DC="docker compose -f docker-compose.prod.yml"
+# 1) 장부 SQL — 서버 KST 창 확인 직후 1회
+gate SQL
+LT0=$(ts)
+$DC exec -T -e PGOPTIONS='-c statement_timeout=15s -c lock_timeout=2s' db psql -X -q -At -F "$(printf '\t')" -v ON_ERROR_STOP=1 \
+  -v sid="$SID" -v with_orders="$WO" -U trader -d crypto_auto_trader -f - < "$M/a3-pre.sql" > "$M/ledger.tsv"; LRC=$?
+LT1=$(ts)
+out "LEDGER_CALL $LT0 $LT1 rc=$LRC"
+[ "$LRC" = 0 ] || stop 3 LEDGER_SQL_FAILED
+[ "$(wc -c < "$M/stderr.txt")" = 0 ] || stop 5 LEDGER_SQL_STDERR
+grep -qxF "$(printf 'SCOPE\tOK\tLIVE\t203')" "$M/ledger.tsv"; SRC=$?
+[ "$SRC" = 1 ] && stop 8 SCOPE_DENIED                     # 범위 불통과 → 계좌·앱 시계 호출 0회
+[ "$SRC" = 0 ] || stop 4 SCOPE_CHECK_FAILED
+# 2) 앱 시계 → 계좌 요약 → 앱 시계. 계좌 호출 직전에 창을 다시 확인한다.
+gate ACCOUNT
+AT0=$(ts); AP0=$($DC exec -T backend date -u +%Y-%m-%dT%H:%M:%S.%6NZ); AR0=$?; AT1=$(ts)
+if [ "$AR0" = 0 ] && [[ "$AP0" =~ $APPRE ]]; then out "APP_CLOCK_1 server=$AT0..$AT1 app=$AP0"; else stop 7 APP_CLOCK_1_INVALID; fi
+gate ACCOUNT_CURL                                         # R6-2 마지막 창 검사. 불통과면 계좌 호출 0회
+CT0=$(ts)
+HC=$(curl -sS --max-time 20 -o "$M/account.json" -w '%{http_code}' -H @"$AUTH" http://localhost:8080/api/v1/account/summary); CRC=$?
+CT1=$(ts)
+[[ "$HC" =~ ^[0-9]{3}$ ]] || HC=000
+out "ACCOUNT_CALL $CT0 $CT1 curl_rc=$CRC http=$HC"
+BT0=$(ts); AP1=$($DC exec -T backend date -u +%Y-%m-%dT%H:%M:%S.%6NZ); AR1=$?; BT1=$(ts)
+CLK2=0
+if [ "$AR1" = 0 ] && [[ "$AP1" =~ $APPRE ]]; then out "APP_CLOCK_2 server=$BT0..$BT1 app=$AP1"; else out "APP_CLOCK_2 invalid"; CLK2=7; fi
+# 3) 계좌 응답과 장부를 파일 전용 변환으로 검사. 계좌 호출 실패면 변환하지 않는다.
+FR=0
+if [ "$CRC" != 0 ] || [ "$HC" != 200 ]; then
+  out "STOP 6 ACCOUNT_HTTP_FAILED"; FR=6
+else
+  python3 -I "$M/a3-proj.py" "$M/account.json" "$M/ledger.tsv" > "$M/proj.out"; PRC=$?
+  case "$PRC" in 0|4|6|8) ;; *) PRC=4;; esac
+  if [ "$PRC" = 0 ]; then
+    cat "$M/proj.out" || FR=4
+  else
+    L=$(grep -m1 -E '^(ACCT_FAIL|LEDGER_FAIL) [A-Z_]+$' "$M/proj.out"); if [ -n "$L" ]; then out "$L"; else out "LEDGER_FAIL READ_FAILED"; fi
+    out "STOP $PRC PROJECTION_FAILED"; FR=$PRC
+  fi
+fi
+[ "$FR" = 0 ] && [ "$CLK2" != 0 ] && { out "STOP 7 APP_CLOCK_2_INVALID"; FR=7; }
+# 4) 서버 해시 목록 — 실패하면 성공으로 끝내지 않는다(앞 단계 비영 종료값은 보존)
+SF="a3-pre.sql a3-proj.py ledger.tsv"; [ -e "$M/account.json" ] && SF="$SF account.json"
+if (cd "$M" && sha256sum $SF > SERVER-SHA256SUMS) && H=$(sha256sum < "$M/SERVER-SHA256SUMS" | cut -d' ' -f1); then
+  out "SERVER_SHA256SUMS $H"
+else
+  out "STOP 4 SERVER_MANIFEST_FAILED"; [ "$FR" = 0 ] && FR=4
+fi
+out "STDERR_BYTES $(wc -c < "$M/stderr.txt")"
+out "SERVER_END $(ts)"
+exit "$FR"

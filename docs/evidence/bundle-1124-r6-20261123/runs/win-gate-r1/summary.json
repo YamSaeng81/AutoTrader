@@ -1,0 +1,57 @@
+{
+ "ok": true,
+ "bash": "GNU bash, version 5.2.37(1)-release (x86_64-pc-msys)",
+ "remote_old_sha256": "2cb807428c70e6878c989aff357f6725efbf654d8ba39bb858e4a9dca3ecec3e",
+ "remote_new_sha256": "bb3f7aa208feb89fa575218c1425c8eef79fcc51397426997caeda9ed4159e37",
+ "test_sha256": "d53c5a34050d28c4b6209417e06aada42c2c50ffa06e4ee1f3ca301c7ac03a87",
+ "lines_1based": {
+  "gate_ACCOUNT": [
+   68
+  ],
+  "APP_CLOCK_1": [
+   70
+  ],
+  "gate_ACCOUNT_CURL": [
+   71
+  ],
+  "curl": [
+   73
+  ]
+ },
+ "order": {
+  "gate_account_kept_once": true,
+  "app_clock_1_check_once": true,
+  "gate_account_curl_once": true,
+  "curl_once": true,
+  "order_gate_acc_lt_clock1_lt_gate_curl_lt_curl": true,
+  "only_timestamp_between_gate_and_curl": true,
+  "r5_has_no_curl_gate": true,
+  "win_ok_unchanged": true,
+  "gate_unchanged": true,
+  "no_new_ssh_sql_curl": true
+ },
+ "win_ok_cases": {
+  "normal_end_minute": {
+   "args": [
+    "2026-12-01",
+    "08:50-08:55",
+    "2026-12-01",
+    "08:55"
+   ],
+   "rc": 0,
+   "stderr": "",
+   "ok": true
+  },
+  "window_elapsed": {
+   "args": [
+    "2026-12-01",
+    "08:50-08:55",
+    "2026-12-01",
+    "08:56"
+   ],
+   "rc": 1,
+   "stderr": "",
+   "ok": true
+  }
+ }
+}

@@ -1,0 +1,124 @@
+"""A3 관측 수집 반출 변환 a3-proj-2 (총괄 v1.229 §3 R2). **파일 전용** — 네트워크·DB·서버 호출 없음. 검토용 원문, 운영 미실행.
+
+a3-remote.sh 가 서버에서 `python3 -I a3-proj.py <account.json> <ledger.tsv>` 로 1회 부른다(r4 의 heredoc 을 파일로 분리, 해시 고정).
+입력 검사를 모두 통과했을 때만 허용 줄을 한꺼번에 낸다. 불통과는 고정 사유 한 줄만 내고 비영 종료한다 —
+계좌 JSON 원문·JSON 오류 문구·API 오류 문자열·ledger 원문 칸은 내지 않는다.
+
+종료값  0 통과(계좌 수집 성공. 자산 평가 확정 여부는 ACCT_VALUATION 줄로 따로 표시)
+        6 계좌 응답 불통과   ACCT_FAIL JSON_INVALID|NOT_SUCCESS|KEY_NOT_CONFIGURED|SERVICE_ERROR|FIELD_INVALID
+        8 장부 범위 불통과   LEDGER_FAIL SCOPE_DENIED
+        4 장부 형식/입력 읽기 불통과  LEDGER_FAIL FORMAT_INVALID|READ_FAILED
+출력(통과 시): ACCT ...(KRW 세 정수·fetchedAt·BTC 수량/현재가·다른 보유 개수) / ACCT_VALUATION KNOWN|UNKNOWN 사유 / 장부 표지 줄 그대로
+"""
+import json
+import re
+import sys
+from decimal import Decimal, InvalidOperation
+
+TAGS = ('META', 'SCOPE', 'TSES', 'OBUY', 'CNT', 'XCNT', 'POS', 'MAXTS', 'MORD', 'END')
+CELL = re.compile(r'^[A-Za-z0-9_.:+-]*$')                 # 숫자·UTC 시각·상태·t/f·'-' 만
+TS = re.compile(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,9})?Z$')
+CUR = re.compile(r'^[A-Z0-9]{1,15}$')
+SCOPE_OK = ('SCOPE', 'OK', 'LIVE', '203')
+
+
+def num(v, integer=False):
+    """JSON 숫자(Decimal 로 읽음)만 받는다. 문자열·불리언·NULL·지수 표기 문자열은 불통과."""
+    if isinstance(v, bool) or not isinstance(v, (int, Decimal)):
+        raise ValueError
+    d = Decimal(v)
+    if not d.is_finite() or d < 0 or (integer and d != d.to_integral_value()):
+        raise ValueError
+    return format(d, 'f')
+
+
+def account_lines(path):
+    try:
+        with open(path, encoding='utf-8') as f:
+            body = json.load(f, parse_float=Decimal, parse_int=Decimal)
+    except (OSError, ValueError, InvalidOperation):
+        return 'JSON_INVALID', None
+    if not isinstance(body, dict) or body.get('success') is not True or not isinstance(body.get('data'), dict):
+        return 'NOT_SUCCESS', None
+    d = body['data']
+    if d.get('apiKeyConfigured') is not True:
+        return 'KEY_NOT_CONFIGURED', None
+    if 'error' in d:
+        return 'SERVICE_ERROR', None
+    try:
+        krw = [num(d[k], integer=True) for k in ('availableKrw', 'lockedKrw', 'totalKrwBalance')]
+        fetched = d['fetchedAt']
+        if not isinstance(fetched, str) or not TS.match(fetched):
+            raise ValueError
+        holds = d['holdings']
+        if not isinstance(holds, list):
+            raise ValueError
+        btc, others, unknown = None, 0, []
+        for h in holds:
+            if not isinstance(h, dict) or not isinstance(h.get('currency'), str) or not CUR.match(h['currency']):
+                raise ValueError
+            bal, lck = num(h['balance']), num(h['locked'])
+            p = h.get('currentPrice')
+            price = None if p is None else num(p)
+            if price is None or Decimal(price) == 0:          # 시세 실패 시 서비스는 0 을 넣는다 — 가격이 아니다
+                unknown.append(h['currency'])
+                price = None
+            if h['currency'] == 'BTC':
+                if btc is not None:
+                    raise ValueError
+                btc = (bal, lck, price)
+            else:
+                others += 1
+    except (KeyError, ValueError, TypeError, InvalidOperation):
+        return 'FIELD_INVALID', None
+    b = btc or ('0', '0', None)
+    lines = ['ACCT availableKrw=%s lockedKrw=%s totalKrwBalance=%s fetchedAt=%s btc_balance=%s btc_locked=%s btc_currentPrice=%s other_holdings=%d'
+             % (krw[0], krw[1], krw[2], fetched, b[0], b[1], b[2] if b[2] is not None else 'UNKNOWN', others),
+             'ACCT_VALUATION ' + ('KNOWN' if not unknown else 'UNKNOWN price_unknown_n=%d' % len(unknown))]
+    return None, lines
+
+
+def ledger_lines(path):
+    try:
+        with open(path, encoding='utf-8', newline='') as f:
+            raw = f.read()
+    except (OSError, UnicodeDecodeError):
+        return 'READ_FAILED', 4, None
+    rows = [ln.split('\t') for ln in raw.split('\n') if ln != '']
+    if raw and not raw.endswith('\n'):
+        return 'FORMAT_INVALID', 4, None
+    tags = [r[0] for r in rows]
+    if not rows or tags[0] != 'META' or tags[-1] != 'END' or tags.count('SCOPE') != 1 or tags.count('META') != 1 or tags.count('END') != 1:
+        return 'FORMAT_INVALID', 4, None
+    for r in rows:
+        if r[0] not in TAGS or not all(CELL.match(c) for c in r):
+            return 'FORMAT_INVALID', 4, None
+    scope = next(r for r in rows if r[0] == 'SCOPE')
+    if tuple(scope) != SCOPE_OK:
+        return 'SCOPE_DENIED', 8, None
+    return None, 0, ['\t'.join(r) for r in rows]
+
+
+def main(argv):
+    if len(argv) != 3:
+        print('LEDGER_FAIL READ_FAILED')
+        return 4
+    why, lrc, led = ledger_lines(argv[2])          # 범위 불통과면 계좌 값도 내지 않는다
+    if why:
+        print('LEDGER_FAIL ' + why)
+        return lrc
+    why, acct = account_lines(argv[1])
+    if why:
+        print('ACCT_FAIL ' + why)
+        return 6
+    sys.stdout.write('\n'.join(acct + led) + '\n')
+    sys.stdout.flush()
+    return 0
+
+
+if __name__ == '__main__':
+    try:
+        sys.exit(main(sys.argv))
+    except Exception:                                 # 예상 밖 오류도 원문 없이 고정 사유
+        print('LEDGER_FAIL READ_FAILED')
+        sys.exit(4)
