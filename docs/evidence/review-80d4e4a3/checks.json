@@ -1,0 +1,477 @@
+{
+  "review": "v1.230",
+  "submission": "80d4e4a3915069e1c0df703c493eb0642e100475",
+  "reviewed_head_including_followup_docs": "361171b14c1385a45aebfb0dc54dfe3462e00f96",
+  "scope": "Read-only local Git, hashes, stored test records and static SQL/control-flow. No shell runner, tests, PG, Docker, SSH, account, reservation or build executed.",
+  "submission_changed_files": 85,
+  "submission_evidence_files_matching_worktree": 82,
+  "manifest_entries_matching_git_and_worktree": 81,
+  "manifest_omissions": [],
+  "source_hashes": {
+    "a3-finish.sh": "fb2aac5e9567c09e14ff43a536eb9f37820cb7bf240841d4ce9284eaa7df0f06",
+    "a3-pre.sql": "69e1f277c6612758313a7927f10427d979eb07f1a5b9e6875a8d05310e29b31d",
+    "a3-preread.sh": "0ae843cb73eba3120dd9aab6204f84c95501b925b9a823f64bd9dd7b24a8b6c9",
+    "a3-proj.py": "24802e60a4da2c9ed35f11a85d7e40a1d167465522d0259de748c7121754662e",
+    "a3-remote.sh": "2cb807428c70e6878c989aff357f6725efbf654d8ba39bb858e4a9dca3ecec3e"
+  },
+  "stored_pg_summary": {
+    "sql_sha256": "69e1f277c6612758313a7927f10427d979eb07f1a5b9e6875a8d05310e29b31d",
+    "container_network": "none",
+    "pgoptions_show": [
+      "15s",
+      "2s"
+    ],
+    "passed": 4,
+    "total": 4,
+    "cases": {
+      "A_normal_real203": true,
+      "B_target_paper": true,
+      "C_target_missing": true,
+      "D_other_real_id": true
+    }
+  },
+  "stored_file_summary": {
+    "sources_sha256": {
+      "a3-proj.py": "24802e60a4da2c9ed35f11a85d7e40a1d167465522d0259de748c7121754662e",
+      "a3-finish.sh": "fb2aac5e9567c09e14ff43a536eb9f37820cb7bf240841d4ce9284eaa7df0f06",
+      "file7.py": "3f4e546b13d7f60aa08137ebece31822b295365ff0fd0f3e3efa8a868607aeaf"
+    },
+    "passed": 7,
+    "total": 7,
+    "boundaries": {
+      "b1_normal": true,
+      "b2_invalid_json": true,
+      "b3_service_error": true,
+      "b4_key_not_configured": true,
+      "b5_token_shape": true,
+      "b6_export_check_read_failure": true,
+      "b7_final_record_failure": true
+    }
+  },
+  "stored_case_records": {
+    "pg-scope-r1/A_normal_real203": {
+      "ok": true,
+      "checks": {
+        "rc0": true,
+        "stderr_empty": true,
+        "scope": true,
+        "meta_first_end_last": true,
+        "out_of_scope_amounts_absent": true,
+        "tses_only_203": true,
+        "obuy_only_103": true,
+        "cnt_target": true,
+        "xcnt_counts_only": true,
+        "pos_only_target": true,
+        "mord_only_target": true,
+        "maxts_one_row": true,
+        "r3_p21_sources": true,
+        "r3_p21_allocated": true,
+        "r3_p22_no_buy_source": true
+      },
+      "scope": {
+        "CNT": 1,
+        "END": 1,
+        "MAXTS": 1,
+        "META": 1,
+        "MORD": 3,
+        "OBUY": 1,
+        "POS": 2,
+        "SCOPE": 1,
+        "TSES": 1,
+        "XCNT": 1
+      },
+      "proj_rc": null,
+      "finish_rc": null,
+      "result_ok": null,
+      "incomplete_kept": null
+    },
+    "pg-scope-r1/B_target_paper": {
+      "ok": true,
+      "checks": {
+        "rc0": true,
+        "stderr_empty": true,
+        "scope": true,
+        "meta_first_end_last": true,
+        "out_of_scope_amounts_absent": true,
+        "scoped_sections_zero_rows": true,
+        "only_meta_scope_end": true,
+        "target_amounts_absent": true
+      },
+      "scope": {
+        "END": 1,
+        "META": 1,
+        "SCOPE": 1
+      },
+      "proj_rc": null,
+      "finish_rc": null,
+      "result_ok": null,
+      "incomplete_kept": null
+    },
+    "pg-scope-r1/C_target_missing": {
+      "ok": true,
+      "checks": {
+        "rc0": true,
+        "stderr_empty": true,
+        "scope": true,
+        "meta_first_end_last": true,
+        "out_of_scope_amounts_absent": true,
+        "scoped_sections_zero_rows": true,
+        "only_meta_scope_end": true,
+        "target_amounts_absent": true
+      },
+      "scope": {
+        "END": 1,
+        "META": 1,
+        "SCOPE": 1
+      },
+      "proj_rc": null,
+      "finish_rc": null,
+      "result_ok": null,
+      "incomplete_kept": null
+    },
+    "pg-scope-r1/D_other_real_id": {
+      "ok": true,
+      "checks": {
+        "rc0": true,
+        "stderr_empty": true,
+        "scope": true,
+        "meta_first_end_last": true,
+        "out_of_scope_amounts_absent": true,
+        "scoped_sections_zero_rows": true,
+        "only_meta_scope_end": true,
+        "target_amounts_absent": true
+      },
+      "scope": {
+        "END": 1,
+        "META": 1,
+        "SCOPE": 1
+      },
+      "proj_rc": null,
+      "finish_rc": null,
+      "result_ok": null,
+      "incomplete_kept": null
+    },
+    "file7-r1/b1_normal": {
+      "ok": true,
+      "checks": {
+        "proj_rc": true,
+        "proj_first_line": true,
+        "proj_stderr_empty": true,
+        "finish_rc": true,
+        "finish_reason": true,
+        "consumable": true,
+        "body_printed": true,
+        "incomplete_kept": true,
+        "no_leak": true,
+        "valuation_unknown_but_collected": true,
+        "btc_price_known": true
+      },
+      "scope": null,
+      "proj_rc": 0,
+      "finish_rc": 0,
+      "result_ok": true,
+      "incomplete_kept": false
+    },
+    "file7-r1/b2_invalid_json": {
+      "ok": true,
+      "checks": {
+        "proj_rc": true,
+        "proj_first_line": true,
+        "proj_stderr_empty": true,
+        "finish_rc": true,
+        "finish_reason": true,
+        "consumable": true,
+        "body_printed": true,
+        "incomplete_kept": true,
+        "no_leak": true,
+        "only_fixed_reason_lines": true
+      },
+      "scope": null,
+      "proj_rc": 6,
+      "finish_rc": 6,
+      "result_ok": false,
+      "incomplete_kept": true
+    },
+    "file7-r1/b3_service_error": {
+      "ok": true,
+      "checks": {
+        "proj_rc": true,
+        "proj_first_line": true,
+        "proj_stderr_empty": true,
+        "finish_rc": true,
+        "finish_reason": true,
+        "consumable": true,
+        "body_printed": true,
+        "incomplete_kept": true,
+        "no_leak": true,
+        "only_fixed_reason_lines": true
+      },
+      "scope": null,
+      "proj_rc": 6,
+      "finish_rc": 6,
+      "result_ok": false,
+      "incomplete_kept": true
+    },
+    "file7-r1/b4_key_not_configured": {
+      "ok": true,
+      "checks": {
+        "proj_rc": true,
+        "proj_first_line": true,
+        "proj_stderr_empty": true,
+        "finish_rc": true,
+        "finish_reason": true,
+        "consumable": true,
+        "body_printed": true,
+        "incomplete_kept": true,
+        "no_leak": true,
+        "only_fixed_reason_lines": true
+      },
+      "scope": null,
+      "proj_rc": 6,
+      "finish_rc": 6,
+      "result_ok": false,
+      "incomplete_kept": true
+    },
+    "file7-r1/b5_token_shape": {
+      "ok": true,
+      "checks": {
+        "proj_rc": true,
+        "proj_first_line": true,
+        "proj_stderr_empty": true,
+        "finish_rc": true,
+        "finish_reason": true,
+        "consumable": true,
+        "body_printed": true,
+        "incomplete_kept": true,
+        "no_leak": true,
+        "only_fixed_reason_lines": true
+      },
+      "scope": null,
+      "proj_rc": 6,
+      "finish_rc": 9,
+      "result_ok": false,
+      "incomplete_kept": true
+    },
+    "file7-r1/b6_export_check_read_failure": {
+      "ok": true,
+      "checks": {
+        "proj_rc": true,
+        "proj_first_line": true,
+        "proj_stderr_empty": true,
+        "finish_rc": true,
+        "finish_reason": true,
+        "consumable": true,
+        "body_printed": true,
+        "incomplete_kept": true,
+        "no_leak": true
+      },
+      "scope": null,
+      "proj_rc": 0,
+      "finish_rc": 4,
+      "result_ok": false,
+      "incomplete_kept": true
+    },
+    "file7-r1/b7_final_record_failure": {
+      "ok": true,
+      "checks": {
+        "proj_rc": true,
+        "proj_first_line": true,
+        "proj_stderr_empty": true,
+        "finish_rc": true,
+        "finish_reason": true,
+        "consumable": true,
+        "body_printed": true,
+        "incomplete_kept": true,
+        "no_leak": true
+      },
+      "scope": null,
+      "proj_rc": 0,
+      "finish_rc": 4,
+      "result_ok": false,
+      "incomplete_kept": true
+    }
+  },
+  "normal_POS_rows": [
+    [
+      "POS",
+      "21",
+      "OPEN",
+      "KRW-BTC",
+      "10.00000000",
+      "1",
+      "20.00000000",
+      "10005.00000000",
+      "0",
+      "0",
+      "1",
+      "10.00000000",
+      "0",
+      "0",
+      "0",
+      "ALLOCATED",
+      "5002.50000000"
+    ],
+    [
+      "POS",
+      "22",
+      "OPEN",
+      "KRW-ETH",
+      "0.50000000",
+      "0",
+      "-",
+      "-",
+      "0",
+      "0",
+      "0",
+      "-",
+      "0",
+      "0",
+      "0",
+      "NO_BUY_SOURCE",
+      "-"
+    ]
+  ],
+  "new_static_findings": {
+    "owner_scope": {
+      "affected_lines": [
+        [
+          97,
+          "(SELECT count(*) FROM \"order\" b WHERE b.position_id = p.id AND b.side = 'BUY' AND b.filled_quantity > 0) AS buy_n,"
+        ],
+        [
+          98,
+          "(SELECT sum(b.filled_quantity) FROM \"order\" b WHERE b.position_id = p.id AND b.side = 'BUY' AND b.filled_quantity > 0) AS buy_qty,"
+        ],
+        [
+          101,
+          "FROM \"order\" b WHERE b.position_id = p.id AND b.side = 'BUY' AND b.filled_quantity > 0) AS buy_cost_total,"
+        ],
+        [
+          102,
+          "(SELECT count(*) FROM \"order\" b WHERE b.position_id = p.id AND b.side = 'BUY' AND b.filled_quantity > 0"
+        ],
+        [
+          104,
+          "(SELECT count(*) FROM \"order\" b WHERE b.position_id = p.id AND b.side = 'BUY' AND b.filled_quantity > 0"
+        ],
+        [
+          106,
+          "(SELECT count(*) FROM \"order\" s WHERE s.position_id = p.id AND s.side = 'SELL' AND s.sell_applied_at IS NOT NULL"
+        ],
+        [
+          108,
+          "(SELECT sum(s.filled_quantity) FROM \"order\" s WHERE s.position_id = p.id AND s.side = 'SELL' AND s.sell_applied_at IS NOT NULL"
+        ],
+        [
+          110,
+          "(SELECT count(*) FROM \"order\" s WHERE s.position_id = p.id AND s.side = 'SELL' AND s.sell_applied_at IS NOT NULL"
+        ],
+        [
+          113,
+          "(SELECT count(*) FROM \"order\" s WHERE s.position_id = p.id AND s.side = 'SELL' AND s.sell_applied_at IS NULL"
+        ],
+        [
+          117,
+          "WHERE o.position_id = p.id) AS discrepancy_open_n"
+        ]
+      ],
+      "finding": "Target position ownership is checked, but related order subqueries use position_id only. Cross-session/kind linked order values can enter buy_qty/buy_cost_total and related fields before the cost_state blocks or allocates.",
+      "example": {
+        "position_owner": "LIVE#203",
+        "position_id": 21,
+        "owned_buy_qty": 20,
+        "owned_buy_cost": 10005,
+        "owned_sell_qty": 10,
+        "remaining_size": 10,
+        "unregistered_buy_owner": "LIVE#204",
+        "unregistered_buy_position_id": 21,
+        "unregistered_buy_qty": 20,
+        "unregistered_buy_cost": 90000,
+        "old_buy_qty_including_foreign": 40,
+        "old_buy_cost_total_including_foreign": 100005,
+        "old_cost_state": "QTY_MISMATCH, but raw source totals still contain foreign amounts"
+      },
+      "verification": "Static SQL semantics and synthetic arithmetic illustration only; not a PG reproduction"
+    },
+    "account_window": {
+      "sequence": [
+        "gate ACCOUNT",
+        "backend date sample",
+        "curl account call"
+      ],
+      "finding": "The clock sample between the window gate and account call can delay the actual account call beyond the approved window. Move the existing gate after first clock sample validation and immediately before account call.",
+      "verification": "Static source ordering only"
+    }
+  },
+  "accepted_scope": [
+    "LIVE#203 existence/REAL monetary gate and out-of-scope counts",
+    "File projection account failure handling and fixed reasons",
+    "Credential-shaped export rejection and last-write failure paths in seven stored cases",
+    "No-BUY unknown and remaining-cost separation under consistent order ownership"
+  ],
+  "not_accepted": [
+    "Execution of r5 collection source before two narrow fixes and separate approval",
+    "A3 sufficiency/complete account capital coverage",
+    "End-to-end production or fake-SSH execution; stored file remote responses are synthetic"
+  ],
+  "capability_correction": {
+    "PGOPTIONS": "PRE0 2026-11-23 10:36 measured 15s/2s through production compose; new r5 source remains unexecuted. Do not describe generic compose PGOPTIONS transport as never observed.",
+    "reference": "docs/evidence/review-6c8111f9/README.md",
+    "preflight_source": "docs/evidence/review-1df256c7/preflight-remote.sh",
+    "preflight_sha256": "63b7819cc3f0bd779caa9cec9b6227b7656e0c7a6118361bd0515569585b597a",
+    "python_and_curl": "No fresh production capability check by reviewer; remain context-specific execution preconditions"
+  },
+  "immutable_sources_unchanged": {
+    "docs/evidence/review-1df256c7/README.md": "4cf96bde22ce8e2cf953caef2554338adf26ae1c7998f2bc2646f853594209e4",
+    "docs/evidence/review-1df256c7/preflight-remote.sh": "63b7819cc3f0bd779caa9cec9b6227b7656e0c7a6118361bd0515569585b597a",
+    "docs/evidence/parallel-monitor-followup-20261121/approval/pm-read-2.sh": "fa767e7d2337d6fcbee0636d2ff270bafab9f0121c52f0b2089f482306ce1e1c",
+    "docs/LIMITED_LIVE_TEST_RUNBOOK.md": "fe16cb2eb01c56dd727ce9b053b7d75ed40316223cc463b773e1b205403f32c0",
+    "docs/evidence/dec-launch-order-20261123/README.md": "20e4a31e3bc8ec7e190a4b085ef406cec5ea743dd1b5317358ec3ba59a3a46ad",
+    "docs/evidence/dec-launch-order-20261123/budget.json": "6be4b598cdef7960c882319aac90965f9b30474273243131a7571d0138f69956",
+    "docs/evidence/parallel-monitor-followup-20261121/sql/state-3.sql": "6d71df61a59d144afe9cfa1affc250c6e219c6195612aa97d2580fa8de1bec6b",
+    "docs/evidence/dec-costbasis-followup-20261119/predeploy-v3/predeploy_read.v3.sql": "ca6e7c8d6cc67ee967ac21b7847f7230cc859dc3cb9dc895da6f7694dfe26aa3",
+    "docs/evidence/n03-1123-1000/read.sh": "41e4f33747f47ed4089ffe8ca192964529cfea24b8d150a7b1a8300c572f73ad"
+  },
+  "D81A2_blocks_unchanged": {
+    "F": "26d392695c47fecb2321e850b07418679c1326c2a7eec13c02002056f96f4c24",
+    "G": "4d7ff02a94194fc17e11ed062b4c0fdb80a395aa282c941e7b624be95851c822",
+    "U변수": "efb96108113142132da3685669c1a034e7a3050bc891bbacbecd2891137b19fd",
+    "U0": "91ea93428ab4dc4f515d2497d388b4ccd75d4dcb48a1be1089468a3a433f1457",
+    "U1": "8d0ce7906fd04124c2c9e251614867e0389ab7a96e8ccb5fae2efae3b79b2af3",
+    "U1되돌림": "a272ab5862a97539233f9425d4efda2da077e26fe6828a0211cd99c2c5827c8b",
+    "U2": "caac178a9b7cae104584b91107c19ee5594eb0437d01b74e16935fe29803644f",
+    "U3": "cc414408aa11133279ad491d6815ac0f9ed521ce0ea87cc46e7a4ec4b204e573",
+    "U4": "979c5d85addf7f58c92cfe31aa1759438db790995d642fb530600e0676d3b740",
+    "U되돌림": "65df00d5d52430077357d9207b188de5e063f96374c33fe0c32591dca95bfe83",
+    "U뒤관측": "c748a791e87e31ad557977ce3b8c3ab3c0a82436aa4d68ffee93c07bd3d9fd31"
+  },
+  "followup_docs_unchanged": {
+    "docs/DEVELOPMENT_BACKLOG.md": "09f004c33607865a0bb6d21bb26606715b13e631b0c911dc1f60796e063b316c",
+    "docs/FRONTEND_DEVELOPMENT_PLAN.md": "ce26ff38d3f844e8d891af85eff2305f7ab49b253467264dfcc54d281e81e590"
+  },
+  "reservation": {
+    "id": "4bc9e12a",
+    "scheduled_kst": "2026-11-23 22:14",
+    "queried_by_reviewer": false,
+    "execution_observed": false
+  },
+  "operations_approval": false,
+  "document_validation": {
+    "local_links_checked": 216,
+    "broken_links": [],
+    "foreign_glyphs": [],
+    "historical_0821_handoff_preserved": true,
+    "current_vs_followup_work_separated": true,
+    "management_documents": [
+      "docs/LIMITED_LIVE_TEST_PLAN.md",
+      "docs/CURRENT_HANDOFF.md",
+      "docs/PROGRESS.md",
+      "docs/NOVEMBER_LIVE_UPGRADE.md",
+      "docs/LIVE_READINESS.md"
+    ]
+  },
+  "review_resumed_kst": "2026-11-23 21:33:23 KST; no new operating observation or monitoring",
+  "audit_notes": [
+    "One management patch was rejected on an exact-context mismatch; reapplied via unique line prefixes, preserving unrelated text. No test or production operation was involved."
+  ]
+}
