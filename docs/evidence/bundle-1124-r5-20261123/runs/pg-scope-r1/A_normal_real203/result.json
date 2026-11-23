@@ -1,0 +1,36 @@
+{
+ "case": "A_normal_real203",
+ "sid": "203",
+ "target_session_type": "REAL",
+ "ok": true,
+ "checks": {
+  "rc0": true,
+  "stderr_empty": true,
+  "scope": true,
+  "meta_first_end_last": true,
+  "out_of_scope_amounts_absent": true,
+  "tses_only_203": true,
+  "obuy_only_103": true,
+  "cnt_target": true,
+  "xcnt_counts_only": true,
+  "pos_only_target": true,
+  "mord_only_target": true,
+  "maxts_one_row": true,
+  "r3_p21_sources": true,
+  "r3_p21_allocated": true,
+  "r3_p22_no_buy_source": true
+ },
+ "amounts_leaked": [],
+ "rows_by_tag": {
+  "CNT": 1,
+  "END": 1,
+  "MAXTS": 1,
+  "META": 1,
+  "MORD": 3,
+  "OBUY": 1,
+  "POS": 2,
+  "SCOPE": 1,
+  "TSES": 1,
+  "XCNT": 1
+ }
+}

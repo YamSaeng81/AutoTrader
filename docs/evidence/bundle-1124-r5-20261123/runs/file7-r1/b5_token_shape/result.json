@@ -1,0 +1,41 @@
+{
+ "boundary": "b5_token_shape",
+ "ok": true,
+ "checks": {
+  "proj_rc": true,
+  "proj_first_line": true,
+  "proj_stderr_empty": true,
+  "finish_rc": true,
+  "finish_reason": true,
+  "consumable": true,
+  "body_printed": true,
+  "incomplete_kept": true,
+  "no_leak": true,
+  "only_fixed_reason_lines": true
+ },
+ "leak": {
+  "token_in_proj_out": false,
+  "token_in_finish_out": false,
+  "errmark_in_proj_out": false,
+  "errmark_in_finish_out": false,
+  "json_error_text": false
+ },
+ "proj_rc": 6,
+ "remote_rc_emulated": 0,
+ "finish_rc": 9,
+ "failed_txt": "FAIL 9 EXPORT_TOKEN_SHAPE_FOUND",
+ "result_ok": false,
+ "incomplete_kept": true,
+ "mutation": "inject_token",
+ "inputs_committed": false,
+ "work_file_sha256": {
+  "a3pre-20261124-1010/args.txt": "5e737e1b404c51bb283017bcdc6c587a86f073d428fd532074eb532dd016ea57",
+  "a3pre-20261124-1010/FAILED.txt": "1846a9a575fbb3a8f7b26e7d867ed72f55d4d3cb693c4240c84acb064d970329",
+  "a3pre-20261124-1010/INCOMPLETE.txt": "de51a97695623745f1da0ac6b8c4b689f4e9a048f578774171ea584555f83e83",
+  "a3pre-20261124-1010/remote.out": "dbacca79bf075eeb5026aee0c737272d9883c80d709d5f0b4cf71e33002517cf",
+  "a3pre-20261124-1010/run.txt": "c9a761865950b587147eb3029347b7ecfc653efd60c329c6f834366626eeb91d",
+  "a3pre-20261124-1010/token-check.txt": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+  "server/account.json": "0439fc1f3fd408bd49db148e4bd445bd256608421cc8ab6d651901cfd71bd01e",
+  "server/ledger.tsv": "9fc905b291d30d511377e53d11cfb8f64f2f5069359554e68dc6a7f24a471aa0"
+ }
+}

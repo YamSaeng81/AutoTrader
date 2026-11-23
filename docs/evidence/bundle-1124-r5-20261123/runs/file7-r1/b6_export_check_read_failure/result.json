@@ -1,0 +1,39 @@
+{
+ "boundary": "b6_export_check_read_failure",
+ "ok": true,
+ "checks": {
+  "proj_rc": true,
+  "proj_first_line": true,
+  "proj_stderr_empty": true,
+  "finish_rc": true,
+  "finish_reason": true,
+  "consumable": true,
+  "body_printed": true,
+  "incomplete_kept": true,
+  "no_leak": true
+ },
+ "leak": {
+  "token_in_proj_out": false,
+  "token_in_finish_out": false,
+  "errmark_in_proj_out": false,
+  "errmark_in_finish_out": false,
+  "json_error_text": false
+ },
+ "proj_rc": 0,
+ "remote_rc_emulated": 0,
+ "finish_rc": 4,
+ "failed_txt": "FAIL 4 EXPORT_CHECK_FAILED",
+ "result_ok": false,
+ "incomplete_kept": true,
+ "mutation": "remote_out_is_dir",
+ "inputs_committed": true,
+ "work_file_sha256": {
+  "a3pre-20261124-1010/args.txt": "5e737e1b404c51bb283017bcdc6c587a86f073d428fd532074eb532dd016ea57",
+  "a3pre-20261124-1010/FAILED.txt": "db50f9e9ed307686b1706c78b132760449bdea922d1770159d1cb7b84dd9be84",
+  "a3pre-20261124-1010/INCOMPLETE.txt": "de51a97695623745f1da0ac6b8c4b689f4e9a048f578774171ea584555f83e83",
+  "a3pre-20261124-1010/run.txt": "c9a761865950b587147eb3029347b7ecfc653efd60c329c6f834366626eeb91d",
+  "a3pre-20261124-1010/token-check.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+  "server/account.json": "68d95dbc0f4af4bd3f60b5cbd19d0230021b01fa414e5518a02829c9b1d3e48f",
+  "server/ledger.tsv": "9fc905b291d30d511377e53d11cfb8f64f2f5069359554e68dc6a7f24a471aa0"
+ }
+}

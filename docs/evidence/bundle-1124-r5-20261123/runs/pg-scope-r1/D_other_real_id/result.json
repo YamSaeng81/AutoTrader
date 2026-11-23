@@ -1,0 +1,22 @@
+{
+ "case": "D_other_real_id",
+ "sid": "204",
+ "target_session_type": "REAL",
+ "ok": true,
+ "checks": {
+  "rc0": true,
+  "stderr_empty": true,
+  "scope": true,
+  "meta_first_end_last": true,
+  "out_of_scope_amounts_absent": true,
+  "scoped_sections_zero_rows": true,
+  "only_meta_scope_end": true,
+  "target_amounts_absent": true
+ },
+ "amounts_leaked": [],
+ "rows_by_tag": {
+  "END": 1,
+  "META": 1,
+  "SCOPE": 1
+ }
+}
