@@ -1,0 +1,42 @@
+{
+ "_note": "합성 입력(실데이터 아님). now 기준 30일 창. 수치는 분류용 더미.",
+ "now": "2026-11-24T01:30:00Z",
+ "dynamic_session": [{"id": 10, "trading_mode": "REAL"}, {"id": 11, "trading_mode": "PAPER"}],
+ "live_trading_session": [{"id": 1, "session_type": "REAL"}],
+ "positions": [
+  {"id": 1, "session_kind": "DYNAMIC", "session_id": 10, "status": "CLOSED", "closed_at": "2026-11-20T00:00:00Z", "exit_reason": "SL", "size": 1},
+  {"id": 2, "session_kind": "DYNAMIC", "session_id": 10, "status": "CLOSED", "closed_at": "2026-11-01T00:00:00Z", "exit_reason": "TP", "size": 1},
+  {"id": 3, "session_kind": "DYNAMIC", "session_id": 11, "status": "CLOSED", "closed_at": "2026-11-10T00:00:00Z", "exit_reason": "PHANTOM", "size": 1},
+  {"id": 4, "session_kind": "DYNAMIC", "session_id": 12, "status": "CLOSED", "closed_at": "2026-10-28T00:00:00Z", "exit_reason": "TIME_STOP", "size": 1},
+  {"id": 5, "session_kind": "DYNAMIC", "session_id": 10, "status": "CLOSED", "closed_at": "2026-11-15T00:00:00Z", "exit_reason": "BUY_FAILED", "size": 0},
+  {"id": 6, "session_kind": "DYNAMIC", "session_id": 10, "status": "CLOSED", "closed_at": "2026-11-15T00:00:00Z", "exit_reason": "ENTRY_REJECTED", "size": 0},
+  {"id": 7, "session_kind": "DYNAMIC", "session_id": 10, "status": "CLOSED", "closed_at": "2026-11-16T00:00:00Z", "exit_reason": "CANCELLED", "size": 0},
+  {"id": 8, "session_kind": "DYNAMIC", "session_id": 10, "status": "CLOSED", "closed_at": "2026-11-17T00:00:00Z", "exit_reason": null, "size": 0},
+  {"id": 9, "session_kind": "DYNAMIC", "session_id": 10, "status": "CLOSED", "closed_at": "2026-11-18T00:00:00Z", "exit_reason": "TP", "size": 1},
+  {"id": 10, "session_kind": "DYNAMIC", "session_id": 10, "status": "CLOSED", "closed_at": "2026-10-10T00:00:00Z", "exit_reason": "PHANTOM", "size": 1},
+  {"id": 11, "session_kind": "LIVE", "session_id": 1, "status": "CLOSED", "closed_at": "2026-11-19T00:00:00Z", "exit_reason": "TP", "size": 1},
+  {"id": 12, "session_kind": "DYN_PAPER", "session_id": 11, "status": "CLOSED", "closed_at": "2026-11-19T00:00:00Z", "exit_reason": "PHANTOM", "size": 1},
+  {"id": 13, "session_kind": "DYNAMIC", "session_id": 10, "status": "CLOSED", "closed_at": "2026-11-21T00:00:00Z", "exit_reason": "ENTRY_REJECTED", "size": 1},
+  {"id": 14, "session_kind": "DYNAMIC", "session_id": 10, "status": "OPEN", "closed_at": null, "exit_reason": null, "size": 1}
+ ],
+ "orders": [
+  {"id": 101, "position_id": 1, "side": "BUY", "state": "FILLED", "session_kind": "DYNAMIC", "session_id": 10, "filled_quantity": 1, "applied_executed_funds": 100, "applied_paid_fee": 0.05},
+  {"id": 102, "position_id": 1, "side": "SELL", "state": "FILLED", "session_kind": "DYNAMIC", "session_id": 10, "filled_quantity": 1, "applied_executed_funds": null, "applied_paid_fee": null, "sell_applied_at": "2026-11-20T00:00:00Z"},
+  {"id": 201, "position_id": 2, "side": "BUY", "state": "FILLED", "session_kind": "DYNAMIC", "session_id": 10, "filled_quantity": 1, "applied_executed_funds": 100, "applied_paid_fee": null},
+  {"id": 202, "position_id": 2, "side": "SELL", "state": "FILLED", "session_kind": "DYNAMIC", "session_id": 10, "filled_quantity": 1, "applied_executed_funds": 99, "applied_paid_fee": 0.05, "sell_applied_at": "2026-11-01T00:00:00Z"},
+  {"id": 301, "position_id": 3, "side": "BUY", "state": "FILLED", "session_kind": "DYNAMIC", "session_id": 11, "filled_quantity": 1, "applied_executed_funds": 100, "applied_paid_fee": 0.05},
+  {"id": 501, "position_id": 5, "side": "BUY", "state": "FAILED", "session_kind": "DYNAMIC", "session_id": 10, "filled_quantity": 0},
+  {"id": 701, "position_id": 7, "side": "BUY", "state": "CANCELLED", "session_kind": "DYNAMIC", "session_id": 10, "filled_quantity": 0, "fee_source": "EXCHANGE", "cancel_confirmed_at": null},
+  {"id": 801, "position_id": 8, "side": "BUY", "state": "PENDING", "session_kind": "DYNAMIC", "session_id": 10, "filled_quantity": null},
+  {"id": 901, "position_id": 9, "side": "BUY", "state": "FILLED", "session_kind": "DYNAMIC", "session_id": 10, "filled_quantity": 1, "applied_executed_funds": 100, "applied_paid_fee": 0.05},
+  {"id": 902, "position_id": 9, "side": "SELL", "state": "FILLED", "session_kind": "DYNAMIC", "session_id": 10, "filled_quantity": 1, "applied_executed_funds": 110, "applied_paid_fee": 0.05, "sell_applied_at": "2026-11-18T00:00:00Z"},
+  {"id": 1001, "position_id": 10, "side": "BUY", "state": "FILLED", "session_kind": "DYNAMIC", "session_id": 10, "filled_quantity": 1, "applied_executed_funds": null, "applied_paid_fee": null},
+  {"id": 1002, "position_id": 10, "side": "SELL", "state": "FILLED", "session_kind": "DYNAMIC", "session_id": 10, "filled_quantity": 1, "applied_executed_funds": 90, "applied_paid_fee": 0.05, "sell_applied_at": "2026-10-10T00:00:00Z"},
+  {"id": 1101, "position_id": 11, "side": "BUY", "state": "FILLED", "session_kind": "LIVE", "session_id": 1, "filled_quantity": 1, "applied_executed_funds": 100, "applied_paid_fee": 0.05},
+  {"id": 1102, "position_id": 11, "side": "SELL", "state": "FILLED", "session_kind": "LIVE", "session_id": 1, "filled_quantity": 1, "applied_executed_funds": 101, "applied_paid_fee": 0.05, "sell_applied_at": "2026-11-19T00:00:00Z"},
+  {"id": 1201, "position_id": 12, "side": "BUY", "state": "FILLED", "session_kind": "DYN_PAPER", "session_id": 11, "filled_quantity": 1, "applied_executed_funds": null, "applied_paid_fee": null},
+  {"id": 1202, "position_id": 12, "side": "SELL", "state": "FILLED", "session_kind": "DYN_PAPER", "session_id": 11, "filled_quantity": 1, "applied_executed_funds": 90, "applied_paid_fee": null, "sell_applied_at": "2026-11-19T00:00:00Z"},
+  {"id": 1501, "position_id": null, "side": "SELL", "state": "FILLED", "session_kind": "DYNAMIC", "session_id": 10, "filled_quantity": 1, "applied_executed_funds": 50, "applied_paid_fee": 0.02, "sell_applied_at": "2026-11-23T00:00:00Z"},
+  {"id": 1401, "position_id": 14, "side": "BUY", "state": "FILLED", "session_kind": "DYNAMIC", "session_id": 10, "filled_quantity": 1, "applied_executed_funds": null, "applied_paid_fee": 0.05}
+ ]
+}

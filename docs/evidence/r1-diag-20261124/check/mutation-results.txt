@@ -1,0 +1,18 @@
+model rc=0
+pad rc=0
+sqlform 줄 64 · NULL 표기 열 254
+sql_form_ok            rc=0 SHAPE_OK 
+guard_14s              rc=7 SHAPE_MISMATCH  - META 첫 줄 형태·보호값 불일치
+no_end                 rc=7 SHAPE_MISMATCH  - END 끝 줄 없음
+read_committed         rc=7 SHAPE_MISMATCH  - META 첫 줄 형태·보호값 불일치
+model_ok               rc=0 SHAPE_OK 
+orig_ne_split          rc=7 SHAPE_MISMATCH  - DYNAMIC: ORIG 8 ≠ SPLIT A3+P6=9
+am_sum                 rc=7 SHAPE_MISMATCH  - DYNAMIC: AM 합 2 ≠ 3
+pm_paper_hidden        rc=7 SHAPE_MISMATCH  - DYNAMIC: PM 합 5 ≠ 6
+px_both                rc=7 SHAPE_MISMATCH  - DYNAMIC: PX BOTH ≠ 0 (②·④ 동시 — 정의상 불가)
+uq_union               rc=7 SHAPE_MISMATCH  - DYNAMIC: UQ 고유 수 계산 불일치
+age_sum                rc=7 SHAPE_MISMATCH  - DYNAMIC: AGE P 합 5 ≠ 6
+pe_sum                 rc=7 SHAPE_MISMATCH  - DYNAMIC: PE 합 5 ≠ 6
+bad_tag                rc=7 SHAPE_MISMATCH  - 허용 밖 태그 ['ROW']
+empty                  rc=7 SHAPE_MISMATCH  - 빈 출력
+non_int                rc=7 SHAPE_MISMATCH  - 정수 아님: 'x'
