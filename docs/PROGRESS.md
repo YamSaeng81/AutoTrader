@@ -6,6 +6,7 @@
 
 | 구분 | 기준 | 상태 |
 |---|---|---|
+| **v1.236 진단 읽기(제출)** | [r1-diag-read 1339](evidence/r1-diag-read-20261124-1339/README.md) | READ_OK. DYNAMIC 9 = 주문 0건·exit_reason NULL인 REAL CLOSED 포지션 9건(④ NO_SOURCE), A 0·LEG 0·혼입 0, AGE 0~6일. 원인 판정·배포 경로는 총괄 판단 대기 |
 | **v1.236 실패 검토·진단 재승인** | [cc59b71a 검토](evidence/review-cc59b71a/README.md) | 제출 17/17 일치. 로컬 stderr 해시 일치·SSH 연결 종료 형식, 주소 원문 비공개·원인 미확정. 새 사본 bash -n 통과, 13:39~17:00 진단 1회만 재승인. U0/U1/U2 보류 |
 | **v1.235 진단 읽기(제출)** | [r1-diag-read 11-24](evidence/r1-diag-read-20261124-1300/README.md) | 원격 2회: 설치 핀 rc0 일치 · SQL 호출 rc255(SSH 계층 추정, 미확정). 출력 0바이트, stderr OTHER 46B 해시만. 원인 집계 없음·재시도 없음. 총괄 판단 대기 |
 | **v1.235 진단 1회 승인** | [34b39a7c 검토](evidence/review-34b39a7c/README.md) | 제출 34/34 일치·보존 PG 결과 수용. 별도 실행기에 승인 값과 서버 창 가드 고정, bash -n·로컬 가드 3경계 확인. 11-24 13:00~17:00 진단만 승인, 운영 실행은 아직 전. |
