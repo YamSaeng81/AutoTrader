@@ -1,0 +1,23 @@
+{
+  "scope": "only extracted server clock prefix; local bash; no runner/SSH/DB execution",
+  "results": [
+    {
+      "case": "inside",
+      "rc": 0,
+      "stdout": "GUARD_OK",
+      "stderr": ""
+    },
+    {
+      "case": "before",
+      "rc": 6,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "case": "after",
+      "rc": 6,
+      "stdout": "",
+      "stderr": ""
+    }
+  ]
+}

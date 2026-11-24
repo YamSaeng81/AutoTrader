@@ -1,0 +1,152 @@
+{
+  "source": "34b39a7c",
+  "checks": [
+    {
+      "path": "docs/evidence/r1-diag2-20261124/.gitattributes",
+      "match": true
+    },
+    {
+      "path": "docs/evidence/r1-diag2-20261124/README.md",
+      "match": true
+    },
+    {
+      "path": "docs/evidence/r1-diag2-20261124/approval/r1-diag-read.sh",
+      "match": true
+    },
+    {
+      "path": "docs/evidence/r1-diag2-20261124/check/shape_check2.py",
+      "match": true
+    },
+    {
+      "path": "docs/evidence/r1-diag2-20261124/diff/a1-read-v2-vs-r1-diag-read.diff",
+      "match": true
+    },
+    {
+      "path": "docs/evidence/r1-diag2-20261124/diff/sql-1-vs-2.diff",
+      "match": true
+    },
+    {
+      "path": "docs/evidence/r1-diag2-20261124/runs/pg-r1/expected.tsv",
+      "match": true
+    },
+    {
+      "path": "docs/evidence/r1-diag2-20261124/runs/pg-r1/fixture.rc",
+      "match": true
+    },
+    {
+      "path": "docs/evidence/r1-diag2-20261124/runs/pg-r1/fixture.sql",
+      "match": true
+    },
+    {
+      "path": "docs/evidence/r1-diag2-20261124/runs/pg-r1/guard_14s/collected.txt",
+      "match": true
+    },
+    {
+      "path": "docs/evidence/r1-diag2-20261124/runs/pg-r1/guard_14s/out.stderr",
+      "match": true
+    },
+    {
+      "path": "docs/evidence/r1-diag2-20261124/runs/pg-r1/guard_14s/out.tsv",
+      "match": true
+    },
+    {
+      "path": "docs/evidence/r1-diag2-20261124/runs/pg-r1/guard_14s/pgoptions.txt",
+      "match": true
+    },
+    {
+      "path": "docs/evidence/r1-diag2-20261124/runs/pg-r1/guard_14s/psql.rc",
+      "match": true
+    },
+    {
+      "path": "docs/evidence/r1-diag2-20261124/runs/pg-r1/guard_14s/sql-input.sha256",
+      "match": true
+    },
+    {
+      "path": "docs/evidence/r1-diag2-20261124/runs/pg-r1/normal/actual-body.tsv",
+      "match": true
+    },
+    {
+      "path": "docs/evidence/r1-diag2-20261124/runs/pg-r1/normal/check.rc",
+      "match": true
+    },
+    {
+      "path": "docs/evidence/r1-diag2-20261124/runs/pg-r1/normal/check.stderr",
+      "match": true
+    },
+    {
+      "path": "docs/evidence/r1-diag2-20261124/runs/pg-r1/normal/check.stdout",
+      "match": true
+    },
+    {
+      "path": "docs/evidence/r1-diag2-20261124/runs/pg-r1/normal/collected.txt",
+      "match": true
+    },
+    {
+      "path": "docs/evidence/r1-diag2-20261124/runs/pg-r1/normal/diff.json",
+      "match": true
+    },
+    {
+      "path": "docs/evidence/r1-diag2-20261124/runs/pg-r1/normal/out.stderr",
+      "match": true
+    },
+    {
+      "path": "docs/evidence/r1-diag2-20261124/runs/pg-r1/normal/out.tsv",
+      "match": true
+    },
+    {
+      "path": "docs/evidence/r1-diag2-20261124/runs/pg-r1/normal/pgoptions.txt",
+      "match": true
+    },
+    {
+      "path": "docs/evidence/r1-diag2-20261124/runs/pg-r1/normal/psql.rc",
+      "match": true
+    },
+    {
+      "path": "docs/evidence/r1-diag2-20261124/runs/pg-r1/normal/sql-input.sha256",
+      "match": true
+    },
+    {
+      "path": "docs/evidence/r1-diag2-20261124/runs/pg-r1/summary.json",
+      "match": true
+    },
+    {
+      "path": "docs/evidence/r1-diag2-20261124/runs/pg-r1/uq_short/check.rc",
+      "match": true
+    },
+    {
+      "path": "docs/evidence/r1-diag2-20261124/runs/pg-r1/uq_short/check.stderr",
+      "match": true
+    },
+    {
+      "path": "docs/evidence/r1-diag2-20261124/runs/pg-r1/uq_short/check.stdout",
+      "match": true
+    },
+    {
+      "path": "docs/evidence/r1-diag2-20261124/runs/pg-r1/uq_short/uq-short.tsv",
+      "match": true
+    },
+    {
+      "path": "docs/evidence/r1-diag2-20261124/runs/pg-setup/setup.txt",
+      "match": true
+    },
+    {
+      "path": "docs/evidence/r1-diag2-20261124/sql/r1-diag-2.sql",
+      "match": true
+    },
+    {
+      "path": "docs/evidence/r1-diag2-20261124/test/pg_r1diag2.py",
+      "match": true
+    }
+  ],
+  "checked": 34,
+  "mismatches": 0,
+  "runner": {
+    "path": "docs/evidence/r1-diag2-20261124/approval/r1-diag-read-v1235.sh",
+    "sha256": "1366a607cb502e6182369e446a73289d40f0ca1f2a86efe691f2a2c4fbb31bee",
+    "bash_n_rc": 0,
+    "changes": "three approval constants plus server-side time guard in both existing SSH calls"
+  },
+  "production_calls": 0,
+  "fake_ssh_calls": 0,
+  "pg_calls": 0
+}
