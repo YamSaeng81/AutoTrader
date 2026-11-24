@@ -1,0 +1,18 @@
+1c1
+< # D81A2 실행 틀 추출기(총괄 v1.227 §3-1) — d81d4r-20261120/runner/extract.py(cd8bd76f)에서 블록 경로(d81a2-src-20261123)와 U0 고정 해시(736351db→91ea9342, A2 104행 실패 반출 보정)만 바꿨다.
+---
+> # D81A2-EXP1 실행 틀 추출기(총괄 v1.241 §2) — d81a2-src-20261123/runner/extract.py(65a384e5)에서 블록 경로(d81a2-exp1-src-20261125)와 U변수·U0 고정 해시(기록 경로 ~/maint-d81-20261127-exp1, 정상 R1=0 U0 기록 보완)만 바꿨다.
+4c4
+< #   U 9블록: 출처 커밋의 docs/evidence/d81a2-src-20261123/d4/blocks-d81/*.sh — 그 커밋의 blocks-d81.sha256 과 아래 고정값이 모두 같아야 한다.
+---
+> #   U 9블록: 출처 커밋의 docs/evidence/d81a2-exp1-src-20261125/d4/blocks-d81/*.sh — 그 커밋의 blocks-d81.sha256 과 아래 고정값이 모두 같아야 한다.
+13c13
+< D = 'docs/evidence/d81a2-src-20261123/d4/'
+---
+> D = 'docs/evidence/d81a2-exp1-src-20261125/d4/'
+18,19c18,19
+<     'U변수': 'efb96108113142132da3685669c1a034e7a3050bc891bbacbecd2891137b19fd',
+<     'U0': '91ea93428ab4dc4f515d2497d388b4ccd75d4dcb48a1be1089468a3a433f1457',
+---
+>     'U변수': 'a2879a2b6e832c328659e2604ebb1961e7708b5df4410b4a5c29d425355fff9b',
+>     'U0': '243a3f4691df24598b7d8b0a7bdf0ff6124f5ab321f09caea3f0daaa99c2c99a',
