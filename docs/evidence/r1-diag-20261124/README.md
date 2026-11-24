@@ -79,7 +79,7 @@ a1-read.sh(`a1-fake-boundary-20261123/prod/approval/`)의 검토된 계약을 �
 
 - 입력 사례: 같은 포지션 양쪽 중복(대금 NULL 매도) · 매수 수수료 NULL(①) · `position_id` NULL 매도 · `DYNAMIC`인데 세션이 PAPER(혼입 모사) · 세션 행 없음 · 주문 없는 청산 · FAILED 무거래(제외) · ENTRY_REJECTED size 0(제외) / size≠0(포함) · 취소 미확정 · 체결 수량 NULL · 창 밖 30일 초과(제외) · DYN_PAPER(제외) · OPEN(제외) · LIVE 정상(0).
 - 결과: [model-out.tsv](check/model-out.tsv) ORIG DYNAMIC 9 = A3 + P6, 고유 포지션 7·겹침 1·대상 8. 손계산 기대 [expected.tsv](check/expected.tsv) 14줄이 모두 일치한다. `shape_check` SHAPE_OK.
-- 변형 검출: [mutation-results.txt](check/mutation-results.txt). 정상 2건(SQL 출력 모양 모사 + 모델 출력)은 rc0이다. 변형 14건(보호값 14s·read committed·END 누락·ORIG≠SPLIT·모드 합·PAPER 숨김·BOTH≠0·UQ·AGE·PE·허용 밖 태그·빈 출력·정수 아님)은 모두 rc7로 검출됐다.
+- 변형 검출: [mutation-results.txt](check/mutation-results.txt). 정상 2건(SQL 출력 모양 모사 + 모델 출력)은 rc0이다. 변형 13건(보호값 14s·read committed·END 누락·ORIG≠SPLIT·모드 합·PAPER 숨김·BOTH≠0·UQ·AGE·PE·허용 밖 태그·빈 출력·정수 아님)은 모두 rc7로 검출됐다.
 - **한계:** 이것은 SQL 자체가 아니라 같은 정의를 옮긴 모델의 대조다. **r1-diag-1.sql의 문법과 실제 PG 결과는 검증하지 않았다**(v1.233 §3-3에 따라 PG·제품 회귀·jar·가짜 SSH는 실행하지 않음). 실제 읽기 전에 로컬 PG 문법·스냅숏 확인 1회를 허용할지 총괄이 판단해야 한다. 기계 확인은 ORIG 식 글자 일치와 쓰기 문장 0뿐이다.
 
 ## 6. 진단 뒤 판정 연결 (v1.233 §4, 미판정)
