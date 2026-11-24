@@ -1,0 +1,50 @@
+{
+ "ok": true,
+ "results": {
+  "maint_pass": {
+   "rc": 0,
+   "ok_U0": true,
+   "words": {
+    "MAINT_DEPLOY_ONLY": true,
+    "✅ U0 통과": true
+   },
+   "not_misclassified": true,
+   "ok": true
+  },
+  "gate0_write_fail": {
+   "rc": 1,
+   "ok_U0": false,
+   "words": {
+    "r1-gate 필수 기록 실패(pf3ok 0 경로)": true
+   },
+   "not_misclassified": true,
+   "ok": true
+  },
+  "verdict_write_fail": {
+   "rc": 1,
+   "ok_U0": false,
+   "words": {
+    "배포 전 판정 기록 실패": true
+   },
+   "not_misclassified": true,
+   "ok": true
+  },
+  "new_branch": {
+   "rc": 1,
+   "ok_U0": false,
+   "words": {
+    "MAINT_STOP": true,
+    "유지보수 배포 조건 미충족": true
+   },
+   "not_misclassified": true,
+   "ok": true
+  }
+ },
+ "segment_sha256": "22136f06e9508aa04a7a0829efc053ce5ec09360df691d9bdc51b307a9b58ea1",
+ "u0m2_sha256": "756ba396157e417e11ef727e7030c57558d8f3fa97b380435c4fc334947986e6",
+ "uvars_sha256": "efb96108113142132da3685669c1a034e7a3050bc891bbacbecd2891137b19fd",
+ "test_commit": "64a34eec6ae747814187019e7c1f26175d260034",
+ "gate_sha256": "33f415c13ae89a13144216d09a333be5f3447bde69f7f3fb6c1afe369b9b5995",
+ "ssh_calls": 0,
+ "pg_calls": 0
+}
