@@ -1,0 +1,23 @@
+--- r1-diag4-read.sh
++++ r1-diag4-read-v1240.sh
+@@ -6,9 +6,9 @@
+ #   (1)의 실패·표준오류·핀 불일치·창 밖이면 (2)는 0회다.
+ #   bash r1-diag4-read.sh <보존폴더 경로(이름 r1-diag4-read-YYYYMMDD-HHMM, 날짜 = APPROVED_DATE, 없어야 함)>
+ # 승인 값(총괄이 승인 문서에 확정한 값을 그대로 적는다. 이 사본에서는 빈칸 — 빈칸이면 원격 0회로 거절):
+-APPROVED_DATE=""   # 승인 날짜 YYYYMMDD (보존폴더 이름의 날짜와 같아야 함)
+-WIN_START=""       # 승인 창 시작 UTC  예 2026-11-25T01:00:00Z
+-WIN_END=""         # 승인 창 끝   UTC  예 2026-11-25T01:20:00Z
++APPROVED_DATE="20261124"   # 승인 날짜 YYYYMMDD (보존폴더 이름의 날짜와 같아야 함)
++WIN_START="2026-11-24T05:46:00Z"       # 승인 창 시작 UTC  예 2026-11-25T01:00:00Z
++WIN_END="2026-11-24T09:00:00Z"         # 승인 창 끝   UTC  예 2026-11-25T01:20:00Z
+ # 창 확인: ① 원격 전 PC 시각 ② (1)에서 읽은 server_utc 와 PC 시각 차 ≤ 120초 ③ SQL 직전 추정 서버 시각(server_utc + PC 경과) ≤ WIN_END
+ #          ④ SQL 결과 META db_now 가 창 안(창 밖이면 결과를 소비하지 않고 STOP_WINDOW_DB). ①은 종료 2, ②③④는 종료 6.
+ # 기록·종료값 규칙은 a1-read v2 와 같다:
+@@ -53,6 +53,7 @@
+ [ "$#" = 1 ] || deny "인자는 보존폴더 1개뿐"
+ case "$(basename "$L")" in r1-diag4-read-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]) ;; *) deny "보존폴더 이름 형식(r1-diag4-read-YYYYMMDD-HHMM)";; esac
+ LB="$(basename "$L")"; LD=${LB#r1-diag4-read-}; LD=${LD%-*}
++[ "$LB" = r1-diag4-read-20261124-1446 ] || deny "v1.240 result folder mismatch"
+ [ "$LD" = "$APPROVED_DATE" ] || deny "보존폴더 날짜($LD) ≠ APPROVED_DATE($APPROVED_DATE)"
+ [ "$(cd "$(dirname "$L")" 2>/dev/null && pwd)" = "$EVI" ] || deny "보존폴더는 $EVI 바로 아래여야 함"
+ [ ! -e "$L" ] || deny "보존폴더가 이미 있음 — 같은 승인으로 다시 읽지 않는다"
