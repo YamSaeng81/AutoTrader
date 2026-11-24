@@ -2,6 +2,8 @@
 
 **v1.235: R1 진단 읽기 1회 승인. 11-24 13:00~17:00 KST 안 즉시, 승인 실행기 sha1366a607·SQL4134c631·검사기7f56f640. 결과 폴더 r1-diag-read-20261124-1300. 실패/창 경과 시 재시도하지 않으며 U0/U1/U2는 보류한다. [지시](evidence/review-34b39a7c/README.md)**
 
+**v1.235 진단 읽기 결과(제출, 11-24 13:37 KST 기준):** 1회 실행 → **STOP_SQL_FAILED 종료 255**. 설치 핀 rc0·일치(0e1d2a02/2c5d8427/running/재시작 0)·창 안, 진단 SQL 호출 ssh rc255·표준 출력 0바이트·표준오류 46바이트 OTHER(원문 미열람·미커밋). R1 원인 집계 없음, 재시도 없음. 원문 확인 범위·재승인 여부는 총괄 판단 대기. U0 재시도·U1·U2 보류 [근거](evidence/r1-diag-read-20261124-1300/README.md)
+
 **v1.234: R1 진단 SQL과 검사기 UQ 열 수 불일치 재현. 보완 사본·격리 PG 1묶음·실행기 최종 원문 제출을 진행한다. 운영 진단 창은 검증 후 확정하며 현재 운영 호출·배포 재시도는 승인하지 않는다. [지시](evidence/review-fc1be13b/README.md)**
 
 **v1.234 §3 보완·PG 1묶음(제출, 11-24 12:47 KST 기준):** r1-diag-2 SQL `4134c631`(분해 행 9열·UQ union_items 출력, ORIG·선택 조건 불변) · 검사기 shape_check2 `7f56f640`(열 수 선확인·필수 행 집합·Flyway 96, 예외도 rc7). 격리 PG 15.13(--network none) 1회: 정상 psql rc0·stderr 0·본문 103행 손계산 일치·검사기 rc0, 보호값 14s → rc3 R1D_GUARD, UQ 한 칸 뺀 실제 출력 → rc7. 진단 실행기 r1-diag-read.sh(a1-read v2 기반, 승인 값 3칸 빈칸, bash -n만). 운영·SSH 호출 0. 운영 읽기 창·1회 범위는 총괄 확정 대기 [근거](evidence/r1-diag2-20261124/README.md)
