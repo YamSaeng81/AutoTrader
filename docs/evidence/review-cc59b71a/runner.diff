@@ -1,0 +1,26 @@
+--- v1235
++++ v1236
+@@ -7,7 +7,7 @@
+ #   bash r1-diag-read.sh <보존폴더 경로(이름 r1-diag-read-YYYYMMDD-HHMM, 날짜 = APPROVED_DATE, 없어야 함)>
+ # 승인 값(총괄이 승인 문서에 확정한 값을 그대로 적는다. 이 사본에서는 빈칸 — 빈칸이면 원격 0회로 거절):
+ APPROVED_DATE="20261124"   # 승인 날짜 YYYYMMDD (보존폴더 이름의 날짜와 같아야 함)
+-WIN_START="2026-11-24T04:00:00Z"       # 승인 창 시작 UTC  예 2026-11-25T01:00:00Z
++WIN_START="2026-11-24T04:39:00Z"       # 승인 창 시작 UTC  예 2026-11-25T01:00:00Z
+ WIN_END="2026-11-24T08:00:00Z"         # 승인 창 끝   UTC  예 2026-11-25T01:20:00Z
+ # 창 확인: ① 원격 전 PC 시각 ② (1)에서 읽은 server_utc 와 PC 시각 차 ≤ 120초 ③ SQL 직전 추정 서버 시각(server_utc + PC 경과) ≤ WIN_END
+ #          ④ SQL 결과 META db_now 가 창 안(창 밖이면 결과를 소비하지 않고 STOP_WINDOW_DB). ①은 종료 2, ②③④는 종료 6.
+@@ -55,7 +55,13 @@
+ [ "$LD" = "$APPROVED_DATE" ] || deny "보존폴더 날짜($LD) ≠ APPROVED_DATE($APPROVED_DATE)"
+ [ "$(cd "$(dirname "$L")" 2>/dev/null && pwd)" = "$EVI" ] || deny "보존폴더는 $EVI 바로 아래여야 함"
+ [ ! -e "$L" ] || deny "보존폴더가 이미 있음 — 같은 승인으로 다시 읽지 않는다"
+-[ -z "$(find "$EVI" -maxdepth 1 -name 'r1-diag-read-*' -print -quit)" ] || deny "다른 r1-diag-read-* 폴더가 이미 있음 — 1회 범위 초과"
++[ "$LB" = r1-diag-read-20261124-1339 ] || deny "v1.236 result folder mismatch"
++PREV="$EVI/r1-diag-read-20261124-1300"
++[ -d "$PREV" ] && [ ! -e "$PREV/INCOMPLETE.txt" ] || deny "v1.235 record missing/incomplete"
++[ "$(cat "$PREV/read-status.txt")" = 'STOP_SQL_FAILED exit=255' ] || deny "v1.235 status mismatch"
++hashok "$PREV/r1.stderr" 2b28639672f8178b24455a0b45d92c9df406b93e62b51faa54246bb70ed15bb4 || deny "v1.235 stderr hash mismatch"
++[ -f "$PREV/r1.tsv" ] && [ ! -s "$PREV/r1.tsv" ] || deny "v1.235 stdout mismatch"
++[ -z "$(find "$EVI" -maxdepth 1 -name 'r1-diag-read-*' ! -name 'r1-diag-read-20261124-1300' -print -quit)" ] || deny "다른 r1-diag-read-* 폴더가 이미 있음 — 1회 범위 초과"
+ PC0=$(date -u +%s)
+ [ "$PC0" -ge "$WS" ] || deny "승인 창 시작($WIN_START) 전(PC 시각 기준)"
+ [ "$PC0" -le "$WE" ] || deny "승인 창 끝($WIN_END) 지남(PC 시각 기준)"
