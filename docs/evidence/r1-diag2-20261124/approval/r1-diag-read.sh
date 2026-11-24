@@ -1,0 +1,152 @@
+#!/usr/bin/env bash
+# R1 판정 불가 원인 분리 1회 실행기 r1-diag-read (총괄 v1.234 §3-3). **미실행 — 승인 값 3칸이 빈칸인 동안 실행되지 않는다(종료 2).**
+# 바탕: a1-fake-boundary-20261123/prod/approval/a1-read.sh v2(b1e9e1f0). SQL·식별자·형태 검사·출력 폴더 규칙·승인 창만 바꿨다(diff/a1-read-v2-vs-r1-diag-read.diff).
+# 개발 PC 에서 실행한다. 서버에는 아무것도 쓰지 않는다(SSH 표준 출력만 로컬로 받는다). 원격 호출은 정확히 2회:
+#   (1) 서버 UTC·HEAD·backend 이미지/상태/재시작 읽기  (2) r1-diag-2.sql 1회(READ ONLY·REPEATABLE READ·ROLLBACK, PGOPTIONS 15s/2s, SQL 첫 DO 블록이 보호값 재확인)
+#   (1)의 실패·표준오류·핀 불일치·창 밖이면 (2)는 0회다.
+#   bash r1-diag-read.sh <보존폴더 경로(이름 r1-diag-read-YYYYMMDD-HHMM, 날짜 = APPROVED_DATE, 없어야 함)>
+# 승인 값(총괄이 승인 문서에 확정한 값을 그대로 적는다. 이 사본에서는 빈칸 — 빈칸이면 원격 0회로 거절):
+APPROVED_DATE=""   # 승인 날짜 YYYYMMDD (보존폴더 이름의 날짜와 같아야 함)
+WIN_START=""       # 승인 창 시작 UTC  예 2026-11-25T01:00:00Z
+WIN_END=""         # 승인 창 끝   UTC  예 2026-11-25T01:20:00Z
+# 창 확인: ① 원격 전 PC 시각 ② (1)에서 읽은 server_utc 와 PC 시각 차 ≤ 120초 ③ SQL 직전 추정 서버 시각(server_utc + PC 경과) ≤ WIN_END
+#          ④ SQL 결과 META db_now 가 창 안(창 밖이면 결과를 소비하지 않고 STOP_WINDOW_DB). ①은 종료 2, ②③④는 종료 6.
+# 기록·종료값 규칙은 a1-read v2 와 같다:
+#   미완료 표지 INCOMPLETE.txt(맨 처음) → 각 원격 출력/표준오류/rc → 형태 검사 출력/rc → run-time → 해시 목록 → read-status.txt(완료 줄, 맨 마지막).
+#   모든 기록이 성공한 뒤에만 표지를 지운다. 기록 실패 → 종료 4(원래 실패값이 비영이면 그 값), 표지 남김, 자동 재시도 없음.
+# 종료값: 0 READ_OK · 2 시작 전 거절(원격 0회) · 3 STOP_PIN(HEAD·이미지·상태·재시작·Flyway 불일치/조회 불명)
+#         · 5 STOP_INSTALL_STDERR / STOP_SQL_STDERR(rc0 인데 표준오류 있음) · 6 STOP_WINDOW / STOP_CLOCK_SKEW / STOP_WINDOW_DB
+#         · 7 STOP_SQL_SHAPE(shape_check2.py 실제 종료값 ≠ 0, 또는 출력이 SHAPE_OK 한 줄이 아님, 또는 검사기 표준오류 있음)
+#         · 원격/SQL 실패는 그 rc 그대로(예 255 SSH, 3 psql ON_ERROR_STOP — R1D_GUARD 보호값 불일치 포함) · 4 기록 실패
+#   상태 이름(read-status.txt 첫 낱말)으로 같은 숫자의 원인을 구분한다(예 STOP_PIN_MISMATCH 3 과 STOP_SQL_FAILED 3).
+# READ_OK 조건: SQL rc0 · SQL 표준오류 없음 · META 형태·Flyway 96 · 검사기 실제 rc0·SHAPE_OK · db_now 창 안 · 모든 기록 성공. 부분 출력·예외는 성공이 아니다.
+# 반출 범위: 표준 출력은 집계 개수·시각·코드 그룹뿐(금액·수량·가격·손익·원시 주문·ID·비밀값 없음). 계약 밖 값은 검사기가 거절(7)하고 소비하지 않는다.
+#   psql 표준오류는 로컬 파일로만 보존하고 화면에 내지 않는다. 분류(sql-stderr-class.txt)만 기록한다:
+#   GUARD(R1D_GUARD) · STATEMENT_TIMEOUT · LOCK_TIMEOUT · OTHER(계약 밖 — 원문은 총괄 확인 전 인용·해석 금지).
+# 1회 범위: 보존폴더는 없어야 하고, 같은 docs/evidence 아래 다른 r1-diag-read-* 폴더가 있으면 거절한다(같은 승인으로 두 번 읽지 않음).
+# 결과 해석: 보고만 한다. 행 삭제·session_id/exit_reason/모드 수정·원천 추가·원가 추정·관문 완화의 근거로 자동 소비하지 않는다(v1.234 §4).
+set -u
+SELF_DIR="$(cd "$(dirname "$0")" && pwd)"
+R1="$(dirname "$SELF_DIR")"; EVI="$(dirname "$R1")"
+SQL="$R1/sql/r1-diag-2.sql"; SQL_SHA=4134c631879ff8fc062c161c2724c9597c814e2c51ce0c0313684e14ddf8e269
+CHK="$R1/check/shape_check2.py"; CHK_SHA=7f56f64043b46fa7c65bba79a1bd174557b678a8af65fd9289e3eb5dd287b469
+EXP_HEAD=0e1d2a021ab2f3c759a9b2be9c4f09430f93c80d
+EXP_IMG=sha256:2c5d84276cdbf01f718077e3d2d0475f6af5982d7afb95082750fcebe7f5979f
+EXP_STATUS=running; EXP_RESTART=0; EXP_FLYWAY=96; MAX_SKEW=120
+PGO="-c statement_timeout=15s -c lock_timeout=2s"
+AP="cd ~/crypto_trader/AutoTrader && docker compose -f docker-compose.prod.yml"
+deny() { echo "🔴 거절(종료 2): $* — 원격 호출 0회"; exit 2; }
+hashok() { [ "$(sha256sum < "$1" | cut -d' ' -f1)" = "$2" ]; }
+utc() { date -u -d "$1" +%s 2>/dev/null; }
+UTCZ='^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$'
+hashok "$SQL" "$SQL_SHA" || deny "고정 SQL 해시 불일치(r1-diag-2.sql)"
+hashok "$CHK" "$CHK_SHA" || deny "고정 검사기 해시 불일치(shape_check2.py)"
+command -v python > /dev/null 2>&1 && python -I -c 'import sys' > /dev/null 2>&1 || deny "python -I 실행 불가(형태 검사 불가)"
+[[ "$APPROVED_DATE" =~ ^[0-9]{8}$ ]] || deny "APPROVED_DATE 빈칸/형식(YYYYMMDD) — 승인 값 미기입"
+[[ "$WIN_START" =~ $UTCZ ]] && [ -n "$(utc "$WIN_START")" ] || deny "WIN_START 빈칸/형식(UTC …Z) — 승인 값 미기입"
+[[ "$WIN_END" =~ $UTCZ ]] && [ -n "$(utc "$WIN_END")" ] || deny "WIN_END 빈칸/형식(UTC …Z) — 승인 값 미기입"
+WS=$(utc "$WIN_START"); WE=$(utc "$WIN_END")
+[ "$WS" -lt "$WE" ] || deny "승인 창 시작 ≥ 끝"
+L=${1:-}
+[ -n "$L" ] || deny "보존폴더 인자 없음"
+[ "$#" = 1 ] || deny "인자는 보존폴더 1개뿐"
+case "$(basename "$L")" in r1-diag-read-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]) ;; *) deny "보존폴더 이름 형식(r1-diag-read-YYYYMMDD-HHMM)";; esac
+LB="$(basename "$L")"; LD=${LB#r1-diag-read-}; LD=${LD%-*}
+[ "$LD" = "$APPROVED_DATE" ] || deny "보존폴더 날짜($LD) ≠ APPROVED_DATE($APPROVED_DATE)"
+[ "$(cd "$(dirname "$L")" 2>/dev/null && pwd)" = "$EVI" ] || deny "보존폴더는 $EVI 바로 아래여야 함"
+[ ! -e "$L" ] || deny "보존폴더가 이미 있음 — 같은 승인으로 다시 읽지 않는다"
+[ -z "$(find "$EVI" -maxdepth 1 -name 'r1-diag-read-*' -print -quit)" ] || deny "다른 r1-diag-read-* 폴더가 이미 있음 — 1회 범위 초과"
+PC0=$(date -u +%s)
+[ "$PC0" -ge "$WS" ] || deny "승인 창 시작($WIN_START) 전(PC 시각 기준)"
+[ "$PC0" -le "$WE" ] || deny "승인 창 끝($WIN_END) 지남(PC 시각 기준)"
+I="$L/INCOMPLETE.txt"; WR=0
+rec() { printf '%s\n' "$2" | tee -a "$1" > /dev/null; }
+remote() {
+  ssh -o BatchMode=yes cat-prod "$4" < "$3" 2> "$2" | tee "$1" > /dev/null
+  local ps=("${PIPESTATUS[@]}"); RRC=${ps[0]}
+  { [ "${ps[1]}" = 0 ] && [ -f "$2" ]; } || WR=1
+  rec "$L/rc.txt" "$(basename "$1") rc=$RRC" || WR=1
+}
+errclass() {   # psql 표준오류 분류만 기록(원문은 파일 보존, 화면 출력 없음)
+  local c=OTHER
+  if [ ! -s "$1" ]; then c=EMPTY
+  elif grep -q 'R1D_GUARD' "$1"; then c=GUARD
+  elif grep -q 'canceling statement due to statement timeout' "$1"; then c=STATEMENT_TIMEOUT
+  elif grep -q 'canceling statement due to lock timeout' "$1"; then c=LOCK_TIMEOUT
+  fi
+  rec "$L/sql-stderr-class.txt" "$c" || WR=1
+}
+finish() {
+  local st=$1 code=$2
+  rec "$L/run-time.txt" "pc-end $(date -u +%FT%TZ)" || WR=1
+  (cd "$L" && find . -type f ! -name read-SHA256SUMS ! -name read-status.txt ! -name INCOMPLETE.txt -print \
+     | sed 's|^\./||' | sort | xargs -r sha256sum > read-SHA256SUMS) || WR=1
+  [ "$WR" = 0 ] && rec "$L/read-status.txt" "$st exit=$code" || WR=1
+  [ "$WR" = 0 ] && rm -f "$I" && [ ! -e "$I" ] || WR=1
+  if [ "$WR" != 0 ]; then
+    local fr=4; [ "$code" = 0 ] || fr=$code
+    echo "🔴 기록 실패 — 원래 결과 $st(종료 $code) · 이 실행 종료=$fr. 미완료 표지를 남겼다: 보고 전 재실행 금지(자동 재시도 없음)"
+    exit "$fr"
+  fi
+  echo "r1-diag-read 끝 — $st (종료 $code). 같은 승인으로 다시 읽지 않는다."
+  exit "$code"
+}
+
+mkdir "$L" || { echo "🔴 기록 실패(종료 4): 보존폴더 생성 실패 — 원격 호출 0회"; exit 4; }
+rec "$I" "미완료 — r1-diag-read 시작 $(date -u +%FT%TZ)(PC) APPROVED_DATE=$APPROVED_DATE WIN=$WIN_START..$WIN_END" || { rm -rf "$L"; echo "🔴 기록 실패(종료 4): 미완료 표지 — 원격 호출 0회"; exit 4; }
+{ cp "$SQL" "$L/r1-diag-2.sql" && cp "$CHK" "$L/shape_check2.py" && hashok "$L/r1-diag-2.sql" "$SQL_SHA" && hashok "$L/shape_check2.py" "$CHK_SHA" \
+  && rec "$L/run-time.txt" "pc-start $(date -u +%FT%TZ)" && rec "$L/range-args.txt" "APPROVED_DATE $APPROVED_DATE WIN_START $WIN_START WIN_END $WIN_END"; } \
+  || { echo "🔴 기록 실패(종료 4): 시작 기록·사본 해시 — 원격 호출 0회, 미완료 표지 남김"; exit 4; }
+# 1) 서버 UTC + 설치 상태(읽기만)
+PC1=$(date -u +%s)
+remote "$L/install_state.txt" "$L/install_state.stderr" /dev/null \
+  "echo \"server_utc \$(date -u +%FT%TZ)\"; cd ~/crypto_trader/AutoTrader && echo \"HEAD \$(git rev-parse HEAD)\" && c=\$(docker compose -f docker-compose.prod.yml ps -q backend) && docker inspect --format 'backend Image={{.Image}} Status={{.State.Status}} RestartCount={{.RestartCount}} StartedAt={{.State.StartedAt}}' \$c"
+[ "$RRC" = 0 ] || finish STOP_REMOTE_INSTALL_STATE "$RRC"
+[ "$WR" = 0 ] || finish RECORD_FAILED_INSTALL_STATE 0
+[ ! -s "$L/install_state.stderr" ] || finish STOP_INSTALL_STDERR 5
+F="$L/install_state.txt"
+SU=$(grep -cE '^server_utc [0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$' "$F"); HDn=$(grep -cE '^HEAD [0-9a-f]{40}$' "$F")
+BLn=$(grep -cE '^backend Image=[^ ]+ Status=[^ ]+ RestartCount=[0-9]+ StartedAt=[^ ]+$' "$F")
+[ "$SU" = 1 ] && [ "$HDn" = 1 ] && [ "$BLn" = 1 ] || finish STOP_PIN_UNREADABLE 3
+HD=$(sed -n 's/^HEAD //p' "$F"); BL=$(grep '^backend ' "$F")
+IMG=${BL#*Image=}; IMG=${IMG%% *}; STS=${BL#*Status=}; STS=${STS%% *}; RST=${BL#*RestartCount=}; RST=${RST%% *}
+rec "$L/pins.txt" "HEAD $([ "$HD" = "$EXP_HEAD" ] && echo 일치 || echo 불일치) · 이미지 $([ "$IMG" = "$EXP_IMG" ] && echo 일치 || echo 불일치) · 상태 $STS · 재시작 $RST" || WR=1
+[ "$HD" = "$EXP_HEAD" ] && [ "$IMG" = "$EXP_IMG" ] && [ "$STS" = "$EXP_STATUS" ] && [ "$RST" = "$EXP_RESTART" ] || finish STOP_PIN_MISMATCH 3
+[ "$WR" = 0 ] || finish RECORD_FAILED_PINS 0
+# 서버 시각으로 창 재확인(SQL 직전). 원격 호출을 늘리지 않고 (1)의 server_utc 와 PC 경과 시간을 쓴다.
+SUTC=$(sed -n 's/^server_utc //p' "$F"); SS=$(utc "$SUTC")
+[ -n "$SS" ] || finish STOP_PIN_UNREADABLE 3
+SKEW=$(( SS - PC1 )); [ "$SKEW" -lt 0 ] && SKEW=$(( -SKEW ))
+rec "$L/window.txt" "server_utc $SUTC · PC 차 ${SKEW}s(허용 ${MAX_SKEW}s) · 창 $WIN_START..$WIN_END" || WR=1
+[ "$SKEW" -le "$MAX_SKEW" ] || finish STOP_CLOCK_SKEW 6
+[ "$SS" -ge "$WS" ] && [ "$SS" -le "$WE" ] || finish STOP_WINDOW 6
+PC2=$(date -u +%s); EST=$(( SS + PC2 - PC1 ))
+rec "$L/window.txt" "SQL 직전 추정 서버 시각 $(date -u -d "@$EST" +%FT%TZ)" || WR=1
+[ "$EST" -le "$WE" ] || finish STOP_WINDOW 6
+[ "$WR" = 0 ] || finish RECORD_FAILED_WINDOW 0
+hashok "$L/r1-diag-2.sql" "$SQL_SHA" || finish STOP_SQL_COPY_HASH 7
+# 2) 진단 SQL 1회(표준 입력 -f -, PGOPTIONS 보호값)
+remote "$L/r1.tsv" "$L/r1.stderr" "$L/r1-diag-2.sql" "$AP exec -T -e PGOPTIONS='$PGO' db psql -X -q -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -f -"
+SRC_=$RRC; rec "$L/r1.rc" "$SRC_" || WR=1
+[ "$SRC_" = 0 ] || { errclass "$L/r1.stderr"; finish STOP_SQL_FAILED "$SRC_"; }
+[ "$WR" = 0 ] || finish RECORD_FAILED_SQL 0
+[ ! -s "$L/r1.stderr" ] || { errclass "$L/r1.stderr"; finish STOP_SQL_STDERR 5; }
+T="$L/r1.tsv"
+[ -s "$T" ] || finish STOP_SQL_SHAPE 7
+# META 첫 줄에서 Flyway 만 먼저 확인(핀 불일치는 형태보다 먼저 3 으로 구분)
+META=$(head -n1 "$T" | awk -F'\t' '$1=="META" && $2=="r1-diag-2" && NF==10 && $7=="repeatable read" && $9=="15s" && $10=="2s" {print $6}')
+[ -n "$META" ] || finish STOP_SQL_SHAPE 7
+rec "$L/pins.txt" "Flyway $META" || WR=1
+[ "$META" = "$EXP_FLYWAY" ] || finish STOP_PIN_MISMATCH 3
+# 형태·합 검사: 해시 확인한 사본을 실제로 실행하고 그 프로세스 종료값을 쓴다
+hashok "$L/shape_check2.py" "$CHK_SHA" || finish STOP_CHECKER_COPY_HASH 7
+python -I "$L/shape_check2.py" "$T" > "$L/shape-check.txt" 2> "$L/shape-check.stderr"; CRC=$?
+rec "$L/shape-check.rc" "$CRC" || WR=1
+[ "$WR" = 0 ] || finish RECORD_FAILED_SHAPE 0
+[ "$CRC" = 0 ] && [ "$(cat "$L/shape-check.txt")" = SHAPE_OK ] && [ ! -s "$L/shape-check.stderr" ] || finish STOP_SQL_SHAPE 7
+# DB 시각(META db_now)이 승인 창 안인지 — 창 밖이면 결과를 소비하지 않는다
+DBN=$(head -n1 "$T" | awk -F'\t' '{print $3}'); DS=$(utc "$DBN")
+rec "$L/window.txt" "db_now $DBN" || WR=1
+[ -n "$DS" ] && [ "$DS" -ge "$WS" ] && [ "$DS" -le "$WE" ] || finish STOP_WINDOW_DB 6
+[ "$WR" = 0 ] || finish RECORD_FAILED_WINDOW_DB 0
+finish READ_OK 0

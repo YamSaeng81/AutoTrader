@@ -1,0 +1,54 @@
+{
+ "ok": true,
+ "normal": {
+  "psql_rc0": true,
+  "stderr_empty": true,
+  "meta_r1_diag_2_flyway96_rr_15s_2s": true,
+  "ref_81_87_94": true,
+  "end_last": true,
+  "body_equals_expected": true,
+  "uq_9_columns_with_union_items": true,
+  "nonconforming_text_not_exported": true,
+  "check_rc0_shape_ok": true,
+  "db_rows_unchanged": true
+ },
+ "guard_14s": {
+  "psql_rc3": true,
+  "stdout_empty": true,
+  "stderr_r1d_guard": true
+ },
+ "uq_short": {
+  "one_cell_removed": true,
+  "check_rc7": true,
+  "shape_mismatch_column_count": true,
+  "no_traceback": true
+ },
+ "container_network": "none",
+ "server": "PostgreSQL 15.13 on x86_64-pc-linux-musl, compiled by gcc (Alpine 13.2.1_git20240309) 13.2.1 20240309, 64-bit",
+ "pgoptions_show": [
+  "15s",
+  "2s"
+ ],
+ "db_counts_before_after": [
+  "21 16 97",
+  "21 16 97"
+ ],
+ "expected_rows": 103,
+ "actual_body_rows": 103,
+ "meta": [
+  "META",
+  "r1-diag-2",
+  "96",
+  "repeatable read",
+  "UTC",
+  "15s",
+  "2s"
+ ],
+ "db_now": "2026-11-24T03:47:25.319223+00:00",
+ "sql_sha256": "4134c631879ff8fc062c161c2724c9597c814e2c51ce0c0313684e14ddf8e269",
+ "check_sha256": "7f56f64043b46fa7c65bba79a1bd174557b678a8af65fd9289e3eb5dd287b469",
+ "test_sha256": "d98f3f8545251a10b6c13ff305138ac1f06600cada29388de81cdf5e69c413da",
+ "setup_sha256": "98b3eab0b28be0b9b389a4cc9ac64c03e2f22e87b6d8f23e2649ee6931d2208d",
+ "production_calls": 0,
+ "ssh_calls": 0
+}

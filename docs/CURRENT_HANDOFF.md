@@ -2,6 +2,8 @@
 
 **v1.234: R1 진단 SQL과 검사기 UQ 열 수 불일치 재현. 보완 사본·격리 PG 1묶음·실행기 최종 원문 제출을 진행한다. 운영 진단 창은 검증 후 확정하며 현재 운영 호출·배포 재시도는 승인하지 않는다. [지시](evidence/review-fc1be13b/README.md)**
 
+**v1.234 §3 보완·PG 1묶음(제출, 11-24 12:47 KST 기준):** r1-diag-2 SQL `4134c631`(분해 행 9열·UQ union_items 출력, ORIG·선택 조건 불변) · 검사기 shape_check2 `7f56f640`(열 수 선확인·필수 행 집합·Flyway 96, 예외도 rc7). 격리 PG 15.13(--network none) 1회: 정상 psql rc0·stderr 0·본문 103행 손계산 일치·검사기 rc0, 보호값 14s → rc3 R1D_GUARD, UQ 한 칸 뺀 실제 출력 → rc7. 진단 실행기 r1-diag-read.sh(a1-read v2 기반, 승인 값 3칸 빈칸, bash -n만). 운영·SSH 호출 0. 운영 읽기 창·1회 범위는 총괄 확정 대기 [근거](evidence/r1-diag2-20261124/README.md)
+
 **v1.233: U0 rc1 중단 수용. R1 DYNAMIC 9의 원인·중복·REAL/PAPER 구성부터 금액 없는 로컬 진단안을 작성한다. 새 SQL 실행·U0 재시도·U1/U2는 미승인. 작업 완료 즉시 다음 허용 단계로 진행한다. [지시](evidence/review-5caa36e0/README.md)**
 
 
