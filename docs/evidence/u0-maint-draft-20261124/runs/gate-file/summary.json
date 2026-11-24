@@ -1,0 +1,137 @@
+{
+ "ok": true,
+ "results": {
+  "syn_known_only_shape_check4": {
+   "rc": 0,
+   "stdout": "SHAPE_OK",
+   "ok": true
+  },
+  "pg_normal_other_branches": {
+   "rc": 1,
+   "first": "MAINT_STOP",
+   "stderr_empty": true,
+   "lines": [
+    "MAINT_STOP 유지보수 배포 조건 미충족 — 배포하지 않는다",
+    " - P1 R1 LIVE ≠ 0",
+    " - P2 ORIG LIVE ≠ 0",
+    " - P3 KNOWN ≠ ORIG DYNAMIC",
+    " - P3 DYNAMIC OTHER ≠ 0(새/불명 분기)",
+    " - P3 LIVE 대상 ≠ 0",
+    " - P5 REAL DYNAMIC OTHER ≠ 0",
+    " - P5 DYNAMIC 세션 모드 OTHER ≠ 0"
+   ],
+   "ok": true
+  },
+  "pg_running_real": {
+   "rc": 1,
+   "first": "MAINT_STOP",
+   "stderr_empty": true,
+   "lines": [
+    "MAINT_STOP 유지보수 배포 조건 미충족 — 배포하지 않는다",
+    " - P5 REAL LIVE RUNNING ≠ 0",
+    " - P6 REAL LIVE POS_OPEN ≠ 0",
+    " - P6 REAL LIVE POS_CLOSING ≠ 0",
+    " - P6 REAL LIVE ORD_UNRESOLVED_SUBMIT ≠ 0",
+    " - P6 REAL LIVE ORD_ACTIVE_OTHER ≠ 0",
+    " - P6 REAL LIVE CLEANUP_PENDING ≠ 0",
+    " - P5 REAL DYNAMIC RUNNING ≠ 0",
+    " - P5 REAL DYNAMIC PAUSED ≠ 0",
+    " - P5 DYNAMIC 세션 모드 OTHER ≠ 0",
+    " - P6 REAL DYNAMIC POS_OPEN ≠ 0",
+    " - P6 REAL DYNAMIC ORD_UNRESOLVED_SUBMIT ≠ 0",
+    " - P6 REAL DYNAMIC ORD_ACTIVE_OTHER ≠ 0",
+    " - P7 소유 불명 NO_SESSION_ID POS_OPEN ≠ 0",
+    " - P7 소유 불명 NO_SESSION_ID ORD_ACTIVE_OTHER ≠ 0",
+    " - P7 소유 불명 KIND_OTHER POS_OPEN ≠ 0",
+    " - P7 소유 불명 NO_ROW POS_OPEN ≠ 0",
+    " - P7 소유 불명 NO_ROW ORD_ACTIVE_OTHER ≠ 0",
+    " - P7 소유 불명 NO_ROW CLEANUP_PENDING ≠ 0",
+    " - P7 소유 불명 MODE_OTHER POS_CLOSING ≠ 0",
+    " - P7 소유 불명 MODE_OTHER ORD_UNRESOLVED_SUBMIT ≠ 0",
+    " - P7 소유 불명 MODE_OTHER CLEANUP_PENDING ≠ 0",
+    " - P7 상태 불명 ORDER ≠ 0",
+    " - P7 옛 고아 ORDER ACTIVE ≠ 0",
+    " - P7 상태 불명 POSITION ≠ 0",
+    " - P7 옛 고아 POSITION ACTIVE ≠ 0"
+   ],
+   "ok": true
+  },
+  "pg_minute_edge_other1": {
+   "rc": 1,
+   "first": "MAINT_STOP",
+   "stderr_empty": true,
+   "lines": [
+    "MAINT_STOP 유지보수 배포 조건 미충족 — 배포하지 않는다",
+    " - P3 KNOWN ≠ ORIG DYNAMIC",
+    " - P3 DYNAMIC OTHER ≠ 0(새/불명 분기)"
+   ],
+   "ok": true
+  },
+  "pg_new_ap": {
+   "rc": 1,
+   "first": "MAINT_STOP",
+   "stderr_empty": true,
+   "lines": [
+    "MAINT_STOP 유지보수 배포 조건 미충족 — 배포하지 않는다",
+    " - P1 R1 LIVE ≠ 0",
+    " - P2 ORIG LIVE ≠ 0",
+    " - P3 KNOWN ≠ ORIG DYNAMIC",
+    " - P3 DYNAMIC OTHER ≠ 0(새/불명 분기)",
+    " - P3 LIVE 대상 ≠ 0",
+    " - P4 NEW LIVE/P ≠ 0",
+    " - P4 NEW DYNAMIC/A ≠ 0",
+    " - P4 NEW DYNAMIC/P ≠ 0"
+   ],
+   "ok": true
+  },
+  "pg_empty_not_called": {
+   "rc": 3,
+   "first": "MAINT_FORMAT",
+   "stderr_empty": true,
+   "lines": [
+    "MAINT_FORMAT R1 DYNAMIC 0 — 이 판정기를 부를 경우가 아님(pf3ok 0 경로)"
+   ],
+   "ok": true
+  },
+  "syn_known_only_pass": {
+   "rc": 0,
+   "first": "MAINT_DEPLOY_ONLY",
+   "stderr_empty": true,
+   "lines": [
+    "MAINT_DEPLOY_ONLY 유지보수 배포 준비 가능 · 매매 시작 금지 — R1 DYNAMIC KNOWN 2(부류 일치, 동일 행 증거 아님) · 마지막 만료 경계 2026-11-30T23:59:00.000000+00:00 · 다음 분 2026-12-01T00:00:00.000000+00:00 · 옛 고아 기록만 주문 0/포지션 0"
+   ],
+   "ok": true
+  },
+  "syn_pf3ok_count_mismatch": {
+   "rc": 1,
+   "first": "MAINT_STOP",
+   "stderr_empty": true,
+   "lines": [
+    "MAINT_STOP 유지보수 배포 조건 미충족 — 배포하지 않는다",
+    " - P2 ORIG DYNAMIC ≠ pf3ok R1 DYNAMIC"
+   ],
+   "ok": true
+  },
+  "syn_r3_nonzero": {
+   "rc": 1,
+   "first": "MAINT_STOP",
+   "stderr_empty": true,
+   "lines": [
+    "MAINT_STOP 유지보수 배포 조건 미충족 — 배포하지 않는다",
+    " - P1 R3 RUNNING REAL 청산 행·판정 불가 ≠ 0"
+   ],
+   "ok": true
+  },
+  "syn_verdict_format": {
+   "rc": 3,
+   "first": "MAINT_FORMAT",
+   "stderr_empty": true,
+   "lines": [
+    "MAINT_FORMAT pf3ok 판정 줄 수"
+   ],
+   "ok": true
+  }
+ },
+ "pg_calls": 0,
+ "ssh_calls": 0
+}

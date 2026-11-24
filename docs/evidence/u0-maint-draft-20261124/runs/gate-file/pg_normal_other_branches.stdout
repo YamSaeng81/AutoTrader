@@ -1,0 +1,8 @@
+MAINT_STOP 유지보수 배포 조건 미충족 — 배포하지 않는다
+ - P1 R1 LIVE ≠ 0
+ - P2 ORIG LIVE ≠ 0
+ - P3 KNOWN ≠ ORIG DYNAMIC
+ - P3 DYNAMIC OTHER ≠ 0(새/불명 분기)
+ - P3 LIVE 대상 ≠ 0
+ - P5 REAL DYNAMIC OTHER ≠ 0
+ - P5 DYNAMIC 세션 모드 OTHER ≠ 0

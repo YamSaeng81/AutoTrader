@@ -1,0 +1,84 @@
+{
+ "ok": false,
+ "results": {
+  "normal": {
+   "psql_rc0": true,
+   "stderr_empty": true,
+   "meta_ok": true,
+   "prior_row": true,
+   "end_last": true,
+   "body_equals_expected": true,
+   "check_rc0_shape_ok": true,
+   "db_rows_unchanged": true
+  },
+  "empty": {
+   "psql_rc0": true,
+   "stderr_empty": true,
+   "meta_ok": true,
+   "prior_row": true,
+   "end_last": true,
+   "body_equals_expected": true,
+   "check_rc0_shape_ok": true,
+   "db_rows_unchanged": true
+  },
+  "minute_edge": {
+   "psql_rc0": true,
+   "stderr_empty": true,
+   "meta_ok": true,
+   "prior_row": true,
+   "end_last": true,
+   "body_equals_expected": true,
+   "check_rc0_shape_ok": true,
+   "db_rows_unchanged": true
+  },
+  "new_ap": {
+   "psql_rc0": true,
+   "stderr_empty": true,
+   "meta_ok": true,
+   "prior_row": true,
+   "end_last": true,
+   "body_equals_expected": true,
+   "check_rc0_shape_ok": true,
+   "db_rows_unchanged": true
+  },
+  "running_real": {
+   "psql_rc0": true,
+   "stderr_empty": true,
+   "meta_ok": true,
+   "prior_row": true,
+   "end_last": true,
+   "body_equals_expected": true,
+   "check_rc0_shape_ok": true,
+   "db_rows_unchanged": true
+  },
+  "guard_14s": {
+   "psql_rc3": true,
+   "stdout_empty": true,
+   "stderr_r1d_guard": true
+  },
+  "query_fail": {
+   "psql_rc3": true,
+   "stderr_relation_missing": true,
+   "partial_stdout_nonempty": true,
+   "no_end_row": true,
+   "check_rc7": true
+  },
+  "mutations": {
+   "drop_rx_row": true,
+   "bad_next_minute": false,
+   "prior_changed": true,
+   "known_sum": true,
+   "no_end": true,
+   "extra_col": true,
+   "empty_file": true
+  }
+ },
+ "container_network": "none",
+ "server": "PostgreSQL 15.13 on x86_64-pc-linux-musl, compiled by gcc (Alpine 13.2.1_git20240309) 13.2.1 20240309, 64-bit",
+ "sql_sha256": "276a14fe13d654d17bb59268de15790b5bede7a55fd38a39bf543f67804194dd",
+ "check_sha256": "2790217864ec66ee96425601b006608dc5332175b0bca9377a47f1916817a96a",
+ "test_sha256": "ae8d989e7dc1b0a8e8f9368759e9cfb267b2e9f1d92f99911a8fc89957d0c317",
+ "setup_sha256": "98b3eab0b28be0b9b389a4cc9ac64c03e2f22e87b6d8f23e2649ee6931d2208d",
+ "production_calls": 0,
+ "ssh_calls": 0
+}

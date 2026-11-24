@@ -1,0 +1,34 @@
+--- U0.orig.sh	2026-11-24 14:34:18.462876900 +0900
++++ U0-maint.sh	2026-11-24 14:34:18.433629500 +0900
+@@ -104,7 +104,30 @@
+ PR=0; $PSQL -At -F ' | ' < "$M/predeploy-read.sql" > "$M/predeploy-read.txt" 2>&1 || PR=$?   # v1.226 §3-1 A2 실패 반출 보정: 실패 원문(부분 R3 금액 행·오류 문구)은 서버 $M 에만 둔다
+ [ "$PR" = 0 ] || { PH=$(h256 "$M/predeploy-read.txt" 2>/dev/null) || PH=불명; stop "🔴 배포 전 읽기 v3 조회 실패(종료 $PR) — 원문은 콘솔에 내보내지 않고 서버에만 보존: $M/predeploy-read.txt sha256 $PH — 배포 전 중단·보고(빌드·체크아웃·재기동으로 넘어가지 않는다)"; }
+ pf3ok "$M/predeploy-read.txt" > "$M/predeploy-verdict.txt" && PV=0 || PV=$?; cat "$M/predeploy-verdict.txt"
+-[ "$PV" = 0 ] || stop "🔴 배포 전 읽기 v3 가 진행 가능이 아님(pf3ok 종료 $PV — 1 보수적 사전 기준 미충족 / 3 형식 이상·읽기 실패) — 배포 전 중단·보고. 한도·자본·세션·과거 행을 바꾸지 않는다(원문 predeploy-read.txt 보존)"
++# ── v1.239 §3-2 유지보수 배포 보정(초안·미승인). MAINT4 가 빈칸이면 아래 1) 은 원래 107행과 같은 멈춤이다 ──
++MAINT4=""   # 빈칸 — 총괄이 실행 출처(고정 커밋)를 확정한 뒤에만 채운다. 채워도 U0 만 통과할 수 있고 매매 시작 승인이 아니다
++M4P=docs/evidence/r1-diag4-20261124; M4SQL=276a14fe13d654d17bb59268de15790b5bede7a55fd38a39bf543f67804194dd; M4CHK=2790217864ec66ee96425601b006608dc5332175b0bca9377a47f1916817a96a
++M4GP=docs/evidence/u0-maint-draft-20261124/maint_gate4.py; M4GATE=""   # 판정기 해시도 수용 뒤 고정(빈칸이면 멈춤)
++case "$PV" in
++  0) echo "R1 해소 — 원래 U0 기준 통과(유지보수 예외 사용 안 함)" | tee "$M/r1-gate.txt" ;;
++  1) [ -n "$MAINT4" ] && [ -n "$M4GATE" ] || stop "🔴 배포 전 읽기 v3 가 진행 가능이 아님(pf3ok 종료 $PV — 1 보수적 사전 기준 미충족 / 3 형식 이상·읽기 실패) — 배포 전 중단·보고. 한도·자본·세션·과거 행을 바꾸지 않는다(원문 predeploy-read.txt 보존)"
++     [ ! -e "$M/r1-diag-4.tsv" ] || stop "r1-diag-4 결과가 이미 있다 — 같은 U0 시도에서 두 번 읽지 않는다. ls -l $M 를 보고"
++     git cat-file -e "$MAINT4^{commit}" || stop "MAINT4 고정 커밋 없음"
++     git show "$MAINT4:$M4P/sql/r1-diag-4.sql" > "$M/r1-diag-4.sql" && [ "$(h256 "$M/r1-diag-4.sql")" = "$M4SQL" ] || stop "r1-diag-4 원문·해시가 다름"
++     git show "$MAINT4:$M4P/check/shape_check4.py" > "$M/shape_check4.py" && [ "$(h256 "$M/shape_check4.py")" = "$M4CHK" ] || stop "shape_check4 원문·해시가 다름"
++     git show "$MAINT4:$M4GP" > "$M/maint_gate4.py" && [ "$(h256 "$M/maint_gate4.py")" = "$M4GATE" ] || stop "maint_gate4 원문·해시가 다름"
++     M4R=0; $DC exec -T -e PGOPTIONS='-c statement_timeout=15s -c lock_timeout=2s' db psql -X -q -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -f - < "$M/r1-diag-4.sql" > "$M/r1-diag-4.tsv" 2> "$M/r1-diag-4.stderr" || M4R=$?
++     [ "$M4R" = 0 ] && [ ! -s "$M/r1-diag-4.stderr" ] || stop "🔴 r1-diag-4 조회 실패·표준오류(종료 $M4R) — 원문은 서버 $M 에만 둔다. 배포 전 중단·보고(조회 실패는 대상 0 이 아니다)"
++     M4S=0; python3 -I "$M/shape_check4.py" "$M/r1-diag-4.tsv" > "$M/r1-diag-4.shape.txt" 2>&1 || M4S=$?
++     [ "$M4S" = 0 ] && [ "$(cat "$M/r1-diag-4.shape.txt")" = SHAPE_OK ] || stop "🔴 r1-diag-4 형식 이상(shape_check4 종료 $M4S) — 배포 전 중단·보고"
++     M4V=0; python3 -I "$M/maint_gate4.py" "$M/r1-diag-4.tsv" "$M/predeploy-verdict.txt" > "$M/r1-gate.txt" || M4V=$?; cat "$M/r1-gate.txt"
++     case "$M4V" in
++       0) echo "⚠️ U0 는 유지보수 배포 준비로만 통과한다 — R1 미해소·LIVE/DYNAMIC 신규 실자금 진입은 제품 관문이 계속 거절한다. 세션 생성/시작 명령 없음. U2 직전 사용자 확인 유지" ;;
++       1) stop "🔴 유지보수 배포 조건 미충족(maint_gate4 종료 1) — 새/불명 R1 분기·실자금 실행 상태·소유 불명 중 하나. r1-gate.txt 를 보고. 한도·자본·세션·과거 행을 바꾸지 않는다" ;;
++       *) stop "🔴 유지보수 판정 형식 이상·읽기 실패(maint_gate4 종료 $M4V) — 배포 전 중단·보고" ;;
++     esac ;;
++  *) stop "🔴 배포 전 읽기 v3 형식 이상·읽기 실패(pf3ok 종료 $PV) — 배포 전 중단·보고. 원문 predeploy-read.txt 보존" ;;
++esac
+ rm -f "$M/image-new.txt" "$M/image-new-chain.txt"   # V172D4 R2(D81D4 는 frontend 빌드 기록이 없다): 이번 빌드판 기록은 이 U0 뒤의 U1 만 쓴다(앞 시도 기록을 이번 빌드로 오인하지 않게, 모든 확인 통과 뒤에만 지운다)
+ touch "$M/ok-U0"; echo "✅ U0 통과 — 30분 안에 U1(매시 :14~:24 는 피한다)"
+ )
