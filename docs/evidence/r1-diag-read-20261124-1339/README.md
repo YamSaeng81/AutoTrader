@@ -10,7 +10,7 @@
 | 원격 호출 | 2회. (1) 설치 상태 rc0, (2) 진단 SQL rc0. 실행기 종료값 0 |
 | 설치 핀 | HEAD 0e1d2a02 일치, backend 이미지 2c5d8427 일치, running, 재시작 0, 표준오류 0바이트 |
 | 창·시계 | server_utc 04:49:13Z, PC와 차이 1초(허용 120초). SQL 직전 추정 서버 시각 04:49:14Z. db_now 04:49:14.512Z. 모두 창 04:39:00Z~08:00:00Z 안이다 |
-| SQL | 표준 출력 102행, 표준오류 0바이트(분류 파일 빈 값 = EMPTY). META `r1-diag-2`, **Flyway 96**, repeatable read, UTC, 15s/2s |
+| SQL | 표준 출력 102행, 표준오류 0바이트(실행기는 실패·stderr 있음일 때만 분류 파일을 만들므로 `sql-stderr-class.txt` 없음, 설계대로). META `r1-diag-2`, **Flyway 96**, repeatable read, UTC, 15s/2s |
 | 형태 검사 | shape_check2 실제 rc0, 출력 `SHAPE_OK`, 표준오류 0바이트 |
 | 실행 시각(PC UTC) | 호출 04:49:11Z → pc-start 04:49:12Z → pc-end 04:49:15Z (KST 13:49:11~13:49:15) |
 | 반출 범위 | 개수·코드·시각만 나왔다. 금액·수량·가격·손익·행 ID·비밀값은 없다. PE 그룹은 `(null)` 하나뿐이다 |
