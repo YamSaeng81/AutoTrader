@@ -119,7 +119,7 @@ def run(d, now, since):
     return rows
 
 if __name__ == "__main__":
-    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stdout.reconfigure(encoding="utf-8", newline=chr(10))
     d, now, since = load(sys.argv[1])
     for r in run(d, now, since):
         print("\t".join(r))

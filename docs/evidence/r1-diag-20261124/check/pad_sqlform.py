@@ -1,6 +1,6 @@
 """model.py 출력을 r1-diag-1 SQL 출력 모양(8열, 빈 열 NULL 표기, META/REF/LEG/END)으로 감싼다 — 형태 검사 시험용."""
 import sys
-sys.stdout.reconfigure(encoding="utf-8")
+sys.stdout.reconfigure(encoding="utf-8", newline=chr(10))
 N = chr(92) + "N"   # 백슬래시+N (psql null 표기)
 print("\t".join(["META", "r1-diag-1", "2026-11-24T01:30:00.000000+00:00", "2026-11-24T01:30:00.100000+00:00",
                  "2026-10-25T01:30:00.000000+00:00", "96", "repeatable read", "Etc/UTC", "15s", "2s"]))

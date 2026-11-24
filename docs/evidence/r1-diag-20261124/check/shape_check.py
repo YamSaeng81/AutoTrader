@@ -66,5 +66,5 @@ def main(path, no_meta):
     print("SHAPE_OK"); return 0
 
 if __name__ == "__main__":
-    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stdout.reconfigure(encoding="utf-8", newline=chr(10))
     sys.exit(main(sys.argv[1], "--no-meta" in sys.argv[2:]))
