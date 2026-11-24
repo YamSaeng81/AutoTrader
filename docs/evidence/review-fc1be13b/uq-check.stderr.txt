@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\r1-diag-20261124\check\shape_check.py", line 70, in <module>
+    sys.exit(main(sys.argv[1], "--no-meta" in sys.argv[2:]))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\r1-diag-20261124\check\shape_check.py", line 59, in main
+    ua, ud, un, up, ub, uu, ui = (num(x) for x in u[0][2:9])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: not enough values to unpack (expected 7, got 6)

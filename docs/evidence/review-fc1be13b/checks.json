@@ -1,0 +1,50 @@
+{
+  "source": "fc1be13b",
+  "checks": [
+    {
+      "path": "docs/evidence/r1-diag-20261124/r1-diag-1.sql",
+      "match": true
+    },
+    {
+      "path": "docs/evidence/r1-diag-20261124/check/expected.tsv",
+      "match": true
+    },
+    {
+      "path": "docs/evidence/r1-diag-20261124/check/fixture.json",
+      "match": true
+    },
+    {
+      "path": "docs/evidence/r1-diag-20261124/check/model-out.tsv",
+      "match": true
+    },
+    {
+      "path": "docs/evidence/r1-diag-20261124/check/model.py",
+      "match": true
+    },
+    {
+      "path": "docs/evidence/r1-diag-20261124/check/mutation-results.txt",
+      "match": true
+    },
+    {
+      "path": "docs/evidence/r1-diag-20261124/check/pad_sqlform.py",
+      "match": true
+    },
+    {
+      "path": "docs/evidence/r1-diag-20261124/check/shape_check.py",
+      "match": true
+    },
+    {
+      "path": "docs/evidence/r1-diag-20261124/README.md",
+      "match": true
+    }
+  ],
+  "checked": 9,
+  "mismatches": 0,
+  "sql_layout_probe": {
+    "rc": 1,
+    "expected": "nonzero: SQL UQ has six counts while parser unpacks seven",
+    "input": "synthetic fixture projected to static SQL column count; SQL not executed"
+  },
+  "production_calls": 0,
+  "pg_calls": 0
+}
