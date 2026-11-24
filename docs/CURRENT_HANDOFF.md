@@ -2,6 +2,8 @@
 
 **v1.238: v1.237 원인 조사 계속. 사용자 허용에 따라 누적 매수대금+매수 수수료 1만원 이하의 별도 LIVE 시험 한 왕복 실행안 준비를 추가한다. 배포 차단 해소·비용 보호 배포/인수·구체 원문 수용 전 실주문은 하지 않는다. U2 사용자 최종 확인 유지. [범위](evidence/live-smoke-authorization-20261124/README.md)**
 
+**v1.237 §3·v1.238 §3 로컬 결과(제출, 11-24 KST):** 0e1d2a02에서 DYNAMIC 포지션을 주문 없이 닫는 경로 4개(E 예약 거절·D 삭제·O 고아 정리·S 정지 빈 슬롯). 넷 다 exit_reason NULL. 9건 모양과 맞는 정상 경로는 E뿐이며 공유 풀 미등록 기간과 겹친다. 다만 행 연결이 없어 미확정. d81은 E에만 ENTRY_REJECTED를 붙인다(F3·X3 보존 PG로 확인, 재실행 없음). 연결 원천은 strategy_log 거절 사유다. 금액 없는 읽기안 r1-diag-3 초안(PG 미검증)·자연 만료 비교표 제출. 실주문 시험안: 새 LIVE 세션 10,000/0.995/9,950 → 매수 ≤9,954.98원, 매수 정산 뒤 정지(FORCED_STOP 매도)로 1회 보장. 선행 조건은 R1=0·d81 인수. 운영 호출 0 [조사](evidence/r1-closure-audit-20261124/README.md) · [시험안](evidence/live-smoke-plan-20261124/README.md)
+
 **v1.236 진단 읽기 결과(제출, 11-24 13:49 KST 기준):** 1회 실행 → **READ_OK**(설치 핀 일치·SQL rc0·형태 rc0·Flyway 96·창 안). R1 LIVE 0 / DYNAMIC 9 = 전부 P 분기: REAL 모드 CLOSED 포지션 9건(고유), 주문 0건·exit_reason NULL → ④ NO_SOURCE(무거래 예외 밖). A 분기·원천 결측(LEG) 0, PAPER/NO_ROW 0. AGE 전부 D00_06 → 새 행 없으면 12-01 04:49Z 전 자연 만료. 무거래 정의 누락 대 원천 결측은 미판정, 다음은 로컬 코드 경로 확인. N03 6fe39570은 이 세션에 없음(ebcf4168 세션 전용, 존속 미확인). U0/U1/U2 보류 [근거](evidence/r1-diag-read-20261124-1339/README.md)
 
 **v1.235: R1 진단 읽기 1회 승인. 11-24 13:00~17:00 KST 안 즉시, 승인 실행기 sha1366a607·SQL4134c631·검사기7f56f640. 결과 폴더 r1-diag-read-20261124-1300. 실패/창 경과 시 재시도하지 않으며 U0/U1/U2는 보류한다. [지시](evidence/review-34b39a7c/README.md)**

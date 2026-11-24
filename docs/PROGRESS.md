@@ -6,6 +6,7 @@
 
 | 구분 | 기준 | 상태 |
 |---|---|---|
+| **v1.237 §3·v1.238 §3 로컬 결과(제출)** | [R1 종료 경로 조사](evidence/r1-closure-audit-20261124/README.md) · [실주문 시험안](evidence/live-smoke-plan-20261124/README.md) | 운영 호출 0. 주문 없는 종료 경로 4개, 유력 경로는 E 예약 거절(미확정). 연결 원천은 strategy_log. r1-diag-3 초안(PG 미검증)·만료 비교. 시험안: 9,950원 매수 1회 → 정지 매도, 선행 조건 R1=0·d81 인수 |
 | **v1.238 소액 실주문 시험 허용 반영** | [시험 범위](evidence/live-smoke-authorization-20261124/README.md) | 사용자 1만원 수준 허용. 누적 매수대금+매수 수수료 1만원 이하 한 왕복 실행안 준비 추가. 실제 주문 0회, 배포·인수·구체 원문 검토 대기 |
 | **v1.237 진단 수용·후속 지시** | [33a62bbb 검토](evidence/review-33a62bbb/README.md) | 19/19 블롭 일치. 로컬 Git에서 예약 거절·삭제·주문 없는 고아 정리 경로 확인. 과거 무거래 예외 확대 보류, 로컬 근거 연결과 배포 차단 해소안 작성 지시. U0/U1/U2 보류 |
 | **v1.236 진단 읽기(제출)** | [r1-diag-read 1339](evidence/r1-diag-read-20261124-1339/README.md) | READ_OK. DYNAMIC 9 = 주문 0건·exit_reason NULL인 REAL CLOSED 포지션 9건(④ NO_SOURCE), A 0·LEG 0·혼입 0, AGE 0~6일. 원인 판정·배포 경로는 총괄 판단 대기 |
