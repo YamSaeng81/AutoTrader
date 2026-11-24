@@ -6,6 +6,7 @@
 
 | 구분 | 기준 | 상태 |
 |---|---|---|
+| **v1.238 소액 실주문 시험 허용 반영** | [시험 범위](evidence/live-smoke-authorization-20261124/README.md) | 사용자 1만원 수준 허용. 누적 매수대금+매수 수수료 1만원 이하 한 왕복 실행안 준비 추가. 실제 주문 0회, 배포·인수·구체 원문 검토 대기 |
 | **v1.237 진단 수용·후속 지시** | [33a62bbb 검토](evidence/review-33a62bbb/README.md) | 19/19 블롭 일치. 로컬 Git에서 예약 거절·삭제·주문 없는 고아 정리 경로 확인. 과거 무거래 예외 확대 보류, 로컬 근거 연결과 배포 차단 해소안 작성 지시. U0/U1/U2 보류 |
 | **v1.236 진단 읽기(제출)** | [r1-diag-read 1339](evidence/r1-diag-read-20261124-1339/README.md) | READ_OK. DYNAMIC 9 = 주문 0건·exit_reason NULL인 REAL CLOSED 포지션 9건(④ NO_SOURCE), A 0·LEG 0·혼입 0, AGE 0~6일. 원인 판정·배포 경로는 총괄 판단 대기 |
 | **v1.236 실패 검토·진단 재승인** | [cc59b71a 검토](evidence/review-cc59b71a/README.md) | 제출 17/17 일치. 로컬 stderr 해시 일치·SSH 연결 종료 형식, 주소 원문 비공개·원인 미확정. 새 사본 bash -n 통과, 13:39~17:00 진단 1회만 재승인. U0/U1/U2 보류 |
