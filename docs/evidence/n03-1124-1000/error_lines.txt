@@ -1,0 +1,7 @@
+backend-1  | 15:00:46.281 [scheduler-3] ERROR c.c.e.upbit.UpbitCandleCollector - 캔들 수집 실패: request timed out
+backend-1  | 15:00:46.281 [scheduler-3] ERROR c.c.a.service.MarketDataSyncService - 시장 데이터 동기화 실패: KRW-INJ H1 - 캔들 데이터 수집 실패
+backend-1  | 15:01:01.286 [scheduler-3] ERROR c.c.e.upbit.UpbitCandleCollector - 캔들 수집 실패: request timed out
+backend-1  | 15:01:01.286 [scheduler-3] ERROR c.c.a.service.MarketDataSyncService - 시장 데이터 동기화 실패: KRW-BTC H1 - 캔들 데이터 수집 실패
+backend-1  | 15:03:58.653 [scheduler-2] ERROR c.c.exchange.upbit.UpbitOrderClient - 계좌 조회 실패: Connection reset
+backend-1  | 19:33:16.702 [telegram-1] ERROR c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 중 오류(응답 미수신): Connection reset
+backend-1  | 20:00:02.428 [scheduler-1] ERROR c.c.api.llm.provider.ClaudeProvider - [ClaudeProvider] 요청 실패
