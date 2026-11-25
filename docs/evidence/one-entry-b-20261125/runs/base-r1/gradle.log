@@ -1,0 +1,100 @@
+Starting a Gradle Daemon, 1 busy and 2 incompatible and 2 stopped Daemons could not be reused, use --status for details
+> Task :web-api:cleanTest UP-TO-DATE
+> Task :strategy-lib:compileJava
+> Task :strategy-lib:processResources NO-SOURCE
+> Task :strategy-lib:classes
+> Task :strategy-lib:jar
+> Task :core-engine:compileJava
+> Task :core-engine:processResources NO-SOURCE
+> Task :core-engine:classes
+> Task :core-engine:jar
+> Task :exchange-adapter:compileJava
+> Task :exchange-adapter:processResources NO-SOURCE
+> Task :exchange-adapter:classes
+> Task :exchange-adapter:jar
+> Task :web-api:compileJava
+> Task :web-api:processResources
+> Task :web-api:classes
+
+> Task :web-api:compileTestJava
+D:\tmp\one-entry-d81c3f2f\web-api\src\test\java\com\cryptoautotrader\api\service\LiveOneEntryLimitPgTest.java:182: error: cannot find symbol
+                OrderRequest o = new OrderRequest();
+                ^
+  symbol:   class OrderRequest
+  location: class LiveOneEntryLimitPgTest
+D:\tmp\one-entry-d81c3f2f\web-api\src\test\java\com\cryptoautotrader\api\service\LiveOneEntryLimitPgTest.java:182: error: cannot find symbol
+                OrderRequest o = new OrderRequest();
+                                     ^
+  symbol:   class OrderRequest
+  location: class LiveOneEntryLimitPgTest
+D:\tmp\one-entry-d81c3f2f\web-api\src\test\java\com\cryptoautotrader\api\service\LiveOneEntryLimitPgTest.java:322: error: cannot find symbol
+                        OrderRequest o = new OrderRequest();
+                        ^
+  symbol:   class OrderRequest
+  location: class LiveOneEntryLimitPgTest
+D:\tmp\one-entry-d81c3f2f\web-api\src\test\java\com\cryptoautotrader\api\service\LiveOneEntryLimitPgTest.java:322: error: cannot find symbol
+                        OrderRequest o = new OrderRequest();
+                                             ^
+  symbol:   class OrderRequest
+  location: class LiveOneEntryLimitPgTest
+D:\tmp\one-entry-d81c3f2f\web-api\src\test\java\com\cryptoautotrader\api\service\LiveOneEntryLimitPgTest.java:432: error: cannot find symbol
+                OrderRequest o = new OrderRequest();
+                ^
+  symbol:   class OrderRequest
+  location: class LiveOneEntryLimitPgTest
+D:\tmp\one-entry-d81c3f2f\web-api\src\test\java\com\cryptoautotrader\api\service\LiveOneEntryLimitPgTest.java:432: error: cannot find symbol
+                OrderRequest o = new OrderRequest();
+                                     ^
+  symbol:   class OrderRequest
+  location: class LiveOneEntryLimitPgTest
+D:\tmp\one-entry-d81c3f2f\web-api\src\test\java\com\cryptoautotrader\api\service\LiveOneEntryLimitPgTest.java:471: error: cannot find symbol
+                    OrderRequest o = new OrderRequest();
+                    ^
+  symbol:   class OrderRequest
+  location: class LiveOneEntryLimitPgTest
+D:\tmp\one-entry-d81c3f2f\web-api\src\test\java\com\cryptoautotrader\api\service\LiveOneEntryLimitPgTest.java:471: error: cannot find symbol
+                    OrderRequest o = new OrderRequest();
+                                         ^
+  symbol:   class OrderRequest
+  location: class LiveOneEntryLimitPgTest
+D:\tmp\one-entry-d81c3f2f\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationExtension.java:66: warning: [removal] getSecurityManager() in System has been deprecated and marked for removal
+                    + "\nrestored_security_manager=" + System.getSecurityManager()
+                                                             ^
+D:\tmp\one-entry-d81c3f2f\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationGuard.java:33: warning: [removal] SecurityManager in java.lang has been deprecated and marked for removal
+    private static volatile SecurityManager previous;
+                            ^
+D:\tmp\one-entry-d81c3f2f\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationGuard.java:74: warning: [removal] getSecurityManager() in System has been deprecated and marked for removal
+        previous = System.getSecurityManager();
+                         ^
+D:\tmp\one-entry-d81c3f2f\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationGuard.java:75: warning: [removal] setSecurityManager(SecurityManager) in System has been deprecated and marked for removal
+        System.setSecurityManager(new Guard());
+              ^
+D:\tmp\one-entry-d81c3f2f\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationGuard.java:136: warning: [removal] getSecurityManager() in System has been deprecated and marked for removal
+        if (System.getSecurityManager() instanceof Guard) {
+                  ^
+D:\tmp\one-entry-d81c3f2f\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationGuard.java:137: warning: [removal] setSecurityManager(SecurityManager) in System has been deprecated and marked for removal
+            System.setSecurityManager(previous);
+                  ^
+D:\tmp\one-entry-d81c3f2f\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationGuard.java:143: warning: [removal] getSecurityManager() in System has been deprecated and marked for removal
+        return installed && System.getSecurityManager() instanceof Guard;
+                                  ^
+D:\tmp\one-entry-d81c3f2f\web-api\src\test\java\com\cryptoautotrader\api\support\NetworkIsolationGuard.java:236: warning: [removal] SecurityManager in java.lang has been deprecated and marked for removal
+    private static final class Guard extends SecurityManager {
+                                             ^
+8 errors
+8 warnings
+
+> Task :web-api:compileTestJava FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':web-api:compileTestJava'.
+> Compilation failed; see the compiler error output for details.
+
+* Try:
+> Run with --info option to get more log output.
+> Run with --scan to get full insights.
+
+BUILD FAILED in 28s
+10 actionable tasks: 9 executed, 1 up-to-date
