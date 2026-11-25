@@ -1,0 +1,14 @@
+{
+  "reviewed_commit": "9d7ec7ed",
+  "manifest": "docs/evidence/one-entry-pg2-20261125/SHA256SUMS-r2",
+  "matched": 163,
+  "missing_or_mismatched": 0,
+  "product_base": "c43e1f1a",
+  "test_commit": "1b719645ef907cb1aa45ffa01438fcfda7566758",
+  "diff_paths": ["web-api/src/test/java/com/cryptoautotrader/api/service/LiveOneEntrySmokePathPgTest.java"],
+  "accepted_scoped_results": {"java_tests": "2/2", "synthetic_gate": "29/29"},
+  "actual_session_gate_v3": "FAIL: open_or_residual_positions=1",
+  "position_gate_v4_predicate": "status IN ('OPEN','CLOSING')",
+  "production_calls_by_reviewer": 0,
+  "pg_tests_builds_by_reviewer": 0
+}
