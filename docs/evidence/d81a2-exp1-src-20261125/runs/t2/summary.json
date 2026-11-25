@@ -1,0 +1,224 @@
+{
+ "ok": true,
+ "results": {
+  "a1_path_new": {
+   "rc": 0,
+   "before": null,
+   "after": [],
+   "old_record_unchanged": true,
+   "ok": true
+  },
+  "a2_path_exists_dir": {
+   "rc": 1,
+   "before": [
+    "old-attempt.txt"
+   ],
+   "after": [
+    "old-attempt.txt"
+   ],
+   "old_record_unchanged": true,
+   "ok": true
+  },
+  "a3_path_is_file": {
+   "rc": 1,
+   "before": "FILE",
+   "after": "FILE",
+   "old_record_unchanged": true,
+   "ok": true
+  },
+  "b1_normal_pass": {
+   "rc": 0,
+   "words": {
+    "판정 | 진행 가능": true,
+    "R1 해소 — 이번 U0": true,
+    "✅ U0 통과": true
+   },
+   "ok_U0_state_ok": true,
+   "tmp_left": false,
+   "r1_gate_ok": true,
+   "misread_as_cost": false,
+   "u1_gate_rc": 0,
+   "u1_gate_pass": true,
+   "injected": null,
+   "ok": true
+  },
+  "b2_r1_dynamic_positive": {
+   "rc": 1,
+   "words": {
+    "보수적 사전 기준 미충족": true,
+    "유지보수 예외 없음": true
+   },
+   "ok_U0_state_ok": true,
+   "tmp_left": false,
+   "r1_gate_ok": true,
+   "misread_as_cost": false,
+   "u1_gate_rc": 1,
+   "u1_gate_pass": false,
+   "injected": null,
+   "ok": true
+  },
+  "b3_r1_live_positive": {
+   "rc": 1,
+   "words": {
+    "보수적 사전 기준 미충족": true,
+    "유지보수 예외 없음": true
+   },
+   "ok_U0_state_ok": true,
+   "tmp_left": false,
+   "r1_gate_ok": true,
+   "misread_as_cost": false,
+   "u1_gate_rc": 1,
+   "u1_gate_pass": false,
+   "injected": null,
+   "ok": true
+  },
+  "b4_verdict_write_fail": {
+   "rc": 1,
+   "words": {
+    "배포 전 판정 기록 실패": true
+   },
+   "ok_U0_state_ok": true,
+   "tmp_left": false,
+   "r1_gate_ok": true,
+   "misread_as_cost": false,
+   "u1_gate_rc": 1,
+   "u1_gate_pass": false,
+   "injected": null,
+   "ok": true
+  },
+  "b5_gate_write_fail": {
+   "rc": 1,
+   "words": {
+    "r1-gate 필수 기록 실패": true
+   },
+   "ok_U0_state_ok": true,
+   "tmp_left": false,
+   "r1_gate_ok": true,
+   "misread_as_cost": false,
+   "u1_gate_rc": 1,
+   "u1_gate_pass": false,
+   "injected": null,
+   "ok": true
+  },
+  "b6_partial_read": {
+   "rc": 1,
+   "words": {
+    "형식 이상": true,
+    "조회 결과로 보지 않는다": true
+   },
+   "ok_U0_state_ok": true,
+   "tmp_left": false,
+   "r1_gate_ok": true,
+   "misread_as_cost": false,
+   "u1_gate_rc": 1,
+   "u1_gate_pass": false,
+   "injected": null,
+   "ok": true
+  },
+  "b7_stale_ok_marker": {
+   "rc": 1,
+   "words": {
+    "낡은 표지를 이 U0 의 통과로 인정하지 않는다": true
+   },
+   "ok_U0_state_ok": true,
+   "tmp_left": false,
+   "r1_gate_ok": true,
+   "misread_as_cost": false,
+   "u1_gate_rc": 0,
+   "u1_gate_pass": true,
+   "injected": null,
+   "ok": true
+  },
+  "b8_ok_marker_is_dir": {
+   "rc": 1,
+   "words": {
+    "낡은 표지를 이 U0 의 통과로 인정하지 않는다": true
+   },
+   "ok_U0_state_ok": true,
+   "tmp_left": false,
+   "r1_gate_ok": true,
+   "misread_as_cost": false,
+   "u1_gate_rc": 0,
+   "u1_gate_pass": true,
+   "injected": null,
+   "ok": true
+  },
+  "b9_inj_ok_write_fail": {
+   "rc": 1,
+   "words": {
+    "ok-U0 표지 기록 실패": true
+   },
+   "ok_U0_state_ok": true,
+   "tmp_left": false,
+   "r1_gate_ok": true,
+   "misread_as_cost": false,
+   "u1_gate_rc": 1,
+   "u1_gate_pass": false,
+   "injected": "write",
+   "ok": true
+  },
+  "b10_inj_ok_partial_write": {
+   "rc": 1,
+   "words": {
+    "ok-U0 표지 기록 실패": true
+   },
+   "ok_U0_state_ok": true,
+   "tmp_left": false,
+   "r1_gate_ok": true,
+   "misread_as_cost": false,
+   "u1_gate_rc": 1,
+   "u1_gate_pass": false,
+   "injected": "partial",
+   "ok": true
+  },
+  "b11_inj_ok_rename_fail": {
+   "rc": 1,
+   "words": {
+    "ok-U0 표지 기록 실패": true
+   },
+   "ok_U0_state_ok": true,
+   "tmp_left": false,
+   "r1_gate_ok": true,
+   "misread_as_cost": false,
+   "u1_gate_rc": 1,
+   "u1_gate_pass": false,
+   "injected": "rename",
+   "ok": true
+  },
+  "o1_base_stale_ok_marker": {
+   "rc": 0,
+   "says_pass": true,
+   "says_cost_unmet": false,
+   "u1_gate_pass": true,
+   "baseline": true,
+   "ok": true
+  },
+  "o2_base_verdict_write_fail": {
+   "rc": 1,
+   "says_pass": false,
+   "says_cost_unmet": false,
+   "u1_gate_pass": false,
+   "baseline": true,
+   "ok": true
+  },
+  "o3_base_ok_marker_is_dir": {
+   "rc": 0,
+   "says_pass": true,
+   "says_cost_unmet": false,
+   "u1_gate_pass": true,
+   "baseline": true,
+   "ok": true
+  }
+ },
+ "u0_sha256": "243a3f4691df24598b7d8b0a7bdf0ff6124f5ab321f09caea3f0daaa99c2c99a",
+ "uvars_sha256": "a2879a2b6e832c328659e2604ebb1961e7708b5df4410b4a5c29d425355fff9b",
+ "u1_sha256": "8d0ce7906fd04124c2c9e251614867e0389ab7a96e8ccb5fae2efae3b79b2af3",
+ "base_commit": "65a384e563a90d949c94a4e343ea491939e6f5f7",
+ "segA_sha256": "79fb75e30bc98413eece464e731acbe9e880b7ac2a22b46f3932d0bfda7441c9",
+ "segB_sha256": "fe8515a8da40b1bd91c89840cb4da062e8701cde092d85eef42c23d26fac01e8",
+ "segBase_sha256": "bc04e50bf59a4f92859393be3855ca0297ed6acfb680eea6756e64123cb82875",
+ "segU1_sha256": "4fe87421f95754891e7b78bd54ec9e25b112a4b76d5c99652e6063cdaa44ec30",
+ "ssh_calls": 0,
+ "pg_calls": 0,
+ "network": 0
+}
