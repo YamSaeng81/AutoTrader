@@ -18,7 +18,7 @@
 | start | POST 1회 | 응답과 DB의 RUNNING을 기록한다 |
 | watch | 읽기만 | 그 세션의 주문·포지션·가용액, `ENTRY_LIMIT_REACHED` 로그. **신호를 만들지 않는다** |
 | stop | POST 1회 | 정지 직전 보유 건수를 기록한다 |
-| gate | 읽기 | [게이트 v3](../one-entry-gate-v3-20261125/README.md). PASS만 종료로 본다. HOLD·FAIL이면 보고한다 |
+| gate | 읽기 | [게이트 v4](../one-entry-gate-v4-20261125/README.md)(v1.245, 보유 = OPEN·CLOSING. v3 참조 시절 체크섬은 `SHA256SUMS-v3ref`). PASS만 종료로 본다. HOLD·FAIL이면 보고한다 |
 
 **대기 종료와 강제 정지는 구분한다.** 창이 끝날 때까지 매수가 없으면 stop은 청산할 것이 없다. 이 경우 **미실행**으로 기록하고 끝낸다. 보유 중에 stop하면 `FORCED_STOP` 시장가 매도가 함께 나간다. 이 매도는 자연 매도(신호·손절·익절)와 구분해 기록하고, 성과 집계에서 빠진다. 정지 직전 보유 건수(`held-before-stop.txt`)로 둘을 가른다.
 

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="1회 제한 B — 실제 LIVE 경로(생성·시작·매수·매도·재진입 거절·정지·재시작 거절) + 게이트 v3 합성 (격리 PG)" tests="2" skipped="2" failures="0" errors="0" timestamp="2026-11-25T02:19:50" hostname="DESKTOP-SF1KUQ5" time="0.0">
+  <properties/>
+  <testcase name="② 게이트 v3 합성 세션 — 정상/완료 이력·무거래 근거는 PASS, 미완료·활성·회계 대기·잔량·미입증·비상정지·대상 불일치는 FAIL/HOLD" classname="com.cryptoautotrader.api.service.LiveOneEntrySmokePathPgTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <testcase name="① 생성(HTTP)·저장 재조회·시작 → 매수 의도·체결 → 매도·청산 → 다음 매수 ENTRY_LIMIT_REACHED → 정지 → 재시작 거절" classname="com.cryptoautotrader.api.service.LiveOneEntrySmokePathPgTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

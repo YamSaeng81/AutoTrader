@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="1회 제한 옵션 — 지문 입력 불변/분리 · 청산 해석 무시" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-25T02:19:50" hostname="DESKTOP-SF1KUQ5" time="0.001">
+  <properties/>
+  <testcase name="옵션 미지정 — canonicalParams 는 기존 문자열 그대로(빈 맵·null 포함)" classname="com.cryptoautotrader.api.service.LiveOneEntryParamsTest" time="0.0"/>
+  <testcase name="옵션 1 — canonicalParams 가 달라진다(지문 분리)" classname="com.cryptoautotrader.api.service.LiveOneEntryParamsTest" time="0.0"/>
+  <testcase name="청산 오버라이드 해석은 maxEntries 를 무시한다" classname="com.cryptoautotrader.api.service.LiveOneEntryParamsTest" time="0.0"/>
+  <system-out><![CDATA[[OEU] canonical none={slAtrMultiplier=2.0,timeframe=H1} empty={} null={}
+[OEU] canonical one={maxEntries=1,slAtrMultiplier=2.0,timeframe=H1}
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

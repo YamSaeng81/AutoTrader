@@ -1,0 +1,10 @@
+NG r2_real_v3 sid=23 기대=FAIL 판정=FAIL - open_or_residual_positions = 1;
+ok r2_real_v4 sid=23 기대=PASS 판정=PASS - STOPPED·차단 0·보류 0. 참고: buy=1 sell=1 cleanup_done=0 settlement_recheck=2;- 거래소 잔량은 이 판정 밖(A3·장부 대조);
+ok c_closed_size_sold sid=1 기대=PASS 판정=PASS - STOPPED·차단 0·보류 0. 참고: buy=1 sell=1 cleanup_done=1 settlement_recheck=2;- 거래소 잔량은 이 판정 밖(A3·장부 대조);
+NG c_open_size0 sid=2 기대=FAIL 판정=FAIL - open_or_residual_positions = 1;
+NG c_closing_size0 sid=3 기대=FAIL 판정=FAIL - open_or_residual_positions = 1;
+NG c_partial_open sid=4 기대=FAIL 판정=FAIL - open_or_residual_positions = 1;
+NG c_closed_sell_unapplied sid=5 기대=FAIL 판정=FAIL - sell_unapplied = 1;
+NG c_closed_cleanup_pending sid=6 기대=FAIL 판정=FAIL - cleanup_pending = 1;
+NG c_pos_status_unknown sid=7 기대=FAIL 판정=FAIL - unknown_position_status = 1;
+NG c_pos_status_null sid=8 기대=FAIL 판정=FAIL - unknown_position_status = 1;

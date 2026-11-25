@@ -1,0 +1,12 @@
+ sid | status  |    size    | exit_reason |                           orders                            |              cl               
+-----+---------+------------+-------------+-------------------------------------------------------------+-------------------------------
+   1 | CLOSED  | 0.00019900 | TAKE_PROFIT | BUY:FILLED:9950.00000000:false SELL:FILLED:0.00019900:true  | 2026-11-25 01:56:24.446844+00
+   2 | OPEN    | 0.00000000 |             | BUY:FILLED:9950.00000000:false                              | 
+   3 | CLOSING | 0.00000000 |             | BUY:FILLED:9950.00000000:false                              | 
+   4 | OPEN    | 0.00009900 |             | BUY:FILLED:9950.00000000:false SELL:FILLED:0.00010000:true  | 
+   5 | CLOSED  | 0.00019900 | TAKE_PROFIT | BUY:FILLED:9950.00000000:false SELL:FILLED:0.00019900:false | 2026-11-25 01:56:24.46057+00
+   6 | CLOSED  | 0.00019900 | TAKE_PROFIT | BUY:FILLED:9950.00000000:false SELL:FILLED:0.00019900:true  | pending
+   7 | HELD    | 0.00019900 | TAKE_PROFIT | BUY:FILLED:9950.00000000:false SELL:FILLED:0.00019900:true  | 2026-11-25 01:56:24.465197+00
+   8 |         | 0.00019900 | TAKE_PROFIT | BUY:FILLED:9950.00000000:false SELL:FILLED:0.00019900:true  | 2026-11-25 01:56:24.467197+00
+(8 rows)
+

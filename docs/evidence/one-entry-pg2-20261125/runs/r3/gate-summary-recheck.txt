@@ -1,0 +1,12 @@
+# 파일 재대조(PG 재실행 없음): run-r3.sh 44행 비교식 ${why//~/ } 에서 bash가 ~ 를 홈 경로로 확장해 공백 치환이 안 됨 → 사유 일치를 NG로 찍은 시험기 결함. 입력(.verdict)은 r3 원래 실행 출력 그대로.
+ok r2_real_v3 기대=FAIL 판정=FAIL 사유=- open_or_residual_positions = 1
+ok r2_real_v4 기대=PASS 판정=PASS 사유=- STOPPED·차단 0·보류 0. 참고: buy=1 sell=1 cleanup_done=0 settlement_recheck=2 ; - 거래소 잔량은 이 판정 밖(A3·장부 대조)
+ok c_closed_size_sold 기대=PASS 판정=PASS 사유=- STOPPED·차단 0·보류 0. 참고: buy=1 sell=1 cleanup_done=1 settlement_recheck=2 ; - 거래소 잔량은 이 판정 밖(A3·장부 대조)
+ok c_open_size0 기대=FAIL 판정=FAIL 사유=- open_or_residual_positions = 1
+ok c_closing_size0 기대=FAIL 판정=FAIL 사유=- open_or_residual_positions = 1
+ok c_partial_open 기대=FAIL 판정=FAIL 사유=- open_or_residual_positions = 1
+ok c_closed_sell_unapplied 기대=FAIL 판정=FAIL 사유=- sell_unapplied = 1
+ok c_closed_cleanup_pending 기대=FAIL 판정=FAIL 사유=- cleanup_pending = 1
+ok c_pos_status_unknown 기대=FAIL 판정=FAIL 사유=- unknown_position_status = 1
+ok c_pos_status_null 기대=FAIL 판정=FAIL 사유=- unknown_position_status = 1
+재대조 ok 10 / 10

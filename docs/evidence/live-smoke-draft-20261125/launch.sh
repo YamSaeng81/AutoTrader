@@ -31,7 +31,7 @@ case "$(command -v ssh)" in /usr/bin/ssh|/c/Windows/System32/OpenSSH/ssh*) ;; *)
 case "$STEP" in create|start|stop) date '+%F %T %Z' > "$L/sent-$STEP" || no "표지 기록 실패";; esac
 { printf 'APPROVED_DATE=%q WIN_START=%q WIN_END=%q EXPECTED_SHA=%q EXPECTED_IMAGE=%q POOL_EXPECTED=%q ALLOC_BEFORE=%q SID=%q RUN_TAG=%q STEP=%q\n' \
     "$APPROVED_DATE" "$WIN_START" "$WIN_END" "$EXPECTED_SHA" "$EXPECTED_IMAGE" "$POOL_EXPECTED" "$ALLOC_BEFORE" "${SID:-}" "$RUN_TAG" "$STEP"
-  cat "$here/smoke.sh"; [ "$STEP" = gate ] && { echo "cat > \"\$M/gate.sql\" <<'GATESQL'"; cat "$here/../one-entry-gate-v3-20261125/recovery-gate-v3.sql"; echo GATESQL; echo 'run_gate'; }
+  cat "$here/smoke.sh"; [ "$STEP" = gate ] && { echo "cat > \"\$M/gate.sql\" <<'GATESQL'"; cat "$here/../one-entry-gate-v4-20261125/recovery-gate-v4.sql"; echo GATESQL; echo 'run_gate'; }
 } | ssh "$SSH_HOST" bash -s > "$L/$STEP.out" 2>&1
 rc=${PIPESTATUS[1]}; echo "rc=$rc" >> "$L/$STEP.out"; cat "$L/$STEP.out"
 [ "$rc" = 0 ] && case "$STEP" in p0|verify) touch "$L/ok-$STEP";; esac
@@ -39,6 +39,6 @@ if [ "$STEP" = gate ]; then
   sed -n '/^GATE-OUT-BEGIN$/,/^GATE-OUT-END$/p' "$L/gate.out" | sed '1d;$d' > "$L/gate-psql.txt"
   sed -n 's/^GATE-RC=//p' "$L/gate.out" > "$L/gate-rc.txt"
   printf 'sid=%s\nsession_type=REAL\nstrategy_type=DAILY_SMA20\ncoin_pair=KRW-BTC\ntimeframe=H1\ninitial_capital=10000\ninvest_ratio=0.995\nmax_investment=9950\nmax_entries=1\n' "$SID" > "$L/registration.txt"
-  python -I "$here/../one-entry-gate-v3-20261125/gate_check.py" "$L/gate-psql.txt" "$L/gate-rc.txt" "$L/registration.txt" | tee "$L/gate-verdict.txt"
+  python -I "$here/../one-entry-gate-v4-20261125/gate_check.py" "$L/gate-psql.txt" "$L/gate-rc.txt" "$L/registration.txt" | tee "$L/gate-verdict.txt"
 fi
 exit "$rc"

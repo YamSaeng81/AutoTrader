@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="최소 알림 — 종류#ID·재기동 표시·꺼짐 버퍼" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-11-25T02:21:50" hostname="DESKTOP-SF1KUQ5" time="0.023">
+  <properties/>
+  <testcase name="재기동 줄은 MarkdownV2 예약 문자(. ( ) - 등)를 새로 쓰지 않는다" classname="com.cryptoautotrader.api.service.TelegramMinimalAlertTest" time="0.002"/>
+  <testcase name="호출 5곳이 표시 함수를 쓴다 — 종전 '세션#'·'동적#'·'[모의투자] 세션#' 문자열이 버퍼 호출에 남지 않음" classname="com.cryptoautotrader.api.service.TelegramMinimalAlertTest" time="0.007"/>
+  <testcase name="구간 경계 — 0시/12시로 내린 뒤 12시간 앞, 늦게 돈 회차도 같은 구간" classname="com.cryptoautotrader.api.service.TelegramMinimalAlertTest" time="0.001"/>
+  <testcase name="알림 꺼짐 — 적재하지 않고 개수만 세며, 요약은 만들지 않고 개수를 0 으로 되돌린다" classname="com.cryptoautotrader.api.service.TelegramMinimalAlertTest" time="0.002"/>
+  <testcase name="켜진 상태에서 쌓인 뒤 꺼지면 요약 시각에 버린다(남지 않음)" classname="com.cryptoautotrader.api.service.TelegramMinimalAlertTest" time="0.002"/>
+  <testcase name="표시 함수 — 종류#ID, 종류 없으면 '종류미상'" classname="com.cryptoautotrader.api.service.TelegramMinimalAlertTest" time="0.002"/>
+  <testcase name="구간 안 재기동 — 첫 요약(거래 있음·없음 모두) 머리에 재기동 줄, 구간 전 기동이면 없음" classname="com.cryptoautotrader.api.service.TelegramMinimalAlertTest" time="0.003"/>
+  <testcase name="같은 ID 5 의 LIVE·DYNAMIC 거래는 두 요약으로 나뉜다(종전 '세션#5' 하나로 섞임)" classname="com.cryptoautotrader.api.service.TelegramMinimalAlertTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

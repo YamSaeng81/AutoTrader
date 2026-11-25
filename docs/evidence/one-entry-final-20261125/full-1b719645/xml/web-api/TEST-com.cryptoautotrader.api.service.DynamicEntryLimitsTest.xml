@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="금액/BTC 후보 — maxOrderKrw·excludeCoins 생성 계약, 매회 상한, BTC 신규 매수 제외, 기존 세션·지문 불변" tests="23" skipped="0" failures="0" errors="0" timestamp="2026-11-25T02:19:16" hostname="DESKTOP-SF1KUQ5" time="0.205">
+  <properties/>
+  <testcase name="상한 뒤 최소 주문: 감액 4,000 은 기존 규칙대로 5,000 으로 올리고(상한 5,000 안), 정상 사이즈도 5,000 미만이면 차단" classname="com.cryptoautotrader.api.service.DynamicEntryLimitsTest" time="0.02"/>
+  <testcase name="상한: 요청 20,000.80 → 10,000 으로 줄여 예약·주문(같은 조건, 키 없는 세션은 종전대로 포지션당 상한 거절)" classname="com.cryptoautotrader.api.service.DynamicEntryLimitsTest" time="0.017"/>
+  <testcase name="생성: 유효한 값은 정규화(제외 목록 정렬·상한 정수)해 저장하고, 다시 읽어도 같은 값·같은 지문" classname="com.cryptoautotrader.api.service.DynamicEntryLimitsTest" time="0.017"/>
+  <testcase name="평가 회차: 감시 목록에 BTC 가 있어도 다른 코인을 산다. BTC 급락 관문 입력은 제외하지 않는다(BTC 봉이 없으면 판정 불가로 전체 차단)" classname="com.cryptoautotrader.api.service.DynamicEntryLimitsTest" time="0.021"/>
+  <testcase name="예약 보호 불변: 생성 뒤 포지션당 상한이 15,000 으로 내려가면 상한 20,000 요청도 예약 서비스가 거절" classname="com.cryptoautotrader.api.service.DynamicEntryLimitsTest" time="0.009"/>
+  <testcase name="기존 보유 매도 유지: 제외 설정 세션의 KRW-BTC 보유 포지션은 그대로 청산된다(PAPER)" classname="com.cryptoautotrader.api.service.DynamicEntryLimitsTest" time="0.01"/>
+  <testcase name="제외: 최종 진입·감시 목록·회차 승인에서 KRW-BTC 신규 매수 0, 다른 코인은 그대로" classname="com.cryptoautotrader.api.service.DynamicEntryLimitsTest" time="0.014"/>
+  <testcase name="생성: 두 키가 없으면 strategy_params 가 그대로(null·기존 키), 지문은 제품 변경 전과 같다" classname="com.cryptoautotrader.api.service.DynamicEntryLimitsTest" time="0.012"/>
+  <testcase name="PAPER 도 같은 식: 요청 20,000.80 → 10,000 체결" classname="com.cryptoautotrader.api.service.DynamicEntryLimitsTest" time="0.009"/>
+  <testcase name="거절: 상한만" classname="com.cryptoautotrader.api.service.DynamicEntryLimitsTest" time="0.005"/>
+  <testcase name="거절: 제외 목록만" classname="com.cryptoautotrader.api.service.DynamicEntryLimitsTest" time="0.004"/>
+  <testcase name="거절: 상한 null" classname="com.cryptoautotrader.api.service.DynamicEntryLimitsTest" time="0.004"/>
+  <testcase name="거절: 제외 목록 null" classname="com.cryptoautotrader.api.service.DynamicEntryLimitsTest" time="0.004"/>
+  <testcase name="거절: 상한 문자열" classname="com.cryptoautotrader.api.service.DynamicEntryLimitsTest" time="0.004"/>
+  <testcase name="거절: 상한 불리언" classname="com.cryptoautotrader.api.service.DynamicEntryLimitsTest" time="0.003"/>
+  <testcase name="거절: 상한 4999(최소 주문 미만)" classname="com.cryptoautotrader.api.service.DynamicEntryLimitsTest" time="0.005"/>
+  <testcase name="거절: 상한 소수" classname="com.cryptoautotrader.api.service.DynamicEntryLimitsTest" time="0.004"/>
+  <testcase name="거절: 상한 NaN" classname="com.cryptoautotrader.api.service.DynamicEntryLimitsTest" time="0.004"/>
+  <testcase name="거절: REAL 포지션당 상한 20000 초과" classname="com.cryptoautotrader.api.service.DynamicEntryLimitsTest" time="0.004"/>
+  <testcase name="거절: 제외 목록 문자열" classname="com.cryptoautotrader.api.service.DynamicEntryLimitsTest" time="0.003"/>
+  <testcase name="거절: 제외 코인 소문자" classname="com.cryptoautotrader.api.service.DynamicEntryLimitsTest" time="0.004"/>
+  <testcase name="거절: 제외 코인 중복" classname="com.cryptoautotrader.api.service.DynamicEntryLimitsTest" time="0.004"/>
+  <testcase name="거절: 제외 코인 숫자" classname="com.cryptoautotrader.api.service.DynamicEntryLimitsTest" time="0.005"/>
+  <system-out><![CDATA[11:19:16.772 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.DynamicEntryLimitsTest
+11:19:16.776 [Test worker] INFO  o.a.c.c.C.[Tomcat-3].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:19:16.788 [order-exec-2] ERROR o.s.a.i.SimpleAsyncUncaughtExceptionHandler - Unexpected exception occurred invoking async method: public void com.cryptoautotrader.api.service.OrderExecutionEngine.submitPreparedOrder(java.lang.Long,com.cryptoautotrader.api.dto.OrderRequest)
+java.lang.NullPointerException: Cannot invoke "com.cryptoautotrader.exchange.upbit.UpbitOrderClient$ExchangeResult.response()" because "exchangeResult" is null
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.recordSubmitOutcome(OrderExecutionEngine.java:1132)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.lambda$callExchangeAndRecord$11(OrderExecutionEngine.java:1044)
+	at org.springframework.transaction.support.TransactionTemplate.execute(TransactionTemplate.java:140)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.callExchangeAndRecord(OrderExecutionEngine.java:1043)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.submitPreparedOrder(OrderExecutionEngine.java:670)
+	at jdk.internal.reflect.GeneratedMethodAccessor181.invoke(Unknown Source)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at org.springframework.aop.interceptor.AsyncExecutionInterceptor.lambda$invoke$0(AsyncExecutionInterceptor.java:113)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+11:19:16.789 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 매수 불가: 가용 KRW 부족 (id=138)
+11:19:16.795 [Test worker] INFO  o.a.c.c.C.[Tomcat-3].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:19:16.804 [order-exec-1] ERROR o.s.a.i.SimpleAsyncUncaughtExceptionHandler - Unexpected exception occurred invoking async method: public void com.cryptoautotrader.api.service.OrderExecutionEngine.submitPreparedOrder(java.lang.Long,com.cryptoautotrader.api.dto.OrderRequest)
+java.lang.NullPointerException: Cannot invoke "com.cryptoautotrader.exchange.upbit.UpbitOrderClient$ExchangeResult.response()" because "exchangeResult" is null
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.recordSubmitOutcome(OrderExecutionEngine.java:1132)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.lambda$callExchangeAndRecord$11(OrderExecutionEngine.java:1044)
+	at org.springframework.transaction.support.TransactionTemplate.execute(TransactionTemplate.java:140)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.callExchangeAndRecord(OrderExecutionEngine.java:1043)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.submitPreparedOrder(OrderExecutionEngine.java:670)
+	at jdk.internal.reflect.GeneratedMethodAccessor181.invoke(Unknown Source)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at org.springframework.aop.interceptor.AsyncExecutionInterceptor.lambda$invoke$0(AsyncExecutionInterceptor.java:113)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+11:19:16.807 [Test worker] WARN  c.c.a.s.CapitalReservationService - [공유 풀] 승인하지 않는다 (sessionId=140, 사유=PER_POSITION_CAP): 매수금 20000.80 > 포지션당 상한 20000 ? ? 거래소 거절을 기다리지 않는다
+11:19:16.807 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 매수 예약 거절 (id=140, KRW-ETH, 사유=PER_POSITION_CAP): 매수금 20000.80 > 포지션당 상한 20000
+11:19:16.812 [Test worker] INFO  o.a.c.c.C.[Tomcat-3].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:19:16.829 [Test worker] INFO  o.a.c.c.C.[Tomcat-3].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:19:16.833 [Test worker] WARN  c.c.a.service.WatchlistFilterService - [Watchlist] KRW 마켓 목록 없음
+11:19:16.833 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 공용 유니버스 비어 있음 ? 직전 목록 유지 (id=144, 2종목)
+11:19:16.833 [Test worker] ERROR c.c.api.service.CandleFreshnessGuard - ? [캔들 최신성] BTC 급락 관문 H1 판정 불가 (DYNAMIC) ? 이 관문을 요구하는 신규 진입을 막는다: BTC 캔들 판정 불가(캔들 없음) ? 급락 여부를 모른다
+11:19:16.833 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] BTC_MARKET_GUARD 판정 불가 ? BUY 차단: KRW-IOTA (id=144): BTC 캔들 판정 불가(캔들 없음) ? 급락 여부를 모른다
+11:19:16.837 [Test worker] WARN  c.c.a.service.WatchlistFilterService - [Watchlist] KRW 마켓 목록 없음
+11:19:16.837 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 공용 유니버스 비어 있음 ? 직전 목록 유지 (id=145, 2종목)
+11:19:16.838 [Test worker] WARN  c.c.api.service.CandleFreshnessGuard - [캔들 최신성] BTC 급락 관문 H1 판정 재개 (DYNAMIC): 종전 2026-11-25T02:19:16.833741300Z BTC 캔들 판정 불가(캔들 없음) ? 급락 여부를 모른다
+11:19:16.846 [order-exec-2] ERROR o.s.a.i.SimpleAsyncUncaughtExceptionHandler - Unexpected exception occurred invoking async method: public void com.cryptoautotrader.api.service.OrderExecutionEngine.submitPreparedOrder(java.lang.Long,com.cryptoautotrader.api.dto.OrderRequest)
+java.lang.NullPointerException: Cannot invoke "com.cryptoautotrader.exchange.upbit.UpbitOrderClient$ExchangeResult.response()" because "exchangeResult" is null
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.recordSubmitOutcome(OrderExecutionEngine.java:1132)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.lambda$callExchangeAndRecord$11(OrderExecutionEngine.java:1044)
+	at org.springframework.transaction.support.TransactionTemplate.execute(TransactionTemplate.java:140)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.callExchangeAndRecord(OrderExecutionEngine.java:1043)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.submitPreparedOrder(OrderExecutionEngine.java:670)
+	at jdk.internal.reflect.GeneratedMethodAccessor181.invoke(Unknown Source)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at org.springframework.aop.interceptor.AsyncExecutionInterceptor.lambda$invoke$0(AsyncExecutionInterceptor.java:113)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+11:19:16.850 [Test worker] INFO  o.a.c.c.C.[Tomcat-3].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:19:16.855 [Test worker] WARN  c.c.a.s.CapitalReservationService - [공유 풀] 승인하지 않는다 (sessionId=146, 사유=PER_POSITION_CAP): 매수금 20000 > 포지션당 상한 15000 ? ? 거래소 거절을 기다리지 않는다
+11:19:16.855 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 매수 예약 거절 (id=146, KRW-ETH, 사유=PER_POSITION_CAP): 매수금 20000 > 포지션당 상한 15000
+11:19:16.859 [Test worker] INFO  o.a.c.c.C.[Tomcat-3].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:19:16.869 [Test worker] INFO  o.a.c.c.C.[Tomcat-3].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:19:16.872 [Test worker] WARN  c.c.a.service.WatchlistFilterService - [Watchlist] KRW 마켓 목록 없음
+11:19:16.872 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 공용 유니버스 비어 있음 ? 직전 목록 유지 (id=148, 2종목)
+11:19:16.872 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 매수 차단 (id=148, KRW-BTC): 제외 코인(excludeCoins) ? KRW-BTC 신규 매수 안 함
+11:19:16.879 [order-exec-1] ERROR o.s.a.i.SimpleAsyncUncaughtExceptionHandler - Unexpected exception occurred invoking async method: public void com.cryptoautotrader.api.service.OrderExecutionEngine.submitPreparedOrder(java.lang.Long,com.cryptoautotrader.api.dto.OrderRequest)
+java.lang.NullPointerException: Cannot invoke "com.cryptoautotrader.exchange.upbit.UpbitOrderClient$ExchangeResult.response()" because "exchangeResult" is null
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.recordSubmitOutcome(OrderExecutionEngine.java:1132)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.lambda$callExchangeAndRecord$11(OrderExecutionEngine.java:1044)
+	at org.springframework.transaction.support.TransactionTemplate.execute(TransactionTemplate.java:140)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.callExchangeAndRecord(OrderExecutionEngine.java:1043)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.submitPreparedOrder(OrderExecutionEngine.java:670)
+	at jdk.internal.reflect.GeneratedMethodAccessor181.invoke(Unknown Source)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at org.springframework.aop.interceptor.AsyncExecutionInterceptor.lambda$invoke$0(AsyncExecutionInterceptor.java:113)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+11:19:16.883 [Test worker] INFO  o.a.c.c.C.[Tomcat-3].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[금액/BTC] 두 키 없는 고정 세션 지문=ea1ed76bc345
+11:19:16.896 [Test worker] INFO  o.a.c.c.C.[Tomcat-3].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:19:16.912 [Test worker] INFO  o.a.c.c.C.[Tomcat-3].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:19:16.918 [Test worker] INFO  o.a.c.c.C.[Tomcat-3].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:19:16.922 [Test worker] INFO  o.a.c.c.C.[Tomcat-3].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:19:16.927 [Test worker] INFO  o.a.c.c.C.[Tomcat-3].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:19:16.932 [Test worker] INFO  o.a.c.c.C.[Tomcat-3].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:19:16.936 [Test worker] INFO  o.a.c.c.C.[Tomcat-3].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:19:16.940 [Test worker] INFO  o.a.c.c.C.[Tomcat-3].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:19:16.946 [Test worker] INFO  o.a.c.c.C.[Tomcat-3].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:19:16.951 [Test worker] INFO  o.a.c.c.C.[Tomcat-3].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:19:16.956 [Test worker] INFO  o.a.c.c.C.[Tomcat-3].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:19:16.961 [Test worker] INFO  o.a.c.c.C.[Tomcat-3].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:19:16.965 [Test worker] INFO  o.a.c.c.C.[Tomcat-3].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:19:16.970 [Test worker] INFO  o.a.c.c.C.[Tomcat-3].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:19:16.975 [Test worker] INFO  o.a.c.c.C.[Tomcat-3].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
