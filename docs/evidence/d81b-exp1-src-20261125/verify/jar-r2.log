@@ -1,0 +1,11 @@
+5c53c9e3448b3218735cbef0f3cf7e1332b84069b410460434b2301fbfbfce32 */d/tmp/v171/jars/srv-e25c2a85-app-new.jar
+c631cf4dc5b1b3e733bb775e9964134f871708d96ea2c26dd681f9bfc8ddd952 */d/tmp/final-lf-1b719645/web-api/build/libs/web-api-0.1.0.jar
+eae7e1d25f4a4da27633a75156ed1eeea6659f4f2958254e961cf8c291b87d1f */d/tmp/final-lf-d81c3f2f/web-api/build/libs/web-api-0.1.0.jar
+== 3. 보존 jar 를 U1 비교기 원문으로 — 새 RARX·JARN·JARM
+  사례 B rc=0 | U1 jar 검사 통과
+  [통과] 운영 0e1d2a02 보존 jar ↔ 1b719645 jar: RARX 42줄·(끝) 895 900·JARM e8f42507 일치
+  [통과] U1 출력 jar-diff.txt = 저장 차이 원문(바이트)
+  [통과] jar-manifest-new.txt = 저장 B 목록(바이트)
+  사례 D81 rc=1 | 🔴 멈춤: jar 차이가 기대 42줄(변경 37·추가 5·삭제 0)이 아님 — jar-diff.txt 를 보고(재기동 전). U1-되돌림
+  [통과] 옛 d81 jar 를 새 jar 자리에 → 차이 목록에서 거절
+== jar 결과: 전부 통과
