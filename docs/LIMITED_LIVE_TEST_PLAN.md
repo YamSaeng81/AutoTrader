@@ -2,6 +2,8 @@
 
 **v1.252: batch-r2 72901be3 수용(27/27·직접10/10·실제형식34/34). 지금 로컬cffcfad9 취소/목록 확인→서버 batch-r2/launch.sh 1회 시작 승인. BATCH f05d47a3·출처452ac384 유지, 작업ID/PID/대기 상태를 즉시 제출. 27일 N03→U0→조건부U1만 서버 실행, U2 사용자 확인 전 금지. 최종 결과 확인 즉시 회수, 시작 뒤 v1.249 실주문 초안 v2 이어감. [지시](evidence/review-72901be3/README.md)**
 
+**v1.252 §2 서버 배치 시작(11-25 14:14 KST, 제출):** 로컬 cffcfad9 취소·CronList에 f05e856c(N03 회수)만 남음, 다른 세션/작업 스케줄러 U0/U1 예약 0. 실제 ssh 1회(누적6): 서버 해시7/7·BATCH15/15·src15/15, runs/잠금/maint/batch 프로세스 없음 → launch.sh 1회 rc0. 작업 **d81b-u0u1-20261125T051448Z-2283028**·PID **2283036**(PPID1·SID=PID·SIGHUP 무시)·state "대기 N03 11-27 10:14", final/INCOMPLETE 없음. U0/U1 미실행·운영 컨테이너 미교체·재부팅 시 자동 재시작 없음. stderr241B는 시작 뒤 확인 줄의 compose 서비스명 오류(배치 무관). 다음: v1.249 §3 실주문 초안 v2 [근거](evidence/server-batch-launch-20261125/README.md)
+
 **v1.251: 810a2f45 근거33/33 확인. 서버 배치는 수집 실패/비어 있지 않은 stderr를 N03 PASS로 읽을 공백이 있어 아직 시작 보류. batch-r2 새 사본에서 명령 실패 전달·수집 불통과 차단만 보완→직접4경계 파일검증→20261125-1000 로그 대상 실제 pins 형식 읽기1회 승인. 기존83건 반복 없음. 19:31 대기 회수 철회·완료 즉시 회수. 로컬cffcfad9는 새 배치 수용까지 유지. [지시](evidence/review-810a2f45/README.md)**
 
 **v1.251 batch-r2(11-25 13:59 KST, 제출):** 수집 rc·stderr 비0이면 판정기 미실행 STOP-N03(호출자)+판정기 '수집 rc0·stderr0B'·키 중복 거절, pins.sh 단계별 종료값·gzip -t/압축 해제/grep≥2 실패 전달. BATCH f05d47a3 15/15, 기존 batch/·src/ 보존. 서버 호출5 1회: 4경계 10/10, 실제 20261125-1000 수집 rc0·stderr0B·형식34/34·핀11 일치·로그 키9개 0. 배치 미등록·로컬 cffcfad9 유지, 완료 즉시 회수로 변경. v1.249 §3 미착수 [근거](evidence/server-batch-prep-v2-20261125/README.md)

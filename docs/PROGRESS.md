@@ -6,6 +6,7 @@
 
 | 구분 | 기준 | 상태 |
 |---|---|---|
+| **v1.252 §2 서버 배치 시작** | [시작 1회](evidence/server-batch-launch-20261125/README.md) | 제출. cffcfad9 취소 확인, ssh1회 해시7/7·목록15/15·충돌0 → launch rc0. 작업 d81b-u0u1-20261125T051448Z-2283028·PID2283036 분리·N03 대기(11-27 10:14). U0/U1 미실행, 재부팅 시 무재시작 |
 | **v1.252 batch-r2 시작 승인** | [72901be3 검토](evidence/review-72901be3/README.md) | 근거27/27·수집4경계10/10·실제형식34/34 수용. cffcfad9 취소 확인 뒤 서버launch1회 승인, 등록 결과 즉시 보고. 27일N03/U0/U1만·U2 확인 유지, 총괄 서버 실행0 |
 | **v1.251 서버 배치 검토·최소 보완** | [810a2f45 검토](evidence/review-810a2f45/README.md) | 근거33/33 일치. 수집 실패/stderr가 N03 PASS로 남는 파일 반례 확인, 현재 시작 보류. batch-r2 실패 전달4경계→실제 pins 형식읽기1회 승인. 완료 즉시 회수·27일 창 유지 |
 | **v1.251 batch-r2 수집 실패 차단** | [batch-r2](evidence/server-batch-prep-v2-20261125/README.md) | 제출(서버 호출 1회, 배치 미등록). 4경계 10/10, 실제 pins 형식 34/34·핀 일치·stderr 0B. 시작 승인 시 cffcfad9 취소→batch-r2/launch.sh |

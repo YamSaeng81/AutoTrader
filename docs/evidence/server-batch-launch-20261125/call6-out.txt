@@ -1,0 +1,88 @@
+[호출6 시작] 2026-11-25 05:14:48Z epoch=1795583688 KST=2026-11-25 14:14:48
+f05d47a30221afa3b7db7d168dfbfc00c19cce48ad35f618538bb153a922a438  /home/manicstr/work-batches/d81b-20261127-exp1/batch-r2/BATCH.sha256
+5f1ad35d927c5d917d0a12c23ae920e6604e605cbb1fd0fafa10de95f05fc072  /home/manicstr/work-batches/d81b-20261127-exp1/batch-r2/launch.sh
+4dd355d9645a36b39624055ad088bf8f72e2463655ca3c6ee7c03421f4461247  /home/manicstr/work-batches/d81b-20261127-exp1/batch-r2/batch.sh
+3255301be112b9d5d0847b21d74247fee485d71f847769c9caa365d95fb4ea04  /home/manicstr/work-batches/d81b-20261127-exp1/batch-r2/lib.sh
+7f0117aa3002c097de8d112faf4cbfb1e106ed6c57483f4c6f142f8c71e516d6  /home/manicstr/work-batches/d81b-20261127-exp1/batch-r2/pins.sh
+d0047ac9214f1198725fefc950f211d1331902a29fc7abea410843e9def1df7a  /home/manicstr/work-batches/d81b-20261127-exp1/batch-r2/n03check.py
+67e8ed1f17225539e22ddca4fe67089f5206c607953570ef57fed0218a6abc68  /home/manicstr/work-batches/d81b-20261127-exp1/src/MANIFEST.sha256
+== BATCH 목록
+./batch.sh: OK
+./edge4.sh: OK
+./fixture-n03-20261124/20261124-1000.txt: OK
+./fixture-n03-20261124/20261124.txt: OK
+./fixture-n03-20261124/SOURCE.txt: OK
+./fixture-n03-20261124/last_send: OK
+./fixture-n03-20261124/mtimes.txt: OK
+./fixture-n03-20261124/pins.txt: OK
+./kst.py: OK
+./launch.sh: OK
+./lib.sh: OK
+./n03check.py: OK
+./pins-read.sh: OK
+./pins.sh: OK
+./pinscheck.py: OK
+== src 목록
+./SOURCE.txt: OK
+./blocks-d81/F.sh: OK
+./blocks-d81/G.sh: OK
+./blocks-d81/U0.sh: OK
+./blocks-d81/U1.sh: OK
+./blocks-d81/U1되돌림.sh: OK
+./blocks-d81/U2.sh: OK
+./blocks-d81/U3.sh: OK
+./blocks-d81/U4.sh: OK
+./blocks-d81/U되돌림.sh: OK
+./blocks-d81/U뒤관측.sh: OK
+./blocks-d81/U변수.sh: OK
+./blocks-d81/blocks.json: OK
+./extract.py: OK
+./run.sh: OK
+== 충돌 확인
+runs/ 없음
+batch.lock 없음
+maint-d81b 없음
+batch.sh 프로세스 0
+== launch 1회
+시작 작업=d81b-u0u1-20261125T051448Z-2283028 띄운 pid=2283036 로그=/home/manicstr/work-batches/d81b-20261127-exp1/logs/d81b-u0u1-20261125T051448Z-2283028.txt
+    PID    PPID     SID ELAPSED COMMAND
+2283036 2283028 2283036       3 bash /home/manicstr/work-batches/d81b-20261127-exp1/batch-r2/batch.sh d81b-u0u1-20261125T051448Z-2283028
+1795583689 2026-11-25T14:14:49+09:00 pid=2283036 대기 N03 목표=1795742040(2026-11-27T10:14:00+09:00) 기한=1795775460
+[배치 시작] 2026-11-25 05:14:48Z 작업=d81b-u0u1-20261125T051448Z-2283028 pid=2283036
+launch rc=0
+== 시작 뒤 확인 2026-11-25 05:14:56Z
+total 4
+drwxrwxr-x 2 manicstr manicstr 4096 Nov 25 14:14 d81b-u0u1-20261125T051448Z-2283028
+작업=d81b-u0u1-20261125T051448Z-2283028 (runs 항목 수 1)
+-- job.txt
+job d81b-u0u1-20261125T051448Z-2283028
+pid 2283036 ppid 2283028 sid 2283036
+start 1795583688 2026-11-25T14:14:48+09:00
+lock /home/manicstr/work-batches/d81b-20261127-exp1/batch.lock
+T_N03 1795742040 2026-11-27T10:14:00+09:00
+T_U0 1795768560 2026-11-27T17:36:00+09:00
+T_START 1795768500 2026-11-27T17:35:00+09:00
+END_EXCL 1795775460 2026-11-27T19:31:00+09:00
+U1AGE 1740
+source 452ac38430dff30300048026e9478e555e015b8c
+M /home/manicstr/maint-d81b-20261127-exp1
+-- state.txt
+1795583689 2026-11-25T14:14:49+09:00 pid=2283036 대기 N03 목표=1795742040(2026-11-27T10:14:00+09:00) 기한=1795775460
+-- steps.txt
+1795583689 시작
+1795583689 검증 통과 — N03 대기
+1795583689 대기 N03 목표=1795742040(2026-11-27T10:14:00+09:00) 기한=1795775460
+total 12
+-rw-rw-r-- 1 manicstr manicstr 459 Nov 25 14:14 job.txt
+-rw-rw-r-- 1 manicstr manicstr 123 Nov 25 14:14 state.txt
+-rw-rw-r-- 1 manicstr manicstr 143 Nov 25 14:14 steps.txt
+pgrep pid=2283036
+    PID    PPID    PGID     SID TT       ELAPSED STAT COMMAND
+2283036       1 2283036 2283036 ?              7 Ss   bash /home/manicstr/work-batches/d81b-20261127-exp1/batch-r2/batch.sh d81b-u0u1-20261125T051448Z-2283028
+SIGHUP 무시 마스크: SigIgn:	0000000000000007
+자식: 2283085 sleep 300
+-- 로그
+[배치 시작] 2026-11-25 05:14:48Z 작업=d81b-u0u1-20261125T051448Z-2283028 pid=2283036
+-- final/INCOMPLETE: 없음
+HEAD 0e1d2a021ab2f3c759a9b2be9c4f09430f93c80d 변경 0 · crontab f2dce280 · backend  · uptime 18575162.52s
+[호출6 끝] 2026-11-25 05:14:56Z
