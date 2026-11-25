@@ -1,0 +1,29 @@
+ok g_normal_done_cleanup 기대=PASS 판정=PASS - STOPPED·차단 0·보류 0. 참고: buy=1 sell=1 cleanup_done=1 settlement_recheck=2
+ok g_cleanup_pending 기대=FAIL 판정=FAIL - cleanup_pending = 1
+ok g_active_order 기대=FAIL 판정=FAIL - active_orders = 1
+ok g_fill_accounting_pending 기대=FAIL 판정=FAIL - fill_accounting_pending = 1
+ok g_sell_unapplied 기대=FAIL 판정=FAIL - sell_unapplied = 1
+ok g_residual_size 기대=FAIL 판정=FAIL - open_or_residual_positions = 1
+ok g_open_position 기대=FAIL 판정=FAIL - open_or_residual_positions = 1
+ok g_cancel_unconfirmed 기대=HOLD 판정=HOLD - unproven_terminal = 1 — 해당 주문을 따로 읽고 사람 확인
+ok g_failed_code_null 기대=HOLD 판정=HOLD - unproven_terminal = 1 — 해당 주문을 따로 읽고 사람 확인
+ok g_failed_code_unlisted 기대=HOLD 판정=HOLD - unproven_terminal = 1 — 해당 주문을 따로 읽고 사람 확인
+ok g_proven_no_fill 기대=PASS 판정=PASS - STOPPED·차단 0·보류 0. 참고: buy=1 sell=1 cleanup_done=0 settlement_recheck=2
+ok g_discrepancy_open 기대=HOLD 판정=HOLD - discrepancy_open = 1 — 해당 주문을 따로 읽고 사람 확인
+ok g_discrepancy_resolved 기대=PASS 판정=PASS - STOPPED·차단 0·보류 0. 참고: buy=1 sell=1 cleanup_done=1 settlement_recheck=2
+ok g_emergency_stopped 기대=HOLD 판정=HOLD - 비상 정지 — 사람이 원인·미해결 상태를 판단(자동 통과 없음)
+ok g_running 기대=FAIL 판정=FAIL - STOPPED 아님: RUNNING
+ok g_no_max_entries 기대=FAIL 판정=FAIL - maxEntries 정수 1 아님: type= text=''
+ok g_max_entries_string 기대=FAIL 판정=FAIL - maxEntries 정수 1 아님: type=string text='1'
+ok g_max_entries_float 기대=FAIL 판정=FAIL - maxEntries 정수 1 아님: type=number text='1.0'
+ok g_not_real 기대=FAIL 판정=FAIL - session_type PAPER ≠ 등록 REAL
+ok g_two_buys 기대=FAIL 판정=FAIL - buy_rows = 2 > 1 (1회 제한 위반)
+ok g_unknown_order_state 기대=FAIL 판정=FAIL - unknown_order_states = 1
+ok g_unknown_position_status 기대=FAIL 판정=FAIL - unknown_position_status = 1
+ok x_not_found 기대=FAIL 판정=FAIL - 대상 세션 없음(target_sid=999999999)
+ok x_bad_sid 기대=FAIL 판정=FAIL - 조회 실패(psql rc=3)
+ok x_empty_sid 기대=FAIL 판정=FAIL - 조회 실패(psql rc=3)
+ok x_reg_mismatch 기대=FAIL 판정=FAIL - initial_capital 10000.00 ≠ 등록 20000
+ok x_reg_blank 기대=FAIL 판정=FAIL - 등록값 비어 있음: max_entries
+ok x_reg_missing 기대=FAIL 판정=FAIL - 등록 파일 없음: [Errno 2] No such file or directory: 'D:/Claude Code/projects/crypto-auto-trader/docs/evidence/one-entry-pg2-20261125/runs/r1/gate/does-not-exist.reg'
+ok x_partial_output 기대=FAIL 판정=FAIL - 부분 출력(END 표지 없음 또는 열 수 다름)

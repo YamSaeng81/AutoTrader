@@ -1,0 +1,49 @@
+> Task :web-api:cleanTest
+> Task :strategy-lib:compileJava UP-TO-DATE
+> Task :strategy-lib:processResources NO-SOURCE
+> Task :strategy-lib:classes UP-TO-DATE
+> Task :strategy-lib:jar UP-TO-DATE
+> Task :core-engine:compileJava UP-TO-DATE
+> Task :core-engine:processResources NO-SOURCE
+> Task :core-engine:classes UP-TO-DATE
+> Task :core-engine:jar UP-TO-DATE
+> Task :exchange-adapter:compileJava UP-TO-DATE
+> Task :exchange-adapter:processResources NO-SOURCE
+> Task :exchange-adapter:classes UP-TO-DATE
+> Task :exchange-adapter:jar UP-TO-DATE
+> Task :web-api:compileJava UP-TO-DATE
+> Task :web-api:processResources UP-TO-DATE
+> Task :web-api:classes UP-TO-DATE
+> Task :web-api:compileTestJava UP-TO-DATE
+> Task :web-api:processTestResources UP-TO-DATE
+> Task :web-api:testClasses UP-TO-DATE
+WARNING: A terminally deprecated method in java.lang.System has been called
+WARNING: System::setSecurityManager has been called by com.cryptoautotrader.api.support.NetworkIsolationGuard (file:/D:/tmp/one-entry-d81c3f2f/web-api/build/classes/java/test/)
+WARNING: Please consider reporting this to the maintainers of com.cryptoautotrader.api.support.NetworkIsolationGuard
+WARNING: System::setSecurityManager will be removed in a future release
+Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+
+> Task :web-api:test
+
+1회 제한 B ? 실제 LIVE 경로(생성·시작·매수·매도·재진입 거절·정지·재시작 거절) + 게이트 v3 합성 (격리 PG) > ① 생성(HTTP)·저장 재조회·시작 → 매수 의도·체결 → 매도·청산 → 다음 매수 ENTRY_LIMIT_REACHED → 정지 → 재시작 거절 FAILED
+    org.opentest4j.AssertionFailedError at LiveOneEntrySmokePathPgTest.java:276
+
+09:48:41.343 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+09:48:41.345 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+09:48:41.348 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+
+> Task :web-api:test FAILED
+
+2 tests completed, 1 failed
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':web-api:test'.
+> There were failing tests. See the report at: file:///D:/tmp/one-entry-d81c3f2f/web-api/build/reports/tests/test/index.html
+
+* Try:
+> Run with --scan to get full insights.
+
+BUILD FAILED in 25s
+12 actionable tasks: 2 executed, 10 up-to-date
