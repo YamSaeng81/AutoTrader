@@ -1,5 +1,7 @@
 # 12월 제한 실거래 시험 — 현재 계획
 
+**v1.253: 서버 시작 기록6/6·실주문 초안v2 근거27/27 블롭 일치. 시작/대기 기록과 시각·gate·보유 표시 보완은 범위 수용, 실제 주문 원문 전체/실행 수용 아님. 단일 서버 작업 유지·09세션 추가 실행 없음. 27일N03→U0→조건부U1 결과 확인 즉시 회수, U2 사용자 확인. 추가 PG/회귀/jar 반복 없음. [검토](evidence/review-709aeedb/README.md)**
+
 **v1.252: batch-r2 72901be3 수용(27/27·직접10/10·실제형식34/34). 지금 로컬cffcfad9 취소/목록 확인→서버 batch-r2/launch.sh 1회 시작 승인. BATCH f05d47a3·출처452ac384 유지, 작업ID/PID/대기 상태를 즉시 제출. 27일 N03→U0→조건부U1만 서버 실행, U2 사용자 확인 전 금지. 최종 결과 확인 즉시 회수, 시작 뒤 v1.249 실주문 초안 v2 이어감. [지시](evidence/review-72901be3/README.md)**
 
 **v1.249 §3 실주문 초안 v2(11-25 KST, 제출):** 새 사본 live-smoke-draft-v2. kst.py(고정 UTC+09:00·TZ/tzdata 미사용·달력/HHMM/역전 검사)로 로컬·원격 창 검사, create/start는 ssh 직전·POST 바로 앞 재검사. gate_finalize로 원격rc·판정rc·기록 실패를 분리(PASS만0·HOLD2·FAIL1·기록4·판정기 실패6·원격 실패 원래 값), run_gate psql rc 전달. 정지 직전 보유 OPEN/CLOSING(+알 수 없음 별도, 읽기 실패 시 미확인·정지는 보냄). A3 표시값은 필요조건만. 검증: kst 34/34(Windows·WSL 동일)·smoke 8/8·launch 17/17·보유 4/4, 원래 FAIL/HOLD→0 반례 재현. kst.py cp949 거절 출력 결함 발견·수정, 시험기 결함 3회차 보존. 운영·SSH·PG 0. 원문 수용·실주문 미승인 [근거](evidence/live-smoke-draft-v2-20261125/README.md)
