@@ -1,6 +1,7 @@
 package com.cryptoautotrader.api.service;
 
 import com.cryptoautotrader.api.dto.LiveTradingStartRequest;
+import com.cryptoautotrader.api.dto.OrderRequest;
 import com.cryptoautotrader.api.entity.LiveTradingSessionEntity;
 import com.cryptoautotrader.api.entity.OrderEntity;
 import com.cryptoautotrader.api.entity.PositionEntity;
