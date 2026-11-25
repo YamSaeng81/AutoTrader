@@ -1,0 +1,12 @@
+{
+  "reviewed_commit": "a38a34cd",
+  "prep_manifest_working_matches": 4,
+  "prep_manifest_committed_matches": 3,
+  "mismatch": {"file": "blocks.json", "working_crlf": 62, "committed_crlf": 0, "normalized_bytes_equal": true},
+  "local_prepared_blocks_match": 11,
+  "local_runner_matches_approved_sha256": true,
+  "local_out_directory_exists": false,
+  "reservation_liveness_independently_verified": false,
+  "draft_findings": ["TZ dependent clock check", "gate checker exit overwritten by remote rc", "stop holding count includes CLOSED size", "rounded account fields do not prove exact cash"],
+  "production_calls_pg_tests_builds_by_reviewer": 0
+}
