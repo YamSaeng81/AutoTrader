@@ -1,6 +1,6 @@
 # 현재 인계
 
-**v1.243: 대기 대신 B 포함판 검증을 바로 진행한다. 복구 v3·1만원 실행 초안→격리 PG1묶음→통과·제품 동일 시 전체 회귀1회→성공 시 LF jar1회. 11-26 18:00 전 목표·완료 즉시 제출. 안 D 미채택, 27일 기존 d81 실행 출처는 별도 변경 승인 전 유지. [범위](evidence/review-6ae82351/README.md)**
+**v1.244: r1 잔액 기대값 결함 확인. 시험 1파일만 보완해 격리 PG r2 1묶음을 즉시 진행한다(매수 잔액45.02·매도 뒤10089.50). 통과·제품c43e1f1a 동일 시 전체 회귀1회→성공 시 LF jar1회→완료 즉시 제출, 11-26 18:00 목표. r1 보존·추가 실패 시 중단. 27일 EXP1/d81 기존 승인·U2 사용자 확인 유지. [범위](evidence/review-b4bcb83a/README.md)**
 
 **v1.243 §3 로컬 결과(제출, 11-25 09:55 KST):** ① 게이트 v3: 미입증 종결 = 제품 isTerminalWithoutNoFillProof(목록 밖 코드·확인 없는 취소)→HOLD, 대상·REAL·maxEntries 정수 1·사전 등록 대조, 0행/부분 출력/조회 실패/알 수 없는 상태 FAIL, EMERGENCY_STOPPED HOLD. **v2의 미정산 차단은 오류였다**(제품이 settlement_final을 TRUE로 세우지 않음) → 참고로 내리고 fill_accounting_pending·반영 안 된 매도·미해결 불일치로 교체 [근거](evidence/one-entry-gate-v3-20261125/README.md) ② 시험 원문 초안(launch/smoke, 빈 승인값·SID면 ssh/POST 전 거절, bash -n만) [초안](evidence/live-smoke-draft-20261125/README.md) ③ 격리 PG r1(시험 7fd723b4 = c43e1f1a + 시험 1파일): **게이트 29/29**, 실제 경로는 HTTP 생성·저장·지문·시작·매수 의도 1·bid 1·체결까지 관측 후 **가용액 기대값 결함으로 중단**(기대 45.025, 제품 두 자리 HALF_UP 규칙으로 45.02 — 제품 결함 아님). 매도·재진입 거절·정지·재시작 거절은 미실행. 기대값 수정 r2 1회 승인 필요, §3-3 회귀·jar 미시작 [근거](evidence/one-entry-pg2-20261125/README.md). 운영 0
 

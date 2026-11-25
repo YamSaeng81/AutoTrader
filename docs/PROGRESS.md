@@ -6,6 +6,7 @@
 
 | 구분 | 기준 | 상태 |
 |---|---|---|
+| **v1.244 검토·r2 승인** | [b4bcb83a 검토](evidence/review-b4bcb83a/README.md) | 근거4/4·5/5·155/155 확인, 게이트29/29 수용. r1 실제 경로는 잔액 기대값 결함으로 중단. 시험 기대45.02·매도 뒤10089.50 보완 후 PG r2 1묶음→조건부 회귀·LF jar 각1회 즉시 승인. 운영 추가 승인 없음 |
 | **v1.243 후속 로컬 작업 승인** | [6ae82351 검토](evidence/review-6ae82351/README.md) | B 38/38·보충13/13 수용. B 포함판을 1만원 시험 경로로 선정, 복구 게이트·실제 매수 PG→조건부 전체 회귀·LF jar 각1회. 운영 실행 추가 승인 아님 |
 | **v1.243 §3 로컬 결과(제출)** | [게이트 v3](evidence/one-entry-gate-v3-20261125/README.md) · [시험 원문 초안](evidence/live-smoke-draft-20261125/README.md) · [PG r1](evidence/one-entry-pg2-20261125/README.md) | 게이트 29/29. 실제 경로는 매수 체결 뒤 가용액 기대값(두 자리 반올림) 결함으로 중단, 뒤 단계 미실행. r2 승인 대기, 회귀·jar 미시작. 운영 0 |
 | **v1.242 §3 로컬 결과(제출)** | [H2 2클래스](evidence/one-entry-b-h2-20261125/README.md) · [복구 SQL v2](evidence/one-entry-recovery-sql-20261125/README.md) · [1만원 안 v2](evidence/live-smoke-plan-v2-20261125/README.md) | B 로그 4개 보충 블롭 38/38. H2 11/11. 정리 대기 done_at IS NULL·미정산 열 추가(실행 0). 시험안 d81만=안 D, B 포함판=안 B. 운영 0 |

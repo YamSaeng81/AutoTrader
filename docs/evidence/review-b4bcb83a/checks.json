@@ -1,0 +1,15 @@
+{
+  "reviewed_commit": "b4bcb83a",
+  "committed_blob_checks": {
+    "one-entry-gate-v3-20261125": {"matched": 4, "missing_or_mismatched": 0},
+    "live-smoke-draft-20261125": {"matched": 5, "missing_or_mismatched": 0},
+    "one-entry-pg2-20261125": {"matched": 155, "missing_or_mismatched": 0}
+  },
+  "test_commit": "7fd723b4f087bf6030cc61adddfab60d46e66d84",
+  "diff_from_c43e1f1a": ["web-api/src/test/java/com/cryptoautotrader/api/service/LiveOneEntrySmokePathPgTest.java"],
+  "buy_balance_expected": "45.02",
+  "sell_credit_expected": "10044.48",
+  "final_balance_expected": "10089.50",
+  "production_calls_by_reviewer": 0,
+  "tests_or_builds_run_by_reviewer": 0
+}

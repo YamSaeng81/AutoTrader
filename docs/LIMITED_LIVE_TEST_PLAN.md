@@ -1,6 +1,6 @@
 # 12월 제한 실거래 시험 — 현재 계획
 
-**v1.243: B 로그38/38·새 근거13/13 수용. 1만원 시험은 B 포함판 경로 채택(사람 즉시 정지 안 D 미채택). 지금 복구 게이트 v3/시험 원문→격리 PG 새 1묶음(실제 LIVE 매수 경로 포함)→통과·제품 동일 시 B 최종 전체 회귀1회→성공 시 LF jar1회를 연속 진행한다. 11-26 18:00 목표, 완료 즉시 제출. 11-27 EXP1/d81 기존 승인은 유지하고 B로 교체는 별도 출처 수용 전 금지. [지시](evidence/review-6ae82351/README.md)**
+**v1.244: b4bcb83a 근거4/4·5/5·155/155 확인. r1은 잔액 기대값 결함으로 중단, 실제 경로 미완료. 시험 1파일의 매수 잔액45.02·매도 뒤10089.50 기대를 독립 계산으로 보완하고 격리 PG r2 1묶음 즉시 승인. 통과·제품c43e1f1a 동일이면 전체 회귀1회→성공 시 LF jar1회→즉시 제출(11-26 18:00 목표). 11-27 EXP1/d81 승인과 U2 사용자 확인은 유지, B 혼입 금지. [지시](evidence/review-b4bcb83a/README.md)**
 
 **v1.243 §3 로컬 결과(제출, 11-25 09:55 KST):** ① 게이트 v3: 미입증 종결 = 제품 isTerminalWithoutNoFillProof(목록 밖 코드·확인 없는 취소)→HOLD, 대상·REAL·maxEntries 정수 1·사전 등록 대조, 0행/부분 출력/조회 실패/알 수 없는 상태 FAIL, EMERGENCY_STOPPED HOLD. **v2의 미정산 차단은 오류였다**(제품이 settlement_final을 TRUE로 세우지 않음) → 참고로 내리고 fill_accounting_pending·반영 안 된 매도·미해결 불일치로 교체 [근거](evidence/one-entry-gate-v3-20261125/README.md) ② 시험 원문 초안(launch/smoke, 빈 승인값·SID면 ssh/POST 전 거절, bash -n만) [초안](evidence/live-smoke-draft-20261125/README.md) ③ 격리 PG r1(시험 7fd723b4 = c43e1f1a + 시험 1파일): **게이트 29/29**, 실제 경로는 HTTP 생성·저장·지문·시작·매수 의도 1·bid 1·체결까지 관측 후 **가용액 기대값 결함으로 중단**(기대 45.025, 제품 두 자리 HALF_UP 규칙으로 45.02 — 제품 결함 아님). 매도·재진입 거절·정지·재시작 거절은 미실행. 기대값 수정 r2 1회 승인 필요, §3-3 회귀·jar 미시작 [근거](evidence/one-entry-pg2-20261125/README.md). 운영 0
 
