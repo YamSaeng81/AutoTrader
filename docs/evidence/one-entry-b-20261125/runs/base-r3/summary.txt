@@ -1,0 +1,14 @@
+LIVE 새 매수 의도 최대 1회(maxEntries=1) — 옵션 없음 불변·입력 거절·재진입·동시·롤백·UNKNOWN/철회·종류 분리·새 트랜잭션·조회 실패 tests 9 fail 7 err 0 skip 0
+  FAIL ⑧ 새 트랜잭션 재조회 — 정산된 의도를 새 연결·새 트랜잭션이 보고 거절. 실제 격리 수준 기록 — org.opentest4j.AssertionFailedError:  expected: "ENTRY_LIMIT_REACHED"  but was: null
+  FAIL ⑨ 이력 조회 실패는 허용이 아니다 — order 표 잠금으로 조회가 시간 초과하면 승인·의도·차감 없음 — java.lang.AssertionError: [실패 위치 = 1회 제한 이력 조회]  Expecting actual:   "jakarta.persistence.PessimisticLockException: JDBC exception executing SQL [SELECT p.id, p.session_kind, p.session_id, p.coin_pair, p.size, p.avg_price, p.unrealized_pnl, p.entry_allocation_krw, p.invested_krw, p.peak_value_krw, COALESCE(SUM(CASE WHEN o.side = 'BUY' THEN COALESCE(o.applied_executed_funds, 0) + COALESCE(o.appli
+  FAIL ④ 동시 예약 2 — 둘째가 실제 계좌 잠금을 기다린 뒤 먼저 커밋된 의도를 보고 거절, 의도 1 — org.opentest4j.AssertionFailedError: [둘째 R[orderId=null, code=INTENT_REJECTED]]  expected: "ENTRY_LIMIT_REACHED"  but was: "INTENT_REJECTED"
+  ok   ① 옵션 미지정 — 기존 동작 그대로: 매수→정산→다시 매수 승인, 지문은 옵션 없는 입력 그대로 
+  ok   ⑤ 예약·만료 롤백 — 만료 거절·승인 뒤 롤백은 이력 0 → 다음 예약 승인 
+  FAIL ② 입력 거절 — null·빈 문자열·문자열 1·불리언·소수·음수·0·2·Long 2·BigDecimal 1 은 동기화·배정·저장 전에 거절, 정수 1 은 생성 — org.mockito.exceptions.verification.NeverWantedButInvoked:  portfolioSyncService bean.syncBalance(); Never wanted here: -> at com.cryptoautotrader.api.service.PortfolioSyncService.syncBalance(PortfolioSyncService.java:55) But invoked here: -> at com.cryptoautotrader.api.service.LiveTradingService.createSession(LiveTradingService.java:383) with arguments: [] 
+  FAIL ⑥ UNKNOWN·FAILED(철회)·CANCELLED 매수 의도도 1회 소진 — 다음 예약 거절(상태별 끝까지 기록) — java.lang.AssertionError: [UNKNOWN 뒤]  Expecting actual:   "R[orderId=null, code=INTENT_REJECTED] rows=1 avail=100000.00" to start with:   "R[orderId=null, code=ENTRY_LIMIT_REACHED]" 
+  FAIL ⑦ 다른 종류(DYNAMIC)의 같은 세션 ID 매수 행은 세지 않는다 — LIVE 예약 승인, 정산 뒤 LIVE 의도 1개로 거절 — org.opentest4j.AssertionFailedError: [LIVE 자기 이력 1 R[orderId=18, code=null]]  expected: "ENTRY_LIMIT_REACHED"  but was: null
+  FAIL ③ 옵션 1 — 매수 → 매도 정산 뒤 재진입 거절(ENTRY_LIMIT_REACHED), 매수 행 1·가용액 불변 — org.opentest4j.AssertionFailedError: [재진입 R[orderId=21, code=null]]  expected: "ENTRY_LIMIT_REACHED"  but was: null
+1회 제한 옵션 — 지문 입력 불변/분리 · 청산 해석 무시 tests 3 fail 0 err 0 skip 0
+  ok   옵션 미지정 — canonicalParams 는 기존 문자열 그대로(빈 맵·null 포함) 
+  ok   옵션 1 — canonicalParams 가 달라진다(지문 분리) 
+  ok   청산 오버라이드 해석은 maxEntries 를 무시한다 

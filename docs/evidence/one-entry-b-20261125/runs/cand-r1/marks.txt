@@ -1,0 +1,8 @@
+[OEPG] c8 transaction_isolation=read committed backend=295 default=read committed b=R[orderId=null, code=ENTRY_LIMIT_REACHED]
+[OEPG] c9 r=null thrown=org.springframework.dao.PessimisticLockingFailureException inLimitCheck=true lockTimeout=true
+[OEPG] c4 waiting-on-lock=1
+[OEPG] c4 a=R[orderId=3, code=null] b=R[orderId=null, code=ENTRY_LIMIT_REACHED]
+[OEPG] hash none=17f61c29763c one=ae9d225dc9b1
+[OEPG] c6 {UNKNOWN=R[orderId=null, code=ENTRY_LIMIT_REACHED] rows=1 avail=100000.00, FAILED=R[orderId=null, code=ENTRY_LIMIT_REACHED] rows=1 avail=100000.00, CANCELLED=R[orderId=null, code=ENTRY_LIMIT_REACHED] rows=1 avail=100000.00}
+  <system-out><![CDATA[[OEU] canonical none={slAtrMultiplier=2.0,timeframe=H1} empty={} null={}
+[OEU] canonical one={maxEntries=1,slAtrMultiplier=2.0,timeframe=H1}

@@ -1,0 +1,8 @@
+[OEPG] c8 transaction_isolation=read committed backend=224 default=read committed b=R[orderId=3, code=null]
+[OEPG] c9 r=null thrown=jakarta.persistence.PessimisticLockException inLimitCheck=false lockTimeout=true
+[OEPG] c4 waiting-on-lock=1
+[OEPG] c4 a=R[orderId=4, code=null] b=R[orderId=null, code=INTENT_REJECTED]
+[OEPG] hash none=17f61c29763c one=ae9d225dc9b1
+[OEPG] c6 {UNKNOWN=R[orderId=null, code=INTENT_REJECTED] rows=1 avail=100000.00, FAILED=R[orderId=12, code=null] rows=2 avail=90000.00, CANCELLED=R[orderId=14, code=null] rows=2 avail=90000.00}
+  <system-out><![CDATA[[OEU] canonical none={slAtrMultiplier=2.0,timeframe=H1} empty={} null={}
+[OEU] canonical one={maxEntries=1,slAtrMultiplier=2.0,timeframe=H1}
