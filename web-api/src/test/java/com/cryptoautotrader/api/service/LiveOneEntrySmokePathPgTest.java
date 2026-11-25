@@ -273,7 +273,11 @@ class LiveOneEntrySmokePathPgTest extends IntegrationTestBase {
                 + " applied=" + b.getAppliedExecutedFunds() + "/" + b.getAppliedPaidFee() + " fillPending=" + b.getFillAccountingPending());
         assertThat(b.getState()).isEqualTo("FILLED");
         assertThat(pos.getSize()).isEqualByComparingTo("0.000199");
-        assertThat(avAfterBuy).as("가용액 = 10000 − 체결대금 − 매수 수수료").isEqualByComparingTo("45.025");
+        // 원시 대금·수수료는 8자리 그대로 보존된다(두 자리로 낮추지 않는다).
+        assertThat(b.getAppliedExecutedFunds()).as("매수 반영 원시 대금").isEqualByComparingTo("9950");
+        assertThat(b.getAppliedPaidFee()).as("매수 반영 원시 수수료").isEqualByComparingTo("4.975");
+        // 잔액은 주문별로 두 자리 HALF_UP 반영: 미사용액 9950 − 9950 − 4.975 = −4.975 → −4.98, 10000 − 9950 − 4.98 = 45.02 (독립 계산)
+        assertThat(avAfterBuy).as("가용액 = 10000 − 요청 9950 + 두 자리 반영 미사용액(−4.975→−4.98) = 45.02").isEqualByComparingTo("45.02");
 
         // 매도 — 제품 executeSessionSell → 체결 → 청산 확정
         Object target = AopTestUtils.getUltimateTargetObject(liveTradingService);
@@ -293,6 +297,8 @@ class LiveOneEntrySmokePathPgTest extends IntegrationTestBase {
         assertThat(sell.getState()).isEqualTo("FILLED");
         assertThat(sell.getSellAppliedAt()).as("매도 반영 표시").isNotNull();
         assertThat(closed.getStatus()).isEqualTo("CLOSED");
+        // 매도 순입금도 주문별 두 자리 HALF_UP 반영: 10049.5 − 5.02475 = 10044.47525 → 10044.48, 45.02 + 10044.48 = 10089.50 (독립 계산)
+        assertThat(avAfterSell).as("매도 뒤 가용액 = 45.02 + 두 자리 반영 순입금(10044.47525→10044.48) = 10089.50").isEqualByComparingTo("10089.50");
 
         // 다음 매수 시도 — 제품 경로에서 거절, 추가 차감·외부 제출 0
         String r2 = buy(sid, new BigDecimal("49000000"));
