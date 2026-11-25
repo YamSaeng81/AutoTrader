@@ -1,0 +1,12 @@
+# 소액 실주문 시험 변수 — 초안(v1.243 §3-1). 이 파일을 복사해 총괄 승인값만 채운다. 인증값·비밀번호는 넣지 않는다.
+# 비어 있는 값이 하나라도 있으면 launch.sh 가 ssh·POST 전에 거절한다.
+SSH_HOST=            # 운영 접속 별칭(실제 ssh 경로는 실행 전 command -v ssh 로 확인)
+APPROVED_DATE=       # 승인 날짜 KST, YYYY-MM-DD
+WIN_START=           # 승인 창 시작 KST, HHMM
+WIN_END=             # 승인 창 끝 KST, HHMM (생성·시작은 이 안에서만. 정지·게이트 읽기는 창 뒤에도 허용)
+EXPECTED_SHA=        # 설치 제품 SHA(B 포함판 수용 SHA)
+EXPECTED_IMAGE=      # backend 이미지 전체 ID sha256:...
+POOL_EXPECTED=       # 공유 풀 4값 'MAX|PER|STAGE|TOTAL' 예: 3|20000|STAGE_1|100000 (실행 당일 수용값)
+ALLOC_BEFORE=        # 시험 전 활성 실자금 배정 합(원) — P0 에서 DB 합과 일치해야 한다
+SID=                 # C 생성 응답의 id. C 전에는 비워 두고, 그 뒤 단계는 반드시 채운다
+RUN_TAG=             # 결과 이름 YYYYMMDD-HHMM. 서버 ~/smoke-$RUN_TAG, 로컬 docs/evidence/live-smoke-run-$RUN_TAG (둘 다 처음엔 없어야 한다)

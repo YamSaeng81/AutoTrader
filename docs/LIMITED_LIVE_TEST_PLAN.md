@@ -2,6 +2,8 @@
 
 **v1.252: batch-r2 72901be3 수용(27/27·직접10/10·실제형식34/34). 지금 로컬cffcfad9 취소/목록 확인→서버 batch-r2/launch.sh 1회 시작 승인. BATCH f05d47a3·출처452ac384 유지, 작업ID/PID/대기 상태를 즉시 제출. 27일 N03→U0→조건부U1만 서버 실행, U2 사용자 확인 전 금지. 최종 결과 확인 즉시 회수, 시작 뒤 v1.249 실주문 초안 v2 이어감. [지시](evidence/review-72901be3/README.md)**
 
+**v1.249 §3 실주문 초안 v2(11-25 KST, 제출):** 새 사본 live-smoke-draft-v2. kst.py(고정 UTC+09:00·TZ/tzdata 미사용·달력/HHMM/역전 검사)로 로컬·원격 창 검사, create/start는 ssh 직전·POST 바로 앞 재검사. gate_finalize로 원격rc·판정rc·기록 실패를 분리(PASS만0·HOLD2·FAIL1·기록4·판정기 실패6·원격 실패 원래 값), run_gate psql rc 전달. 정지 직전 보유 OPEN/CLOSING(+알 수 없음 별도, 읽기 실패 시 미확인·정지는 보냄). A3 표시값은 필요조건만. 검증: kst 34/34(Windows·WSL 동일)·smoke 8/8·launch 17/17·보유 4/4, 원래 FAIL/HOLD→0 반례 재현. kst.py cp949 거절 출력 결함 발견·수정, 시험기 결함 3회차 보존. 운영·SSH·PG 0. 원문 수용·실주문 미승인 [근거](evidence/live-smoke-draft-v2-20261125/README.md)
+
 **v1.252 §2 서버 배치 시작(11-25 14:14 KST, 제출):** 로컬 cffcfad9 취소·CronList에 f05e856c(N03 회수)만 남음, 다른 세션/작업 스케줄러 U0/U1 예약 0. 실제 ssh 1회(누적6): 서버 해시7/7·BATCH15/15·src15/15, runs/잠금/maint/batch 프로세스 없음 → launch.sh 1회 rc0. 작업 **d81b-u0u1-20261125T051448Z-2283028**·PID **2283036**(PPID1·SID=PID·SIGHUP 무시)·state "대기 N03 11-27 10:14", final/INCOMPLETE 없음. U0/U1 미실행·운영 컨테이너 미교체·재부팅 시 자동 재시작 없음. stderr241B는 시작 뒤 확인 줄의 compose 서비스명 오류(배치 무관). 다음: v1.249 §3 실주문 초안 v2 [근거](evidence/server-batch-launch-20261125/README.md)
 
 **v1.251: 810a2f45 근거33/33 확인. 서버 배치는 수집 실패/비어 있지 않은 stderr를 N03 PASS로 읽을 공백이 있어 아직 시작 보류. batch-r2 새 사본에서 명령 실패 전달·수집 불통과 차단만 보완→직접4경계 파일검증→20261125-1000 로그 대상 실제 pins 형식 읽기1회 승인. 기존83건 반복 없음. 19:31 대기 회수 철회·완료 즉시 회수. 로컬cffcfad9는 새 배치 수용까지 유지. [지시](evidence/review-810a2f45/README.md)**

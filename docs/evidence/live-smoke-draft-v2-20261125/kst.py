@@ -1,0 +1,71 @@
+#!/usr/bin/env python3
+# 고정 오프셋 UTC+09:00 시각 함수 v2 — 소액 실주문 시험 창 검사(총괄 v1.249 §3-1). batch-r2/kst.py 와 같은 변환식.
+# 시스템 로컬 시간대·TZ 환경변수·zoneinfo/tzdata 를 쓰지 않는다. 날짜와 HHMM 은 한 번의 표본(epoch)에서 함께 얻는다.
+# 사용: kst.py window <단계> <승인 날짜 YYYY-MM-DD> <창 시작 HHMM> <창 끝 HHMM>
+#   현재 시각은 time.time() 하나뿐이다. 임의 시각을 넣는 옵션·환경변수는 없다(고정 시각은 judge() 직접 호출로만 검증).
+#   통과 → 종료 0, "<epoch> <YYYY-MM-DD> <HHMM> <ISO+09:00> <단계>" 한 줄. 거절 → 종료 3, "🔴 사유". 예외·인자 오류 → 종료 2.
+# 창 단계(p0·create·verify·start)는 승인 날짜 안 창 [시작, 끝] 분 단위(끝 분 포함)만 통과. 자정 넘는 창 없음.
+# 창 뒤 단계(watch·stop·gate)는 형식만 검사하고 창 만료로 막지 않는다.
+import datetime as d
+import re
+import sys
+import time
+
+K = d.timezone(d.timedelta(hours=9))
+WIN_STEPS = ('p0', 'create', 'verify', 'start')
+AFTER_STEPS = ('watch', 'stop', 'gate')
+
+
+def parts(e):
+    t = d.datetime.fromtimestamp(e, d.timezone.utc).astimezone(K)
+    return t.strftime('%Y-%m-%d'), t.strftime('%H%M'), t.isoformat()
+
+
+def valid_date(s):
+    if not re.fullmatch(r'[0-9]{4}-[0-9]{2}-[0-9]{2}', s or ''):
+        return False
+    try:
+        return d.date.fromisoformat(s).isoformat() == s
+    except ValueError:
+        return False
+
+
+def valid_hhmm(s):
+    return bool(re.fullmatch(r'[0-9]{4}', s or '')) and int(s[:2]) < 24 and int(s[2:]) < 60
+
+
+def judge(e, step, ad, ws, we):
+    """순수 판정. e = epoch 정수. (종료값, 출력 줄)"""
+    if type(e) is not int:
+        raise TypeError('epoch 정수 아님')
+    if step not in WIN_STEPS + AFTER_STEPS:
+        return 3, '🔴 알 수 없는 단계 %s' % step
+    if not valid_date(ad):
+        return 3, '🔴 승인 날짜 형식/달력 오류 %r' % ad
+    if not (valid_hhmm(ws) and valid_hhmm(we)):
+        return 3, '🔴 창 HHMM 오류 %r~%r' % (ws, we)
+    if ws > we:
+        return 3, '🔴 창 역전 %s>%s(자정 넘는 창 없음)' % (ws, we)
+    day, hm, iso = parts(e)
+    if step in WIN_STEPS:
+        if day != ad:
+            return 3, '🔴 오늘 %s KST ≠ 승인 날짜 %s' % (day, ad)
+        if not (ws <= hm <= we):
+            return 3, '🔴 지금 %s KST 는 창 %s~%s 밖' % (hm, ws, we)
+    return 0, '%d %s %s %s %s' % (e, day, hm, iso, step)
+
+
+def main(a):
+    if len(a) != 5 or a[0] != 'window':
+        raise ValueError('인자 형식')
+    return judge(int(time.time()), *a[1:])
+
+
+if __name__ == '__main__':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')  # Windows cp949 콘솔·파이프에서 🔴 출력 예외 방지(r1 발견)
+        rc, out = main(sys.argv[1:])
+        print(out)
+    except Exception:
+        sys.exit(2)
+    sys.exit(rc)
