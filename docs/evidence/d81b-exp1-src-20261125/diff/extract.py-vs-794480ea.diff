@@ -1,0 +1,31 @@
+--- 794480ea/extract.py
++++ d81b/extract.py
+@@ -1,7 +1,7 @@
+-# D81A2-EXP1 실행 틀 추출기(총괄 v1.241 §2) — d81a2-src-20261123/runner/extract.py(65a384e5)에서 블록 경로(d81a2-exp1-src-20261125)와 U변수·U0 고정 해시(기록 경로 ~/maint-d81-20261127-exp1, 정상 R1=0 U0 기록 보완)만 바꿨다.
++# D81B-EXP1 실행 틀 추출기(총괄 v1.247 §2) — d81a2-exp1-src-20261125/runner/extract.py(794480ea)에서 블록 경로(d81b-exp1-src-20261125)와 U변수·U0·U1 고정 해시(후보 1b719645·JARM/JARN/차이 목록·기록 경로 ~/maint-d81b-20261127-exp1)만 바꿨다.
+ # 사용: python -I extract.py <출력 폴더(없는 경로)> <D81A2 고정 출처 커밋 40자>
+ #   F·G: 447차 고정 커밋 7c62a7db 의 RUNBOOK 첫 bash 블록(F, 현재 운영 NEW 핀)·보존본 G 블록(해시로 찾음).
+-#   U 9블록: 출처 커밋의 docs/evidence/d81a2-exp1-src-20261125/d4/blocks-d81/*.sh — 그 커밋의 blocks-d81.sha256 과 아래 고정값이 모두 같아야 한다.
++#   U 9블록: 출처 커밋의 docs/evidence/d81b-exp1-src-20261125/d4/blocks-d81/*.sh — 그 커밋의 blocks-d81.sha256 과 아래 고정값이 모두 같아야 한다.
+ #   UF2·U2확인 은 이 판에 없다. 옛 V172D4 블록 이름이 출처에 섞여 있으면 거절한다.
+ # 하나라도 다르면 종료 1. 출력 폴더가 이미 있으면 멈춘다.
+ import hashlib, json, pathlib, re, subprocess, sys
+@@ -10,14 +10,14 @@
+ if not re.fullmatch(r'[0-9a-f]{40}', SRC):
+     print('출처는 40자 커밋 SHA'); sys.exit(1)
+ REPO = 'D:/Claude Code/projects/crypto-auto-trader'
+-D = 'docs/evidence/d81a2-exp1-src-20261125/d4/'
++D = 'docs/evidence/d81b-exp1-src-20261125/d4/'
+ NAMES = ['U변수', 'U0', 'U1', 'U1되돌림', 'U2', 'U3', 'U4', 'U되돌림', 'U뒤관측']
+ EXP = {  # F·G 는 7c62a7db, U 9블록은 mkd81r.py 생성 + U0 만 A2 보정본(blocks-d81.sha256)
+     'F': '26d392695c47fecb2321e850b07418679c1326c2a7eec13c02002056f96f4c24',
+     'G': '4d7ff02a94194fc17e11ed062b4c0fdb80a395aa282c941e7b624be95851c822',
+-    'U변수': 'a2879a2b6e832c328659e2604ebb1961e7708b5df4410b4a5c29d425355fff9b',
+-    'U0': '243a3f4691df24598b7d8b0a7bdf0ff6124f5ab321f09caea3f0daaa99c2c99a',
+-    'U1': '8d0ce7906fd04124c2c9e251614867e0389ab7a96e8ccb5fae2efae3b79b2af3',
++    'U변수': '12776871f93dd37c89446413c48deace863b8bb4232ca64ad6cb9dd019972477',
++    'U0': '8ed75a9a4a23ef0120881f0c72d3cc8206369dc5a62951c307ef20fdd8c65a4f',
++    'U1': 'beec0138758be9d707e13548bf4315ed402cbc93cce4a2ac22c2856355a2c198',
+     'U1되돌림': 'a272ab5862a97539233f9425d4efda2da077e26fe6828a0211cd99c2c5827c8b',
+     'U2': 'caac178a9b7cae104584b91107c19ee5594eb0437d01b74e16935fe29803644f',
+     'U3': 'cc414408aa11133279ad491d6815ac0f9ed521ce0ea87cc46e7a4ec4b204e573',

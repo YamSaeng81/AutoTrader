@@ -1,0 +1,22 @@
+--- 794480ea/U1.sh
++++ d81b/U1.sh
+@@ -89,8 +89,8 @@
+ EOF
+ cat "$M/jar-diff.txt"
+ [ "$JC" = 0 ] || stop "jar 비교기 v2 거절(종료 $JC) — 중복 항목·형식 이상. jar-diff.txt 를 보고(재기동 전). U1-되돌림"
+-[ "$(grep -v '^(끝)' "$M/jar-diff.txt")" = "$RARX" ] || stop "jar 차이가 기대 38줄(변경 35·추가 3·삭제 0)이 아님 — jar-diff.txt 를 보고(재기동 전). U1-되돌림"
+-grep -qxF "$JARN" "$M/jar-diff.txt" || stop "항목 수가 895 → 898 이 아님 — jar-diff.txt 를 보고(재기동 전). U1-되돌림"
++[ "$(grep -v '^(끝)' "$M/jar-diff.txt")" = "$RARX" ] || stop "jar 차이가 기대 42줄(변경 37·추가 5·삭제 0)이 아님 — jar-diff.txt 를 보고(재기동 전). U1-되돌림"
++grep -qxF "$JARN" "$M/jar-diff.txt" || stop "항목 수가 895 → 900 이 아님 — jar-diff.txt 를 보고(재기동 전). U1-되돌림"
+ # V168D4: 이름 목록(RARX)은 88f06345 입력 jar 와 같다 — 새 jar 의 항목 내용 목록 해시(JARM)로 후보 입력을 확인한다
+ python3 - "$M/app-new.jar" > "$M/jar-manifest-new.txt" 2>&1 <<'EOF' && JMC=0 || JMC=$?
+ # 새 jar 항목 내용 목록(V168D4 U1 JARM) — jar 비교기 v2 의 entries()(중복 거절 포함)를 그대로 쓰고, 항목 이름·sha256 을 이름순으로 출력한다.
+@@ -142,7 +142,7 @@
+ EOF
+ [ "$JMC" = 0 ] || stop "새 jar 항목 목록 거절(종료 $JMC) — jar-manifest-new.txt 를 보고(재기동 전). U1-되돌림"
+ JMH=$(sha256sum < "$M/jar-manifest-new.txt" | cut -c1-64); echo "JARM $JMH" | tee "$M/jar-manifest-sha.txt"
+-[ "$JMH" = "$JARM" ] || stop "새 jar 항목 내용이 후보 d81c3f2f LF 목록(JARM 33a06f0e…)과 다름 — 옛 후보 jar 이거나 다른 입력. jar-manifest-new.txt 를 보고(재기동 전). U1-되돌림"
++[ "$JMH" = "$JARM" ] || stop "새 jar 항목 내용이 후보 1b719645 LF 목록(JARM e8f42507…)과 다름 — 옛 후보 jar 이거나 다른 입력. jar-manifest-new.txt 를 보고(재기동 전). U1-되돌림"
+ echo "== frontend 무교체 — 빌드·태그 변경 없음. backend 빌드 뒤에도 frontend 이미지 이름·실행 컨테이너가 U0 대응 그대로인지만 본다"
+ FS3=0; same3 autotrader-frontend "$M/image-fe-before-chain.txt" || FS3=$?
+ [ "$FS3" = 0 ] || stop "frontend 이미지 이름이 U0 대응과 $([ "$FS3" = 1 ] && echo 다름 || echo "대응 조회 불명") — frontend 를 바꾸지 않는다. 보고(U1-되돌림은 frontend 대응이 맞을 때만 HEAD·backend latest 를 되돌린다)"

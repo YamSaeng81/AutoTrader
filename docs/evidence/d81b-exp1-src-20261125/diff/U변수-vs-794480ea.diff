@@ -1,0 +1,84 @@
+--- 794480ea/U변수.sh
++++ d81b/U변수.sh
+@@ -1,5 +1,5 @@
+-M=~/maint-d81-20261127-exp1; OPS=~/ops-scripts; UB=D81D4   # 총괄 v1.198 §3 판 — 후보 d81c3f2f backend 전용 배포 D4(미승인·실행 금지). 생성기 mkd81.py 가 V172D4 원문(ce6df2fa, 이후 U2확인 보정 d456788f·결과 7fea1b89 수용)에서 지정 부분만 바꿨다. 원판 = 현재 운영 0e1d2a02 / backend 2c5d8427 / frontend 9d7f123a / DB V96. frontend 교체·빌드·태그 변경 없음, DDL 없음(V96 기적용). U 블록 전부가 이 표지를 확인한다   # v1.241 §2 D81A2-EXP1: 기록 경로 새 이름. mkdir 은 U0 만(새 경로가 이미 있으면 U0 가 멈춘다)
+-OLD=0e1d2a021ab2f3c759a9b2be9c4f09430f93c80d; NEW=d81c3f2f91c0239aacb0e1176dde9b898f4d7466
++M=~/maint-d81b-20261127-exp1; OPS=~/ops-scripts; UB=D81D4   # 총괄 v1.198 §3 판 — 후보 d81c3f2f backend 전용 배포 D4(미승인·실행 금지). 생성기 mkd81.py 가 V172D4 원문(ce6df2fa, 이후 U2확인 보정 d456788f·결과 7fea1b89 수용)에서 지정 부분만 바꿨다. 원판 = 현재 운영 0e1d2a02 / backend 2c5d8427 / frontend 9d7f123a / DB V96. frontend 교체·빌드·태그 변경 없음, DDL 없음(V96 기적용). U 블록 전부가 이 표지를 확인한다   # v1.247 §2 D81B-EXP1: 후보 1b719645(B 포함, 제품 c43e1f1a 동일)·기록 경로 ~/maint-d81b-20261127-exp1. 이 줄 뒤 설명의 d81c3f2f 는 원판 이력. mkdir 은 U0 만(새 경로가 이미 있으면 U0 가 멈춘다)
++OLD=0e1d2a021ab2f3c759a9b2be9c4f09430f93c80d; NEW=1b719645ef907cb1aa45ffa01438fcfda7566758
+ IMGOLD=sha256:2c5d84276cdbf01f718077e3d2d0475f6af5982d7afb95082750fcebe7f5979f   # 운영 0e1d2a02 backend 대상 ID(V172D4 U1 빌드, ~/maint-v172/image-new.txt · 427차 서버 보존본 maint-v172/image-new-chain.txt 11-16 관측) — U0 가 실행 이미지·그 기록 파일과 같은지 확인한다. 현재값이라고 가정하지 않는다
+ IMGPREV8=sha256:426a09a20afc9e16cff8b7a569d4e04f18ed47cefb9242f44e3b9ea9666153a1   # #26 이미지 — 이전 복구 태그 autotrader-backend:1899b49 가 가리킨다(D3 U1 이 만듦, 보존, 바꾸지 않는다)
+ IMGPREV7=sha256:200f2f5727e90204574fd9965a5cc06dfc5d317e98c13b200de2ac7201378ae6   # #25 이미지 — 이전 복구 태그 autotrader-backend:ee509cf 가 가리킨다(#26 U1 이 만듦, 보존, 바꾸지 않는다)
+@@ -21,9 +21,11 @@
+   web-api/src/main/java/com/cryptoautotrader/api/report/LogAnalyzerService.java \
+   web-api/src/main/java/com/cryptoautotrader/api/repository/OrderRepository.java \
+   web-api/src/main/java/com/cryptoautotrader/api/repository/PositionRepository.java \
++  web-api/src/main/java/com/cryptoautotrader/api/service/CapitalReservationService.java \
+   web-api/src/main/java/com/cryptoautotrader/api/service/CircuitBreakerResult.java \
+   web-api/src/main/java/com/cryptoautotrader/api/service/DynamicEntryLimits.java \
+   web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java \
++  web-api/src/main/java/com/cryptoautotrader/api/service/LiveEntryLimit.java \
+   web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java \
+   web-api/src/main/java/com/cryptoautotrader/api/service/OrderExecutionEngine.java \
+   web-api/src/main/java/com/cryptoautotrader/api/service/OrderSettlementService.java \
+@@ -44,6 +46,9 @@
+   web-api/src/test/java/com/cryptoautotrader/api/service/DynamicTradingModeInputTest.java \
+   web-api/src/test/java/com/cryptoautotrader/api/service/ExitReasonRecordingTest.java \
+   web-api/src/test/java/com/cryptoautotrader/api/service/LiveLossWindowPgTest.java \
++  web-api/src/test/java/com/cryptoautotrader/api/service/LiveOneEntryLimitPgTest.java \
++  web-api/src/test/java/com/cryptoautotrader/api/service/LiveOneEntryParamsTest.java \
++  web-api/src/test/java/com/cryptoautotrader/api/service/LiveOneEntrySmokePathPgTest.java \
+   web-api/src/test/java/com/cryptoautotrader/api/service/PartialSellRealizedPnlPgTest.java \
+   web-api/src/test/java/com/cryptoautotrader/api/service/PhantomKeepsConfirmedPnlPgTest.java \
+   web-api/src/test/java/com/cryptoautotrader/api/service/PositionLimitTest.java \
+@@ -58,7 +63,7 @@
+   web-api/src/test/java/com/cryptoautotrader/api/service/StrategyEnablementGateTest.java \
+   web-api/src/test/java/com/cryptoautotrader/api/service/TelegramMinimalAlertTest.java \
+   web-api/src/test/java/com/cryptoautotrader/api/service/WalkForwardGateDisabledSessionCreationTest.java \
+-  web-api/src/test/java/com/cryptoautotrader/api/service/WalkForwardGateEnabledSessionCreationTest.java)"   # git diff --name-only OLD NEW — 43경로(제품 Java 14·시험 29, 리소스·마이그레이션·프런트·build.gradle 0). mkd81.py 가 고정 Git 에서 기계 생성
++  web-api/src/test/java/com/cryptoautotrader/api/service/WalkForwardGateEnabledSessionCreationTest.java)"   # git diff --name-only OLD NEW — 48경로(제품 Java 16·시험 32, 리소스·마이그레이션·프런트·build.gradle 0). make_d81b.py 가 고정 Git 에서 기계 생성(v1.247 §2)
+ RARX="$(printf '%s\n' '변경 BOOT-INF/classes/com/cryptoautotrader/api/dto/DynamicSessionRequest.class' \
+   '변경 BOOT-INF/classes/com/cryptoautotrader/api/entity/ExitReason$1.class' \
+   '변경 BOOT-INF/classes/com/cryptoautotrader/api/entity/ExitReason.class' \
+@@ -69,6 +74,8 @@
+   '변경 BOOT-INF/classes/com/cryptoautotrader/api/report/LogAnalyzerService.class' \
+   '변경 BOOT-INF/classes/com/cryptoautotrader/api/repository/OrderRepository.class' \
+   '변경 BOOT-INF/classes/com/cryptoautotrader/api/repository/PositionRepository.class' \
++  '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/CapitalReservationService$Decision.class' \
++  '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/CapitalReservationService.class' \
+   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/CircuitBreakerResult.class' \
+   '추가 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicEntryLimits.class' \
+   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$1.class' \
+@@ -78,6 +85,8 @@
+   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$BuyCandidate.class' \
+   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$EmptyPositionOutcome.class' \
+   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService.class' \
++  '추가 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveEntryLimit$State.class' \
++  '추가 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveEntryLimit.class' \
+   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService$1.class' \
+   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService$EmptyPositionOutcome.class' \
+   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService$PriceSnapshot.class' \
+@@ -96,9 +105,9 @@
+   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/TelegramNotificationService$Reply.class' \
+   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/TelegramNotificationService$SendMessageRequest.class' \
+   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/TelegramNotificationService$TradeEvent.class' \
+-  '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/TelegramNotificationService.class')"   # 운영 0e1d2a02 Git LF 기대 895항목 대 후보 d81c3f2f LF jar 898항목(eae7e1d2…), 비교기 v2 — 변경 35·추가 3·삭제 0(v1.197 수용 목록, 447차 7c62a7db 고정 객체에서 기계 생성)
+-JARN="(끝) 895 898"   # 총괄 v1.198 §2 확정 — 운영 LF 895항목 → 후보 898항목
+-JARM=33a06f0edf1767356d206f8d36b5f71b1ffd707102d43936e602ec7a6162d509   # 총괄 v1.197 §2 수용 — 후보 d81c3f2f LF jar 항목 이름·sha256 목록(898줄, dec-final-abc-20261119/jar-d81c3f2f/jar-manifest-d81c3f2f.lf.txt)의 sha256
++  '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/TelegramNotificationService.class')"   # 운영 0e1d2a02 보존 jar(5c53c9e3…, JARM b6587953) 895항목 대 후보 1b719645 LF jar 900항목(c631cf4d…), U1 비교기 v2 원문 직접 비교 — 변경 37·추가 5·삭제 0(v1.247 §2, d81b-exp1-src-20261125/jarcmp)
++JARN="(끝) 895 900"   # 총괄 v1.247 §1 확정 — 운영 LF 895항목 → 후보 900항목
++JARM=e8f425079d0fb77a9f224ba027ad16a18415e74238dac41edcbe2f9a2018a546   # 총괄 v1.247 §1 수용 — 후보 1b719645 LF jar 항목 이름·sha256 목록(900줄, one-entry-final-20261125/jar-1b719645/jar-manifest-1b719645.lf.txt = d81b-exp1-src-20261125/jarcmp/jar-manifest-1b719645.u1.txt)의 sha256
+ V96F=web-api/src/main/resources/db/migration/V96__paper_aligned_runtime_state.sql; V96B=5b92eef03548c6bd1feaef2b35451563d5327246; V96SUM=-424836241   # V96 원문 블롭·Flyway 체크섬(로컬 실제 java -jar 기동 두 번에서 같은 값, oldbin-v96-r1·r2)
+ v96() { [ "$($PSQL -At -c "SELECT max(version::int) FROM flyway_schema_history WHERE success")" = "96" ] ; }
+ FEIMGOLD=sha256:9d7f123ad6afd75b46d954b7c7031267df5afb3bf6e99660d5a53a3c5d43798e   # 실행 중 frontend 컨테이너 .Image — 427차 서버 보존본 maint-v172/svc-fe.txt(11-16 UF2 뒤 관측, 새로 만든 컨테이너라 대상 ID 와 같다). 현재값이라고 쓰지 않는다 — U0 가 다시 대조하고 다르면 멈춘다
+@@ -730,9 +739,9 @@
+ sys.exit(0)
+ PYEOF
+ }
+-# ── 감시 스크립트 고정값 — 운영 0e1d2a02 과 후보 d81c3f2f 의 start_66.py·시험 파일은 같은 블롭이다(D4 는 감시 스크립트를 바꾸지 않는다)
++# ── 감시 스크립트 고정값 — 운영 0e1d2a02 과 후보 1b719645 의 start_66.py·시험 파일은 같은 블롭이다(D4 는 감시 스크립트를 바꾸지 않는다)
+ NF=scripts/prospective/start_66.py; NT=scripts/prospective/test_freshness_recheck_fail.py   # NT 는 새로 추적되는 시험 파일 — 서버에서 실행하지 않는다
+-NBOLD=6305e512f88e0e9e6f0ec32ec99a28c48bc3fc8d; NBNEW=6305e512f88e0e9e6f0ec32ec99a28c48bc3fc8d   # start_66.py 블롭(운영 0e1d2a02 · 후보 d81c3f2f — 같다, mkd81.py 확인)
++NBOLD=6305e512f88e0e9e6f0ec32ec99a28c48bc3fc8d; NBNEW=6305e512f88e0e9e6f0ec32ec99a28c48bc3fc8d   # start_66.py 블롭(운영 0e1d2a02 · 후보 1b719645 — 같다, make_d81b.py 확인)
+ NHOLD=68d441ce0ed66d0a654d9ec7ca485d0a69a5bb8bacf4de48b5d61d0ef813b56b; NHNEW=68d441ce0ed66d0a654d9ec7ca485d0a69a5bb8bacf4de48b5d61d0ef813b56b   # 파일 sha256
+ # ── N21 공통 함수 시작(통합 초안 D3 U변수에 같은 원문으로 들어간다) ──
+ JLOG=scripts/prospective/freshness_log.jsonl      # 관측 행(회차마다 한 행)

@@ -1,0 +1,23 @@
+--- 794480ea/U0.sh
++++ d81b/U0.sh
+@@ -1,7 +1,7 @@
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "$M" = "$HOME/maint-d81-20261127-exp1" ] && [ "${UB:-}" = D81D4 ] && [ "$OLD" = 0e1d2a021ab2f3c759a9b2be9c4f09430f93c80d ] && [ "$NEW" = d81c3f2f91c0239aacb0e1176dde9b898f4d7466 ] && [ "${JARN:-}" = "(끝) 895 898" ] && [ "${JARM:-}" = 33a06f0edf1767356d206f8d36b5f71b1ffd707102d43936e602ec7a6162d509 ] && [ -n "${ICSUM:-}" ] && type v96h > /dev/null 2>&1 && type pf3ok > /dev/null 2>&1 && type oldtag > /dev/null 2>&1 && type isimg > /dev/null 2>&1 && type same3 > /dev/null 2>&1 && type okimg > /dev/null 2>&1 && type fresh_idle > /dev/null 2>&1 && type n21mark > /dev/null 2>&1 && type n21after > /dev/null 2>&1 && [ -n "${BTCIN:-}" ] && type sid203 > /dev/null 2>&1 && type newsobs > /dev/null 2>&1 && type httpobs > /dev/null 2>&1 && type holdobs > /dev/null 2>&1 && type entryobs > /dev/null 2>&1 && type n17obs > /dev/null 2>&1 && type n19obs > /dev/null 2>&1 && type n20obs > /dev/null 2>&1 || stop "변수 순서 — F 변수 → G 변수 → D81D4 U 변수"
++[ "$M" = "$HOME/maint-d81b-20261127-exp1" ] && [ "${UB:-}" = D81D4 ] && [ "$OLD" = 0e1d2a021ab2f3c759a9b2be9c4f09430f93c80d ] && [ "$NEW" = 1b719645ef907cb1aa45ffa01438fcfda7566758 ] && [ "${JARN:-}" = "(끝) 895 900" ] && [ "${JARM:-}" = e8f425079d0fb77a9f224ba027ad16a18415e74238dac41edcbe2f9a2018a546 ] && [ -n "${ICSUM:-}" ] && type v96h > /dev/null 2>&1 && type pf3ok > /dev/null 2>&1 && type oldtag > /dev/null 2>&1 && type isimg > /dev/null 2>&1 && type same3 > /dev/null 2>&1 && type okimg > /dev/null 2>&1 && type fresh_idle > /dev/null 2>&1 && type n21mark > /dev/null 2>&1 && type n21after > /dev/null 2>&1 && [ -n "${BTCIN:-}" ] && type sid203 > /dev/null 2>&1 && type newsobs > /dev/null 2>&1 && type httpobs > /dev/null 2>&1 && type holdobs > /dev/null 2>&1 && type entryobs > /dev/null 2>&1 && type n17obs > /dev/null 2>&1 && type n19obs > /dev/null 2>&1 && type n20obs > /dev/null 2>&1 || stop "변수 순서 — F 변수 → G 변수 → D81D4 U 변수"
+ case "$IMGOLD" in sha256:*) ;; *) stop "IMGOLD 가 sha256: 이미지 ID 가 아님 — 승인된 U 변수 원문이 아님(초안 D1~D4 는 실행하지 않는다)" ;; esac
+ [ ! -e "$M" ] && [ ! -L "$M" ] || stop "기록 경로 $M 이 이미 있다 — 삭제·이름 변경·덮어쓰기 없이 멈춘다. 다른 시도 기록을 이 시도의 전제로 쓰지 않는다(새 시도 이름·새 출처로만 다시). ls -la $M 를 보고"   # v1.241 §2
+ mkdir "$M" || stop "🔴 기록 경로 $M 를 만들지 못함 — 기록 실패, 아무것도 바꾸지 않았다"
+@@ -11,9 +11,9 @@
+ date '+%F %T %Z' | tee "$M/t-before.txt"; date '+%F %T%:z' > "$M/maint_start.txt"
+ { git rev-parse HEAD; git status --porcelain --untracked-files=no; echo "(끝)"; } | tee "$M/git-before.txt"
+ git fetch origin
+-git cat-file -e "$NEW^{commit}" || stop "후보 d81c3f2f 없음"
++git cat-file -e "$NEW^{commit}" || stop "후보 1b719645 없음"
+ git merge-base --is-ancestor $OLD $NEW || stop "0e1d2a02 가 후보의 조상이 아님"
+-[ "$(git diff --name-only $OLD $NEW)" = "$DIFFN" ] || stop "diff 가 정확히 기대 43경로(제품 Java 14·시험 29)가 아님"
++[ "$(git diff --name-only $OLD $NEW)" = "$DIFFN" ] || stop "diff 가 정확히 기대 48경로(제품 Java 16·시험 32)가 아님"
+ svc | tee "$M/svc-before.txt"
+ IMG0=$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)"); echo "$IMG0" | tee "$M/image-before.txt"
+ [ "$IMG0" = "$IMGOLD" ] && [ "$IMGOLD" = "$(cat ~/maint-v172/image-new.txt)" ] || stop "실행 이미지가 운영 0e1d2a02 배포 이미지(~/maint-v172/image-new.txt, 2c5d8427)와 다름 — 보고"
