@@ -1,0 +1,11 @@
+54c54,61
+<   collect_pins "$D/pins.txt" || rec "$D/pins.txt" "collect_pins 실패 $?" || return 4   # 실패도 pins 에 남겨 판정기가 FAIL 로 본다
+---
+>   # v1.251 §2: 수집 rc 비0 또는 stderr 가 비어 있지 않으면 판정기로 넘어가지 않는다(사유·rc·원문 보존, U0 호출 0)
+>   local crc=0 esz; collect_pins "$D/pins.txt" || crc=$?
+>   esz=$(stat -c %s "$D/pins.txt.err" 2>/dev/null) || esz=없음
+>   rec "$D/collect-rc.txt" "collect_pins rc=$crc stderr=${esz}B" || return 4
+>   if [ "$crc" != 0 ] || [ "$esz" != 0 ]; then
+>     rec "$D/verdict.txt" "N03 BLOCK 수집 실패 — collect_pins rc=$crc stderr=${esz}B, 판정기 실행 안 함(pins.txt·pins.txt.err·collect-rc.txt 보존)" || return 4
+>     ( cd "$D" && sha256sum -- * > SHA256SUMS ) 2>/dev/null || return 4
+>     return 1; fi

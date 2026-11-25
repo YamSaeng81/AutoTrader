@@ -2,6 +2,8 @@
 
 **v1.251: 서버 배치 등록 전 collect_pins 실패 전달 보완 필요(파일 반례: 실패표시/stderr가 있어도 N03 PASS). 새 batch-r2로 보완·직접4경계만 확인 후 20261125-1000 대상 실제 pins 형식읽기1회, 즉시 제출. 83건/제품시험 반복 없음. 19:31까지 보고 대기 금지·완료 즉시 회수. 기존 로컬예약은 서버 시작 수용 전 유지. [범위](evidence/review-810a2f45/README.md)**
 
+**v1.251 batch-r2(11-25 13:59 KST, 제출):** 수집 rc·stderr 비0이면 판정기 미실행 STOP-N03(호출자)+판정기 '수집 rc0·stderr0B'·키 중복 거절, pins.sh 단계별 종료값·gzip -t/압축 해제/grep≥2 실패 전달. BATCH f05d47a3 15/15, 기존 batch/·src/ 보존. 서버 호출5 1회: 4경계 10/10, 실제 20261125-1000 수집 rc0·stderr0B·형식34/34·핀11 일치·로그 키9개 0. 배치 미등록·로컬 cffcfad9 유지, 완료 즉시 회수로 변경. v1.249 §3 미착수 [근거](evidence/server-batch-prep-v2-20261125/README.md)
+
 **v1.250: 서버에서 준비·검증하도록 전환한다. 지금 최소 환경 읽기1회→~/work-batches/d81b-20261127-exp1 고정 파일 전송/해시→순수 시각/파일 확인. 이어서 nohup/setsid 등 유한 배치 설계·검증 제출, 수용 뒤 로컬cffcfad9와 실행 주체 교체. 기존 cron/운영 DB/계좌는 이번 범위 아님. 27일 U0→U1·R1=0·U2 사용자 확인 유지. [범위](evidence/server-batch-transition-20261125/README.md)**
 
 **v1.250 §1·§2 서버 준비(11-25 13:26~13:44 KST, 제출):** 실제 ssh 4회(환경 읽기1·전송/검증1·분리 확인2 — 3번째는 이른 확인). 서버 시각·HEAD0e1d2a02·backend2c5d8427·frontend9d7f123a·재시작0·crontab f2dce280 일치, `at` 없음·setsid/nohup/flock 있음. `~/work-batches/d81b-20261127-exp1`에 452ac384 11블록(MANIFEST 67e8ed1f 15/15)·새 배치(BATCH 0ccec8d4 12/12) 분리 전송, 합성 검증 서버 83/83·접속 종료 뒤 분리 사례 완료 2/2. 배치 미등록·runs 없음·로컬 cffcfad9/f05e856c 유지(수용 뒤 cffcfad9 먼저 취소). 남은 판단: collect_pins 실제 읽기 미실행·2일 대기 중 재부팅 시 무재시작. v1.249 §1 블롭4/4 보충(ba267a31), §3 미착수 [근거](evidence/server-batch-prep-20261125/README.md)

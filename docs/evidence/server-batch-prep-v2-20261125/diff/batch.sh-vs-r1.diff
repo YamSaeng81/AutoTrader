@@ -1,0 +1,24 @@
+2c2
+< # D81B-EXP1 U0→U1 서버 유한 배치 — 실제 실행 파일(총괄 v1.250 §2). 이 파일의 존재·전송은 실행 승인이 아니다. 등록·시작은 총괄의 원문/해시 검토 뒤.
+---
+> # D81B-EXP1 U0→U1 서버 유한 배치 — 실제 실행 파일(총괄 v1.250 §2, v1.251 batch-r2: 수집 실패 전달 보완). 이 파일의 존재·전송은 실행 승인이 아니다. 등록·시작은 총괄의 원문/해시 검토 뒤.
+10c10
+< LOCK=$BASE/batch.lock; RUNS=$BASE/runs; R=$RUNS/$JOB; BDIR=$BASE/batch; B=$BASE/src/blocks-d81
+---
+> LOCK=$BASE/batch.lock; RUNS=$BASE/runs; R=$RUNS/$JOB; BDIR=$BASE/batch-r2; B=$BASE/src/blocks-d81
+34,46c34
+< # N03 시점 설치 상태·로그 집계(읽기만 — env-read 와 같은 필드, env/인증값·전체 inspect 없음)
+< collect_pins() { local o=$1
+<   ( cd ~/crypto_trader/AutoTrader || exit 1
+<     echo "HEAD $(git rev-parse HEAD)"; echo "DIRTY $(git status --porcelain --untracked-files=no | wc -l)"
+<     for s in backend frontend; do c=$(docker compose -f docker-compose.prod.yml ps -q $s); docker inspect --format "$s Image={{.Image}} StartedAt={{.State.StartedAt}} RestartCount={{.RestartCount}} Status={{.State.Status}}" $c; done
+<     echo "INSTALLED_SHA $(cat ~/ops-scripts/INSTALLED_SHA)"; echo "crontab $(crontab -l | sha256sum | cut -d' ' -f1)"
+<     echo "daily_check.sh $(sha256sum < ~/ops-scripts/daily_check.sh | cut -d' ' -f1)"; echo "daily_checks.sql $(sha256sum < ~/ops-scripts/daily_checks.sql | cut -d' ' -f1)"
+<     echo "SID_LEDGER_SHA $(cat ~/ops-scripts/SID_LEDGER_SHA)"; echo "sid_ledger.sql $(sha256sum < ~/ops-scripts/sid_ledger.sql | cut -d' ' -f1)"
+<     ( cd ~/sid203-ledger && sha256sum --quiet -c ~/maint-n17/ledger-files-before.sha ) > /dev/null 2>&1; echo "past_ledger $?"
+<     for k in 'Connection leak detection' 'Connection is not available' 'REST 강제 갱신 시세가 가격이 아님' 'REST 폴백 시세 항목 건너뜀' \
+<              '[시세 보강] 시세 항목 건너뜀' '[시세 보강] 회차 오류' '[시세 보강] 시세 처리 실패' 'DOCTYPE' '<html'; do
+<       echo "logcount $(zcat "$DCK/$TAG.txt.log.gz" | grep -c -F -- "$k") $k"; done
+<   ) > "$o" 2> "$o.err"; }   # 하위 셸 — 실패해도 배치를 끝내지 않는다
+---
+> . "$BDIR/pins.sh" || { echo "🔴 pins.sh 읽기 실패"; exit 2; }   # collect_pins — 필수 명령 종료값 직접 확인(v1.251 §2)

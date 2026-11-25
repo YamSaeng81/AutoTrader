@@ -1,0 +1,104 @@
+[호출5 시작] 2026-11-25 04:59:12Z
+r2 ./batch.sh: OK
+r2 ./edge4.sh: OK
+r2 ./fixture-n03-20261124/20261124-1000.txt: OK
+r2 ./fixture-n03-20261124/20261124.txt: OK
+r2 ./fixture-n03-20261124/SOURCE.txt: OK
+r2 ./fixture-n03-20261124/last_send: OK
+r2 ./fixture-n03-20261124/mtimes.txt: OK
+r2 ./fixture-n03-20261124/pins.txt: OK
+r2 ./kst.py: OK
+r2 ./launch.sh: OK
+r2 ./lib.sh: OK
+r2 ./n03check.py: OK
+r2 ./pins-read.sh: OK
+r2 ./pins.sh: OK
+r2 ./pinscheck.py: OK
+기존 batch/·src/ 보존 해시 일치
+== 4경계
+[edge4 시작] 2026-11-25 04:59:12Z host=yhdeabba py=Python 3.10.12
+PASS 경계1 정상 수집·빈 stderr·정상 N03 → 기존 통과 경로 (기대=0|COMPLETE-U1-READY|U0 U1|collect_pins rc=0 stderr=0B)
+PASS 경계1 판정기 45항목 PASS(수집 rc·중복 항목 포함) (기대=0)
+PASS 경계2 pins 내용 정상·수집 rc 비0 → STOP, U0/U1 0 (기대=1|STOP-N03|없음|collect_pins rc=24 stderr=0B)
+PASS 경계2 pins.txt 가 정상 fixture 와 같은 내용(정상처럼 보임) (기대=0)
+PASS 경계3 수집 rc0·stderr 비어 있지 않음 → STOP, U0/U1 0 (기대=1|STOP-N03|없음|collect_pins rc=0 stderr=38B)
+PASS 경계4 로그 압축 해제 실패 → 0건 통과 없이 STOP, U0/U1 0 (기대=1|STOP-N03|없음|collect_pins rc=22 stderr=)
+PASS 경계4 로그 집계 줄을 만들지 않음(0건으로 바꾸지 않음) (기대=1)
+PASS e2-rc 판정기 미실행·수집 실패 사유 보존 (기대=0)
+PASS e3-stderr 판정기 미실행·수집 실패 사유 보존 (기대=0)
+PASS e4-gzip 판정기 미실행·수집 실패 사유 보존 (기대=0)
+[edge4 끝] 2026-11-25 04:59:22Z PASS=10 FAIL=0
+edge4 rc=0
+== 실제 형식 확인 1회
+[형식 확인 시작] 2026-11-25 04:59:22Z 대상=/home/manicstr/daily-check/20261125-1000.txt.log.gz 214976 2026-11-25 10:00:04.424234807 +0900
+collect-rc.txt
+pins.txt
+pins.txt.err
+임시 로그·cron 사본 지움
+collect_pins rc=0 stderr=0B
+== pins.txt
+HEAD 0e1d2a021ab2f3c759a9b2be9c4f09430f93c80d
+DIRTY 0
+backend Image=sha256:2c5d84276cdbf01f718077e3d2d0475f6af5982d7afb95082750fcebe7f5979f StartedAt=2026-11-16T05:16:14.129686133Z RestartCount=0 Status=running
+frontend Image=sha256:9d7f123ad6afd75b46d954b7c7031267df5afb3bf6e99660d5a53a3c5d43798e StartedAt=2026-11-16T07:15:16.447837224Z RestartCount=0 Status=running
+INSTALLED_SHA c669ccdc6e248ce8e55e9a7ac7405197d266fa18
+crontab f2dce2809c09aa4466a95200caa19547118e444b4ac90b4363e20a158dee9b5b
+daily_check.sh ff0a5d7dbc9e250d364a7f32f80106454b6f4b939d37c578f8192e8206e7c1cc
+daily_checks.sql 653b22bab04b68c50bf9daf2a54f2c281f9c57eaf6795076225ed39d62d48fa8
+SID_LEDGER_SHA 8bfe8a9fa896f400b3fb6681fef021c99d6ba43b
+sid_ledger.sql 02a8585021fb2a1a52d9b3b56b60e957cb71b9ca3c11bf819595df15cf334f1c
+past_ledger 0
+logcount 0 Connection leak detection
+logcount 0 Connection is not available
+logcount 0 REST 강제 갱신 시세가 가격이 아님
+logcount 0 REST 폴백 시세 항목 건너뜀
+logcount 0 [시세 보강] 시세 항목 건너뜀
+logcount 0 [시세 보강] 회차 오류
+logcount 0 [시세 보강] 시세 처리 실패
+logcount 0 DOCTYPE
+logcount 0 <html
+== pins.txt.err
+== format (rc=0)
+PASS 수집 rc0·stderr 0B — collect_pins rc=0 stderr=0B
+PASS 필수 필드 20개 모두 1회
+PASS 알 수 없는 필드 없음
+PASS 타입 HEAD — 0e1d2a021ab2f3c759a9b2be9c4f09430f93c80d
+PASS 타입 DIRTY — 0
+PASS 타입 backend — Image=sha256:2c5d84276cdbf01f718077e3d2d0475f6af5982d7afb95082750fcebe7f5979f StartedAt=2026-11-16T05:16:14.129686133Z RestartCount=0 Status=running
+PASS 타입 frontend — Image=sha256:9d7f123ad6afd75b46d954b7c7031267df5afb3bf6e99660d5a53a3c5d43798e StartedAt=2026-11-16T07:15:16.447837224Z RestartCount=0 Status=running
+PASS 타입 INSTALLED_SHA — c669ccdc6e248ce8e55e9a7ac7405197d266fa18
+PASS 타입 crontab — f2dce2809c09aa4466a95200caa19547118e444b4ac90b4363e20a158dee9b5b
+PASS 타입 daily_check.sh — ff0a5d7dbc9e250d364a7f32f80106454b6f4b939d37c578f8192e8206e7c1cc
+PASS 타입 daily_checks.sql — 653b22bab04b68c50bf9daf2a54f2c281f9c57eaf6795076225ed39d62d48fa8
+PASS 타입 SID_LEDGER_SHA — 8bfe8a9fa896f400b3fb6681fef021c99d6ba43b
+PASS 타입 sid_ledger.sql — 02a8585021fb2a1a52d9b3b56b60e957cb71b9ca3c11bf819595df15cf334f1c
+PASS 타입 past_ledger — 0
+PASS 타입 logcount Connection leak detection — 0
+PASS 타입 logcount Connection is not available — 0
+PASS 타입 logcount REST 강제 갱신 시세가 가격이 아님 — 0
+PASS 타입 logcount REST 폴백 시세 항목 건너뜀 — 0
+PASS 타입 logcount [시세 보강] 시세 항목 건너뜀 — 0
+PASS 타입 logcount [시세 보강] 회차 오류 — 0
+PASS 타입 logcount [시세 보강] 시세 처리 실패 — 0
+PASS 타입 logcount DOCTYPE — 0
+PASS 타입 logcount <html — 0
+PASS 설치 핀 HEAD
+PASS 설치 핀 DIRTY
+PASS 설치 핀 backend
+PASS 설치 핀 frontend
+PASS 설치 핀 INSTALLED_SHA
+PASS 설치 핀 crontab
+PASS 설치 핀 daily_check.sh
+PASS 설치 핀 daily_checks.sql
+PASS 설치 핀 SID_LEDGER_SHA
+PASS 설치 핀 sid_ledger.sql
+PASS 설치 핀 past_ledger
+로그 집계(보고값, 0 으로 바꾸지 않음): Connection leak detection=0 · Connection is not available=0 · REST 강제 갱신 시세가 가격이 아님=0 · REST 폴백 시세 항목 건너뜀=0 · [시세 보강] 시세 항목 건너뜀=0 · [시세 보강] 회차 오류=0 · [시세 보강] 시세 처리 실패=0 · DOCTYPE=0 · <html=0
+FORMAT OK 항목 34 실패 0
+SHA256SUMS d4d9e81a21e4f3025c5cc351da114285445c227ba5e802d2643a1e0564ea0c2c
+[형식 확인 끝] 2026-11-25 04:59:22Z collect=0 format=0
+pins-read rc=0
+runs 없음(배치 미등록)
+maint-d81b 없음
+HEAD 0e1d2a021ab2f3c759a9b2be9c4f09430f93c80d 변경 0 · crontab f2dce280 · load 0.29 0.23 0.17
+[호출5 끝] 2026-11-25 04:59:22Z

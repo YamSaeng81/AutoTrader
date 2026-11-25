@@ -1,0 +1,12 @@
+[edge4 시작] 2026-11-25 04:58:39Z host=DESKTOP-SF1KUQ5 py=Python 3.12.3
+PASS 경계1 정상 수집·빈 stderr·정상 N03 → 기존 통과 경로 (기대=0|COMPLETE-U1-READY|U0 U1|collect_pins rc=0 stderr=0B)
+PASS 경계1 판정기 45항목 PASS(수집 rc·중복 항목 포함) (기대=0)
+PASS 경계2 pins 내용 정상·수집 rc 비0 → STOP, U0/U1 0 (기대=1|STOP-N03|없음|collect_pins rc=24 stderr=0B)
+PASS 경계2 pins.txt 가 정상 fixture 와 같은 내용(정상처럼 보임) (기대=0)
+PASS 경계3 수집 rc0·stderr 비어 있지 않음 → STOP, U0/U1 0 (기대=1|STOP-N03|없음|collect_pins rc=0 stderr=38B)
+PASS 경계4 로그 압축 해제 실패 → 0건 통과 없이 STOP, U0/U1 0 (기대=1|STOP-N03|없음|collect_pins rc=22 stderr=)
+PASS 경계4 로그 집계 줄을 만들지 않음(0건으로 바꾸지 않음) (기대=1)
+PASS e2-rc 판정기 미실행·수집 실패 사유 보존 (기대=0)
+PASS e3-stderr 판정기 미실행·수집 실패 사유 보존 (기대=0)
+PASS e4-gzip 판정기 미실행·수집 실패 사유 보존 (기대=0)
+[edge4 끝] 2026-11-25 04:58:48Z PASS=10 FAIL=0

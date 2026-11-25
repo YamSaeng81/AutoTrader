@@ -1,0 +1,16 @@
+5a6
+> #              · collect-rc.txt(수집 종료값 — "collect_pins rc=0 stderr=0B" 여야 한다, v1.251) · pins.txt.err(0바이트여야 한다)
+60a62
+>     dup = []
+65,67c67,73
+<             pins['logcount:' + key] = c
+<         else:
+<             pins[k] = v
+---
+>             k, v = 'logcount:' + key, c
+>         if k in pins:
+>             dup.append(k)
+>         pins[k] = v
+>     # v1.251: 수집 실패·stderr 를 판정기도 직접 거절한다(호출자 차단과 이중)
+>     ck('수집 rc0·stderr 0B', (P / 'collect-rc.txt').read_text(encoding='utf-8').strip() == 'collect_pins rc=0 stderr=0B' and (P / 'pins.txt.err').stat().st_size == 0, '')
+>     ck('pins 키 중복 없음', not dup, ' '.join(dup))

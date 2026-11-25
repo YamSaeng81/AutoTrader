@@ -1,0 +1,14 @@
+2,3c2,3
+< # D81B-EXP1 서버 배치 시작기(총괄 v1.250 §2). 총괄의 원문/해시 수용 뒤 1회만 쓴다 — 이 파일의 존재는 시작 승인이 아니다.
+< # 사용(서버에서): bash ~/work-batches/d81b-20261127-exp1/batch/launch.sh
+---
+> # D81B-EXP1 서버 배치 시작기(총괄 v1.250 §2, v1.251 batch-r2 경로). 총괄의 원문/해시 수용 뒤 1회만 쓴다 — 이 파일의 존재는 시작 승인이 아니다.
+> # 사용(서버에서): bash ~/work-batches/d81b-20261127-exp1/batch-r2/launch.sh
+8c8
+< cd "$BASE/batch" && sha256sum --quiet -c BATCH.sha256 || { echo "🔴 배치 파일 해시 불일치 — 시작 안 함"; exit 2; }
+---
+> cd "$BASE/batch-r2" && sha256sum --quiet -c BATCH.sha256 || { echo "🔴 배치 파일 해시 불일치 — 시작 안 함"; exit 2; }
+16c16
+< setsid nohup bash "$BASE/batch/batch.sh" "$J" < /dev/null > "$L" 2>&1 &
+---
+> setsid nohup bash "$BASE/batch-r2/batch.sh" "$J" < /dev/null > "$L" 2>&1 &
