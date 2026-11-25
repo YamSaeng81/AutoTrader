@@ -1,0 +1,61 @@
+[호출2 시작] 2026-11-25 04:41:10Z
+== 해시
+src ./SOURCE.txt: OK
+src ./blocks-d81/F.sh: OK
+src ./blocks-d81/G.sh: OK
+src ./blocks-d81/U0.sh: OK
+src ./blocks-d81/U1.sh: OK
+src ./blocks-d81/U1되돌림.sh: OK
+src ./blocks-d81/U2.sh: OK
+src ./blocks-d81/U3.sh: OK
+src ./blocks-d81/U4.sh: OK
+src ./blocks-d81/U되돌림.sh: OK
+src ./blocks-d81/U뒤관측.sh: OK
+src ./blocks-d81/U변수.sh: OK
+src ./blocks-d81/blocks.json: OK
+src ./extract.py: OK
+src ./run.sh: OK
+batch ./batch.sh: OK
+batch ./fixture-n03-20261124/20261124-1000.txt: OK
+batch ./fixture-n03-20261124/20261124.txt: OK
+batch ./fixture-n03-20261124/SOURCE.txt: OK
+batch ./fixture-n03-20261124/last_send: OK
+batch ./fixture-n03-20261124/mtimes.txt: OK
+batch ./fixture-n03-20261124/pins.txt: OK
+batch ./kst.py: OK
+batch ./launch.sh: OK
+batch ./lib.sh: OK
+batch ./n03check.py: OK
+batch ./selftest.sh: OK
+src rc=0 batch rc=0
+== 합성 검증
+selftest rc=0
+[selftest 끝] 2026-11-25 04:42:50Z PASS=83 FAIL=0
+== 분리 실행 사례 시작
+띄움 pid=2263663 2026-11-25 04:42:50Z — 이 접속을 끝낸다
+== 변경 없음 확인
+maint-d81b 없음
+runs 없음(배치 미등록)
+crontab f2dce2809c09aa4466a95200caa19547118e444b4ac90b4363e20a158dee9b5b
+HEAD 0e1d2a021ab2f3c759a9b2be9c4f09430f93c80d 변경 0
+load 1.06 0.46 0.22 · home avail 541G
+/home/manicstr/work-batches/d81b-20261127-exp1
+/home/manicstr/work-batches/d81b-20261127-exp1/batch
+/home/manicstr/work-batches/d81b-20261127-exp1/batch/batch.sh
+/home/manicstr/work-batches/d81b-20261127-exp1/batch/BATCH.sha256
+/home/manicstr/work-batches/d81b-20261127-exp1/batch/fixture-n03-20261124
+/home/manicstr/work-batches/d81b-20261127-exp1/batch/kst.py
+/home/manicstr/work-batches/d81b-20261127-exp1/batch/launch.sh
+/home/manicstr/work-batches/d81b-20261127-exp1/batch/lib.sh
+/home/manicstr/work-batches/d81b-20261127-exp1/batch/n03check.py
+/home/manicstr/work-batches/d81b-20261127-exp1/batch/selftest.sh
+/home/manicstr/work-batches/d81b-20261127-exp1/selftest
+/home/manicstr/work-batches/d81b-20261127-exp1/selftest/detach1
+/home/manicstr/work-batches/d81b-20261127-exp1/selftest/r1
+/home/manicstr/work-batches/d81b-20261127-exp1/src
+/home/manicstr/work-batches/d81b-20261127-exp1/src/blocks-d81
+/home/manicstr/work-batches/d81b-20261127-exp1/src/extract.py
+/home/manicstr/work-batches/d81b-20261127-exp1/src/MANIFEST.sha256
+/home/manicstr/work-batches/d81b-20261127-exp1/src/run.sh
+/home/manicstr/work-batches/d81b-20261127-exp1/src/SOURCE.txt
+[호출2 끝] 2026-11-25 04:42:50Z

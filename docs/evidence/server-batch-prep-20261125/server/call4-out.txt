@@ -1,0 +1,38 @@
+[호출4 시작] 2026-11-25 04:44:25Z 1795581865
+launch 1795581770 ssh=있음 ppid=2247635
+run-start 1795581770 pid=2263663 sid=2263663 ppid=1
+run-end 1795581809 결과=0|COMPLETE-U1-READY|U0 U1|0
+exit-codes.txt
+final.txt
+job.txt
+n03
+out-U0-deploy.txt
+out-U1-deploy.txt
+state.txt
+steps.txt
+PASS 접속 종료 뒤 끝난 배치 결과 (기대=0|COMPLETE-U1-READY|U0 U1|0)
+PASS 배치 프로세스 남지 않음 (기대=1)
+[detach-check] 2026-11-25 04:44:26Z PASS=2 FAIL=0
+detach-check rc=0
+== d01
+exit-codes.txt
+final.txt
+job.txt
+n03
+out-U0-deploy.txt
+out-U1-deploy.txt
+state.txt
+steps.txt
+COMPLETE-U1-READY rc=0 끝=1795768980 2026-11-27T17:43:00+09:00 작업=d81b-u0u1-20261125T000000Z-1
+1795768680 U0 deploy rc=0 out-U0-deploy.txt
+1795768980 U1 deploy rc=0 out-U1-deploy.txt
+1795768680 U0 통과 — U1 시각 조건 확인
+1795768680 실행 U1 deploy
+1795768980 끝 COMPLETE-U1-READY U0·U1 통과 — U2 는 배치에 없다, 사용자 '재기동 진행' 확인 대기
+U0 [F G U변수 U0 ]
+U1 [F G U변수 U1 ]
+selftest-final.sha256 a7e5c08074053b8e633a284e6f5e458e551f308ec681d9831be2259b40c01404 832파일
+maint-d81b 없음
+runs 없음(배치 미등록)
+2266006 bash -c # v1.250 §2 서버 호출 4: 호출 3 이 이르러(분리 사례 진행 중) 같은 확인을 완료 뒤 1회 더. 쓰기는 전용 폴더의 selftest-final.sha256 뿐(호출 3 의 selftest.sha256 은 보존). set -u D=$HOME/work-batches/d81b-20261127-exp1 echo "[호출4 시작] $(date -u '+%F %T')Z $(date -u +%s)" bash "$D/batch/selftest.sh" detach-check "$D/selftest/detach1"; echo "detach-check rc=$?" echo "== d01"; R=$(ls -d "$D"/selftest/detach1/case-d01-detached/runs/*); ls "$R"; cat "$R/final.txt" "$R/exit-codes.txt"; tail -3 "$R/steps.txt"; cat "$D/selftest/detach1/case-d01-detached/calls.txt" [ -e "$D/selftest-final.sha256" ] || ( cd "$D/selftest" && find . -type f | sort | xargs -d '\n' sha256sum > ../selftest-final.sha256 ) && echo "selftest-final.sha256 $(sha256sum < "$D/selftest-final.sha256" | cut -d' ' -f1) $(wc -l < "$D/selftest-final.sha256")파일" [ -e "$HOME/maint-d81b-20261127-exp1" ] && echo "🔴 maint 경로 있음" || echo "maint-d81b 없음"; [ -e "$D/runs" ] && echo "🔴 runs 있음" || echo "runs 없음(배치 미등록)"; pgrep -af "work-batches" || echo "work-batches 프로세스 0" echo "[호출4 끝] $(date -u '+%F %T')Z"
+[호출4 끝] 2026-11-25 04:44:26Z

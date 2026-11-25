@@ -1,0 +1,42 @@
+== 시각
+utc 2026-11-25 04:26:40
+epoch 1795580800
+kst(date -u +32400) 2026-11-25 13:26:40
+kst(python 고정 +09:00) 2026-11-25 13:26:40
+system tz: KST+0900 Asia/Seoul
+== 시스템
+os Ubuntu 22.04.5 LTS · kernel 5.15.0-176-generic · arch x86_64
+nproc 32
+loadavg 0.26 0.15 0.10 2/1360 2240389
+uptime up 30 weeks, 4 days, 22 hours, 57 minutes
+               total        used        free      shared  buff/cache   available
+Mem:           31928        4530         491        1544       26906       25386
+home disk size 914G used 335G avail 541G use 39% mount /
+== 도구
+bash /usr/bin/bash
+python3 /usr/bin/python3
+tar /usr/bin/tar
+sha256sum /usr/bin/sha256sum
+nohup /usr/bin/nohup
+setsid /usr/bin/setsid
+flock /usr/bin/flock
+timeout /usr/bin/timeout
+at 없음
+systemd-run /usr/bin/systemd-run
+loginctl /usr/bin/loginctl
+bash 5.1.16(1)-release · Python 3.10.12 · flock from util-linux 2.37.2 · timeout (GNU coreutils) 8.32
+linger Linger=no · logind KillUserProcesses: 설정 줄 없음(기본값)
+== 경로
+없음 /home/manicstr/work-batches
+없음 /home/manicstr/work-batches/d81b-20261127-exp1
+없음 /home/manicstr/maint-d81b-20261127-exp1
+있음 /home/manicstr/daily-check
+있음 /home/manicstr/sid203-ledger
+있음 /home/manicstr/ops-scripts
+crontab f2dce2809c09aa4466a95200caa19547118e444b4ac90b4363e20a158dee9b5b
+INSTALLED_SHA c669ccdc6e248ce8e55e9a7ac7405197d266fa18
+== 운영 상태
+HEAD 0e1d2a021ab2f3c759a9b2be9c4f09430f93c80d · 작업트리 변경 0
+backend Image=sha256:2c5d84276cdbf01f718077e3d2d0475f6af5982d7afb95082750fcebe7f5979f StartedAt=2026-11-16T05:16:14.129686133Z RestartCount=0 Status=running
+frontend Image=sha256:9d7f123ad6afd75b46d954b7c7031267df5afb3bf6e99660d5a53a3c5d43798e StartedAt=2026-11-16T07:15:16.447837224Z RestartCount=0 Status=running
+== 끝 2026-11-25 04:26:40Z

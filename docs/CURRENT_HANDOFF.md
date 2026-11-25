@@ -2,6 +2,8 @@
 
 **v1.250: 서버에서 준비·검증하도록 전환한다. 지금 최소 환경 읽기1회→~/work-batches/d81b-20261127-exp1 고정 파일 전송/해시→순수 시각/파일 확인. 이어서 nohup/setsid 등 유한 배치 설계·검증 제출, 수용 뒤 로컬cffcfad9와 실행 주체 교체. 기존 cron/운영 DB/계좌는 이번 범위 아님. 27일 U0→U1·R1=0·U2 사용자 확인 유지. [범위](evidence/server-batch-transition-20261125/README.md)**
 
+**v1.250 §1·§2 서버 준비(11-25 13:26~13:44 KST, 제출):** 실제 ssh 4회(환경 읽기1·전송/검증1·분리 확인2 — 3번째는 이른 확인). 서버 시각·HEAD0e1d2a02·backend2c5d8427·frontend9d7f123a·재시작0·crontab f2dce280 일치, `at` 없음·setsid/nohup/flock 있음. `~/work-batches/d81b-20261127-exp1`에 452ac384 11블록(MANIFEST 67e8ed1f 15/15)·새 배치(BATCH 0ccec8d4 12/12) 분리 전송, 합성 검증 서버 83/83·접속 종료 뒤 분리 사례 완료 2/2. 배치 미등록·runs 없음·로컬 cffcfad9/f05e856c 유지(수용 뒤 cffcfad9 먼저 취소). 남은 판단: collect_pins 실제 읽기 미실행·2일 대기 중 재부팅 시 무재시작. v1.249 §1 블롭4/4 보충(ba267a31), §3 미착수 [근거](evidence/server-batch-prep-20261125/README.md)
+
 **v1.249: 준비 근거 blocks.json만 CRLF 원문 보충 필요(작업4/4·블롭3/4), 실제 로컬11블록·run.sh는 승인값 일치. 이어서 실주문 초안 v2의 KST 고정오프셋·gate 종료값 전달·보유 표시를 파일 검증으로 보완. 배포 출처/예약 변경 없음, 27일 U0→U1·U2 확인 유지. 계좌/주문 승인 아님. [범위](evidence/review-a38a34cd/README.md)**
 
 **v1.248: 유일한 실행 출처452ac384(D81B-EXP1), NEW1b719645. 27일17:35~19:30 U0→통과 시 U1 각1회 승인. 지금 고정 추출기·실행기·11블록을 로컬 준비하고 옛 배포 작업 중복을 정리한다. 옛794480ea 실행 금지, R1=0·창/30분/:14~:24 제외 유지. U1 재빌드 결과를 즉시 제출하고 U2는 사용자 '재기동 진행' 전 금지. 실주문 별도 선행 조건 유지. [범위](evidence/review-7b82d3a7/README.md)**

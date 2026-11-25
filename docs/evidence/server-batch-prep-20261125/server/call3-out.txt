@@ -1,0 +1,120 @@
+[호출3 시작] 2026-11-25 04:43:05Z 1795581785
+launch 1795581770 ssh=있음 ppid=2247635
+run-start 1795581770 pid=2263663 sid=2263663 ppid=1
+INCOMPLETE.txt
+job.txt
+n03
+out-U0-deploy.txt
+state.txt
+steps.txt
+FAIL 접속 종료 뒤 끝난 배치 결과 기대=0|COMPLETE-U1-READY|U0 U1|0 실제=
+FAIL 배치 프로세스 남지 않음 기대=1 실제=0
+[detach-check] 2026-11-25 04:43:05Z PASS=0 FAIL=2
+detach-check rc=1
+== d01 단계
+1795734840 시작
+1795734840 검증 통과 — N03 대기
+1795734840 대기 N03 목표=1795742040(2026-11-27T10:14:00+09:00) 기한=1795775460
+1795768440 대기 U0 목표=1795768560(2026-11-27T17:36:00+09:00) 기한=1795775460
+1795768560 실행 U0 deploy
+selftest.sha256 6aa110b07a328124789c14f9a02fd9cbe59482fa3e3bac243433434ef8b3bdea 828파일
+== result r1
+[selftest 시작] 2026-11-25 04:41:10Z host=yhdeabba py=Python 3.10.12
+PASS kst 날짜 넘김 직전 TZ=UTC (기대=1795705199 20261126 2359 2026-11-26T23:59:59+09:00)
+PASS kst 자정 TZ=UTC (기대=20261127 0000)
+PASS kst 날짜 넘김 직전 TZ=Asia/Seoul (기대=1795705199 20261126 2359 2026-11-26T23:59:59+09:00)
+PASS kst 자정 TZ=Asia/Seoul (기대=20261127 0000)
+PASS kst 날짜 넘김 직전 TZ=America/New_York (기대=1795705199 20261126 2359 2026-11-26T23:59:59+09:00)
+PASS kst 자정 TZ=America/New_York (기대=20261127 0000)
+PASS kst 날짜 넘김 직전 TZ=Etc/GMT-14 (기대=1795705199 20261126 2359 2026-11-26T23:59:59+09:00)
+PASS kst 자정 TZ=Etc/GMT-14 (기대=20261127 0000)
+PASS kst 날짜 넘김 직전 TZ=없음 (기대=1795705199 20261126 2359 2026-11-26T23:59:59+09:00)
+PASS kst 자정 TZ=없음 (기대=20261127 0000)
+PASS kst 창 시작 직전(17:34:59) (기대=20261127 1734)
+PASS kst 창 시작 정각 (기대=20261127 1735)
+PASS kst 창 끝 분 마지막 초(포함) (기대=20261127 1930)
+PASS kst 창 끝 직후(END_EXCL) (기대=20261127 1931)
+PASS kst 거절: epoch 2026-02-30T10:00 (기대=2)
+PASS kst 거절: epoch 2026-11-27T24:00 (기대=2)
+PASS kst 거절: epoch 2026-11-27T23:60 (기대=2)
+PASS kst 거절: at abc (기대=2)
+PASS kst 거절: at (기대=2)
+PASS kst 거절: nope (기대=2)
+PASS kst 거절: epoch 2026-11-27 10:00 (기대=2)
+PASS kst 거절 시 출력 없음 (기대=)
+PASS kst now = 서버 epoch(±2초) (기대=0)
+PASS batch.sh T_N03 = 2026-11-27T10:14 KST (기대=1795742040)
+PASS batch.sh T_START = 2026-11-27T17:35 KST (기대=1795768500)
+PASS batch.sh T_U0 = 2026-11-27T17:36 KST (기대=1795768560)
+PASS batch.sh END_EXCL = 2026-11-27T19:31 KST (기대=1795775460)
+PASS N03 기준(11-24 실제 원문) PASS (기대=0)
+PASS N03 기준 항목 수 (기대=N03 PASS 항목 43 실패 0)
+PASS N03 m1-head-red (기대=1)
+      FAIL 머리 🟢 — [정기 점검] 🔴 이상 1건
+PASS N03 m2-sid-balance (기대=1)
+      FAIL SID203 CREATED·20200·보유0·주문0·정산 이상0 — SID 203: CREATED · 잔액 20100.00 · 보유 0 · 미결 0 · 구간 주문 매수 0 매도 0 · 정산 확인 불가 0 · 보고값≠반영값 0 · 미해결 정산 불일치(전체) 0
+PASS N03 m3-new-red-head (기대=1)
+      FAIL 머리 경고 줄이 허용 유형뿐 — 🔴 미분류 ERROR 1건
+PASS N03 m4-ledger-order (기대=1)
+      FAIL L2 0행
+PASS N03 m5-pin-head (기대=1)
+      FAIL 핀 HEAD — 1b712a021ab2f3c759a9b2be9c4f09430f93c80d
+PASS N03 m6-last-send (기대=1)
+      FAIL last_send = 보고 끝 줄 — 2026-11-24 10:00:06 KST 보고 전송 성공 · 🟢 점검 항목 정상
+PASS N03 m7-stale-report (기대=1)
+      FAIL 보고 생성 시각 — 2026-11-23T10:00:05+09:00
+PASS N03 m8-missing-pins (기대=2)
+PASS N03 m9-error-unclassified (기대=1)
+      FAIL ERROR 전부 통신 실패·미분류0 — ERROR(구간): 전체 7 · 공유 풀 미등록 0 · 캔들 판정 불가 0 · 상장 폐지 404 0 · 통신 실패 6 · 미분류 1
+PASS N03 m10-restart (기대=1)
+      FAIL 핀 backend — Image=sha256:2c5d84276cdbf01f718077e3d2d0475f6af5982d7afb95082750fcebe7f5979f StartedAt=2026-11-16T05:16:14.129686133Z RestartCount=1 Status=running
+PASS N03 m11-log-hikari (기대=1)
+      FAIL 로그 0: Connection is not available — 2
+PASS N03 m12-ledger-balance-diff (기대=1)
+      FAIL L4 balance_diff0·raw_diff0·미확인0·순체결0·보유0
+PASS N03 m13-blast-count (기대=1)
+      FAIL 본문 🔴/⚪ 는 KRW-BLAST 적재 뒤처짐(같은 횟수)뿐 — 66세션: 🔴 적재 뒤처짐 13회
+PASS N03 m14-past-ledger (기대=1)
+      FAIL 핀 past_ledger — 1
+PASS 흐름 정상 완료(N03 PASS→U0→U1) (기대=0|COMPLETE-U1-READY|U0 U1|0)
+PASS 블록 문자열 = F·G·U변수·블록 순서 (기대=U0 [F G U변수 U0 ]|U1 [F G U변수 U1 ])
+PASS exit-codes 2줄 (기대=2)
+PASS final 직전 마지막 상태 = 끝 COMPLETE (기대=COMPLETE-U1-READY)
+PASS N03 판정 원문 보존 (기대=0)
+PASS N03 보존 폴더 체크섬 (기대=0)
+PASS N03 보고 사본 = 원본 (기대=73e94385eff3226625b108632e32e4ab7e5ecb255f0282cfc1942f55405fc326)
+PASS 목표 시각까지 대기 기록 (기대=0)
+PASS 중복 — 잠금 잡힘(시작 안 함) (기대=3|없음|없음|0)
+PASS 중복 — 작업 폴더 0 (기대=)
+PASS 1회 작업 — 이전 기록 있으면 시작 안 함 (기대=3|없음|없음|0)
+PASS 기한 만료(시작 시 이미 지남) (기대=3|EXPIRED-BEFORE-N03|없음|0)
+PASS N03 뒤 U0 창 지남 (기대=3|EXPIRED-BEFORE-U0|없음|0)
+PASS 앞 단계 실패 — N03 BLOCK 이면 U0 0 (기대=1|STOP-N03|없음|0)
+PASS N03 보고 없음 — U0 0 (기대=1|STOP-N03|없음|0)
+PASS 블록 변조 — 실행 0 (기대=2|STOP-HASH|없음|0)
+PASS 배치 파일 해시 불일치 — 실행 0 (기대=2|STOP-SELF|없음|0)
+PASS U0 실패 — U1 0 (기대=1|STOP-U0|U0|0)
+PASS U0 rc0 이지만 ok-U0 없음 — U1 0 (기대=1|STOP-U0|U0|0)
+PASS :14~:24 이면 :25 까지 기다린 뒤 U1 (기대=0|COMPLETE-U1-READY|U0 U1|0)
+PASS :14 대기 기록 (기대=0)
+PASS U1 시작 = 18:25:00 (기대=1795771500)
+PASS ok-U0 1741초 지남 — U1 0 (기대=3|STOP-U1-LATE|U0|0)
+PASS U0 뒤 창 끝 지남 — U1 0 (기대=3|EXPIRED-BEFORE-U1|U0|0)
+PASS U0 뒤 기록 실패 — INCOMPLETE 남김·U1 0 (기대=4|RECORD-FAIL-U0|U0|1)
+PASS 기록 실패여도 블록 rc 원문 보존 (기대=0)
+PASS 블록 비영+기록 실패 — 원래 값 7 유지 (기대=7|RECORD-FAIL-U0|U0|1)
+PASS 기록 실패 뒤 재실행 거절 (기대=3)
+PASS U1 뒤 기록 실패 — RECORD-FAIL-U1·INCOMPLETE 남김 (기대=4|RECORD-FAIL-U1|U0 U1|1)
+PASS U1 실패 — STOP-U1(U2 없음) (기대=1|STOP-U1|U0 U1|0)
+PASS 시각 읽기 실패 — 실행 0 (기대=5|STOP-TIME|없음|0)
+PASS 시작 상태 기록 실패 — 실행 0·final 없음 (기대=4|없음|없음|0)
+PASS 모든 사례에서 U0·U1 밖 블록(U2 등) 호출 0 (기대=0)
+PASS 실제 11블록 = batch.sh 고정값·blocks.json·출처 452ac384 (기대=0)
+PASS 실제 블록 1바이트 변조 거절 (기대=1)
+PASS blocks.json 출처 다른 커밋 거절 (기대=1)
+PASS 배치 파일 BATCH.sha256 (기대=0)
+PASS 출처 MANIFEST.sha256 (기대=0)
+PASS 쉘 구문 (기대=0)
+PASS Python 구문 (기대=0)
+[selftest 끝] 2026-11-25 04:42:50Z PASS=83 FAIL=0
+[호출3 끝] 2026-11-25 04:43:05Z
