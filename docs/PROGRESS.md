@@ -6,6 +6,7 @@
 
 | 구분 | 기준 | 상태 |
 |---|---|---|
+| **v1.243 후속 로컬 작업 승인** | [6ae82351 검토](evidence/review-6ae82351/README.md) | B 38/38·보충13/13 수용. B 포함판을 1만원 시험 경로로 선정, 복구 게이트·실제 매수 PG→조건부 전체 회귀·LF jar 각1회. 운영 실행 추가 승인 아님 |
 | **v1.242 §3 로컬 결과(제출)** | [H2 2클래스](evidence/one-entry-b-h2-20261125/README.md) · [복구 SQL v2](evidence/one-entry-recovery-sql-20261125/README.md) · [1만원 안 v2](evidence/live-smoke-plan-v2-20261125/README.md) | B 로그 4개 보충 블롭 38/38. H2 11/11. 정리 대기 done_at IS NULL·미정산 열 추가(실행 0). 시험안 d81만=안 D, B 포함판=안 B. 운영 0 |
 | **v1.242 출처 수용·조건부 실행 승인** | [a1d5fddb 검토](evidence/review-a1d5fddb/README.md) | EXP1 348/348. 11-27 17:35~19:30 U0→U1 각 1회, R1=0 필수·U2 사용자 확인. B 근거 34/38(로그 4개 누락) 보충 후 좁은 영향 확인, D81과 분리 |
 | **v1.241 §3 1회 제한 B 후보(제출)** | [one-entry-b](evidence/one-entry-b-20261125/README.md) | 가지 candidate/live-one-entry-d81c3f2f c43e1f1a(d81c3f2f+4파일 110줄, Flyway 96·지문 코드 불변). 같은 시험 기점 5/12 → 후보 12/12(격리 PG15.13 9·순수 3): 재진입·동시·UNKNOWN/철회·새 트랜잭션 거절, 잘못된 값 13종 배정 전 거절, 조회 실패 비허용. 기점 r1·r2 시험기 결함 보존. main·D81 미통합, 운영 0회 |

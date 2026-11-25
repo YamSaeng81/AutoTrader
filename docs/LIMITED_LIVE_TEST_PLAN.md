@@ -1,5 +1,7 @@
 # 12월 제한 실거래 시험 — 현재 계획
 
+**v1.243: B 로그38/38·새 근거13/13 수용. 1만원 시험은 B 포함판 경로 채택(사람 즉시 정지 안 D 미채택). 지금 복구 게이트 v3/시험 원문→격리 PG 새 1묶음(실제 LIVE 매수 경로 포함)→통과·제품 동일 시 B 최종 전체 회귀1회→성공 시 LF jar1회를 연속 진행한다. 11-26 18:00 목표, 완료 즉시 제출. 11-27 EXP1/d81 기존 승인은 유지하고 B로 교체는 별도 출처 수용 전 금지. [지시](evidence/review-6ae82351/README.md)**
+
 **v1.242: EXP1 794480ea 출처 수용(348/348). 11-27 17:35~19:30 KST U0→통과 시 U1 각각 1회 시작 승인, 실제 R1=0 필수·자동 재시도 없음. U1에서 재빌드, U2는 결과 제출 뒤 사용자 확인 유지. B 후보 c43e1f1a는 별도: 로그 4개 커밋 누락 보충→기존 예약 H2 2클래스만→복구 SQL 대기 조건 정정·1만원 시험 포함안 갱신. B 포함/실주문 미승인. [지시](evidence/review-a1d5fddb/README.md)**
 
 **v1.242 §3 로컬 결과(제출, 11-25 KST):** ① B 로그 4개는 로컬 바이트가 SHA256SUMS와 4/4 일치(.gitignore `*.log` 때문에 빠졌음) → 정확한 경로만 추가, 블롭 **38/38** `27efab9e` ② c43e1f1a H2 예약 시험 CapitalPoolLimit 8 + ConcurrentEntryCap 3 = **11/11** rc0, 1회 [근거](evidence/one-entry-b-h2-20261125/README.md) ③ 복구 확인 SQL v2: 정리 대기 `done_at IS NULL`(V87·countPending과 같음), 미정산 열 추가(findSettlementDue 조건), 활성 6상태·정지 경고 3상태 대조. SQL·PG 실행 0 [근거](evidence/one-entry-recovery-sql-20261125/README.md) ④ 1만원 시험안 v2: d81만 배포=안 D(사람 정지, maxEntries 미사용), B 포함판=안 B(B1~B6 순서 뒤에만). 실행 원문 아님 [안](evidence/live-smoke-plan-v2-20261125/README.md). 운영 호출·주문 0. 남은 허용 작업 없음 → 11-27 10:00 N03 확인과 17:35 U0 대기

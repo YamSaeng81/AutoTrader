@@ -1,5 +1,7 @@
 # 현재 인계
 
+**v1.243: 대기 대신 B 포함판 검증을 바로 진행한다. 복구 v3·1만원 실행 초안→격리 PG1묶음→통과·제품 동일 시 전체 회귀1회→성공 시 LF jar1회. 11-26 18:00 전 목표·완료 즉시 제출. 안 D 미채택, 27일 기존 d81 실행 출처는 별도 변경 승인 전 유지. [범위](evidence/review-6ae82351/README.md)**
+
 **v1.242: EXP1 794480ea 수용(348/348), 11-27 17:35~19:30 U0→U1 조건부 각 1회 승인. U2 사용자 확인 유지. 지금은 B 후보 누락 Gradle 로그 4개 보충부터, 예약 H2 2클래스만 확인→복구 SQL·1만원 포함안 정리. 운영 시작/계좌 읽기/B 포함 미승인. [단일 지시](evidence/review-a1d5fddb/README.md)**
 
 **v1.242 §3 로컬 결과(제출, 11-25 KST):** ① B 로그 4개는 로컬 바이트가 SHA256SUMS와 4/4 일치(.gitignore `*.log` 때문에 빠졌음) → 정확한 경로만 추가, 블롭 **38/38** `27efab9e` ② c43e1f1a H2 예약 시험 CapitalPoolLimit 8 + ConcurrentEntryCap 3 = **11/11** rc0, 1회 [근거](evidence/one-entry-b-h2-20261125/README.md) ③ 복구 확인 SQL v2: 정리 대기 `done_at IS NULL`(V87·countPending과 같음), 미정산 열 추가(findSettlementDue 조건), 활성 6상태·정지 경고 3상태 대조. SQL·PG 실행 0 [근거](evidence/one-entry-recovery-sql-20261125/README.md) ④ 1만원 시험안 v2: d81만 배포=안 D(사람 정지, maxEntries 미사용), B 포함판=안 B(B1~B6 순서 뒤에만). 실행 원문 아님 [안](evidence/live-smoke-plan-v2-20261125/README.md). 운영 호출·주문 0. 남은 허용 작업 없음 → 11-27 10:00 N03 확인과 17:35 U0 대기
