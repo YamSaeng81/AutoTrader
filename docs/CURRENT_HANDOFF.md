@@ -2,6 +2,8 @@
 
 **v1.242: EXP1 794480ea 수용(348/348), 11-27 17:35~19:30 U0→U1 조건부 각 1회 승인. U2 사용자 확인 유지. 지금은 B 후보 누락 Gradle 로그 4개 보충부터, 예약 H2 2클래스만 확인→복구 SQL·1만원 포함안 정리. 운영 시작/계좌 읽기/B 포함 미승인. [단일 지시](evidence/review-a1d5fddb/README.md)**
 
+**v1.242 §3 로컬 결과(제출, 11-25 KST):** ① B 로그 4개는 로컬 바이트가 SHA256SUMS와 4/4 일치(.gitignore `*.log` 때문에 빠졌음) → 정확한 경로만 추가, 블롭 **38/38** `27efab9e` ② c43e1f1a H2 예약 시험 CapitalPoolLimit 8 + ConcurrentEntryCap 3 = **11/11** rc0, 1회 [근거](evidence/one-entry-b-h2-20261125/README.md) ③ 복구 확인 SQL v2: 정리 대기 `done_at IS NULL`(V87·countPending과 같음), 미정산 열 추가(findSettlementDue 조건), 활성 6상태·정지 경고 3상태 대조. SQL·PG 실행 0 [근거](evidence/one-entry-recovery-sql-20261125/README.md) ④ 1만원 시험안 v2: d81만 배포=안 D(사람 정지, maxEntries 미사용), B 포함판=안 B(B1~B6 순서 뒤에만). 실행 원문 아님 [안](evidence/live-smoke-plan-v2-20261125/README.md). 운영 호출·주문 0. 남은 허용 작업 없음 → 11-27 10:00 N03 확인과 17:35 U0 대기
+
 **v1.241: 자연 만료 경로 확정. 정상 R1=0 U0에 기록 보완만 반영한 새 출처/시도 경로를 11-26 18:00까지 제출한다. 목표 11-27 17:35~19:30 U0 비용 조회를 R1 재확인으로 합침(구체 실행은 출처 수용 뒤). B안 별도 후보 구현·직접 검증 승인, D81과 분리. U2 사용자 확인 유지. [지시](evidence/review-0eb85715/README.md)**
 
 **v1.241 §3 1회 제한 B 후보(제출, 11-25 KST):** `candidate/live-one-entry-d81c3f2f` c43e1f1a — 생성 첫 줄에서 maxEntries 정수 1 외 거절, 예약 잠금 뒤·차감 전 수명 전체 LIVE BUY 행 수≥1이면 ENTRY_LIMIT_REACHED(조회 실패는 롤백). 같은 시험 기점 5/12 → 후보 12/12(격리 PG 9: 실제 잠금 대기·read committed 출력 포함). 정지 경합·A3는 별개, 구판 복구 전 정지+읽기 확인 SQL 초안(PG 미검증). main·D81 미통합, 운영 0회 [근거](evidence/one-entry-b-20261125/README.md)
