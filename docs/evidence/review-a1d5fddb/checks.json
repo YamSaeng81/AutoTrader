@@ -1,0 +1,27 @@
+{
+  "reviewed_commit": "a1d5fddb",
+  "production_calls": 0,
+  "tests_rerun": false,
+  "checks": [
+    {
+      "folder": "d81a2-exp1-src-20261125",
+      "listed": 348,
+      "matching_commit_blobs": 348,
+      "missing": [],
+      "mismatches": []
+    },
+    {
+      "folder": "one-entry-b-20261125",
+      "listed": 38,
+      "matching_commit_blobs": 34,
+      "missing": [
+        "runs/base-r1/gradle.log",
+        "runs/base-r2/gradle.log",
+        "runs/base-r3/gradle.log",
+        "runs/cand-r1/gradle.log"
+      ],
+      "mismatches": []
+    }
+  ],
+  "remote_independent_check": "ls-remote failed: local schannel credentials unavailable"
+}
