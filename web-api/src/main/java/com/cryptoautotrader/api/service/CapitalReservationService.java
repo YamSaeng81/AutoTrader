@@ -98,6 +98,10 @@ public class CapitalReservationService {
     public static final String INVALID_REQUEST = "INVALID_REQUEST";
     /** 진입 승인 실행 만료(N15) — 잠금을 잡은 뒤 만료 시각이 지났다. */
     public static final String ENTRY_EXPIRED = "ENTRY_EXPIRED";
+    /** v1.241 §3 — 1회 제한 옵션 세션이 이미 매수 의도를 1건 이상 가졌다(상태 무관). */
+    public static final String ENTRY_LIMIT_REACHED = "ENTRY_LIMIT_REACHED";
+    /** v1.241 §3 — 저장된 1회 제한 옵션 값이 정수 1 이 아니다(생성 검증 우회·수동 편집). 판정할 수 없으므로 거절한다. */
+    public static final String ENTRY_LIMIT_INVALID = "ENTRY_LIMIT_INVALID";
 
     /**
      * 판정 결과.
@@ -196,6 +200,15 @@ public class CapitalReservationService {
         Decision expiredAfterLock = entryExpiry(entryExpiresAt, "잠금 뒤");
         if (expiredAfterLock != null) {
             return logged(sessionId, expiredAfterLock);
+        }
+
+        // ①-3 LIVE 새 매수 의도 최대 1회(v1.241 §3, 선택 옵션 strategy_params.maxEntries) — 잠금 뒤, 한도·차감·의도 확정 전.
+        //      잠금을 얻은 뒤의 새 문장이라, 먼저 예약한 트랜잭션이 커밋한 의도를 본다. DYNAMIC 은 보지 않는다.
+        if ("LIVE".equals(kind)) {
+            Decision entryLimit = liveEntryLimit(sessionId);
+            if (entryLimit != null) {
+                return logged(sessionId, entryLimit);
+            }
         }
 
         long exclude = selfPositionId != null ? selfPositionId : NO_ID;
@@ -336,6 +349,34 @@ public class CapitalReservationService {
         }
         return Decision.reject(ENTRY_EXPIRED,
                 "승인 실행 만료(만료 " + entryExpiresAt + ", " + stage + " 판정 " + now + ") — 새 예약·매수 의도 없음");
+    }
+
+    /**
+     * LIVE 1회 제한 판정(v1.241 §3) — 옵션 없는 세션은 {@code null}(판정 없음, 기존 동작).
+     *
+     * <p>세는 것: 정확히 {@code session_kind = 'LIVE'}·이 세션 ID·매수인 주문 행 <b>전부</b>(상태·기간 필터 없음). UNKNOWN·FAILED·CANCELLED·철회도
+     * 1회 소진이다. 다른 종류(DYNAMIC)의 같은 ID 는 섞지 않는다. 롤백된 예약은 행이 없어 세지 않는다.
+     * 🔴 조회 실패는 예외 그대로 올린다 — 호출자 트랜잭션이 롤백되어 예약·의도가 생기지 않는다. 허용으로 바꾸지 않는다.</p>
+     */
+    private Decision liveEntryLimit(Long sessionId) {
+        LiveTradingSessionEntity session = sessionRepository.findById(sessionId).orElse(null);
+        if (session == null) {
+            return null;   // ④ 가 INVALID_REQUEST 로 거절한다
+        }
+        LiveEntryLimit.State state = LiveEntryLimit.of(session.getStrategyParams());
+        if (state == LiveEntryLimit.State.NONE) {
+            return null;
+        }
+        if (state == LiveEntryLimit.State.INVALID) {
+            return Decision.reject(ENTRY_LIMIT_INVALID,
+                    "1회 제한 옵션(strategy_params." + LiveEntryLimit.KEY + ")이 정수 1 이 아니다 — 새 매수 의도 없음");
+        }
+        long used = orderRepository.countLiveBuyIntentsLifetime(sessionId);
+        if (used >= 1) {
+            return Decision.reject(ENTRY_LIMIT_REACHED, String.format(
+                    "새 매수 의도 최대 1회 — 이 LIVE 세션의 수명 전체 매수 의도 %d건(상태 무관) — 새 예약·매수 의도 없음", used));
+        }
+        return null;
     }
 
     private static Decision sessionFunds(BigDecimal before, BigDecimal amount) {

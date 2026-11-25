@@ -316,6 +316,14 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
     long countUnresolvedSubmissions(@Param("kind") String kind, @Param("sessionId") Long sessionId);
 
     /**
+     * LIVE 세션의 <b>수명 전체</b> 매수 의도 수 (총괄 v1.241 §3, 1회 제한) — 상태·기간 필터 없음. 다른 종류(DYNAMIC)의 같은 ID 는 세지 않는다.
+     * 계좌 잠금 안에서만 부른다({@code CapitalReservationService}).
+     */
+    @Query(value = "SELECT count(*) FROM \"order\" WHERE session_kind = 'LIVE' AND session_id = :sessionId AND UPPER(side) = 'BUY'",
+            nativeQuery = true)
+    long countLiveBuyIntentsLifetime(@Param("sessionId") Long sessionId);
+
+    /**
      * 철회 — {@code INTENT_READY} → {@code FAILED} <b>조건부</b> 전환 (V84, V86).
      *
      * <p>🔴 <b>claim 과 같은 행·같은 조건을 다툰다.</b> 두 전환이 모두

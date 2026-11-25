@@ -365,6 +365,8 @@ public class LiveTradingService {
      */
     @Transactional
     public synchronized LiveTradingSessionEntity createSession(LiveTradingStartRequest req) {
+        // v1.241 §3 — 1회 제한 옵션(strategy_params.maxEntries)은 생략하거나 정수 1 만. 잘못된 값은 자본 배정·계좌 동기화·저장보다 먼저 거절한다.
+        LiveEntryLimit.validateForCreate(req.getStrategyParams());
         // 비활성 전략 차단 — DYNAMIC에만 있던 검사를 2026-08-18에 이 경로에도 건다.
         // kill criteria가 폐기 시 전략을 비활성화하는 목적(같은 전략으로 새 세션을 만들어
         // 재개하는 것을 막는 것)이 세 진입점 중 하나만 막혀 있으면 달성되지 않는다.
