@@ -1,0 +1,6 @@
+ok H01 v2 {1: 0, 2: 1, 3: 1, 4: 1, 5: 0, 6: 0, 7: 0, 8: 0}
+ok H02 원래 {1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1}
+ok H03 알 수 없음/NULL {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 1, 8: 1}
+ok H04 v2: HELD_SQL="SELECT count(*) FROM position WHERE session_kind='LIVE' AND session_id=\$SID AND status IN ('OPEN','CLOSING')" | 원래: q "SELECT count(*) FROM position WHERE session_kind='LIVE' AND session_id=$SID AND (status IN ('OPEN','CLOSING') OR size<>0)" | tee "$M/held-before-stop.txt"
+t_held ok 4 / 4
+rc=0
