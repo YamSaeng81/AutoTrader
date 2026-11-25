@@ -172,19 +172,32 @@ class LiveOneEntryLimitPgTest {
         boolean approved() { return orderId != null; }
     }
 
+    /**
+     * 지문은 <b>예약 트랜잭션 밖에서</b> 계산한다 — 제품(executeSessionBuy)과 같다. 트랜잭션 안에서 세션을 잠금 전에 읽으면 그 영속 문맥의 낡은
+     * 엔티티로 차감해 낙관적 잠금 충돌이 난다(base-r2 ④ 시험기 결함, 제품 경로 아님).
+     */
+    private String hashOf(Long sessionId) {
+        return rulesetRegistry.hashFor(liveRepo.findById(sessionId).orElseThrow());
+    }
+
+    /** 호출자 트랜잭션 안: 슬롯 저장 → reserveAndPrepareIntent(제품 매수 경로와 같은 순서). */
+    private Long slotAndReserve(Long sessionId, String hash, Instant expiresAt) {
+        PositionEntity pos = PositionEntity.builder().rulesetHash(hash)
+                .coinPair("KRW-BTC").side("BUY").entryPrice(new BigDecimal("100")).avgPrice(new BigDecimal("100"))
+                .size(BigDecimal.ZERO).investedKrw(BUY).entryAllocationKrw(BUY).status("OPEN").sessionId(sessionId).build();
+        PositionEntity saved = positionRepository.save(pos);
+        OrderRequest o = new OrderRequest();
+        o.setCoinPair("KRW-BTC"); o.setSide("BUY"); o.setOrderType("MARKET"); o.setQuantity(BUY);
+        o.setReason("1회 제한 PG 시험"); o.setSignalPrice(new BigDecimal("100"));
+        o.setSessionId(sessionId); o.setSessionKind("LIVE"); o.setPositionId(saved.getId()); o.setEntryExpiresAt(expiresAt);
+        return orderExecutionEngine.reserveAndPrepareIntent(o);
+    }
+
     private R reserveIn(TransactionTemplate tx, Long sessionId, Instant expiresAt, boolean rollbackAfter) {
+        String hash = hashOf(sessionId);
         try {
             Long id = tx.execute(st -> {
-                LiveTradingSessionEntity session = liveRepo.findById(sessionId).orElseThrow();
-                PositionEntity pos = PositionEntity.builder().rulesetHash(rulesetRegistry.hashFor(session))
-                        .coinPair("KRW-BTC").side("BUY").entryPrice(new BigDecimal("100")).avgPrice(new BigDecimal("100"))
-                        .size(BigDecimal.ZERO).investedKrw(BUY).entryAllocationKrw(BUY).status("OPEN").sessionId(sessionId).build();
-                PositionEntity saved = positionRepository.save(pos);
-                OrderRequest o = new OrderRequest();
-                o.setCoinPair("KRW-BTC"); o.setSide("BUY"); o.setOrderType("MARKET"); o.setQuantity(BUY);
-                o.setReason("1회 제한 PG 시험"); o.setSignalPrice(new BigDecimal("100"));
-                o.setSessionId(sessionId); o.setSessionKind("LIVE"); o.setPositionId(saved.getId()); o.setEntryExpiresAt(expiresAt);
-                Long r = orderExecutionEngine.reserveAndPrepareIntent(o);
+                Long r = slotAndReserve(sessionId, hash, expiresAt);
                 if (rollbackAfter) st.setRollbackOnly();
                 return r;
             });
@@ -309,6 +322,7 @@ class LiveOneEntryLimitPgTest {
     @DisplayName("④ 동시 예약 2 — 둘째가 실제 계좌 잠금을 기다린 뒤 먼저 커밋된 의도를 보고 거절, 의도 1")
     void c4_concurrentTwoOneIntent() throws Exception {
         LiveTradingSessionEntity s = newLive(one());
+        String hash = hashOf(s.getId());
         CountDownLatch aReserved = new CountDownLatch(1);
         CountDownLatch release = new CountDownLatch(1);
         ExecutorService ex = Executors.newFixedThreadPool(2);
@@ -316,14 +330,7 @@ class LiveOneEntryLimitPgTest {
             Future<R> fa = ex.submit(() -> {
                 try {
                     Long id = new TransactionTemplate(txManager).execute(st -> {
-                        LiveTradingSessionEntity session = liveRepo.findById(s.getId()).orElseThrow();
-                        PositionEntity saved = positionRepository.save(PositionEntity.builder().rulesetHash(rulesetRegistry.hashFor(session))
-                                .coinPair("KRW-BTC").side("BUY").entryPrice(new BigDecimal("100")).avgPrice(new BigDecimal("100"))
-                                .size(BigDecimal.ZERO).investedKrw(BUY).entryAllocationKrw(BUY).status("OPEN").sessionId(s.getId()).build());
-                        OrderRequest o = new OrderRequest();
-                        o.setCoinPair("KRW-BTC"); o.setSide("BUY"); o.setOrderType("MARKET"); o.setQuantity(BUY);
-                        o.setSessionId(s.getId()); o.setSessionKind("LIVE"); o.setPositionId(saved.getId());
-                        Long r = orderExecutionEngine.reserveAndPrepareIntent(o);
+                        Long r = slotAndReserve(s.getId(), hash, null);
                         aReserved.countDown();
                         try { release.await(30, TimeUnit.SECONDS); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
                         return r;
@@ -376,8 +383,9 @@ class LiveOneEntryLimitPgTest {
     }
 
     @Test
-    @DisplayName("⑥ UNKNOWN·FAILED(철회)·CANCELLED 매수 의도도 1회 소진 — 다음 예약 거절")
+    @DisplayName("⑥ UNKNOWN·FAILED(철회)·CANCELLED 매수 의도도 1회 소진 — 다음 예약 거절(상태별 끝까지 기록)")
     void c6_unknownOrWithdrawnCounts() {
+        Map<String, String> got = new java.util.LinkedHashMap<>();
         for (String state : List.of("UNKNOWN", "FAILED", "CANCELLED")) {
             LiveTradingSessionEntity s = newLive(one());
             R a = reserve(s.getId());
@@ -387,16 +395,22 @@ class LiveOneEntryLimitPgTest {
             } else {
                 jdbc.update("UPDATE \"order\" SET state = ? WHERE id = ?", state, a.orderId());
             }
+            if (!"UNKNOWN".equals(state)) {   // 체결 없는 종결 — 슬롯은 고아 정리처럼 닫는다(기존 활성 중복 거절과 구분)
+                jdbc.update("UPDATE position SET status = 'CLOSED', closed_at = now() WHERE id = (SELECT position_id FROM \"order\" WHERE id = ?)", a.orderId());
+            }
             jdbc.update("UPDATE live_trading_session SET available_krw = ? WHERE id = ?", CAP, s.getId());
             R b = reserve(s.getId());
-            assertThat(b.code()).as(state + " 뒤 " + b).isEqualTo(LIMIT);
-            assertThat(buyRows(s.getId())).isEqualTo(1);
-            assertThat(available(s.getId())).isEqualByComparingTo(CAP);
+            got.put(state, b + " rows=" + buyRows(s.getId()) + " avail=" + available(s.getId()).toPlainString());
+        }
+        System.out.println("[OEPG] c6 " + got);
+        for (Map.Entry<String, String> e : got.entrySet()) {
+            assertThat(e.getValue()).as(e.getKey() + " 뒤").startsWith("R[orderId=null, code=" + LIMIT + "]")
+                    .contains("rows=1").contains("avail=" + CAP.toPlainString());
         }
     }
 
     @Test
-    @DisplayName("⑦ 다른 종류(DYNAMIC)의 같은 세션 ID 매수 행은 세지 않는다 — LIVE 예약 승인, 이후 LIVE 의도 1개로 거절")
+    @DisplayName("⑦ 다른 종류(DYNAMIC)의 같은 세션 ID 매수 행은 세지 않는다 — LIVE 예약 승인, 정산 뒤 LIVE 의도 1개로 거절")
     void c7_otherKindSameIdExcluded() {
         LiveTradingSessionEntity s = newLive(one());
         OrderEntity foreign = new OrderEntity();
@@ -406,18 +420,19 @@ class LiveOneEntryLimitPgTest {
         foreignOrderIds.add(foreign.getId());
         R a = reserve(s.getId());
         assertThat(a.approved()).as("DYNAMIC 행 무시 " + a).isTrue();
-        jdbc.update("UPDATE live_trading_session SET available_krw = ? WHERE id = ?", CAP, s.getId());
+        settleBuyThenSell(s.getId(), a.orderId());
         R b = reserve(s.getId());
-        assertThat(b.code()).isEqualTo(LIMIT);
+        assertThat(b.code()).as("LIVE 자기 이력 1 " + b).isEqualTo(LIMIT);
     }
 
     @Test
-    @DisplayName("⑧ 새 트랜잭션 재조회 — 커밋된 의도를 새 연결·새 트랜잭션이 보고 거절. 실제 격리 수준 기록")
+    @DisplayName("⑧ 새 트랜잭션 재조회 — 정산된 의도를 새 연결·새 트랜잭션이 보고 거절. 실제 격리 수준 기록")
     void c8_newTransactionRequery() {
         LiveTradingSessionEntity s = newLive(one());
         R a = reserve(s.getId());
         assertThat(a.approved()).isTrue();
-        jdbc.update("UPDATE live_trading_session SET available_krw = ? WHERE id = ?", CAP, s.getId());
+        settleBuyThenSell(s.getId(), a.orderId());
+        String hash = hashOf(s.getId());
         TransactionTemplate fresh = new TransactionTemplate(txManager);
         fresh.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
         String[] iso = new String[2];
@@ -426,14 +441,7 @@ class LiveOneEntryLimitPgTest {
             Long id = fresh.execute(st -> {
                 iso[0] = jdbc.queryForObject("SHOW transaction_isolation", String.class);
                 iso[1] = jdbc.queryForObject("SELECT pg_backend_pid()::text", String.class);
-                LiveTradingSessionEntity session = liveRepo.findById(s.getId()).orElseThrow();
-                PositionEntity saved = positionRepository.save(PositionEntity.builder().rulesetHash(rulesetRegistry.hashFor(session))
-                        .coinPair("KRW-BTC").side("BUY").entryPrice(new BigDecimal("100")).avgPrice(new BigDecimal("100"))
-                        .size(BigDecimal.ZERO).investedKrw(BUY).entryAllocationKrw(BUY).status("OPEN").sessionId(s.getId()).build());
-                OrderRequest o = new OrderRequest();
-                o.setCoinPair("KRW-BTC"); o.setSide("BUY"); o.setOrderType("MARKET"); o.setQuantity(BUY);
-                o.setSessionId(s.getId()); o.setSessionKind("LIVE"); o.setPositionId(saved.getId());
-                return orderExecutionEngine.reserveAndPrepareIntent(o);
+                return slotAndReserve(s.getId(), hash, null);
             });
             b = new R(id, null);
         } catch (OrderExecutionEngine.ReservationRejected rej) {
@@ -450,6 +458,7 @@ class LiveOneEntryLimitPgTest {
     @DisplayName("⑨ 이력 조회 실패는 허용이 아니다 — order 표 잠금으로 조회가 시간 초과하면 승인·의도·차감 없음")
     void c9_queryFailureIsNotApproval() throws Exception {
         LiveTradingSessionEntity s = newLive(one());
+        String hash = hashOf(s.getId());
         CountDownLatch locked = new CountDownLatch(1);
         CountDownLatch release = new CountDownLatch(1);
         ExecutorService ex = Executors.newSingleThreadExecutor();
@@ -465,14 +474,7 @@ class LiveOneEntryLimitPgTest {
             try {
                 Long id = new TransactionTemplate(txManager).execute(st -> {
                     jdbc.execute("SET LOCAL lock_timeout = '1500ms'");
-                    LiveTradingSessionEntity session = liveRepo.findById(s.getId()).orElseThrow();
-                    PositionEntity saved = positionRepository.save(PositionEntity.builder().rulesetHash(rulesetRegistry.hashFor(session))
-                            .coinPair("KRW-BTC").side("BUY").entryPrice(new BigDecimal("100")).avgPrice(new BigDecimal("100"))
-                            .size(BigDecimal.ZERO).investedKrw(BUY).entryAllocationKrw(BUY).status("OPEN").sessionId(s.getId()).build());
-                    OrderRequest o = new OrderRequest();
-                    o.setCoinPair("KRW-BTC"); o.setSide("BUY"); o.setOrderType("MARKET"); o.setQuantity(BUY);
-                    o.setSessionId(s.getId()); o.setSessionKind("LIVE"); o.setPositionId(saved.getId());
-                    return orderExecutionEngine.reserveAndPrepareIntent(o);
+                    return slotAndReserve(s.getId(), hash, null);
                 });
                 r = new R(id, null);
             } catch (OrderExecutionEngine.ReservationRejected rej) {
