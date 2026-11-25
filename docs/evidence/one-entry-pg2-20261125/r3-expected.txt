@@ -1,0 +1,13 @@
+# r3 사전 고정 기대(실행 전, 총괄 v1.245 §3). 형식: 이름 기대판정 필요사유(FAIL은 판정기 사유가 정확히 이 1줄, ~는 공백, -는 해당 없음)
+# r2 실제 세션(sid 23, 읽기 전용)
+r2_real_v3 FAIL open_or_residual_positions~=~1
+r2_real_v4 PASS -
+# 새 합성 DB oe2_gate_r3, 게이트 v4
+c_closed_size_sold PASS -
+c_open_size0 FAIL open_or_residual_positions~=~1
+c_closing_size0 FAIL open_or_residual_positions~=~1
+c_partial_open FAIL open_or_residual_positions~=~1
+c_closed_sell_unapplied FAIL sell_unapplied~=~1
+c_closed_cleanup_pending FAIL cleanup_pending~=~1
+c_pos_status_unknown FAIL unknown_position_status~=~1
+c_pos_status_null FAIL unknown_position_status~=~1
