@@ -1,5 +1,7 @@
 # 현재 인계
 
+**v1.258 현재 중단(11-28 14:25 확인): LIVE#204 STOPPED·buy0·gate PASS·BTC0·현금불변, exp2는 PREFLIGHT에서 종료돼 생성0. 진행 중 시험/자동 재개 없음. LIVE 실제 소스는 market_data_cache이며 candle_data 일일경로 문제라는 총괄 진단을 철회(15행 보충 개입은 기록). 공식11-09 02~07 공백5칸 등록 누락이 실제 차단. 표1행 등록안은 미실행·사용자 확인 대기. 기존 exp1/exp2 재실행·정지된204 start·임의 결측허용/가격합성 금지. [출처/정정/승인안](evidence/maintenance-1109-approval-20261128/README.md)**
+
 **v1.256 시험 진행 중(11-28 14:01): 사용자 수신/대응·APENFT 분리·외부 거래중지 확인. 서버 단일 작업 live-smoke-20261128-exp1이 LIVE#204 생성/대조/분리 관측 준비 후 시작함. driver249945·observer250633, RUNNING·원금10,000·상한9,950·maxEntries1, 당시 매수/미결/보유0. 기한14:20:59 KST이며 매수 정산 또는 기한에 정지1회→gate/거래소BTC잔량 검사. SID203/APENFT 변경 금지, Claude 중복 실행 금지. SSH MaxStartups로 초기 전송 실패 뒤 부재 확인 후 새 원문 단일 시작, 설정 변경 없음. [진행 근거](evidence/live-smoke-exec-20261128/README.md)**
 
 **v1.255(11-28 후속): 총괄이 최소 읽기2회(GET/읽기전용SQL)·로컬 F/F1/N06 갱신안·실주문v3 직접 영향 보완을 완료. 수신/대응·APENFT 기존 보유 분리/외부 거래중지 두 답변은 대기 중이며 yes로 채우지 않음. 마지막 금액/활성 상태 직접 읽기는12:53 KST, 별도 GET으로 APENFT 통화명만 확인. 서버 생성/시작/주문0. Claude의 독립 후속은 새 출처 핀 검토·유한 관측/종료 연결 준비이며 같은 운영 실행을 중복하지 않음. [작업 지시](evidence/postdeploy-next-20261128/README.md)**

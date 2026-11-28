@@ -1,5 +1,7 @@
 # 12월 제한 실거래 시험 — 현재 계획
 
+**v1.258 보류(11-28): LIVE#204는 매수0·STOPPED·gate PASS·BTC잔량0·현금 불변으로 종료, exp2는 생성 전 거절. 확정 원인은11-09 KST02~07 공식 점검 공백5칸의 등록 누락. 실제 LIVE는 MarketDataCacheRepository를 사용하며 앞선 candle_data 경로 진단/재빌드 권고와 exp2 입력 기준은 철회한다. 오늘 candle_data 보충15행은 불필요한 개입으로 기록. 공식 공지·공개조회·runtime 부재조회 로그는 확보했으나 운영 표1행 등록은 사용자 확인 전 미실행. [정정·정확한 승인안](evidence/maintenance-1109-approval-20261128/README.md)**
+
 **v1.256 진행 중(11-28): 사용자 회신으로 수신/대응·기존APENFT 분리·외부 거래중지 확인. 서버 job live-smoke-20261128-exp1이 LIVE#204 생성/전체 설정 대조·observer armed 후 시작, 14:01 RUNNING(당시 매수0). 시험 기한14:20:59, 매수 정산/기한에 정지1회·gate v4/BTC잔량 대조. 1만원 한도·maxEntries1·단일 실행자, SID203 유지. 배포/제품/cron 변경 없음. [진행](evidence/live-smoke-exec-20261128/README.md)**
 
 **v1.255(11-28): 다음 작업 착수. 새 F/F1 사본·N06 핀 표 준비/구문 통과, 기존 RUNBOOK 원문 보존. 실제 읽기에서 KRW55,853.46822862·배정20,200·BTC0·활성/보유/정리0·수수료0.0005/최소5천 확인. APENFT 별도 보유1종·수신/대응·외부 거래중지 확인 대기. 실주문v3 HTTP/시작/기록 보완12/12·P0 조립 결함 재현/보완, 전체 실행·생성·주문은 미실행. 다음은 유한 관측/종료 연결과 신선한 시작 전 대조. [작업 순서](evidence/postdeploy-next-20261128/README.md)**

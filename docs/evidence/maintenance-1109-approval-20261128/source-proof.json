@@ -1,0 +1,15 @@
+{
+  "commit": "1b719645ef907cb1aa45ffa01438fcfda7566758",
+  "service_sha256": "e40daa473030ad29faafc8b5e4b7065a1aa6dfe3cc3b8d09fc89d64de7edb8cd",
+  "repository_declaration": [
+    "private final MarketDataCacheRepository candleDataRepository;"
+  ],
+  "fetch_path": [
+    "List<Candle> candles = freshCandles(coinPair, timeframe, fetchRecentCandles(coinPair, timeframe));",
+    "return TickCandleCache.get(coinPair, timeframe, () -> loadRecentCandles(coinPair, timeframe));",
+    "return candleDataRepository.findCandles(coinPair, timeframe, from, to).stream()"
+  ],
+  "market_entity_table": [
+    "@Table(name = \"market_data_cache\")"
+  ]
+}
