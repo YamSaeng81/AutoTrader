@@ -1,0 +1,68 @@
+[
+  {
+    "case": "no_signal_wait",
+    "actual": null,
+    "expected": null,
+    "pass": true
+  },
+  {
+    "case": "no_signal_deadline",
+    "actual": "OBSERVATION_DEADLINE",
+    "expected": "OBSERVATION_DEADLINE",
+    "pass": true
+  },
+  {
+    "case": "filled_stop",
+    "actual": "BUY_SETTLED",
+    "expected": "BUY_SETTLED",
+    "pass": true
+  },
+  {
+    "case": "pending_wait",
+    "actual": null,
+    "expected": null,
+    "pass": true
+  },
+  {
+    "case": "fee_missing_wait",
+    "actual": null,
+    "expected": null,
+    "pass": true
+  },
+  {
+    "case": "failed_no_retry",
+    "actual": "BUY_TERMINAL_NO_RETRY",
+    "expected": "BUY_TERMINAL_NO_RETRY",
+    "pass": true
+  },
+  {
+    "case": "unknown_stop",
+    "actual": "ORDER_UNKNOWN",
+    "expected": "ORDER_UNKNOWN",
+    "pass": true
+  },
+  {
+    "case": "over_budget",
+    "actual": "COST_LIMIT_VIOLATION",
+    "expected": "COST_LIMIT_VIOLATION",
+    "pass": true
+  },
+  {
+    "case": "two_buys",
+    "actual": "BUY_LIMIT_VIOLATION",
+    "expected": "BUY_LIMIT_VIOLATION",
+    "pass": true
+  },
+  {
+    "case": "contract_mismatch",
+    "actual": "CONTRACT_MISMATCH",
+    "expected": "CONTRACT_MISMATCH",
+    "pass": true
+  },
+  {
+    "case": "already_stopped",
+    "actual": "ALREADY_STOPPED",
+    "expected": "ALREADY_STOPPED",
+    "pass": true
+  }
+]
