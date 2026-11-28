@@ -1,0 +1,18 @@
+[로컬 시작] 2026-11-28 12:10:11 KST(이 PC 시계) 블록=U2 구분=deploy 시도=user-approved-20261128 출처=452ac384 판=D81BX1
+V95 이후 이력(행수|내용): 1|96:true:-424836241
+2026-11-28 12:10:33 KST
+== 여기부터 재기동 — V96 은 이미 적용돼 있고 새 마이그레이션은 없다(DDL 단계 없음). 이 뒤의 멈춤은 '되돌림 필요'(U되돌림은 관문 4판 판정 뒤에만)
+ Container autotrader-backend-1 Recreate 
+ Container autotrader-backend-1 Recreated 
+ Container autotrader-backend-1 Starting 
+ Container autotrader-backend-1 Started 
+V95 이후 이력(행수|내용): 1|96:true:-424836241
+backend sha256:66c4eba80eebdce70746661dd8ac95054d3b0c9c6fbf5b11a96b2f1753315a89 2026-11-28T03:10:38.948790758Z
+db sha256:b26180320dea45a27190318903f63cc2839f190315663a53b6429a937dd02196 2026-10-21T04:45:59.107498608Z
+redis sha256:8b81dd37ff027bec4e516d41acfbe9fe2460070dc6d4a4570a2ac5b9d59df065 2026-10-21T04:45:59.097312922Z
+db-backup sha256:b26180320dea45a27190318903f63cc2839f190315663a53b6429a937dd02196 2026-10-28T23:35:34.179563141Z
+frontend sha256:9d7f123ad6afd75b46d954b7c7031267df5afb3bf6e99660d5a53a3c5d43798e 2026-11-16T07:15:16.447837224Z
+1b719645ef907cb1aa45ffa01438fcfda7566758
+(끝)
+✅ U2 통과 — 5~10분 뒤 U3(frontend 교체 없음 — 새 모의 세션을 만들지 않는다)
+[로컬 끝] 2026-11-28 12:11:01 KST rc=0

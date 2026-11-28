@@ -1,0 +1,56 @@
+[서버 시작] 2026-11-27T17:36:51+09:00 블록=U1 구분=deploy 출처=452ac384 판=D81BX1 작업=d81b-u0u1-20261125T051448Z-2283028
+freshness 회차 없음(pgrep 종료 1)
+== V171D4 — 바꾸기 전 대응 확인(backend·frontend 실행 컨테이너·이미지 이름·보존 태그)
+보존 태그 판정 backend:0e1d2a0=1 (0 있음·같음 / 1 명시적 부재 / 2 다른 대상 / 3 조회 불명) · frontend 보존 태그 없음(교체하지 않는다)
+2026-11-27 17:37:15 KST
+sha256:66c4eba80eebdce70746661dd8ac95054d3b0c9c6fbf5b11a96b2f1753315a89
+sha256:66c4eba80eebdce70746661dd8ac95054d3b0c9c6fbf5b11a96b2f1753315a89 sha256:625ba822f7ee8ea6936f0138b2335a54cd7b3473fbc0e2dd0b49b7bf4fe8e0c4 sha256:8e32ebb8479075cd28cf5c8cf8b92cf8e8d1af9299676328e2851310c8fd4af8 -
+43c4c59a11013bd8e4f33b8d9224420b1638e8099a323307fec4cdd5d0eea7ba  /home/manicstr/maint-d81b-20261127-exp1/app-old.jar
+f791ab9cf1ca4b4db7c9f27160d74ed6cdc1b955dace78a22d6e2d06b6d38a1b  /home/manicstr/maint-d81b-20261127-exp1/app-new.jar
+변경 BOOT-INF/classes/com/cryptoautotrader/api/dto/DynamicSessionRequest.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/entity/ExitReason$1.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/entity/ExitReason.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/report/LogAnalyzerService$NoTradeFunnel.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/report/LogAnalyzerService$PositionStats.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/report/LogAnalyzerService$RegimeStats.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/report/LogAnalyzerService$SignalStats.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/report/LogAnalyzerService.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/repository/OrderRepository.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/repository/PositionRepository.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/CapitalReservationService$Decision.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/CapitalReservationService.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/CircuitBreakerResult.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicEntryLimits.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$1.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$2.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$3.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$BlackSwanGateDecision.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$BuyCandidate.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$EmptyPositionOutcome.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveEntryLimit$State.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveEntryLimit.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService$1.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService$EmptyPositionOutcome.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService$PriceSnapshot.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderSettlementService$BuyIncrement.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderSettlementService$Outcome.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderSettlementService$SellAmounts.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderSettlementService.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/PaperTradingService$AlignedEntryExpired.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/PaperTradingService.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/service/RiskManagementService$ClosedPnl.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/RiskManagementService.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/TelegramNotificationService$Attempt.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/TelegramNotificationService$Outcome.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/TelegramNotificationService$Reply.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/TelegramNotificationService$SendMessageRequest.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/TelegramNotificationService$TradeEvent.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/TelegramNotificationService.class
+(끝) 895 900
+JARM e8f425079d0fb77a9f224ba027ad16a18415e74238dac41edcbe2f9a2018a546
+== frontend 무교체 — 빌드·태그 변경 없음. backend 빌드 뒤에도 frontend 이미지 이름·실행 컨테이너가 U0 대응 그대로인지만 본다
+✅ U1 통과 — ⏸ 운영자 확인 1회 뒤 U2(backend 만 재기동, frontend 교체 없음)
+[서버 끝] 2026-11-27T17:39:17+09:00 rc=0
