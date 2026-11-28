@@ -150,7 +150,9 @@ def main(config_path):
             current = snapshot(sid)
             record(out / "state.json", {"at": datetime.datetime.now(datetime.timezone.utc).isoformat(), "snapshot": current})
             now = time.time()
-            if abs((now - wall_start) - (time.monotonic() - mono_start)) > 2:
+            if (HERE / "cancel-start.flag").exists():
+                reason = "START_NOT_CONFIRMED"
+            elif abs((now - wall_start) - (time.monotonic() - mono_start)) > 2:
                 reason = "CLOCK_MOVED"
             else:
                 reason = decide(current, deadline, now)
