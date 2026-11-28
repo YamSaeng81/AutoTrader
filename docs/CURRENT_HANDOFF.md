@@ -1,6 +1,6 @@
 # 현재 인계
 
-**v1.260(11-28): LIVE#205는14:59:13 서버 자체 정지/검증 완료, 총괄17:59 회수. BUY0·STOPPED·gate PASS·BTC0·KRW불변, #204/#205 예산사용0. 공식 점검 ID2 등록 후 실제 전략 HOLD까지 도달해 입력 차단 해소. 낮 시험/정지된 세션 재시작 금지. 단일 서버 시험을11-29 09:03~09:23에 맞춰 준비 중이며 시작 허용09:03~09:08 미만, 현재 등록 여부는 새 폴더 launch-result로 확인한다. SID203/APENFT 유지·중복 실행 금지·비밀번호 사용 없음. [결과](evidence/live-smoke-exec3-20261128/RESULT.md) · [유한 실행](evidence/live-smoke-dailyclose-20261129/README.md)**
+**v1.260(11-28 18:06): LIVE#205는14:59:13 서버 자체 종료·BUY0·STOPPED·gate PASS·BTC0·KRW불변, 총괄17:59 회수. 공식 점검 ID2 등록 후 실제 전략 HOLD까지 도달해 입력 차단 해소. 다음 서버 시험은실등록 완료: PID382580·18:03 WAITING/프로세스 경로 일치,11-29 09:03~09:08 미만 시작·09:23 기한·1회/누적1만원 한도. 재등록/204·205 재시작 금지. 마지막 상태 읽기18:06: SID203불변·REAL실행0·정리0·66세션63/3. DYNAMIC 필터2개 저장값false 확인, 전역 변경/동적 생성 없음. [결과](evidence/live-smoke-exec3-20261128/RESULT.md) · [서버 등록/회수](evidence/live-smoke-dailyclose-20261129/REGISTERED.md) · [동적 설정](evidence/dynamic-runtime-read-20261128/README.md)**
 
 **v1.258 현재 중단(11-28 14:25 확인): LIVE#204 STOPPED·buy0·gate PASS·BTC0·현금불변, exp2는 PREFLIGHT에서 종료돼 생성0. 진행 중 시험/자동 재개 없음. LIVE 실제 소스는 market_data_cache이며 candle_data 일일경로 문제라는 총괄 진단을 철회(15행 보충 개입은 기록). 공식11-09 02~07 공백5칸 등록 누락이 실제 차단. 표1행 등록안은 미실행·사용자 확인 대기. 기존 exp1/exp2 재실행·정지된204 start·임의 결측허용/가격합성 금지. [출처/정정/승인안](evidence/maintenance-1109-approval-20261128/README.md)**
 

@@ -4,7 +4,7 @@
 
 **현재는 SID 203 CREATED 유지, 최종 S 미확정이다.** 운영 상태와 후보는 [현재 계획](LIMITED_LIVE_TEST_PLAN.md), 명령 원문은 [F 실행 절차](LIMITED_LIVE_TEST_RUNBOOK.md)에서만 관리한다.
 
-**11-28 실제 시험:** 공식 점검 ID2는 사용자 운영 위임으로 등록 완료. LIVE#204·#205 모두 매수0·STOPPED·gate PASS·BTC0·현금 불변이다. #205에서 실제 전략 HOLD·지문 일치, 등록 후 H1 입력 오류0을 확인해 입력 차단은 해소됐다. 실체결·최종S는 미완료다. DAILY_SMA20은 KST09:00 마감 봉에서만 신호를 내므로 다음 유한 시험은11-29 09:03을 목표로 준비한다. [실제 결과](evidence/live-smoke-exec3-20261128/RESULT.md) · [실행 범위](evidence/live-smoke-dailyclose-20261129/README.md). candle_data 경로 변경/재빌드 권고 철회는 유지한다.
+**11-28 실제 시험:** 공식 점검 ID2 등록 후 #205 실제 엔진 HOLD·지문 일치로 입력 차단은 해소됐다. #204·#205 BUY0·정상 정지·gate PASS·BTC0·현금 불변이며 실체결/최종S는 미완료다. KST09:00 마감 봉에 맞춘11-29 09:03 한 번의 서버 시험은 등록 완료(PID382580·WAITING 확인),09:23 기한·누적1만원 한도를 지킨다. DYNAMIC의 상승추세/급락 제외 저장값은false로 실제 확인했으며 제안의true 기본값과 구분한다. [결과](evidence/live-smoke-exec3-20261128/RESULT.md) · [서버 등록](evidence/live-smoke-dailyclose-20261129/REGISTERED.md) · [동적 실제값](evidence/dynamic-runtime-read-20261128/README.md). 추가 재빌드는 하지 않는다.
 
 ## 1. 지금 닫아야 할 확인
 
