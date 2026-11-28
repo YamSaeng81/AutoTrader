@@ -4,6 +4,8 @@
 
 **현재는 SID 203 CREATED 유지, 최종 S 미확정이다.** 운영 상태와 후보는 [현재 계획](LIMITED_LIVE_TEST_PLAN.md), 명령 원문은 [F 실행 절차](LIMITED_LIVE_TEST_RUNBOOK.md)에서만 관리한다.
 
+**최신11-28 18:41:** 거래소 직접 실행의 실제 BUY1/SELL1·원가9,954.18210375원·순손익−10.19550429원·잔량0·현금 증감 대조 완료. 앱 내부 장부/자연 전략 실체결 검증은 별도 미완료다. 내일09:03 자동 시험은 취소 완료, 아래 v1.260 등록 기록은 당시 이력이다. SID203/기존66세션은 불변이며12월 최종S/당일F1은 남는다. [확정 결과](evidence/broker-smoke-now2-20261128/RESULT.md)
+
 **11-28 실제 시험:** 공식 점검 ID2 등록 후 #205 실제 엔진 HOLD·지문 일치로 입력 차단은 해소됐다. #204·#205 BUY0·정상 정지·gate PASS·BTC0·현금 불변이며 실체결/최종S는 미완료다. KST09:00 마감 봉에 맞춘11-29 09:03 한 번의 서버 시험은 등록 완료(PID382580·WAITING 확인),09:23 기한·누적1만원 한도를 지킨다. DYNAMIC의 상승추세/급락 제외 저장값은false로 실제 확인했으며 제안의true 기본값과 구분한다. [결과](evidence/live-smoke-exec3-20261128/RESULT.md) · [서버 등록](evidence/live-smoke-dailyclose-20261129/REGISTERED.md) · [동적 실제값](evidence/dynamic-runtime-read-20261128/README.md). 추가 재빌드는 하지 않는다.
 
 ## 1. 지금 닫아야 할 확인

@@ -1,5 +1,7 @@
 # 12월 제한 실거래 시험 — 현재 계획
 
+**v1.261 실제 완료(11-28 18:41): 즉시 거래소 왕복 BUY1/SELL1, 매수+수수료9,954.18210375원·순손익−10.19550429원·잔량/잠금0·현금 증감 일치。내일09:03 자동 시험은 실제 취소했고 추가 주문 없음. 외부 실행 시험이므로 앱 내부 장부/자연 신호 실체결·12월 최종S 완료로 쓰지 않음. 제품/재빌드/DB 변경0, SID203/66세션 불변. [확정 결과와 다음 경계](evidence/broker-smoke-now2-20261128/RESULT.md)**
+
 **v1.260(11-28 18:06): 사용자 위임으로 공식 점검 ID2 등록 완료. #205는14:39 시작→14:59:13 서버 기한 종료·BUY0·STOPPED·gate PASS·BTC0·현금 불변, 총괄17:59 회수. 실제 엔진 HOLD/지문 일치로 입력 차단 해소. 유효 신호 KST09:00 마감에 맞춘11-29 09:03 단일 서버 시험 등록 완료(PID382580·WAITING 실제 확인). 09:08 이후 시작 금지·09:23 기한·누적1만원/1회 제한·재시도 없음. SID203 유지·실체결/최종S 미완료. DYNAMIC 저장 필터2개false를 실제 확인했으며 변경/생성은 하지 않음. [실제 결과](evidence/live-smoke-exec3-20261128/RESULT.md) · [서버 등록](evidence/live-smoke-dailyclose-20261129/REGISTERED.md) · [동적 실제값](evidence/dynamic-runtime-read-20261128/README.md)**
 
 **v1.258 보류(11-28): LIVE#204는 매수0·STOPPED·gate PASS·BTC잔량0·현금 불변으로 종료, exp2는 생성 전 거절. 확정 원인은11-09 KST02~07 공식 점검 공백5칸의 등록 누락. 실제 LIVE는 MarketDataCacheRepository를 사용하며 앞선 candle_data 경로 진단/재빌드 권고와 exp2 입력 기준은 철회한다. 오늘 candle_data 보충15행은 불필요한 개입으로 기록. 공식 공지·공개조회·runtime 부재조회 로그는 확보했으나 운영 표1행 등록은 사용자 확인 전 미실행. [정정·정확한 승인안](evidence/maintenance-1109-approval-20261128/README.md)**

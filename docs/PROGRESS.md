@@ -4,6 +4,8 @@
 
 ## 최신 제출과 수용을 구분한다
 
+**11-28 v1.261 실주문 완료:**18:41 거래소 BUY1/SELL1, 매수+수수료9,954.18210375원·순손익/현금증감−10.19550429원·BTC잔량/잠금0。앱 장부 전체 운영 검증과 분리, 내일 예약 취소·추가 주문 없음。첫 인증 로딩 실패 POST0 보존, 정정 사본17/17·사후SID203/66세션 불변。 [결과](evidence/broker-smoke-now2-20261128/RESULT.md)
+
 **11-28 v1.259~260 실제 운영:** 공식 점검 ID2 등록→#205 실제 HOLD/지문 일치→14:59 서버 기한 종료·BUY0·gate PASS·BTC0·현금 불변, 총괄17:59 회수. 일봉 마감에 맞춘11-29 09:03 유한 시험 실제 등록(PID382580·WAITING), 실체결은 미완료.18:04 DYNAMIC 필터7열/환경3키 읽기:상승추세·급락 제외false,18:06 SID203/66세션 불변. 추가 제품/빌드/회귀 없음. [결과](evidence/live-smoke-exec3-20261128/RESULT.md) · [서버 등록](evidence/live-smoke-dailyclose-20261129/REGISTERED.md) · [동적 설정](evidence/dynamic-runtime-read-20261128/README.md)
 
 **11-28 v1.258 실제 결과/정정:** LIVE#204는 생성/시작 후 실제 판정 관문에서 막혀 매수0으로 정지, gate PASS·잔량0·현금불변. exp2는 생성 전 거절. 실제 운영 repository타입 확인으로 candle_data 공급 경로 진단/재빌드 권고 철회. 공식11-09 점검 공백5칸 누락 확인, 등록안은 미실행. 추가 백필/원문 일괄반출 거절은 우회하지 않고 공개GET/요약·해시로 대체. [근거](evidence/maintenance-1109-approval-20261128/README.md)
