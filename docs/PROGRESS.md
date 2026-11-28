@@ -4,6 +4,8 @@
 
 ## 최신 제출과 수용을 구분한다
 
+**11-28 v1.262~263:** 누적 매수+수수료5만원 사용자 확정. 첫 비활성거절·신규0 보존, 활성 선검사39/39→허용4전략 실제HOLD3/SELL1·BUY0·정지/게이트/잔량/현금 대조 완료. 고정4전략 야간 각최대2h/단일진입 실행안21/21,19:14 실제시작→19:15 프로세스/heartbeat·LIVE#210 RUNNING 확인. 누적확정9,954.18210375원, 새제품/빌드/전역 변경0. [짧은 결과](evidence/strategy-live-suite-r2-20261128/RESULT.md) · [진행](evidence/strategy-live-night-20261128/STARTED.md)
+
 **11-28 v1.261 실주문 완료:**18:41 거래소 BUY1/SELL1, 매수+수수료9,954.18210375원·순손익/현금증감−10.19550429원·BTC잔량/잠금0。앱 장부 전체 운영 검증과 분리, 내일 예약 취소·추가 주문 없음。첫 인증 로딩 실패 POST0 보존, 정정 사본17/17·사후SID203/66세션 불변。 [결과](evidence/broker-smoke-now2-20261128/RESULT.md)
 
 **11-28 v1.259~260 실제 운영:** 공식 점검 ID2 등록→#205 실제 HOLD/지문 일치→14:59 서버 기한 종료·BUY0·gate PASS·BTC0·현금 불변, 총괄17:59 회수. 일봉 마감에 맞춘11-29 09:03 유한 시험 실제 등록(PID382580·WAITING), 실체결은 미완료.18:04 DYNAMIC 필터7열/환경3키 읽기:상승추세·급락 제외false,18:06 SID203/66세션 불변. 추가 제품/빌드/회귀 없음. [결과](evidence/live-smoke-exec3-20261128/RESULT.md) · [서버 등록](evidence/live-smoke-dailyclose-20261129/REGISTERED.md) · [동적 설정](evidence/dynamic-runtime-read-20261128/README.md)
