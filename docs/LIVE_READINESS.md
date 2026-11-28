@@ -4,7 +4,7 @@
 
 **현재는 SID 203 CREATED 유지, 최종 S 미확정이다.** 운영 상태와 후보는 [현재 계획](LIMITED_LIVE_TEST_PLAN.md), 명령 원문은 [F 실행 절차](LIMITED_LIVE_TEST_RUNBOOK.md)에서만 관리한다.
 
-**11-28 실제 시험:** LIVE#204 매수0·정상 정지, 실주문 체결은 미확인이다. 공식11-09 점검 공백5칸 등록 누락으로 입력 관문이 막혔다. [v1.258](evidence/maintenance-1109-approval-20261128/README.md)의 공식 구간1행 등록 판단 전에는 새 시험/12월 시작을 진행하지 않는다. 실제 LIVE 입력은 market_data_cache이며 candle_data 경로를 바꾸거나 재빌드해야 한다는 앞선 진단은 철회했다.
+**11-28 실제 시험:** 공식 점검 ID2는 사용자 운영 위임으로 등록 완료. LIVE#204·#205 모두 매수0·STOPPED·gate PASS·BTC0·현금 불변이다. #205에서 실제 전략 HOLD·지문 일치, 등록 후 H1 입력 오류0을 확인해 입력 차단은 해소됐다. 실체결·최종S는 미완료다. DAILY_SMA20은 KST09:00 마감 봉에서만 신호를 내므로 다음 유한 시험은11-29 09:03을 목표로 준비한다. [실제 결과](evidence/live-smoke-exec3-20261128/RESULT.md) · [실행 범위](evidence/live-smoke-dailyclose-20261129/README.md). candle_data 경로 변경/재빌드 권고 철회는 유지한다.
 
 ## 1. 지금 닫아야 할 확인
 
