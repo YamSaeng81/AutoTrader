@@ -1,0 +1,59 @@
+{
+  "cases": [
+    {
+      "case": "http_valid",
+      "pass": true
+    },
+    {
+      "case": "http_500",
+      "pass": true
+    },
+    {
+      "case": "invalid_json",
+      "pass": true
+    },
+    {
+      "case": "application_failure",
+      "pass": true
+    },
+    {
+      "case": "application_error_in_data",
+      "pass": true
+    },
+    {
+      "case": "missing_data",
+      "pass": true
+    },
+    {
+      "case": "nonobject",
+      "pass": true
+    },
+    {
+      "case": "reject_unrelated_path_before_opener",
+      "pass": true
+    },
+    {
+      "case": "start_running",
+      "pass": true,
+      "rc": 0
+    },
+    {
+      "case": "start_not_running",
+      "pass": true,
+      "rc": 1
+    },
+    {
+      "case": "start_http_failure",
+      "pass": true,
+      "rc": 1
+    },
+    {
+      "case": "start_marker_missing_parent",
+      "pass": true,
+      "rc": 1
+    }
+  ],
+  "passed": 12,
+  "total": 12,
+  "network_calls": 0
+}

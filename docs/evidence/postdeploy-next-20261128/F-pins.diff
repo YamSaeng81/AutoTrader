@@ -1,0 +1,29 @@
+--- original/F-variables-d81b.sh
++++ F-variables-d81b.sh
+@@ -1,8 +1,8 @@
+ cd ~/crypto_trader/AutoTrader
+ DC="docker compose -f docker-compose.prod.yml"; SID=203
+ START_DATE=2026-12-01   # 시작 예정일(KST). 연기하면 이 줄을 문서에서 고쳐 커밋한 뒤 그 값으로 쓴다
+-M=~/start-sid203; MS=~/maint-20261030-stage1; mkdir -p "$M"
+-NEW=0e1d2a021ab2f3c759a9b2be9c4f09430f93c80d   # v1.176 운영 반영 수용. 이전 b5cd1d0, 판정 근거 review-7fea1b89
++M=~/start-sid203-d81b; MS=~/maint-20261030-stage1; mkdir -p "$M"
++NEW=1b719645ef907cb1aa45ffa01438fcfda7566758   # v1.254 accepted deployment
+ PSQL="$DC exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader"
+ sc() { $PSQL -At -F ' | ' -c "
+   SELECT count(*) AS total,
+--- original/F1-d81b.sh
++++ F1-d81b.sh
+@@ -12,10 +12,10 @@
+ rm -f "$M/ok-F1" "$M/operator-confirm.txt"             # 이전 통과·확인으로 새 실패를 우회하지 않는다(사본은 위 폴더 보존)
+ date '+%F %T %Z' | tee "$M/t-f1.txt"; date -u '+%Y-%m-%dT%H:%M:%SZ' > "$M/t-f1.utc"
+ { git rev-parse HEAD; git status --porcelain --untracked-files=no; echo "(끝)"; } | tee "$M/git-f1.txt"
+-[ "$(head -1 "$M/git-f1.txt")" = "$NEW" ] && [ "$(sed -n 2p "$M/git-f1.txt")" = "(끝)" ] || stop "HEAD가 0e1d2a02가 아니거나 추적 파일 변경 있음 — 보고"
++[ "$(head -1 "$M/git-f1.txt")" = "$NEW" ] && [ "$(sed -n 2p "$M/git-f1.txt")" = "(끝)" ] || stop "HEAD가 1b719645가 아니거나 추적 파일 변경 있음 — 보고"
+ svc | tee "$M/svc-f1.txt"
+-IMGF1=sha256:2c5d84276cdbf01f718077e3d2d0475f6af5982d7afb95082750fcebe7f5979f   # v1.176 V172D4 운영 이미지, ~/maint-v172/image-new.txt
+-[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$IMGF1" ] && [ "$(cat ~/maint-v172/image-new.txt)" = "$IMGF1" ] || stop "backend 이미지가 V172D4 배포 이미지(2c5d8427…)와 다름 — 보고"
++IMGF1=sha256:66c4eba80eebdce70746661dd8ac95054d3b0c9c6fbf5b11a96b2f1753315a89   # v1.254 D81B 운영 이미지, ~/maint-d81b-20261127-exp1/image-new.txt
++[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$IMGF1" ] && [ "$(cat ~/maint-d81b-20261127-exp1/image-new.txt)" = "$IMGF1" ] || stop "backend 이미지가 D81B 배포 이미지(66c4eba8…)와 다름 — 보고"
+ [ "$(cat ~/ops-scripts/SID_LEDGER_SHA)" = 8bfe8a9fa896f400b3fb6681fef021c99d6ba43b ] && [ "$(sha256sum < ~/ops-scripts/sid_ledger.sql | cut -d' ' -f1)" = 02a8585021fb2a1a52d9b3b56b60e957cb71b9ca3c11bf819595df15cf334f1c ] || stop "설치 장부가 8bfe8a9 판(02a85850…)이 아님 — 보고"
+ # N18 제안: 정기 점검 설치판 대조(읽기 전용) — 누락·읽기 실패·불일치면 위 trap 의 당일 실패 표지로 끝나고 ok-F1 을 만들지 않는다. 설치·복구·chmod·수동 점검 실행으로 고치지 않는다
+ INSX="$(printf 'INSTALLED_SHA c669ccdc6e248ce8e55e9a7ac7405197d266fa18\ndaily_check.sh ff0a5d7dbc9e250d364a7f32f80106454b6f4b939d37c578f8192e8206e7c1cc\ndaily_checks.sql 653b22bab04b68c50bf9daf2a54f2c281f9c57eaf6795076225ed39d62d48fa8')"
